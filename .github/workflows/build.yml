@@ -27,19 +27,31 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - name: Accept the Android licences
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-      - name: Use the same signing key every time (so updates install over the old version)
+      - name: Restore the existing signing key from GitHub Secrets
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         run: |
-          if [ ! -f signing.keystore ]; then
-            keytool -genkeypair -keystore signing.keystore -storepass android -keypass android -alias androiddebugkey \
-              -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-            git config user.name "github-actions"
-            git config user.email "github-actions@users.noreply.github.com"
-            git add signing.keystore
-            git commit -m "Add signing key"
-            git push
-          fi
+          set -euo pipefail
+
+          [ -n "$SIGNING_KEYSTORE_BASE64" ] || { echo "Missing SIGNING_KEYSTORE_BASE64 secret"; exit 1; }
+          [ -n "$SIGNING_STORE_PASSWORD" ] || { echo "Missing SIGNING_STORE_PASSWORD secret"; exit 1; }
+          [ -n "$SIGNING_KEY_PASSWORD" ] || { echo "Missing SIGNING_KEY_PASSWORD secret"; exit 1; }
+          [ -n "$SIGNING_KEY_ALIAS" ] || { echo "Missing SIGNING_KEY_ALIAS secret"; exit 1; }
+
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > signing.keystore
+
+          keytool -list \
+            -keystore signing.keystore \
+            -storepass "$SIGNING_STORE_PASSWORD" \
+            -alias "$SIGNING_KEY_ALIAS" > /dev/null
+
           mkdir -p ~/.android
           cp signing.keystore ~/.android/debug.keystore
+
+          echo "Existing signing key restored successfully."
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: 8.14.4 }
       - name: Build release APK
