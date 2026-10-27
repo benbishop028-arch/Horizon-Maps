@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Horizon Nav on Android Auto: a navigation app built with Google's car app templates -->
+<automotiveApp>
+    <uses name="template" />
+</automotiveApp>
