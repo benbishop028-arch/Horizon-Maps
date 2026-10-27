@@ -171,15 +171,40 @@ jobs:
             "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
           NOTES="Horizon Nav ${VERSION}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
 
-          if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit app --repo "${{ github.repository }}" --title "Horizon Nav (${VERSION})" --notes "$NOTES"
+          # Keep a permanent, versioned release for the public history.
+          # If this workflow run is retried, update that same version rather than failing.
+          TAG="v${VERSION}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "${{ github.repository }}" \
+              --title "Horizon Nav ${VERSION}" --notes "$NOTES"
           else
-            gh release create app --repo "${{ github.repository }}" --title "Horizon Nav (${VERSION})" --notes "$NOTES" --latest=false
+            gh release create "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
+              --repo "${{ github.repository }}" \
+              --title "Horizon Nav ${VERSION}" --notes "$NOTES"
           fi
-          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" --repo "${{ github.repository }}" --clobber
-          gh release view app --repo "${{ github.repository }}" --json assets --jq '.assets[].name' | tee published-assets.txt
+          gh release upload "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
+            --repo "${{ github.repository }}" --clobber
+          gh release view "$TAG" --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name' | tee versioned-assets.txt
+          grep -Fxq "HorizonNav-public.apk" versioned-assets.txt
+          grep -Fxq "HorizonNav-public.apk.sha256" versioned-assets.txt
+          grep -Fxq "version.json" versioned-assets.txt
+
+          # Also refresh the stable release URL used by the app's built-in updater.
+          if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit app --repo "${{ github.repository }}" \
+              --title "Horizon Nav (${VERSION})" --notes "$NOTES"
+          else
+            gh release create app --repo "${{ github.repository }}" \
+              --title "Horizon Nav (${VERSION})" --notes "$NOTES" --latest=false
+          fi
+          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
+            --repo "${{ github.repository }}" --clobber
+          gh release view app --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name' | tee published-assets.txt
           grep -Fxq "HorizonNav-public.apk" published-assets.txt
           grep -Fxq "HorizonNav-public.apk.sha256" published-assets.txt
           grep -Fxq "version.json" published-assets.txt
           echo "Published ${VERSION} successfully."
-          echo "Download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
+          echo "Permanent version release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
+          echo "Updater download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
