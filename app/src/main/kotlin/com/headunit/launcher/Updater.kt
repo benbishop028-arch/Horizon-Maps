@@ -200,7 +200,14 @@ object Updater {
                         return
                     }
                     DownloadManager.STATUS_FAILED -> { dm.remove(id); throw IllegalStateException("Download failed") }
-                    else -> if (total > 0) progress("Downloading… ${done * 100 / total}%")
+                    else -> if (total > 0) {
+                        val percent = (done * 100 / total).coerceIn(0, 100)
+                        val doneMb = done / (1024.0 * 1024.0)
+                        val totalMb = total / (1024.0 * 1024.0)
+                        progress("Downloading… $percent% (${"%.1f".format(java.util.Locale.UK, doneMb)} / ${"%.1f".format(java.util.Locale.UK, totalMb)} MB)")
+                    } else if (done > 0) {
+                        progress("Downloading… ${"%.1f".format(java.util.Locale.UK, done / (1024.0 * 1024.0))} MB")
+                    }
                 }
             }
           }

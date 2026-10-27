@@ -1209,9 +1209,22 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 withContext(Dispatchers.IO) { Updater.downloadAndInstall(ctx, u) { updateStatus = it } }
                 updateStatus = "Follow the installer to finish"
             } catch (e: Exception) {
-                // no download service on this unit (or it failed): the browser can fetch it instead
-                updateStatus = "Opening the download in the browser…"
-                try { Updater.openInBrowser(ctx, u) } catch (e2: Exception) { updateStatus = "Download failed. Get it from the Reddit post link instead." }
+                // Never bypass checksum verification by opening the APK URL after a failed download.
+                // Browser fallback is reserved for devices that genuinely lack DownloadManager.
+                val message = e.message.orEmpty()
+                if (message.contains("No download service", ignoreCase = true)) {
+                    updateStatus = "Download service unavailable; opening the download in your browser…"
+                    try { Updater.openInBrowser(ctx, u) }
+                    catch (_: Exception) { updateStatus = "Couldn't open the download. Please try again." }
+                } else {
+                    updateStatus = when {
+                        message.contains("checksum", ignoreCase = true) -> "Verification failed. The downloaded file was removed; please try again."
+                        message.contains("timed out", ignoreCase = true) -> "Download timed out. Please try again."
+                        message.contains("cancelled", ignoreCase = true) -> "Download cancelled. Please try again."
+                        message.isNotBlank() -> message.take(140)
+                        else -> "Update failed. Please try again."
+                    }
+                }
             } finally { updateBusy = false }
         }
     }
