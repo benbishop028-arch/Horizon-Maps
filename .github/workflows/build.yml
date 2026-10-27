@@ -1,4 +1,4 @@
-namename: Build Horizon Nav
+name: Build Horizon Nav
 
 on:
   push:
