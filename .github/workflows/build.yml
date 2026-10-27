@@ -1,165 +1,218 @@
 name: Build Horizon Nav
+
+
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      publish:
-        description: "Also publish the app to the download link (so the app's update check finds it)"
-        type: boolean
-        default: false
+push:
+branches: [main]
+paths:
+- "HorizonNav.zip"
+- ".github/workflows/build.yml"
+workflow_dispatch:
+inputs:
+publish:
+description: "Also publish the app to the download link (so the app's update check finds it)"
+type: boolean
+default: false
+
+
 permissions:
-  contents: write
+contents: write
+
+
 jobs:
-  build:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v5
-      - name: Unpack the uploaded zip
-        run: |
-          ZIP=$(ls *.zip | head -1)
-          if [ -z "$ZIP" ]; then echo "No zip uploaded yet"; exit 1; fi
-          echo "Using $ZIP"
-          unzip -q -o "$ZIP" -d src
-          DIR=$(dirname "$(find src -name settings.gradle.kts | head -1)")
-          echo "PROJECT=$DIR" >> "$GITHUB_ENV"
-      - uses: actions/setup-java@v5
-        with: { distribution: temurin, java-version: 17 }
-      - name: Accept the Android licences
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-      - name: Restore the existing signing key from GitHub Secrets
-        env:
-          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
+build:
+runs-on: ubuntu-24.04
 
-          [ -n "$SIGNING_KEYSTORE_BASE64" ] || { echo "Missing SIGNING_KEYSTORE_BASE64 secret"; exit 1; }
-          [ -n "$SIGNING_STORE_PASSWORD" ] || { echo "Missing SIGNING_STORE_PASSWORD secret"; exit 1; }
-          [ -n "$SIGNING_KEY_PASSWORD" ] || { echo "Missing SIGNING_KEY_PASSWORD secret"; exit 1; }
-          [ -n "$SIGNING_KEY_ALIAS" ] || { echo "Missing SIGNING_KEY_ALIAS secret"; exit 1; }
 
-          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > signing.keystore
+steps:
+  - uses: actions/checkout@v5
+    with:
+      persist-credentials: true
 
-          keytool -list \
-            -keystore signing.keystore \
-            -storepass "$SIGNING_STORE_PASSWORD" \
-            -alias "$SIGNING_KEY_ALIAS" > /dev/null
+  - name: Unpack the uploaded zip
+    run: |
+      set -euo pipefail
 
-          mkdir -p ~/.android
-          cp signing.keystore ~/.android/debug.keystore
+      ZIP="HorizonNav.zip"
+      [ -f "$ZIP" ] || { echo "ERROR: $ZIP not found"; exit 1; }
 
-          echo "Existing signing key restored successfully."
-      - uses: gradle/actions/setup-gradle@v4
-        with: { gradle-version: 8.14.4 }
-      - name: Build release APK
-        working-directory: ${{ env.PROJECT }}
-        # the Mapbox download token comes from the repo's secret (only used if Mapbox asks for it)
-        env:
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
-        run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
-      - name: Verify APK signing certificate matches keystore
-        env:
-          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-        run: |
-          set -euo pipefail
+      rm -rf src
+      mkdir -p src
+      unzip -q "$ZIP" -d src
 
-          APK="${{ env.PROJECT }}/app/build/outputs/apk/release/HorizonNav-public.apk"
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
+      PROJECT_DIR="$(dirname "$(find src -name settings.gradle.kts -print -quit)")"
+      [ -f "$PROJECT_DIR/app/build.gradle.kts" ] || {
+        echo "ERROR: Could not find the Android app module."
+        exit 1
+      }
 
-          [ -f "$APK" ] || { echo "ERROR: APK not found"; exit 1; }
-          [ -n "$APKSIGNER" ] && [ -f "$APKSIGNER" ] || {
-            echo "ERROR: apksigner not found"; exit 1;
-          }
+      echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+      echo "Project found at $PROJECT_DIR"
 
-          KEY_FP="$(keytool -list -v \
-            -keystore signing.keystore \
-            -storepass "$STORE_PASSWORD" \
-            -alias "$KEY_ALIAS" |
-            sed -n 's/^[[:space:]]*SHA256: //p' |
-            head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+  - name: Sync project source into the repository
+    run: |
+      set -euo pipefail
 
-          APK_FP="$("$APKSIGNER" verify --print-certs "$APK" |
-            sed -n 's/.*certificate SHA-256 digest: //p' |
-            head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+      # Preserve repository management files and the uploaded ZIP.
+      rsync -a --delete \
+        --exclude='.git/' \
+        --exclude='.github/' \
+        --exclude='README.md' \
+        --exclude='HorizonNav.zip' \
+        --exclude='signing.keystore' \
+        "$PROJECT_DIR/" ./
 
-          if [ -z "$KEY_FP" ] || [ -z "$APK_FP" ]; then
-            echo "ERROR: Could not read both certificate fingerprints."
-            exit 1
-          fi
+      # Stage source changes, never the ZIP, workflow, README or signing key.
+      git add -A -- .
+      git reset -q -- HorizonNav.zip README.md signing.keystore .github 2>/dev/null || true
 
-          echo "Keystore fingerprint: $KEY_FP"
-          echo "APK fingerprint:      $APK_FP"
+      if ! git diff --cached --quiet; then
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git commit -m "Sync Horizon Nav source from uploaded ZIP [skip ci]"
+        git push origin HEAD:main
+        echo "Source files committed to the repository."
+      else
+        echo "Source files already match the uploaded ZIP."
+      fi
 
-          if [ "$KEY_FP" != "$APK_FP" ]; then
-            echo "FAIL: The APK and keystore certificates do not match."
-            exit 1
-          fi
+  - uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: 17
 
-          echo "PASS: The APK uses the expected signing certificate."
+  - name: Accept the Android licences
+    run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: HorizonNav-public-apk
-          path: ${{ env.PROJECT }}/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-      # Only when you tick "publish" on Run workflow: the APK goes to the release called "app", replacing the one there,
-      # so this link always gives the newest version:
-      #   https://github.com/<you>/<repo>/releases/download/app/HorizonNav-public.apk
-     
-      - name: Publish the app
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
+  - name: Restore the existing signing key from GitHub Secrets
+    env:
+      SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+    run: |
+      set -euo pipefail
 
-          APK="${{ env.PROJECT }}/app/build/outputs/apk/release/HorizonNav-public.apk"
-          CHECKSUM="HorizonNav-public.apk.sha256"
-          VERSION_JSON="version.json"
+      [ -n "$SIGNING_KEYSTORE_BASE64" ] || { echo "Missing SIGNING_KEYSTORE_BASE64 secret"; exit 1; }
+      [ -n "$SIGNING_STORE_PASSWORD" ] || { echo "Missing SIGNING_STORE_PASSWORD secret"; exit 1; }
+      [ -n "$SIGNING_KEY_PASSWORD" ] || { echo "Missing SIGNING_KEY_PASSWORD secret"; exit 1; }
+      [ -n "$SIGNING_KEY_ALIAS" ] || { echo "Missing SIGNING_KEY_ALIAS secret"; exit 1; }
 
-          [ -f "$APK" ] || { echo "No APK was built"; exit 1; }
+      printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > signing.keystore
 
-          BUILD="${GITHUB_RUN_NUMBER}"
-          VERSION="1.0.${BUILD}"
-          VERSION_CODE=$((100 + BUILD))
+      keytool -list \
+        -keystore signing.keystore \
+        -storepass "$SIGNING_STORE_PASSWORD" \
+        -alias "$SIGNING_KEY_ALIAS" > /dev/null
 
-          # Generate the checksum from the exact APK that will be published.
-          sha256sum "$APK" | awk '{print $1}' > "$CHECKSUM"
+      mkdir -p ~/.android
+      cp signing.keystore ~/.android/debug.keystore
 
-          # Publish version information for the in-app updater.
-          printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
-            "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
+      echo "Existing signing key restored successfully."
 
-          NOTES="Horizon Nav ${VERSION}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
+  - uses: gradle/actions/setup-gradle@v4
+    with:
+      gradle-version: 8.14.4
 
-          # Create the fixed release if it doesn't exist; otherwise update it.
-          if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" \
-              --notes "$NOTES"
-          else
-            gh release create app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" \
-              --notes "$NOTES" \
-              --latest=false
-          fi
+  - name: Build release APK
+    working-directory: ${{ env.PROJECT_DIR }}
+    env:
+      MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+    run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
 
-          # Upload all required updater files, replacing previous assets.
-          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
-            --repo "${{ github.repository }}" --clobber
+  - name: Verify APK signing certificate matches keystore
+    env:
+      STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+    run: |
+      set -euo pipefail
 
-          # Verify that all three assets are available on the release.
-          gh release view app --repo "${{ github.repository }}" \
-            --json assets \
-            --jq '.assets[].name' | tee published-assets.txt
+      APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
+      APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
 
-          grep -Fxq "HorizonNav-public.apk" published-assets.txt
-          grep -Fxq "HorizonNav-public.apk.sha256" published-assets.txt
-          grep -Fxq "version.json" published-assets.txt
+      [ -f "$APK" ] || { echo "ERROR: APK not found"; exit 1; }
+      [ -n "$APKSIGNER" ] && [ -f "$APKSIGNER" ] || {
+        echo "ERROR: apksigner not found"; exit 1;
+      }
 
-          echo "Published ${VERSION} successfully."
-          echo "Download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
+      KEY_FP="$(keytool -list -v \
+        -keystore signing.keystore \
+        -storepass "$STORE_PASSWORD" \
+        -alias "$KEY_ALIAS" |
+        sed -n 's/^[[:space:]]*SHA256: //p' |
+        head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+
+      APK_FP="$("$APKSIGNER" verify --print-certs "$APK" |
+        sed -n 's/.*certificate SHA-256 digest: //p' |
+        head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+
+      if [ -z "$KEY_FP" ] || [ -z "$APK_FP" ]; then
+        echo "ERROR: Could not read both certificate fingerprints."
+        exit 1
+      fi
+
+      echo "Keystore fingerprint: $KEY_FP"
+      echo "APK fingerprint:      $APK_FP"
+
+      if [ "$KEY_FP" != "$APK_FP" ]; then
+        echo "FAIL: The APK and keystore certificates do not match."
+        exit 1
+      fi
+
+      echo "PASS: The APK uses the expected signing certificate."
+
+  - uses: actions/upload-artifact@v4
+    with:
+      name: HorizonNav-public-apk
+      path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/*.apk
+      if-no-files-found: error
+
+  # Publishing remains manual: select "Run workflow" and tick "publish".
+  - name: Publish the app
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    run: |
+      set -euo pipefail
+
+      APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
+      CHECKSUM="HorizonNav-public.apk.sha256"
+      VERSION_JSON="version.json"
+
+      [ -f "$APK" ] || { echo "No APK was built"; exit 1; }
+
+      BUILD="${GITHUB_RUN_NUMBER}"
+      VERSION="1.0.${BUILD}"
+      VERSION_CODE=$((100 + BUILD))
+
+      sha256sum "$APK" | awk '{print $1}' > "$CHECKSUM"
+
+      printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
+        "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
+
+      NOTES="Horizon Nav ${VERSION}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
+
+      if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
+        gh release edit app --repo "${{ github.repository }}" \
+          --title "Horizon Nav (${VERSION})" \
+          --notes "$NOTES"
+      else
+        gh release create app --repo "${{ github.repository }}" \
+          --title "Horizon Nav (${VERSION})" \
+          --notes "$NOTES" \
+          --latest=false
+      fi
+
+      gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
+        --repo "${{ github.repository }}" --clobber
+
+      gh release view app --repo "${{ github.repository }}" \
+        --json assets \
+        --jq '.assets[].name' | tee published-assets.txt
+
+      grep -Fxq "HorizonNav-public.apk" published-assets.txt
+      grep -Fxq "HorizonNav-public.apk.sha256" published-assets.txt
+      grep -Fxq "version.json" published-assets.txt
+
+      echo "Published ${VERSION} successfully."
+      echo "Download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
