@@ -1,4 +1,4 @@
-name: Build Horizon Nav
+namename: Build Horizon Nav
 
 on:
   push:
@@ -28,7 +28,6 @@ jobs:
       - name: Unpack the uploaded zip
         run: |
           set -euo pipefail
-
           ZIP="HorizonNav.zip"
           [ -f "$ZIP" ] || { echo "ERROR: $ZIP not found"; exit 1; }
 
@@ -49,15 +48,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          STAGING="$RUNNER_TEMP/horizon-source"
+          mkdir -p "$STAGING"
+          rsync -a "$PROJECT_DIR/" "$STAGING/"
+
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='README.md' \
             --exclude='HorizonNav.zip' \
             --exclude='signing.keystore' \
-            "$PROJECT_DIR/" ./
+            "$STAGING/" ./
 
-          git add -A -- .
+          git add -A
           git reset -q -- HorizonNav.zip README.md signing.keystore .github 2>/dev/null || true
 
           if ! git diff --cached --quiet; then
