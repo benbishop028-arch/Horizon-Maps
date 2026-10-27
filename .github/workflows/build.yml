@@ -57,8 +57,8 @@ jobs:
           mkdir -p "$STAGING"
           rsync -a "$PROJECT_DIR/" "$STAGING/"
 
-          # Mirror the project files into the repository root, preserving GitHub
-          # workflow files, the README, the uploaded ZIP and any signing-key file.
+          # Mirror project files into the repository root, preserving workflow files,
+          # README, uploaded ZIP and signing-key file.
           rsync -a --delete \
             --exclude='.git/' \
             --exclude='.github/' \
@@ -76,7 +76,7 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Sync Horizon Nav source from uploaded ZIP [skip ci]"
 
-            # Incorporate any newer remote commits before pushing; never force-push.
+            # Incorporate newer remote commits before pushing; never force-push.
             git fetch origin main
             git rebase origin/main
             git push origin HEAD:main
@@ -166,21 +166,45 @@ jobs:
           BUILD="${GITHUB_RUN_NUMBER}"
           VERSION="1.0.${BUILD}"
           VERSION_CODE=$((100 + BUILD))
+          TAG="v${VERSION}"
+          PREVIOUS_TAG="$(gh release list --repo "${{ github.repository }}" --limit 100 \
+            --json tagName,isDraft --jq '[.[] | select(.isDraft == false) | .tagName | select(startswith("v"))] | map(select(. != "'"$TAG"'")) | .[0] // empty')"
+
           sha256sum "$APK" | awk '{print $1}' > "$CHECKSUM"
           printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
             "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
-          NOTES="Horizon Nav ${VERSION}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
+
+          # Generate notes from commit history between the previous version and this one.
+          {
+            echo "## What's changed in Horizon Nav ${VERSION}"
+            echo
+            echo "### Changes"
+            if [ -n "$PREVIOUS_TAG" ] && git rev-parse -q --verify "refs/tags/${PREVIOUS_TAG}" >/dev/null; then
+              git log --no-merges --pretty=format:'- %s (%h)' "${PREVIOUS_TAG}..HEAD" | sed '/^[[:space:]]*$/d' || true
+            else
+              echo "- Initial versioned release notes. See the [commit history](https://github.com/${{ github.repository }}/commits/main) for changes."
+            fi
+            echo
+            echo
+            echo "### Downloads"
+            echo "- **HorizonNav-public.apk** — Android app installer"
+            echo "- **HorizonNav-public.apk.sha256** — SHA-256 checksum"
+            echo "- **version.json** — version information used by the updater"
+            echo
+            echo "Built on $(date -u '+%-d %b %Y') (UTC)."
+            echo
+            echo "[View source changes](https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG:-main}...${TAG})"
+          } > release-notes.md
 
           # Keep a permanent, versioned release for the public history.
-          # If this workflow run is retried, update that same version rather than failing.
-          TAG="v${VERSION}"
+          # A rerun updates that same version rather than failing.
           if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release edit "$TAG" --repo "${{ github.repository }}" \
-              --title "Horizon Nav ${VERSION}" --notes "$NOTES"
+              --title "Horizon Nav ${VERSION}" --notes-file release-notes.md
           else
             gh release create "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
               --repo "${{ github.repository }}" \
-              --title "Horizon Nav ${VERSION}" --notes "$NOTES"
+              --title "Horizon Nav ${VERSION}" --notes-file release-notes.md
           fi
           gh release upload "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
             --repo "${{ github.repository }}" --clobber
@@ -193,10 +217,10 @@ jobs:
           # Also refresh the stable release URL used by the app's built-in updater.
           if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
             gh release edit app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" --notes "$NOTES"
+              --title "Horizon Nav (${VERSION})" --notes-file release-notes.md
           else
             gh release create app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" --notes "$NOTES" --latest=false
+              --title "Horizon Nav (${VERSION})" --notes-file release-notes.md --latest=false
           fi
           gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
             --repo "${{ github.repository }}" --clobber
