@@ -56,15 +56,57 @@ jobs:
       # Only when you tick "publish" on Run workflow: the APK goes to the release called "app", replacing the one there,
       # so this link always gives the newest version:
       #   https://github.com/<you>/<repo>/releases/download/app/HorizonNav-public.apk
+     
       - name: Publish the app
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+
           APK="${{ env.PROJECT }}/app/build/outputs/apk/release/HorizonNav-public.apk"
+          CHECKSUM="HorizonNav-public.apk.sha256"
+          VERSION_JSON="version.json"
+
           [ -f "$APK" ] || { echo "No APK was built"; exit 1; }
-          NOTES="Horizon Nav 1.0.${{ github.run_number }}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
-          gh release create app --repo "${{ github.repository }}" --title "Horizon Nav" --notes "$NOTES" --latest=false 2>/dev/null \
-            || gh release edit app --repo "${{ github.repository }}" --title "Horizon Nav (1.0.${{ github.run_number }})" --notes "$NOTES"
-          gh release upload app "$APK" --repo "${{ github.repository }}" --clobber
+
+          BUILD="${GITHUB_RUN_NUMBER}"
+          VERSION="1.0.${BUILD}"
+          VERSION_CODE=$((100 + BUILD))
+
+          # Generate the checksum from the exact APK that will be published.
+          sha256sum "$APK" | awk '{print $1}' > "$CHECKSUM"
+
+          # Publish version information for the in-app updater.
+          printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
+            "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
+
+          NOTES="Horizon Nav ${VERSION}, built $(date -u '+%-d %b %Y'). Download HorizonNav-public.apk below and install it over the old one."
+
+          # Create the fixed release if it doesn't exist; otherwise update it.
+          if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit app --repo "${{ github.repository }}" \
+              --title "Horizon Nav (${VERSION})" \
+              --notes "$NOTES"
+          else
+            gh release create app --repo "${{ github.repository }}" \
+              --title "Horizon Nav (${VERSION})" \
+              --notes "$NOTES" \
+              --latest=false
+          fi
+
+          # Upload all required updater files, replacing previous assets.
+          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
+            --repo "${{ github.repository }}" --clobber
+
+          # Verify that all three assets are available on the release.
+          gh release view app --repo "${{ github.repository }}" \
+            --json assets \
+            --jq '.assets[].name' | tee published-assets.txt
+
+          grep -Fxq "HorizonNav-public.apk" published-assets.txt
+          grep -Fxq "HorizonNav-public.apk.sha256" published-assets.txt
+          grep -Fxq "version.json" published-assets.txt
+
+          echo "Published ${VERSION} successfully."
           echo "Download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
