@@ -60,6 +60,47 @@ jobs:
         env:
           MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
         run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
+      - name: Verify APK signing certificate matches keystore
+        env:
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+
+          APK="${{ env.PROJECT }}/app/build/outputs/apk/release/HorizonNav-public.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
+
+          [ -f "$APK" ] || { echo "ERROR: APK not found"; exit 1; }
+          [ -n "$APKSIGNER" ] && [ -f "$APKSIGNER" ] || {
+            echo "ERROR: apksigner not found"; exit 1;
+          }
+
+          KEY_FP="$(keytool -list -v \
+            -keystore signing.keystore \
+            -storepass "$STORE_PASSWORD" \
+            -alias "$KEY_ALIAS" |
+            sed -n 's/^[[:space:]]*SHA256: //p' |
+            head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+
+          APK_FP="$("$APKSIGNER" verify --print-certs "$APK" |
+            sed -n 's/.*certificate SHA-256 digest: //p' |
+            head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
+
+          if [ -z "$KEY_FP" ] || [ -z "$APK_FP" ]; then
+            echo "ERROR: Could not read both certificate fingerprints."
+            exit 1
+          fi
+
+          echo "Keystore fingerprint: $KEY_FP"
+          echo "APK fingerprint:      $APK_FP"
+
+          if [ "$KEY_FP" != "$APK_FP" ]; then
+            echo "FAIL: The APK and keystore certificates do not match."
+            exit 1
+          fi
+
+          echo "PASS: The APK uses the expected signing certificate."
+
       - uses: actions/upload-artifact@v4
         with:
           name: HorizonNav-public-apk
