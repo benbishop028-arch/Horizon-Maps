@@ -5,7 +5,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 ## Unreleased
 
 ### Improved
-- Increased the map locator arrow size by approximately 22% to make it easier to see.
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
 - Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
 
 ## 1.0.246 — 2026-10-28
