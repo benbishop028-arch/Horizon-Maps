@@ -300,9 +300,9 @@ object Updater {
                         progress("Opening the installer…")
                         val i = Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
                             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
-                            // Explicit ClipData helps the package installer receive the content-URI read grant
-                            // consistently across Android versions and installer implementations.
-                            .setClipData(android.content.ClipData.newRawUri("Horizon Nav update", uri))
+                        // Explicit ClipData helps the package installer receive the content-URI read grant
+                        // consistently across Android versions and installer implementations.
+                        i.clipData = android.content.ClipData.newRawUri("Horizon Nav update", uri)
                         ctx.startActivity(i)
                         return
                     }
