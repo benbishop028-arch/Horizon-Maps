@@ -100,38 +100,77 @@ object Updater {
         } finally { c.disconnect() }
     }
 
-    /** Fetches notes for published versions after the previously seen build, up to this installed build. */
+    /** Fetches notes for published versions after the previously seen build, up to this installed build.
+     * Always fetch the installed tag directly first so the card still has useful notes if the releases-list
+     * endpoint is rate-limited, unavailable, or its first page does not include the target release.
+     */
     fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME, previouslySeenVersion: String = ""): String {
         if (!enabled || !version.matches(Regex("1\\.0\\.\\d+"))) return ""
         val installedBuild = version.substringAfterLast('.').toIntOrNull() ?: return ""
-        // On first install, show the installed release only. On upgrades, include every skipped release.
         val previousBuild = previouslySeenVersion.takeIf { it.matches(Regex("1\\.0\\.\\d+")) }
             ?.substringAfterLast('.')?.toIntOrNull() ?: (installedBuild - 1)
         if (previousBuild >= installedBuild) return ""
-        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").openConnection() as HttpURLConnection
+
+        // Direct tag endpoint is more reliable for the installed release than depending on list pagination.
+        val installedTagNotes = fetchReleaseBody("v$version")
+        val installedFallback = installedTagNotes?.let { cleanReleaseNotes(it) }
+            ?.takeIf { it.isNotBlank() }
+
+        // A normal one-version update only needs the installed release; avoid the list API entirely.
+        if (previousBuild == installedBuild - 1) return installedFallback.orEmpty()
+
+        // For multi-version upgrades, collect all available version-tag notes. If the list request fails,
+        // fall back to the installed tag instead of showing the generic empty-notes message.
+        val releases = try {
+            val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").openConnection() as HttpURLConnection
+            c.connectTimeout = 7000; c.readTimeout = 12000
+            c.setRequestProperty("User-Agent", "HorizonNav/$version")
+            c.setRequestProperty("Accept", "application/vnd.github+json")
+            try {
+                if (c.responseCode !in 200..299) null else {
+                    val bytes = c.inputStream.use { input ->
+                        val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(4096)
+                        while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 1024 * 1024) break; out.write(buf, 0, n) }
+                        out.toByteArray()
+                    }
+                    org.json.JSONArray(String(bytes, Charsets.UTF_8))
+                }
+            } finally { c.disconnect() }
+        } catch (_: Exception) { null }
+
+        if (releases == null) return installedFallback.orEmpty()
+        val notes = mutableListOf<Pair<Int, String>>()
+        for (i in 0 until releases.length()) {
+            val release = releases.optJSONObject(i) ?: continue
+            val tag = release.optString("tag_name")
+            val match = Regex("v?1\\.0\\.(\\d+)").matchEntire(tag) ?: continue
+            val build = match.groupValues[1].toIntOrNull() ?: continue
+            if (build <= previousBuild || build > installedBuild) continue
+            val body = cleanReleaseNotes(release.optString("body"))
+            if (body.isNotBlank()) notes += build to "### 1.0.$build\n$body"
+        }
+        if (notes.none { it.first == installedBuild } && !installedFallback.isNullOrBlank()) {
+            notes += installedBuild to "### $version\n$installedFallback"
+        }
+        return notes.sortedBy { it.first }.joinToString("\n\n").take(4000).ifBlank { installedFallback.orEmpty() }
+    }
+
+    /** Fetches a single immutable GitHub release tag; returns null for network/API failures. */
+    private fun fetchReleaseBody(tag: String): String? {
+        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/$tag").openConnection() as HttpURLConnection
         c.connectTimeout = 7000; c.readTimeout = 12000
-        c.setRequestProperty("User-Agent", "HorizonNav/$version")
+        c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
         c.setRequestProperty("Accept", "application/vnd.github+json")
         try {
-            if (c.responseCode !in 200..299) return ""
+            if (c.responseCode !in 200..299) return null
             val bytes = c.inputStream.use { input ->
                 val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(4096)
-                while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 1024 * 1024) break; out.write(buf, 0, n) }
+                while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 1024 * 1024) return@use out.toByteArray(); out.write(buf, 0, n) }
                 out.toByteArray()
             }
-            val releases = org.json.JSONArray(String(bytes, Charsets.UTF_8))
-            val notes = mutableListOf<Pair<Int, String>>()
-            for (i in 0 until releases.length()) {
-                val release = releases.optJSONObject(i) ?: continue
-                val tag = release.optString("tag_name")
-                val match = Regex("v?1\\.0\\.(\\d+)").matchEntire(tag) ?: continue
-                val build = match.groupValues[1].toIntOrNull() ?: continue
-                if (build <= previousBuild || build > installedBuild) continue
-                val body = cleanReleaseNotes(release.optString("body"))
-                if (body.isNotBlank()) notes += build to "### 1.0.$build\n$body"
-            }
-            return notes.sortedBy { it.first }.joinToString("\n\n").take(4000)
-        } finally { c.disconnect() }
+            return org.json.JSONObject(String(bytes, Charsets.UTF_8)).optString("body").take(8000)
+        } catch (_: Exception) { return null }
+        finally { c.disconnect() }
     }
 
     /** Removes release boilerplate and unfinished changelog templates before showing notes in the UI. */
