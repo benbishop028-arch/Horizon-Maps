@@ -1,6 +1,10 @@
 package com.headunit.launcher.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -66,6 +70,15 @@ internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
 @Composable
 fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    var whatsNewVisible by remember { mutableStateOf(false) }
+    var whatsNewNotes by remember { mutableStateOf("") }
+    val installedVersion = com.headunit.launcher.BuildConfig.VERSION_NAME
+    LaunchedEffect(installedVersion) {
+        if (com.headunit.launcher.BuildConfig.UPDATE_REPO.isNotBlank() && prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "") != installedVersion) {
+            whatsNewVisible = true
+            whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion) } } catch (_: Exception) { "" }
+        }
+    }
     LaunchedEffect(Unit) { while (true) { delay(60_000); nowMs = System.currentTimeMillis() } }
     // the head unit has switched to its night mode at least once (so it links night mode to the headlights): noted for "Headlights"
     val sysDark = rememberSystemNight()
@@ -263,4 +276,44 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
             }
         }
     }
+    if (whatsNewVisible) {
+        androidx.compose.ui.window.Dialog(onDismissRequest = {
+            prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion)
+            whatsNewVisible = false
+        }) {
+            val shape = RoundedCornerShape(28.dp)
+            androidx.compose.foundation.layout.Column(
+                Modifier.fillMaxWidth().clip(shape).background(Color(0xFF111B2B)).border(1.dp, Color(0xFF34465F), shape).padding(22.dp),
+                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
+            ) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Color(0xFF203B62)).padding(18.dp)) {
+                    androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+                        Text("HORIZON NAV  /  UPDATE", color = Color(0xFF9CCBFF), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.5.sp)
+                        Text("A fresh route ahead.", color = Color.White, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        Text("What's new in $installedVersion", color = Color(0xFFD8E7FA), fontSize = 14.sp)
+                    }
+                }
+                androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp), verticalAlignment = androidx.compose.ui.Alignment.Top) {
+                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF234C43)), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Text("✦", color = Color(0xFF9AF0C9), fontSize = 25.sp)
+                    }
+                    androidx.compose.foundation.layout.Column(Modifier.weight(1f), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp)) {
+                        Text("Built for the next drive", color = Color.White, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                        Text("Your navigation settings and saved places stay as they were. Here's what changed in this version:", color = Color(0xFFB9C6D8), fontSize = 13.sp)
+                    }
+                }
+                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color(0xFF192638)).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    Text("RELEASE NOTES", color = Color(0xFF9CCBFF), fontSize = 10.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.4.sp)
+                    Text(whatsNewNotes.ifBlank { "This version is installed and ready. Detailed release notes aren't available right now, but you can still continue using Horizon Nav normally." }, color = Color(0xFFE4EBF5), fontSize = 13.sp, lineHeight = 19.sp)
+                }
+                androidx.compose.material3.Button(
+                    onClick = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC5FF), contentColor = Color(0xFF102039)),
+                    shape = RoundedCornerShape(16.dp)
+                ) { Text("Let's go", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp)) }
+            }
+        }
+    }
+
 }

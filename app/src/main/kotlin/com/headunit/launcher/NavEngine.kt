@@ -1141,24 +1141,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var updateStatus by mutableStateOf("")
 
     /** Checks for a newer app: by itself at most twice a day ([manual] = from the button in Settings, every time). */
-    private var openCheckAt = 0L
+    private var updateCheckInFlight = false
 
-    /** The app was opened or brought back to the front: check for a new version and new map data (at most every few minutes). */
+    /** Check on every launch/resume. Network work runs on IO and duplicate overlapping checks are suppressed. */
     fun onOpened() {
-        val now = System.currentTimeMillis()
-        if (now - openCheckAt < 5 * 60_000L || !online()) return
-        openCheckAt = now
+        if (!online()) return
         checkForUpdate()
         checkDataUpdates()
     }
 
     fun checkForUpdate(manual: Boolean = false) {
-        if (!Updater.enabled || updateBusy) return
+        if (!Updater.enabled || updateBusy || updateCheckInFlight) return
         val now = System.currentTimeMillis()
         if (!manual && !prefs.b(PreferenceKeys.UPDCHECK, true)) return
         if (manual) updateStatus = "Checking…"
         scope.launch {
-            val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = "Couldn't check: no connection"; return@launch }
+            updateCheckInFlight = true
+            val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = "Couldn't check: no connection"; return@launch } finally { updateCheckInFlight = false }
             prefs.put(PreferenceKeys.UPDATE_LAST_CHECK, now.toString())
             if (u == null) { if (manual) updateStatus = "You have the latest version"; return@launch }
             if (manual) updateStatus = "Version ${u.version} is available"
