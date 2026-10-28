@@ -204,9 +204,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
                 CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    // The turn arrow has its own size control. Compensate for the surrounding card scale so
-                    // CAR_ARROW_SIZE is an independent multiplier instead of cardScale * arrowScale.
-                    CompositionLocalProvider(LocalDensity provides Density(dens.density * arrowScale / cardScale.coerceAtLeast(0.1f), dens.fontScale)) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * arrowScale, dens.fontScale)) {
                         ImmTurnCard(engine, t, compact = compact)
                     }
                 }

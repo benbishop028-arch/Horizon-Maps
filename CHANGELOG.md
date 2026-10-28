@@ -4,6 +4,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
+### Improved What's New appearance
+- Added a light/day-mode colour scheme for the What's New card, using the app's active theme so text and release notes remain readable in both day and night modes.
+
 ### Fixed initial map zoom
 - Apply the initial two-step zoom-out after the lane zoom floor, so the first-open overview adjustment is not overridden while stationary.
 - Keep the existing automatic zoom behaviour once movement is detected.

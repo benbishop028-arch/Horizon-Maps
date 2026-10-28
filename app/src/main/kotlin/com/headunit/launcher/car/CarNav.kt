@@ -254,19 +254,10 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     private fun fitScale() {
         val dens = displayDensity.coerceAtLeast(0.5f)
         val short = minOf(width, height).toFloat()
-        val long = maxOf(width, height).toFloat()
-        val aspect = long / short.coerceAtLeast(1f)
-        // Scale against the short edge (which best predicts vertical card/arrow crowding),
-        // then apply only a small aspect correction. This avoids treating a very wide display
-        // as if it had extra vertical space and keeps the scale independent of reported DPI.
-        val shortFactor = (short / 1050f).coerceIn(0.72f, 1.0f)
-        val aspectFactor = when {
-            aspect >= 2.8f -> 0.88f
-            aspect >= 2.3f -> 0.93f
-            aspect <= 1.25f -> 0.96f
-            else -> 1.0f
-        }
-        uiScale.value = (shortFactor * aspectFactor).coerceIn(0.65f, 1.0f)
+        // Keep Android Auto overlays close to standard navigation UI sizing; large screens should
+        // not inflate buttons/cards. Only allow a small adjustment for unusually compact surfaces.
+        val perUnit = (short / 1050f).coerceIn(dens * 0.68f, dens * 0.98f)
+        uiScale.value = perUnit / dens
     }
 
     override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) {
@@ -293,18 +284,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             // car screens have few pixels per inch for their size: drawn at the phone's own scale the map looked far too zoomed out
             // (and had to draw a huge area, which made it laggy), so it's drawn larger, like the app on a head unit
             val dens = p.context.resources.displayMetrics.density
+            val ratio = (dens * 1.7f).coerceIn(1.6f, 3.2f)
             displayDensity = dens
-            // Render scale follows the actual Android Auto surface rather than a fixed 1.7x
-            // multiplier. Shorter usable viewports need less magnification to keep the map from
-            // feeling excessively zoomed-in behind the navigation cards.
-            val shortEdge = minOf(width, height).toFloat()
-            val aspect = maxOf(width, height).toFloat() / shortEdge.coerceAtLeast(1f)
-            val viewportFactor = (shortEdge / 900f).coerceIn(0.82f, 1.12f) * when {
-                aspect >= 2.8f -> 0.90f
-                aspect >= 2.3f -> 0.95f
-                else -> 1.0f
-            }
-            val ratio = (dens * 1.7f * viewportFactor).coerceIn(1.35f, 3.2f)
             fitScale()
             // drawn straight to its own surface (no extra copy each frame, which a texture view would cost)
             val m = MapBinding(p.context, true, 1f, ratio)

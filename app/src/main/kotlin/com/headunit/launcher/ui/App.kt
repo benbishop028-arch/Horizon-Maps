@@ -280,39 +280,48 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         }
     }
     if (whatsNewVisible) {
+        // Follow the app's active day/night palette so the update card stays readable in both modes.
+        val updatePalette = navVw(LocalVw.current)
+        val updateHeader = if (updatePalette.dark) Color(0xFF203B62) else Color(0xFFDCEBFF)
+        val updateHeaderTitle = if (updatePalette.dark) Color.White else Color(0xFF172B46)
+        val updateHeaderSub = if (updatePalette.dark) Color(0xFFD8E7FA) else Color(0xFF405875)
+        val updateIconBg = if (updatePalette.dark) Color(0xFF234C43) else Color(0xFFDDF5E9)
+        val updateIcon = if (updatePalette.dark) Color(0xFF9AF0C9) else Color(0xFF16734D)
+        val updateNotesBg = if (updatePalette.dark) Color(0xFF192638) else Color(0xFFF4F7FC)
+        val updateLabel = updatePalette.accent
         androidx.compose.ui.window.Dialog(onDismissRequest = {
             prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion)
             whatsNewVisible = false
         }) {
             val shape = RoundedCornerShape(28.dp)
             androidx.compose.foundation.layout.Column(
-                Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp - 32.dp).coerceAtLeast(240.dp)).clip(shape).background(Color(0xFF111B2B)).border(1.dp, Color(0xFF34465F), shape).padding(22.dp),
+                Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp - 32.dp).coerceAtLeast(240.dp)).clip(shape).background(updatePalette.surface).border(1.dp, updatePalette.line, shape).padding(22.dp),
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
             ) {
-                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Color(0xFF203B62)).padding(18.dp)) {
+                Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(updateHeader).padding(18.dp)) {
                     androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
-                        Text("HORIZON NAV  /  UPDATE", color = Color(0xFF9CCBFF), fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.5.sp)
-                        Text("A fresh route ahead.", color = Color.White, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                        Text("What's new in $installedVersion", color = Color(0xFFD8E7FA), fontSize = 14.sp)
+                        Text("HORIZON NAV  /  UPDATE", color = updatePalette.accent, fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.5.sp)
+                        Text("A fresh route ahead.", color = updateHeaderTitle, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        Text("What's new in $installedVersion", color = updateHeaderSub, fontSize = 14.sp)
                     }
                 }
                 androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp), verticalAlignment = androidx.compose.ui.Alignment.Top) {
-                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF234C43)), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text("✦", color = Color(0xFF9AF0C9), fontSize = 25.sp)
+                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(updateIconBg), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Text("✦", color = updateIcon, fontSize = 25.sp)
                     }
                     androidx.compose.foundation.layout.Column(Modifier.weight(1f), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp)) {
-                        Text("Built for the next drive", color = Color.White, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-                        Text("Your navigation settings and saved places stay as they were. Here's what changed in this version:", color = Color(0xFFB9C6D8), fontSize = 13.sp)
+                        Text("Built for the next drive", color = updatePalette.text, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                        Text("Your navigation settings and saved places stay as they were. Here's what changed in this version:", color = updatePalette.sub, fontSize = 13.sp)
                     }
                 }
-                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp * 0.32f).coerceAtLeast(90.dp)).verticalScroll(rememberScrollState()).clip(RoundedCornerShape(18.dp)).background(Color(0xFF192638)).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                    Text("RELEASE NOTES", color = Color(0xFF9CCBFF), fontSize = 10.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.4.sp)
-                    Text(whatsNewNotes.ifBlank { "This version is installed and ready. Detailed release notes aren't available right now, but you can still continue using Horizon Nav normally." }, color = Color(0xFFE4EBF5), fontSize = 13.sp, lineHeight = 19.sp)
+                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp * 0.32f).coerceAtLeast(90.dp)).verticalScroll(rememberScrollState()).clip(RoundedCornerShape(18.dp)).background(updateNotesBg).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                    Text("RELEASE NOTES", color = updateLabel, fontSize = 10.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.4.sp)
+                    Text(whatsNewNotes.ifBlank { "This version is installed and ready. Detailed release notes aren't available right now, but you can still continue using Horizon Nav normally." }, color = updatePalette.text, fontSize = 13.sp, lineHeight = 19.sp)
                 }
                 androidx.compose.material3.Button(
                     onClick = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFF8BC5FF), contentColor = Color(0xFF102039)),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = updatePalette.accent, contentColor = if (updatePalette.dark) Color(0xFF102039) else Color.White),
                     shape = RoundedCornerShape(16.dp)
                 ) { Text("Let's go", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp)) }
             }
