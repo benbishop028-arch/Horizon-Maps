@@ -100,10 +100,14 @@ object Updater {
         } finally { c.disconnect() }
     }
 
-    /** Fetches every published version's notes newer than the installed build, so skipped releases are included. */
-    fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME): String {
+    /** Fetches notes for published versions after the previously seen build, up to this installed build. */
+    fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME, previouslySeenVersion: String = ""): String {
         if (!enabled || !version.matches(Regex("1\\.0\\.\\d+"))) return ""
         val installedBuild = version.substringAfterLast('.').toIntOrNull() ?: return ""
+        // On first install, show the installed release only. On upgrades, include every skipped release.
+        val previousBuild = previouslySeenVersion.takeIf { it.matches(Regex("1\\.0\\.\\d+")) }
+            ?.substringAfterLast('.')?.toIntOrNull() ?: (installedBuild - 1)
+        if (previousBuild >= installedBuild) return ""
         val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").openConnection() as HttpURLConnection
         c.connectTimeout = 7000; c.readTimeout = 12000
         c.setRequestProperty("User-Agent", "HorizonNav/$version")
@@ -122,7 +126,7 @@ object Updater {
                 val tag = release.optString("tag_name")
                 val match = Regex("v?1\\.0\\.(\\d+)").matchEntire(tag) ?: continue
                 val build = match.groupValues[1].toIntOrNull() ?: continue
-                if (build <= installedBuild) continue
+                if (build <= previousBuild || build > installedBuild) continue
                 val body = cleanReleaseNotes(release.optString("body"))
                 if (body.isNotBlank()) notes += build to "### 1.0.$build\n$body"
             }
