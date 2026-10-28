@@ -2387,6 +2387,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Zoom that adapts: closer when a turn is near or the destination is close, wider on fast roads with a long way to go. */
     private var smoothZ = 0.0
+    // Start each app session with a slightly wider overview. Once real movement is detected,
+    // hand control back to the existing speed-based zoom curve for the rest of the session.
+    private var hasDetectedMovement = false
 
     private fun speedZoom(sp: Double): Double = NavigationPolicy.speedZoom(sp)
 
@@ -2394,6 +2397,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var closeF = 0.0
 
     private fun autoZoom(sp: Double, navigating: Boolean): Double {
+        if (sp > 1.5) hasDetectedMovement = true
         val now = android.os.SystemClock.uptimeMillis()
         speedLog.addLast(now to sp)
         while (speedLog.isNotEmpty() && now - speedLog.first().first > 8000L) speedLog.removeFirst()
@@ -2442,7 +2446,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             top = 18.2
         }
         if (navigating && closeF > 0.0) { z = max(z, 17.5 + 0.35 * closeF); top = max(top, 18.2) }
-        val target = (z - if (navigating) 0.45 else 0.15).coerceIn(if (navigating) 13.5 else 14.6, top - 0.3)
+        // Two zoom-out button steps (~0.8 zoom levels) on first opening only. As soon as
+        // movement is detected, the existing automatic zoom settings take over unchanged.
+        val initialOverviewOffset = if (hasDetectedMovement) 0.0 else 0.8
+        val target = (z - (if (navigating) 0.45 else 0.15) - initialOverviewOffset)
+            .coerceIn(if (navigating) 13.5 else 14.6, top - 0.3)
         // Dampen automatic zoom changes to prevent the camera pulsing in and out around junctions.
         smoothZ = NavigationPolicy.smoothZoom(smoothZ, target)
         return smoothZ

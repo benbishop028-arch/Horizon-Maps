@@ -4,6 +4,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
+### Improved initial map zoom
+- Start with the map approximately two zoom-out button presses farther out when the app is first opened.
+- Once movement is detected, automatically return to the existing speed-based zoom behaviour.
+
 ### Improved Android Auto display scaling
 - Adjusted turn-guidance arrow scaling so it is not unintentionally multiplied by the navigation card scale.
 - Made the interface scale respond to the available display's short edge and aspect ratio.
