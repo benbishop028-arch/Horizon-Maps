@@ -2515,7 +2515,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 else -> 17.8
             }
         } else Double.NEGATIVE_INFINITY
-        tZoom = max(requestedZoom, laneZoomFloor)
+        // Apply the first-open overview adjustment after the lane zoom floor so that the
+        // floor cannot cancel the requested two-step zoom-out while stationary. Once
+        // movement is detected, this offset is zero and the existing zoom policy is unchanged.
+        val initialOverviewOffset = if (hasDetectedMovement) 0.0 else 0.8
+        tZoom = max(requestedZoom, laneZoomFloor) - initialOverviewOffset
         // landscape: your arrow moves sideways just enough to clear whatever card is beside it at its height (the search panel
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.
