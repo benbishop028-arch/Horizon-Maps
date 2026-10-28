@@ -4,10 +4,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
-- Fetch the installed release notes directly by tag as a fallback if GitHub's releases-list API fails, while retaining notes for skipped releases on multi-version upgrades.
-- Automatically fit the Android Auto speedometer and speed-limit sign to the available display area to prevent edge clipping, including split-screen layouts.
-- Add a dedicated Android Auto speedometer/speed-limit sign size slider.
-
+- Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
 
 ## 1.0.246 — 2026-10-28
 
