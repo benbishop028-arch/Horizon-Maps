@@ -5,6 +5,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 ## Unreleased
 
 ### Improved
+- Increased the Android Auto locator arrow lateral clearance from overlay cards and widened the collision band so it adapts more reliably to full-screen and split-screen map layouts.
+
+### Improved
 - Expanded Android Auto map UI scaling range from 60–160% to 40–300%.
 - Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
 

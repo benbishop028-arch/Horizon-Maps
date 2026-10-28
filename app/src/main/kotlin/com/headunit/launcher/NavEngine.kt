@@ -2542,14 +2542,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * card than the exact middle so it doesn't end up far over. Nothing beside it: dead centre.
      */
     private fun arrowShift(y: Double): Double {
-        val band = 0.10
+        // Use a slightly taller collision band so the locator clears cards in compact Android Auto
+        // surfaces too (full-screen, music split, and app-launcher split layouts report different bounds).
+        val band = 0.14
         var cover = 0.0
         for (p in panels) {
             if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
             if (p[1] < y + band && p[3] > y - band) cover = max(cover, if (mirrored) (1.0 - p[0]) else p[2].toDouble())
         }
         if (cover < 0.05) return 0.0
-        val shift = (cover * 0.6).coerceAtMost(0.32)
+        // Move farther away from the info/turn card; panel bounds are measured from the actual
+        // Compose surface, so this adapts as Android Auto changes between full and split layouts.
+        val shift = (cover * 0.78).coerceAtMost(0.42)
         return if (mirrored) -shift else shift
     }
 
