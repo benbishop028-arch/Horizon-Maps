@@ -5,6 +5,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 ## Unreleased
 
 ### Improved
+- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
+
+### Improved
 - Increased the Android Auto locator arrow scale to almost twice its previous size.
 - Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
 

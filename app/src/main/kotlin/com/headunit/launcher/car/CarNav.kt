@@ -892,6 +892,25 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
                 prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "day"; "day" -> "night"; else -> "car" })
                 onTheme(); invalidate()
             }.build()
+        // Android Auto's templated UI does not expose a native continuous slider here,
+        // so these map-accessible controls step through sensible values on each tap.
+        val uiScale = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(60, 160)
+        rows += Row.Builder().setTitle("Map UI scale")
+            .addText("${uiScale}% · tap to increase; resets after 160%")
+            .setOnClickListener {
+                val next = when (uiScale) { in 0..79 -> 80; in 80..99 -> 100; in 100..119 -> 120; in 120..139 -> 140; else -> 60 }
+                prefs.put(PreferenceKeys.CARSCALE, next)
+                invalidate()
+            }.build()
+        val arrowScale = (prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240).coerceIn(100, 500)
+        rows += Row.Builder().setTitle("Locator arrow scale")
+            .addText("${arrowScale}% · tap to increase; resets after 300%")
+            .setOnClickListener {
+                val next = when (arrowScale) { in 0..149 -> 150; in 150..199 -> 200; in 200..249 -> 250; in 250..299 -> 300; else -> 100 }
+                prefs.put(PreferenceKeys.ARROW_PERCENT, next)
+                try { holder.map?.setArrowScale((next / 100f).coerceIn(1f, 5f) * 0.78f) } catch (_: Exception) { }
+                invalidate()
+            }.build()
         val reroute: (Boolean) -> Unit = { holder.engine?.rerouteForSettings() }
         rows += toggleRow("Avoid motorways", "avoid_motorway", false, null, reroute)
         rows += toggleRow("Avoid toll roads", "avoid_toll", false, null, reroute)
