@@ -172,19 +172,70 @@ jobs:
           printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
             "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
 
-          # Generate clean release notes without misleading commit-message lists.
-          {
-            echo "## Horizon Nav ${VERSION}"
-            echo
-            echo "This release contains the latest Horizon Nav build."
-            echo
-            echo "### Downloads"
-            echo "- **HorizonNav-public.apk** — Android app installer"
-            echo "- **HorizonNav-public.apk.sha256** — SHA-256 checksum"
-            echo "- **version.json** — version information used by the updater"
-            echo
-            echo "Built on $(date -u '+%-d %b %Y') (UTC)."
-          } > release-notes.md
+          # Generate feature-specific release notes.
+          # Prefer a CHANGELOG.md included in the uploaded project ZIP.
+          CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
+          if [ -f "$CHANGELOG" ] && [ -s "$CHANGELOG" ]; then
+            {
+              echo "## Horizon Nav ${VERSION}"
+              echo
+              sed '1{/^# /d;}' "$CHANGELOG"
+              echo
+              echo "---"
+              echo "Build: ${VERSION} ($(date -u '+%-d %b %Y') UTC)"
+              echo
+              echo "### Downloads"
+              echo "- **HorizonNav-public.apk** — Android app installer"
+              echo "- **HorizonNav-public.apk.sha256** — SHA-256 checksum"
+              echo "- **version.json** — version information used by the updater"
+            } > release-notes.md
+          else
+            # Infer broad areas from changed paths without inventing specific features.
+            PREVIOUS_TAG="$(gh release list --repo "${{ github.repository }}" --limit 100 \
+              --json tagName,isDraft --jq '[.[] | select(.isDraft == false) | .tagName | select(startswith("v"))] | .[0] // empty')"
+            CHANGED_FILES=""
+            if [ -n "$PREVIOUS_TAG" ] && git rev-parse -q --verify "refs/tags/${PREVIOUS_TAG}" >/dev/null; then
+              CHANGED_FILES="$(git diff --name-only "${PREVIOUS_TAG}..HEAD" -- app/ 2>/dev/null || true)"
+            fi
+            {
+              echo "## Horizon Nav ${VERSION}"
+              echo
+              echo "### Changes"
+              if [ -z "$CHANGED_FILES" ]; then
+                echo "- Updated Horizon Nav build."
+              else
+                FOUND=false
+                if printf '%s\n' "$CHANGED_FILES" | grep -Eiq '(^|/).*(nav|route|map|gps)'; then
+                  echo "- Navigation and map-related components updated."
+                  FOUND=true
+                fi
+                if printf '%s\n' "$CHANGED_FILES" | grep -Eiq '(^|/).*(launcher|home|dashboard|ui|screen)'; then
+                  echo "- Launcher interface and screens updated."
+                  FOUND=true
+                fi
+                if printf '%s\n' "$CHANGED_FILES" | grep -Eiq '(^|/).*(update|release|download)'; then
+                  echo "- App update and download components updated."
+                  FOUND=true
+                fi
+                if printf '%s\n' "$CHANGED_FILES" | grep -Eiq '(^|/).*(setting|preference|config)'; then
+                  echo "- Settings and configuration components updated."
+                  FOUND=true
+                fi
+                if [ "$FOUND" = false ]; then
+                  echo "- Internal app code or resources updated."
+                fi
+              fi
+              echo
+              echo "For specific feature notes, add a CHANGELOG.md to the project ZIP."
+              echo
+              echo "### Downloads"
+              echo "- **HorizonNav-public.apk** — Android app installer"
+              echo "- **HorizonNav-public.apk.sha256** — SHA-256 checksum"
+              echo "- **version.json** — version information used by the updater"
+              echo
+              echo "Built on $(date -u '+%-d %b %Y') (UTC)."
+            } > release-notes.md
+          fi
 
           # Keep a permanent, versioned release for the public history.
           # A rerun updates that same version rather than failing.
