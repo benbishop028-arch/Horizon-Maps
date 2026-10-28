@@ -2,6 +2,9 @@ package com.headunit.launcher.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.text.font.FontWeight
@@ -283,7 +286,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         }) {
             val shape = RoundedCornerShape(28.dp)
             androidx.compose.foundation.layout.Column(
-                Modifier.fillMaxWidth().clip(shape).background(Color(0xFF111B2B)).border(1.dp, Color(0xFF34465F), shape).padding(22.dp),
+                Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp - 32.dp).coerceAtLeast(240.dp)).clip(shape).background(Color(0xFF111B2B)).border(1.dp, Color(0xFF34465F), shape).padding(22.dp),
                 verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
             ) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(Color(0xFF203B62)).padding(18.dp)) {
@@ -302,7 +305,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                         Text("Your navigation settings and saved places stay as they were. Here's what changed in this version:", color = Color(0xFFB9C6D8), fontSize = 13.sp)
                     }
                 }
-                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Color(0xFF192638)).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp * 0.32f).coerceAtLeast(90.dp)).verticalScroll(rememberScrollState()).clip(RoundedCornerShape(18.dp)).background(Color(0xFF192638)).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                     Text("RELEASE NOTES", color = Color(0xFF9CCBFF), fontSize = 10.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.4.sp)
                     Text(whatsNewNotes.ifBlank { "This version is installed and ready. Detailed release notes aren't available right now, but you can still continue using Horizon Nav normally." }, color = Color(0xFFE4EBF5), fontSize = 13.sp, lineHeight = 19.sp)
                 }

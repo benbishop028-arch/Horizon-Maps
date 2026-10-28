@@ -114,8 +114,35 @@ object Updater {
                 while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 256 * 1024) break; out.write(buf, 0, n) }
                 out.toByteArray()
             }
-            return JSONObject(String(bytes, Charsets.UTF_8)).optString("body").trim().take(4000)
+            val body = JSONObject(String(bytes, Charsets.UTF_8)).optString("body")
+            return cleanReleaseNotes(body).take(4000)
         } finally { c.disconnect() }
+    }
+
+    /** Removes release boilerplate and unfinished changelog templates before showing notes in the UI. */
+    private fun cleanReleaseNotes(raw: String): String {
+        val withoutComments = raw.replace(Regex("<!--[\\s\\S]*?-->"), "")
+        val cleaned = withoutComments.lineSequence()
+            .filterNot { line ->
+                val value = line.trim()
+                value.startsWith("Horizon Nav 1.0.") ||
+                    value.startsWith("## Horizon Nav 1.0.") ||
+                    value.startsWith("### Downloads") ||
+                    value.startsWith("**HorizonNav-public.apk") ||
+                    value.startsWith("HorizonNav-public.apk.sha256") ||
+                    value.startsWith("version.json") ||
+                    value.startsWith("Built on ") ||
+                    value.contains("Describe a new app feature", ignoreCase = true) ||
+                    value.contains("Describe an improvement", ignoreCase = true) ||
+                    value.contains("Describe a bug fix", ignoreCase = true) ||
+                    value.contains("Add entries here before the next publish", ignoreCase = true) ||
+                    value == "DON CL" || value == "JON CLOS"
+            }
+            .joinToString("\n")
+            .replace(Regex("(?m)^#{1,6}\\s*(Added|Improved|Fixed)\\s*$"), "")
+            .replace(Regex("(?m)^[-•⁃]\\s*$"), "")
+            .trim()
+        return cleaned.takeIf { it.isNotBlank() } ?: "This version is installed and ready. Detailed release notes were not available for this build."
     }
 
     private fun readSmallText(address: String): String {
