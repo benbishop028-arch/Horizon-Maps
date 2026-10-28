@@ -4,6 +4,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
+### Added
+- Added settings to enable or disable automatic route starting and configure its countdown from 3 to 30 seconds.
+
+
 ### Improved
 - Increased the Android Auto locator arrow lateral clearance from overlay cards and widened the collision band so it adapts more reliably to full-screen and split-screen map layouts.
 

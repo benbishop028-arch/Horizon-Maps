@@ -404,9 +404,12 @@ private fun CarRoutePreview(engine: NavEngine) {
     val fastest = rs.indices.minByOrNull { rs[it].time } ?: 0
     val shortest = rs.indices.minByOrNull { rs[it].len } ?: 0
     val progress = remember { Animatable(0f) }
-    LaunchedEffect(engine.active, engine.routes) {
+    val autoStart = engine.prefs.b(PreferenceKeys.AUTO_START_ROUTE, true)
+    val countdownSeconds = engine.prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30)
+    LaunchedEffect(engine.active, engine.routes, autoStart, countdownSeconds) {
         progress.snapTo(0f)
-        progress.animateTo(1f, tween(10000, easing = LinearEasing))
+        if (!autoStart) return@LaunchedEffect
+        progress.animateTo(1f, tween(countdownSeconds * 1000, easing = LinearEasing))
         if (engine.previewing) engine.beginNavigation()
     }
     val fmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
@@ -437,7 +440,7 @@ private fun CarRoutePreview(engine: NavEngine) {
             Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(progress.value).background(c.accent))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Start navigation", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Text("Starting in ${kotlin.math.ceil((1f - progress.value) * 10f).toInt()} s", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                if (autoStart) Text("Starting in ${kotlin.math.ceil((1f - progress.value) * countdownSeconds).toInt()} s", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp) else Text("Tap to start", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
             }
         }
     }

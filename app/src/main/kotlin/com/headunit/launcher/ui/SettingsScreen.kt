@@ -312,6 +312,10 @@ private fun NavigationSection(prefs: Prefs) {
         SToggle(prefs, "Eco routes", "route_eco", false, "Fuel-efficient instead of fastest")
         ZonesItem()
     }
+    SGroup("Route start") {
+        SToggle(prefs, "Auto-start route countdown", PreferenceKeys.AUTO_START_ROUTE, true, "Automatically start navigation when the countdown finishes")
+        SSlider("Auto-start countdown", prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = "How long before navigation starts", steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
+    }
     SGroup("While you drive") {
         SToggle(prefs, "Offer faster routes", "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, "Keep other routes on the map", "livealts", true, "Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead")

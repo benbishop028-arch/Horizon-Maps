@@ -88,6 +88,8 @@ internal object PreferenceKeys {
     const val PERFORMANCE_METER = "perfmeter"
     const val UPDATE_LAST_CHECK = "updlast"
     const val WHATS_NEW_SEEN_VERSION = "whatsnew_seen_version"
+    const val AUTO_START_ROUTE = "autostartroute"
+    const val AUTO_START_SECONDS = "autostartseconds"
     // Additional legacy keys centralised without changing their persisted names.
     const val AMBMAP = "ambmap"
     const val AMBREACT = "ambreact"

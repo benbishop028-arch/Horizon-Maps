@@ -133,10 +133,12 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
     // planning an arrive-by trip (or having the picker open) stops the countdown: you are not leaving now
     var arriveBy by remember { mutableStateOf(false) }
     val hold = arriveBy || engine.flyingOver || engine.planned?.dest?.let { p -> engine.dest?.let { d -> Geo.dist(p.pos, d.pos) < 50.0 } } == true
-    LaunchedEffect(engine.active, engine.routes, hold) {
+    val autoStart = engine.prefs.b(PreferenceKeys.AUTO_START_ROUTE, true)
+    val countdownMs = engine.prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30) * 1000
+    LaunchedEffect(engine.active, engine.routes, hold, autoStart, countdownMs) {
         progress.snapTo(0f)
-        if (hold) return@LaunchedEffect
-        progress.animateTo(1f, tween(10000, easing = LinearEasing))
+        if (hold || !autoStart) return@LaunchedEffect
+        progress.animateTo(1f, tween(countdownMs, easing = LinearEasing))
         if (!engine.stopMode) engine.beginNavigation()
     }
     if (arriveBy) ArriveByDialog(engine) { arriveBy = false }
@@ -245,7 +247,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
             Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(progress.value).background(c.accent))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("Start navigation", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                Text(if (hold) "Planned for later" else "Starting in ${kotlin.math.ceil((1f - progress.value) * 10f).toInt()} s", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                Text(if (hold) "Planned for later" else if (autoStart) "Starting in ${kotlin.math.ceil((1f - progress.value) * (countdownMs / 1000f)).toInt()} s" else "Tap to start", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
             }
         }
     }
