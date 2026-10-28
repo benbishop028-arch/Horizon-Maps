@@ -80,7 +80,7 @@ import com.headunit.launcher.PreferenceKeys
 fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: State<Boolean>, scale: State<Float>, actions: CarActions, onCover: (Int) -> Unit = {}) {
     val base = LocalDensity.current
     // [scale] is worked out from the car screen's size (see CarSurface); the Android Auto size setting adjusts it either way
-    val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(60, 160) / 100f
+    val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
     val textScale = engine.prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).coerceIn(75, 150) / 100f
     CompositionLocalProvider(LocalDensity provides Density(base.density * scale.value * user, base.fontScale * textScale)) {
         VwTheme(dark.value) { CarScreen(engine, area.value, actions, onCover) }

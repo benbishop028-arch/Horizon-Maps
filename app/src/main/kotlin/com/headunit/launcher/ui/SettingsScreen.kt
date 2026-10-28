@@ -687,7 +687,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
                 }
             } catch (e: Exception) { "Unknown" }
         }
-        SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 60f..160f, "%", sub = "Base scale for the whole overlay", steps = 19, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
+        SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = "Base scale for the whole overlay", steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem("Advanced car-screen sizes", "Fine-tune individual elements independently") {
             SButton(if (carAdvanced) "Hide" else "Show") { carAdvanced = !carAdvanced }

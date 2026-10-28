@@ -894,11 +894,12 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             }.build()
         // Android Auto's templated UI does not expose a native continuous slider here,
         // so these map-accessible controls step through sensible values on each tap.
-        val uiScale = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(60, 160)
+        val uiScale = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300)
         rows += Row.Builder().setTitle("Map UI scale")
-            .addText("${uiScale}% · tap to increase; resets after 160%")
+            .addText("${uiScale}% · tap to cycle from 40% to 300%")
             .setOnClickListener {
-                val next = when (uiScale) { in 0..79 -> 80; in 80..99 -> 100; in 100..119 -> 120; in 120..139 -> 140; else -> 60 }
+                val levels = listOf(40, 60, 80, 100, 120, 140, 160, 180, 200, 225, 250, 275, 300)
+                val next = levels[(levels.indexOf(uiScale).takeIf { it >= 0 } ?: 3).let { (it + 1) % levels.size }]
                 prefs.put(PreferenceKeys.CARSCALE, next)
                 invalidate()
             }.build()
