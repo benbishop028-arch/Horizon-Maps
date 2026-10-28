@@ -100,22 +100,33 @@ object Updater {
         } finally { c.disconnect() }
     }
 
-    /** Fetches notes for the installed build's immutable version tag (for example v1.0.246). */
+    /** Fetches every published version's notes newer than the installed build, so skipped releases are included. */
     fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME): String {
         if (!enabled || !version.matches(Regex("1\\.0\\.\\d+"))) return ""
-        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/v$version").openConnection() as HttpURLConnection
-        c.connectTimeout = 7000; c.readTimeout = 9000
+        val installedBuild = version.substringAfterLast('.').toIntOrNull() ?: return ""
+        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").openConnection() as HttpURLConnection
+        c.connectTimeout = 7000; c.readTimeout = 12000
         c.setRequestProperty("User-Agent", "HorizonNav/$version")
         c.setRequestProperty("Accept", "application/vnd.github+json")
         try {
             if (c.responseCode !in 200..299) return ""
             val bytes = c.inputStream.use { input ->
-                val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(2048)
-                while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 256 * 1024) break; out.write(buf, 0, n) }
+                val out = java.io.ByteArrayOutputStream(); val buf = ByteArray(4096)
+                while (true) { val n = input.read(buf); if (n < 0) break; if (out.size() + n > 1024 * 1024) break; out.write(buf, 0, n) }
                 out.toByteArray()
             }
-            val body = JSONObject(String(bytes, Charsets.UTF_8)).optString("body")
-            return cleanReleaseNotes(body).take(4000)
+            val releases = org.json.JSONArray(String(bytes, Charsets.UTF_8))
+            val notes = mutableListOf<Pair<Int, String>>()
+            for (i in 0 until releases.length()) {
+                val release = releases.optJSONObject(i) ?: continue
+                val tag = release.optString("tag_name")
+                val match = Regex("v?1\\.0\\.(\\d+)").matchEntire(tag) ?: continue
+                val build = match.groupValues[1].toIntOrNull() ?: continue
+                if (build <= installedBuild) continue
+                val body = cleanReleaseNotes(release.optString("body"))
+                if (body.isNotBlank()) notes += build to "### 1.0.$build\n$body"
+            }
+            return notes.sortedBy { it.first }.joinToString("\n\n").take(4000)
         } finally { c.disconnect() }
     }
 

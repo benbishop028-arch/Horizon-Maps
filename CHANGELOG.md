@@ -4,20 +4,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
-### Added
-- Added settings to enable or disable automatic route starting and configure its countdown from 3 to 30 seconds.
+- Show all published release notes newer than the installed version, including releases skipped during an update.
 
-
-### Improved
-- Increased the Android Auto locator arrow lateral clearance from overlay cards and widened the collision band so it adapts more reliably to full-screen and split-screen map layouts.
-
-### Improved
-- Expanded Android Auto map UI scaling range from 60–160% to 40–300%.
-- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
-
-### Improved
-- Increased the Android Auto locator arrow scale to almost twice its previous size.
-- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+_Add only changes made since the previous published release. This section is cleared automatically after a successful publish._
 
 ## 1.0.246 — 2026-10-28
 
