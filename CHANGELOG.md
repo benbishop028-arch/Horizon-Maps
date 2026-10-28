@@ -1,8 +1,21 @@
 # Changelog
 
-Notable changes to Horizon Nav are recorded here. Published GitHub Releases also keep per-build notes.
+Add user-facing Horizon Nav changes under **Unreleased** before publishing each build. Keep entries focused on features, improvements, and fixes in the app—not GitHub Actions or release-publishing maintenance.
 
 ## Unreleased
+
+<!-- Add entries here before the next publish, for example:
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.246 — 2026-10-28
 
 ### Improved in-app updates
 - Show the installed and available app versions in the update prompt.
