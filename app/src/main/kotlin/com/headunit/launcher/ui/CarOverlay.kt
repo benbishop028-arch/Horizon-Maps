@@ -125,7 +125,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val cardScale = engine.prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).coerceIn(70, 150) / 100f
         val buttonScale = engine.prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
         val arrowScale = engine.prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f
-        val speedScale = engine.prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).coerceIn(60, 180) / 100f
+        val requestedSpeedScale = engine.prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).coerceIn(40, 180) / 100f
+        // Conservative auto-fit for the compact layout; the edge-positioned layout applies a second fit to its exact bounds.
+        val speedScale = requestedSpeedScale * minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
         val hPx = with(dens) { maxHeight.toPx() }
         val wPx = with(dens) { maxWidth.toPx() }
         // tall screens (portrait car displays, or Android Auto's split layouts) get their own layout: cards across the full width,
@@ -282,8 +284,12 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 val crowded = with(dens) { (left + 16.dp + 34.dp + rightBottom).toPx() } + leftColW + speedW > wPx
                 // Keep the speedometer against the screen edge, above Android Auto's native zoom/re-centre controls.
                 val speedBottom = if (crowded && leftColH > 0) bottom + with(dens) { leftColH.toDp() } + 10.dp else bottom + 154.dp
-                Box(Modifier.align(Alignment.BottomEnd).padding(end = insR + 12.dp, bottom = speedBottom, start = 34.dp, top = 20.dp)
-                    .onSizeChanged { speedW = it.width }) { CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) } }
+                BoxWithConstraints(Modifier.align(Alignment.BottomEnd).padding(end = insR + 12.dp, bottom = speedBottom, start = 34.dp, top = 20.dp)
+                    .onSizeChanged { speedW = it.width }) {
+                    val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
+                    val fittedScale = requestedSpeedScale * availableFit
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * fittedScale, dens.fontScale)) { ImmSpeed(engine) }
+                }
             }
         }
 

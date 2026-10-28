@@ -4,9 +4,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
-- Show all published release notes newer than the installed version, including releases skipped during an update.
+- Automatically fit the Android Auto speedometer and speed-limit sign to the available display area to prevent edge clipping, including split-screen layouts.
+- Add a dedicated Android Auto speedometer/speed-limit sign size slider.
 
-_Add only changes made since the previous published release. This section is cleared automatically after a successful publish._
 
 ## 1.0.246 — 2026-10-28
 

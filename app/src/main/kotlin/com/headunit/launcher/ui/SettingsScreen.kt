@@ -692,6 +692,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             } catch (e: Exception) { "Unknown" }
         }
         SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = "Base scale for the whole overlay", steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
+        SSlider("Speedometer and speed-limit sign size", prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = "Automatically shrinks further if the available screen area is too small", reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem("Advanced car-screen sizes", "Fine-tune individual elements independently") {
             SButton(if (carAdvanced) "Hide" else "Show") { carAdvanced = !carAdvanced }
@@ -701,7 +702,6 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             SSlider("Button size", prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Round controls and tappable buttons", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
             SSlider("Text size", prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent of card and button sizing", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
             SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
-            SSlider("Speedometer and speed-limit sign", prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
         }
         SItem("Installed by", source)
         SItem("Android Auto settings", if (hasAa) null else "Android Auto isn't installed on this phone") {
