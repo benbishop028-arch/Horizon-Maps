@@ -4,16 +4,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
-<!-- Add entries here before the next publish, for example:
-### Added
-- Describe a new app feature.
-
-### Improved
-- Describe an improvement to existing app behaviour.
-
-### Fixed
-- Describe a bug fix.
--->
+### Improved Android Auto display scaling
+- Adjusted turn-guidance arrow scaling so it is not unintentionally multiplied by the navigation card scale.
+- Made the interface scale respond to the available display's short edge and aspect ratio.
+- Made map rendering scale adapt to the Android Auto viewport to help reduce excessive zoom on some displays.
 
 ## 1.0.246 — 2026-10-28
 
