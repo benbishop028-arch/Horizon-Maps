@@ -625,7 +625,7 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Map accounts", footer = "Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.") {
         SFieldItem("TomTom API key", prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) "Using the key built into this app unless you paste another" else "Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com",
             placeholder = "Paste a key") { prefs.setApiKey(it) }
-        SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "For the Mapbox map, routes with live traffic and speed limits, search and satellite imagery. Free from account.mapbox.com (the default public token, starting pk., is fine)",
+        SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions.",
             placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, it.trim()) }
     }
     if (engine.hasKey && engine.hasMapbox) SGroup("Routes, search and traffic", footer = "Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.") {

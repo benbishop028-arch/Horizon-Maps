@@ -1153,7 +1153,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun checkForUpdate(manual: Boolean = false) {
         if (!Updater.enabled || updateBusy || updateCheckInFlight) return
         val now = System.currentTimeMillis()
-        if (!manual && !prefs.b(PreferenceKeys.UPDCHECK, true)) return
         if (manual) updateStatus = "Checking…"
         scope.launch {
             updateCheckInFlight = true

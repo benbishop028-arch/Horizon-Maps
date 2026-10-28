@@ -127,11 +127,15 @@ object Updater {
                 val value = line.trim()
                 value.startsWith("Horizon Nav 1.0.") ||
                     value.startsWith("## Horizon Nav 1.0.") ||
-                    value.startsWith("### Downloads") ||
-                    value.startsWith("**HorizonNav-public.apk") ||
-                    value.startsWith("HorizonNav-public.apk.sha256") ||
-                    value.startsWith("version.json") ||
-                    value.startsWith("Built on ") ||
+                    value.startsWith("### Downloads", ignoreCase = true) ||
+                    value.startsWith("**HorizonNav-public.apk", ignoreCase = true) ||
+                    value.startsWith("HorizonNav-public.apk.sha256", ignoreCase = true) ||
+                    value.startsWith("version.json", ignoreCase = true) ||
+                    value.startsWith("Built on ", ignoreCase = true) ||
+                    value.equals("Downloads", ignoreCase = true) ||
+                    value.contains("Android app installer", ignoreCase = true) ||
+                    value.contains("SHA-256 checksum", ignoreCase = true) ||
+                    value.contains("version information used by the updater", ignoreCase = true) ||
                     value.contains("Describe a new app feature", ignoreCase = true) ||
                     value.contains("Describe an improvement", ignoreCase = true) ||
                     value.contains("Describe a bug fix", ignoreCase = true) ||
@@ -142,7 +146,8 @@ object Updater {
             .replace(Regex("(?m)^#{1,6}\\s*(Added|Improved|Fixed)\\s*$"), "")
             .replace(Regex("(?m)^[-•⁃]\\s*$"), "")
             .trim()
-        return cleaned.takeIf { it.isNotBlank() } ?: "This version is installed and ready. Detailed release notes were not available for this build."
+        return cleaned.takeIf { it.isNotBlank() }
+            ?: "No feature notes were published for this version. Check the project's changelog for the changes included in this build."
     }
 
     private fun readSmallText(address: String): String {
