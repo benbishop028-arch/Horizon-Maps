@@ -281,7 +281,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     }
     if (whatsNewVisible) {
         // Follow the app's active day/night palette so the update card stays readable in both modes.
-        val updatePalette = navVw(LocalVw.current)
+        val updatePalette = if (dark) DarkVw else LightVw
         val updateHeader = if (updatePalette.dark) Color(0xFF203B62) else Color(0xFFDCEBFF)
         val updateHeaderTitle = if (updatePalette.dark) Color.White else Color(0xFF172B46)
         val updateHeaderSub = if (updatePalette.dark) Color(0xFFD8E7FA) else Color(0xFF405875)

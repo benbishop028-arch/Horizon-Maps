@@ -2613,7 +2613,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** Sprites are drawn at 2.4x; this brings them to the same on-screen size the flat arrow had (the car a little longer). */
-    private fun spriteSize(): Float = arrowScale * (if (locatorStyle == "car") 0.28f else 0.31f)
+    private fun spriteSize(): Float = arrowScale * 1.22f * (if (locatorStyle == "car") 0.28f else 0.31f)
 
     private fun shade(hex: String, f: Float): Int {
         val c = try { android.graphics.Color.parseColor(hex) } catch (e: Exception) { -1 }
