@@ -715,7 +715,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         try {
             val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
             cm.registerDefaultNetworkCallback(object : android.net.ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: android.net.Network) { mapboxGaps = false; scope.launch { delay(2000); applyStyle(lastDark) } }
+                override fun onAvailable(network: android.net.Network) { mapboxGaps = false; scope.launch { delay(2000); applyStyle(lastDark); checkForUpdate(); checkDataUpdates() } }
                 override fun onLost(network: android.net.Network) { scope.launch { delay(800); applyStyle(lastDark) } }
             })
         } catch (e: Exception) { }
@@ -1140,8 +1140,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var updateBusy by mutableStateOf(false)
     var updateStatus by mutableStateOf("")
 
-    /** Checks for a newer app: by itself at most twice a day ([manual] = from the button in Settings, every time). */
-    private var updateCheckInFlight = false
+    /** Guards the check before its coroutine is launched, preventing overlapping lifecycle/network callbacks. */
+    @Volatile private var updateCheckInFlight = false
 
     /** Check on every launch/resume. Network work runs on IO and duplicate overlapping checks are suppressed. */
     fun onOpened() {
@@ -1150,12 +1150,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         checkDataUpdates()
     }
 
+    @Synchronized
     fun checkForUpdate(manual: Boolean = false) {
         if (!Updater.enabled || updateBusy || updateCheckInFlight) return
+        updateCheckInFlight = true
         val now = System.currentTimeMillis()
         if (manual) updateStatus = "Checking…"
         scope.launch {
-            updateCheckInFlight = true
             val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = "Couldn't check: no connection"; return@launch } finally { updateCheckInFlight = false }
             prefs.put(PreferenceKeys.UPDATE_LAST_CHECK, now.toString())
             if (u == null) { if (manual) updateStatus = "You have the latest version"; return@launch }
