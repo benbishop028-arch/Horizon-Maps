@@ -257,8 +257,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
-        // where the button panel ends and the speedometer starts (in pixels), so zoom only moves when it would really touch either
-        var railBottomPx by remember { mutableStateOf(0) }
+        // where the speedometer starts (in pixels), so zoom only moves beside the panel when it would really touch it
         var speedTopPx by remember { mutableStateOf(-1) }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
@@ -341,9 +340,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             if (engine.nearbyKind != null && (!previewing || engine.stopMode)) NearbyCard(engine)
         }
 
-        // ---- right side: Settings in the top corner as before, the map buttons grouped in one panel under it, and zoom halfway down
-        // the edge where it always was. Zoom only moves up beside the panel when it would touch the panel or the speedometer (both
-        // are measured), and on a really short screen the panel splits into two columns rather than run into the speedometer.
+        // ---- right side: the map buttons grouped in one panel at the top, zoom under it, and Settings beside it
         if (!previewing) {
             val buttonBaseDensity = LocalDensity.current
             val railItems = ArrayList<@Composable () -> Unit>()
@@ -359,15 +356,17 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val unit = 52.dp * mainButtonScale
             // the top of the speedometer (measured; a fair guess until it has been laid out)
             val speedTop = if (speedTopPx >= 0) with(dens) { speedTopPx.toDp() } else maxHeight - 190.dp
-            // buttons that fit in one column between Settings and the speedometer
-            val perCol = ((speedTop - 16.dp - unit - 10.dp - 12.dp) / unit).toInt().coerceAtLeast(3)
-            val chunks = if (narrow || railItems.size <= perCol) listOf(railItems.toList()) else railItems.chunked(perCol)
-            // where zoom sits when it stays put: centred between 80dp from the top and 110dp from the bottom, as before
+            // landscape: Settings sits to the left of the panel (to the right when mirrored) so the panel starts at the very top, with
+            // zoom straight under it. Portrait: Settings above the panel, as there's no room beside it next to the search bar.
+            val settingsAbove = narrow
+            val top = 16.dp * mainButtonScale + (if (settingsAbove) unit + 10.dp * mainButtonScale else 0.dp)
             val zoomH = (2 * 52 + 1).dp * mainButtonScale
-            // (its 80dp / 110dp margins are laid out at the button size too)
-            val zoomTop = 80.dp * mainButtonScale + ((maxHeight - 190.dp * mainButtonScale) - zoomH) / 2
-            val railBottom = with(dens) { railBottomPx.toDp() }
-            val zoomBeside = !narrow && railBottomPx > 0 && (railBottom - 8.dp > zoomTop || zoomTop + zoomH + 8.dp > speedTop)
+            // zoom goes under the panel unless that would touch the speedometer; then it moves beside the panel, and on a really short
+            // screen the panel splits into two columns rather than run into the speedometer
+            val railH = unit * railItems.size
+            val zoomUnder = narrow || top + railH + 10.dp * mainButtonScale + zoomH + 8.dp <= speedTop
+            val perCol = ((speedTop - top - 8.dp) / unit).toInt().coerceAtLeast(3)
+            val chunks = if (narrow || railItems.size <= perCol) listOf(railItems.toList()) else railItems.chunked(perCol)
             CompositionLocalProvider(LocalDensity provides Density(buttonBaseDensity.density * mainButtonScale, buttonBaseDensity.fontScale)) {
                 val rail: @Composable (List<@Composable () -> Unit>) -> Unit = { part ->
                     Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -381,20 +380,27 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                         Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
                     }
                 }
-                // Settings, then the panel (in two columns if it must split; the first stays against the screen edge)
-                Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp)
-                    .onGloballyPositioned { val b = it.boundsInParent().bottom.toInt(); if (b != railBottomPx) railBottomPx = b },
-                    verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
-                    ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings")
+                val settings: @Composable () -> Unit = { ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings") }
+                // the panel against the screen edge with zoom under it (or beside it), in as many columns as it needs
+                val panelAndZoom: @Composable () -> Unit = {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                         val parts = if (mir) chunks else chunks.asReversed()
-                        if (zoomBeside && !mir) zoom()
-                        for (part in parts) rail(part)
-                        if (zoomBeside && mir) zoom()
+                        if (!zoomUnder && !mir) zoom()
+                        for ((i, part) in parts.withIndex()) {
+                            // zoom goes under the column that's against the screen edge
+                            val edge = if (mir) i == 0 else i == parts.size - 1
+                            if (edge && zoomUnder) Column(verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) { rail(part); zoom() }
+                            else rail(part)
+                        }
+                        if (!zoomUnder && mir) zoom()
                     }
-                    if (narrow) zoom()
                 }
-                if (!narrow && !zoomBeside) Box(Modifier.align(side(Alignment.CenterEnd)).sides(end = 16.dp, top = 80.dp, bottom = 110.dp)) { zoom() }
+                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
+                    settings(); panelAndZoom()
+                }
+                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                    if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
+                }
             }
         }
 

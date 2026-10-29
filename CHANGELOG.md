@@ -47,7 +47,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - What's new card redesigned: each change on its own card with an icon, a headline and a short description, sorted under New, Improved and Fixed.
 - What's new in landscape: the card now spreads across the screen, with the title and Let's go button on the left and the changes in two columns on the right.
 - Tidier map page: Home and Work are two tiles showing the drive time, and fuel, charging, food, coffee and parking are five round buttons that always fit. Saved & recent shows three places with "All" for the rest, and your own saved places are in it too.
-- Map buttons grouped: compass, map options, 3D and sound sit together in one panel under the Settings button. Zoom stays halfway down the right-hand edge, and only moves up beside the panel if it would touch it or the speedometer.
+- Map buttons grouped: compass, map options, 3D and sound sit together in one panel at the top right with the zoom buttons straight under it, and Settings just to its left. If zoom would touch the speedometer on a short screen, it moves beside the panel instead.
 - Car types for the real 3D model: the hatchback, estate, SUV, pickup, van and sports car now have their own 3D models too, not just the saloon, and the car type picker shows for the real 3D car.
 - Map options redesigned: Standard or Satellite as two picture cards, a quick Auto / Day / Night switch, and the map layers as tiles that light up when on. Reports fit on one row, and in landscape the panel is wider, in two columns, so nothing needs scrolling.
 
