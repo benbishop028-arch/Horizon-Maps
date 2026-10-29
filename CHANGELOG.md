@@ -48,11 +48,13 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Android Auto trip card on wide screens: it no longer stretches right across a very wide car screen with its sound and end-route buttons hidden under Android Auto's own buttons; it's now just as wide as its figures and buttons.
 - Fuel, parking and other nearby searches: they now use Mapbox's category search, which finds the nearest places of that kind, instead of a text search that often came back empty and fell through to the busy free OpenStreetMap servers ("HTTP 429", "HTTP 502"). Along a route, when those servers are busy, Mapbox is asked instead, and errors are in plain words.
 - 2D / 3D is remembered: the map no longer starts in 3D every time if you'd left it in 2D.
+- Adding a stop on the way (fuel, coffee and so on) no longer hangs: along the route Mapbox is asked first, a few points at once, and a search that gets stuck on a slow server now gives up after 30 seconds as it should (it could spin for minutes).
 
 ### New
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.
 - Android Auto map page matches the app: Home and Work tiles with the drive time, five round buttons for fuel, charging, food, coffee and parking, and Saved & recent with your first few places (as many as fit) and "All" for the rest, in place of the long scrolling row of chips. Your arrow also sits in the middle of the clear map there when you're not navigating.
 - Android Auto speed sign: it sits right up against the edge of the screen when Android Auto's buttons hide, and just beside them when they show.
 - Arrow centred in the clear map: when you're not navigating, your arrow sits in the middle of the map between the search panel and the buttons, instead of dead centre behind them.

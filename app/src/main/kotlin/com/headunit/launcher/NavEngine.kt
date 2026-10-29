@@ -32,6 +32,8 @@ import kotlin.math.min
 
 class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding) : LocationListener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    /** Place searches run here, apart from everything else, so one stuck on a slow server can just be left behind. */
+    private val searchScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // ---- observable state ----
     var fix by mutableStateOf<Fix?>(null)
@@ -2011,7 +2013,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         nearbyKind = kind; nearbyBusy = true; nearby = emptyList()
         scope.launch {
             try {
-                val list = kotlinx.coroutines.withTimeoutOrNull(30_000L) { withContext(Dispatchers.IO) {
+                // the search runs on its own, and the 30 s limit just stops waiting for it: a blocked network read used to hold the
+                // limit up too (the timeout can't end a read that's waiting on a server), so a busy server left it spinning for minutes
+                val work = searchScope.async {
                     if (fuelLive) {
                         try { FuelFinder.refresh(ctx, prefs) } catch (e: Exception) { /* use what is stored */ }
                         val st = FuelFinder.stations(ctx)
@@ -2040,7 +2044,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                                         Geo.dist(origin, s0.pos), priceExtra(price, s0.motorway), price?.pence)
                                 }
                             }
-                            if (out.isNotEmpty()) return@withContext out
+                            if (out.isNotEmpty()) return@async out
                         }
                     }
                     // outside the UK: live prices from the country's own price service (France, Austria, Germany with a key)
@@ -2056,12 +2060,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                                 out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first - progress, "", s0.cents, detour(pr.second), true, unit = "€")
                             } else if (Geo.dist(centre, s0.pos) <= radius) out += Nearby(Place(s0.name, s0.sub, s0.pos), Geo.dist(origin, s0.pos), "", s0.cents, unit = "€")
                         }
-                        if (out.isNotEmpty()) return@withContext out
+                        if (out.isNotEmpty()) return@async out
                     }
                     // bioethanol: only stations mapped as selling E85 (TomTom's search can't tell which do)
                     val e85 = kind == "fuel" && fuelType == "E85"
                     if (e85) {
-                        return@withContext if (alongRoute && rt != null) {
+                        return@async if (alongRoute && rt != null) {
                             Overpass.nearbyAlong("fuel_e85", RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45), 1500).mapNotNull { n ->
                                 val pr = RouteExtras.project(rt, n.place.pos, 2000.0, progress) ?: return@mapNotNull null
                                 if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
@@ -2081,20 +2085,22 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             } else if (alongRoute && rt != null) null   // (along the route: Mapbox can't search along a line, so OpenStreetMap does it below)
                             else netPoiNearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                         } catch (e: Exception) { null }
-                        if (!tt.isNullOrEmpty()) return@withContext tt
+                        if (!tt.isNullOrEmpty()) return@async tt
                     }
                     if (alongRoute && rt != null) {
                         val line = RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45)
-                        // OpenStreetMap first (free); when its servers are busy, Mapbox at a few points along the next 40 km instead
-                        val raw = try { Overpass.nearbyAlong(kind, line, if (kind == "services") 400 else 900) }
-                            catch (e: Exception) { if (mbToken.isNotBlank() && online()) mapboxAlong(kind, line) else throw e }
+                        // Mapbox first (a few points along the next 40 km, asked all at once: a second or two); the free OpenStreetMap
+                        // servers only when it finds nothing or there's no Mapbox key (they're often busy and can take a long time)
+                        val fromMapbox = if (mbToken.isNotBlank() && online()) (try { mapboxAlong(kind, line) } catch (e: Exception) { emptyList() }) else emptyList()
+                        val raw = fromMapbox.ifEmpty { Overpass.nearbyAlong(kind, line, if (kind == "services") 400 else 900) }
                         raw.mapNotNull { n ->
                             val pr = RouteExtras.project(rt, n.place.pos, 1200.0, progress) ?: return@mapNotNull null
                             if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
                         }
                     } else Overpass.nearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
-                } }
-                if (list == null) { toast("Search took too long. Check the signal and try again.", 4000); clearNearby(); return@launch }
+                }
+                val list = kotlinx.coroutines.withTimeoutOrNull(30_000L) { work.await() }
+                if (list == null) { work.cancel(); toast("Search took too long. Check the signal and try again.", 4000); clearNearby(); return@launch }
                 if (pickBest) {
                     val ahead = list.filter { it.ahead || route == null }
                     val best = if (ahead.any { it.price != null }) ahead.filter { it.price != null && it.detourMin in 0..10 }.minByOrNull { (it.price ?: 999.0) + it.detourMin }
@@ -2111,15 +2117,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    /** Places along the route ahead from Mapbox: its category search round a point every 8 km or so (at most 5 asks). */
-    private fun mapboxAlong(kind: String, line: List<LL>): List<Nearby> {
+    /** Places along the route ahead from Mapbox: its category search round a point every 8 km or so (at most 5, asked together). */
+    private suspend fun mapboxAlong(kind: String, line: List<LL>): List<Nearby> {
         val pts = ArrayList<LL>(); var last: LL? = null
         for (q in line) if (last == null || Geo.dist(last, q) > 8000.0) { pts += q; last = q }
-        val seen = HashSet<String>(); val out = ArrayList<Nearby>()
-        for (q in pts.take(5)) {
-            val found = try { MapboxRest.poiNearby(mbToken, kind, q, 2500) } catch (e: Exception) { if (out.isEmpty() && q == pts.first()) throw e else emptyList() }
-            for (n in found) if (seen.add(String.format(java.util.Locale.US, "%.4f,%.4f", n.place.pos.lat, n.place.pos.lon))) out += n
+        val found = kotlinx.coroutines.coroutineScope {
+            pts.take(5).map { q -> async(Dispatchers.IO) { try { MapboxRest.poiNearby(mbToken, kind, q, 2500) } catch (e: Exception) { emptyList() } } }.map { it.await() }
         }
+        val seen = HashSet<String>(); val out = ArrayList<Nearby>()
+        for (l in found) for (n in l) if (seen.add(String.format(java.util.Locale.US, "%.4f,%.4f", n.place.pos.lat, n.place.pos.lon))) out += n
         return out
     }
 

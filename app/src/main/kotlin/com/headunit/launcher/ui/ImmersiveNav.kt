@@ -1014,6 +1014,11 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
             trailingIcon = {
                 if (q.isNotEmpty()) Icon(Icons.Rounded.Close, "Clear", tint = c.sub, modifier = Modifier.padding(end = 8.dp).clickable { onQ(""); engine.results = emptyList() })
                 else Row(verticalAlignment = Alignment.CenterVertically) {
+                    // folds Saved & recent up under the bar, and back down again
+                    val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true)
+                    Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.QUICKLIST, !open) }, contentAlignment = Alignment.Center) {
+                        Icon(if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, if (open) "Hide saved and recent" else "Show saved and recent", tint = c.sub, modifier = Modifier.size(26.dp))
+                    }
                     Box(Modifier.padding(end = 8.dp).size(44.dp).clip(CircleShape).background(c.accent).pressClick { voice() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Mic, "Voice search", tint = Color.White, modifier = Modifier.size(23.dp))
                     }
@@ -1186,7 +1191,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             Text("Go", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         // three places on show to keep the map clear; "All" opens the rest (it used to be a list up to five tall)
-        AnimatedVisibility(showSaved,
+        AnimatedVisibility(showSaved && engine.prefs.b(PreferenceKeys.QUICKLIST, true),
             enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
         Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 6.dp)) {
             Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {

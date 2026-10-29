@@ -233,11 +233,18 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
         if (engine.route == null && !arriving) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).carTap("search") { actions.search() }.padding(start = 18.dp, end = 8.dp),
+            Row(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Search, null, tint = c.sub)
-                Text("Where to?", color = c.sub, fontSize = 18.sp, modifier = Modifier.padding(start = 12.dp).weight(1f))
-                Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
+                // the bar opens the search; the arrow folds Saved & recent away and back (as in the app), so it has a tap area of its own
+                Row(Modifier.weight(1f).fillMaxHeight().carTap("search") { actions.search() }.padding(start = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Search, null, tint = c.sub)
+                    Text("Where to?", color = c.sub, fontSize = 18.sp, modifier = Modifier.padding(start = 12.dp))
+                }
+                val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true)
+                Box(Modifier.padding(end = 4.dp).size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).carTap("fold") { engine.prefs.put(PreferenceKeys.QUICKLIST, !open) }, contentAlignment = Alignment.Center) {
+                    androidx.compose.material3.Icon(if (open) androidx.compose.material.icons.Icons.Rounded.KeyboardArrowUp else androidx.compose.material.icons.Icons.Rounded.KeyboardArrowDown, null, tint = c.sub, modifier = Modifier.size(28.dp))
+                }
+                Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent).carTap("search-mic") { actions.search() }, contentAlignment = Alignment.Center) {
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Mic, null, tint = Color.White, modifier = Modifier.size(23.dp))
                 }
             }
@@ -590,7 +597,8 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
             mine.map { Triple(it.place, true, it.label) } + favs.map { Triple(it, true, it.name) } + recents.take(4).map { Triple(it, false, it.name) }
         }
-        Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
+        // (folded away with the arrow in the search bar)
+        if (engine.prefs.b(PreferenceKeys.QUICKLIST, true)) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
             Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("SAVED & RECENT", color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
                 Text(if (saved.size > rows) "All ${saved.size}" else "Open", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
