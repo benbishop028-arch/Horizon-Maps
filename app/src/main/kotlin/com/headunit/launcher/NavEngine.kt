@@ -4007,15 +4007,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // otherwise supply the wrong one-way/road-centre metadata and offset the highlighted lane away from the route.
         // If the match is ambiguous, use the lane-relative fallback below so the route remains in the selected lane.
         // (with no road data from the map the old way is used: the lanes laid out with the lane to be in under the route line)
-        val aligned = road != null
-        val big = road?.cls?.let { it.startsWith("motorway") || it.startsWith("trunk") || it.startsWith("primary") } == true
+        // Only lined up with the road on one-way motorway and trunk carriageways (not slip roads), where the mapped line really
+        // runs down the middle of the lanes. On ordinary A roads and town junctions the lanes often widen or gain a turning lane
+        // that the mapped line doesn't follow, which put the lanes (and the route line moved into them) off the road; there the
+        // lanes are laid out with the lane to be in under the route line, and the route line stays where it is.
+        val big = road?.cls?.let { (it == "motorway" || it == "trunk") } == true
+        val aligned = road != null && road.oneway == true && big
         val laneW = if (!aligned) 3.6 else if (big) 3.65 else 3.5
-        val leftDrive = detectedCountry.ifBlank { "GB" } in setOf("GB", "IE", "IM", "JE", "GG", "MT", "CY", "AU", "NZ", "JP", "ZA", "IN", "HK", "SG", "MY", "TH", "ID")
-        val centre = when {
-            !aligned -> if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average()
-            road?.oneway == false -> if (leftDrive) n - 0.5 else -0.5
-            else -> (n - 1) / 2.0
-        }
+        val centre = if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average()) else (n - 1) / 2.0
         fun latOf(i: Int) = (i - centre) * laneW
         fun shifted(p: LL, brg: Double, lateral: Double): LL {
             val rad = Math.toRadians(brg + 90.0)
@@ -4037,7 +4036,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // lane strips from up to 130 m before the junction to just short of it
         // TomTom's lane section can be short, but the lanes carry on back along the approach, so the strips do not stop where the section starts
-        val from = max(0.0, cur.off - 110.0)
+        // (only the last stretch before the junction, where the lanes really are: about 110 m on motorways, 60 m elsewhere,
+        // so lanes aren't painted far back along a road that only widens at the junction)
+        val from = max(0.0, cur.off - (if (aligned) 110.0 else 60.0))
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
@@ -4067,7 +4068,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val shift = ArrayList<LL>()
         if (aligned && activeIdx.isNotEmpty()) {
             val lat = (activeIdx.average() - centre) * laneW
-            val s0 = max(0.0, max(sec.off, cur.off - 420.0)); val s1 = cur.off
+            val s0 = max(0.0, max(sec.off, cur.off - 250.0)); val s1 = cur.off
             if (Math.abs(lat) > 0.6 && s1 - s0 > 80.0) {
                 var o = s0
                 while (true) {

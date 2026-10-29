@@ -4,6 +4,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
+- Fix lane guidance pushing the route line and lane strips off the road at ordinary junctions. Lanes are now lined up with the road only on motorway and trunk carriageways; elsewhere the lane to be in is drawn under the route line, and lane strips are only painted on the last stretch before the junction.
 - Add alternative-route line colour customisation, with a pale blue-grey default for better contrast against grey roads.
 - Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
 
