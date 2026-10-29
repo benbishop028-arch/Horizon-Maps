@@ -118,6 +118,63 @@ jobs:
         with:
           gradle-version: 8.14.4
 
+      - name: Prepare the release notes (and put them inside the app for its What's new card)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="1.0.${GITHUB_RUN_NUMBER}"
+          # Use the first version section in CHANGELOG.md from the uploaded ZIP.
+          CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
+          CHANGE_NOTES="$RUNNER_TEMP/horizon-change-notes.md"
+          : > "$CHANGE_NOTES"
+          if [ -f "$CHANGELOG" ]; then
+            awk '
+              /^##[[:space:]]+/ {
+                if (section_found) exit
+                section_found=1
+                next
+              }
+              section_found { print }
+            ' "$CHANGELOG" > "$CHANGE_NOTES"
+            # Remove leading blank lines from the extracted section.
+            sed -i '/./,$!d' "$CHANGE_NOTES"
+          fi
+
+          # Leave out any notes an earlier release already published, so the changelog never has to be emptied
+          # by hand. If GitHub can't be asked for the old releases, the notes are used as they are.
+          PUBLISHED="$RUNNER_TEMP/published-notes.txt"
+          gh api "repos/${{ github.repository }}/releases?per_page=100" --paginate --jq '.[].body' > "$PUBLISHED" 2>/dev/null || : > "$PUBLISHED"
+          python3 - "$PUBLISHED" "$CHANGE_NOTES" <<'PY'
+          import re, sys
+          def key(t): return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
+          bullet = re.compile(r"\s*[-*]\s+(.*)")
+          old = set()
+          for line in open(sys.argv[1], encoding="utf-8", errors="ignore"):
+              m = bullet.match(line)
+              if m: old.add(key(m.group(1)))
+          lines = [l for l in open(sys.argv[2], encoding="utf-8").read().splitlines() if l.strip()]
+          out, keep = [], True
+          for line in lines:
+              m = bullet.match(line)
+              if m: keep = key(m.group(1)) not in old
+              elif line[:1].isspace(): pass   # a wrapped line goes with its bullet
+              else: keep = True               # a heading: tidied below
+              if keep: out.append(line)
+          tidy = []
+          for i, line in enumerate(out):
+              if not bullet.match(line) and not line[:1].isspace():
+                  nxt = next((l for l in out[i + 1:] if bullet.match(l) or not l[:1].isspace()), "")
+                  if not bullet.match(nxt): continue   # a heading with nothing new under it
+              tidy.append(line)
+          open(sys.argv[2], "w", encoding="utf-8").write("\n".join(tidy) + ("\n" if tidy else ""))
+          PY
+          # The app shows these itself after updating, so the What's new card works with no connection and doesn't depend on
+          # GitHub's API (which only allows a few requests an hour and often turned the card blank).
+          mkdir -p "$PROJECT_DIR/app/src/main/assets"
+          cp "$CHANGE_NOTES" "$PROJECT_DIR/app/src/main/assets/whatsnew.md"
+          echo "Notes for ${VERSION}:"; cat "$CHANGE_NOTES"
+
       - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
         env:
@@ -172,51 +229,8 @@ jobs:
           printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
             "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
 
-          # Use the first version section in CHANGELOG.md from the uploaded ZIP.
-          CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
+          # The notes were prepared (and put inside the app) before the build: see "Prepare the release notes".
           CHANGE_NOTES="$RUNNER_TEMP/horizon-change-notes.md"
-          : > "$CHANGE_NOTES"
-          if [ -f "$CHANGELOG" ]; then
-            awk '
-              /^##[[:space:]]+/ {
-                if (section_found) exit
-                section_found=1
-                next
-              }
-              section_found { print }
-            ' "$CHANGELOG" > "$CHANGE_NOTES"
-            # Remove leading blank lines from the extracted section.
-            sed -i '/./,$!d' "$CHANGE_NOTES"
-          fi
-
-          # Leave out any notes an earlier release already published, so the changelog never has to be emptied
-          # by hand. If GitHub can't be asked for the old releases, the notes are used as they are.
-          PUBLISHED="$RUNNER_TEMP/published-notes.txt"
-          gh api "repos/${{ github.repository }}/releases?per_page=100" --paginate --jq '.[].body' > "$PUBLISHED" 2>/dev/null || : > "$PUBLISHED"
-          python3 - "$PUBLISHED" "$CHANGE_NOTES" <<'PY'
-          import re, sys
-          def key(t): return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
-          bullet = re.compile(r"\s*[-*]\s+(.*)")
-          old = set()
-          for line in open(sys.argv[1], encoding="utf-8", errors="ignore"):
-              m = bullet.match(line)
-              if m: old.add(key(m.group(1)))
-          lines = [l for l in open(sys.argv[2], encoding="utf-8").read().splitlines() if l.strip()]
-          out, keep = [], True
-          for line in lines:
-              m = bullet.match(line)
-              if m: keep = key(m.group(1)) not in old
-              elif line[:1].isspace(): pass   # a wrapped line goes with its bullet
-              else: keep = True               # a heading: tidied below
-              if keep: out.append(line)
-          tidy = []
-          for i, line in enumerate(out):
-              if not bullet.match(line) and not line[:1].isspace():
-                  nxt = next((l for l in out[i + 1:] if bullet.match(l) or not l[:1].isspace()), "")
-                  if not bullet.match(nxt): continue   # a heading with nothing new under it
-              tidy.append(line)
-          open(sys.argv[2], "w", encoding="utf-8").write("\n".join(tidy) + ("\n" if tidy else ""))
-          PY
 
           {
             echo "## Horizon Nav ${VERSION}"
