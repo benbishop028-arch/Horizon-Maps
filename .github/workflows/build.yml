@@ -1,246 +1,142 @@
 name: Build Horizon Nav
-
 on:
   push:
     branches: [main]
-    paths:
-      - "HorizonNav.zip"
-      - ".github/workflows/build.yml"
   workflow_dispatch:
     inputs:
       publish:
         description: "Also publish the app to the download link (so the app's update check finds it)"
         type: boolean
         default: false
-
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-24.04
-
     steps:
       - uses: actions/checkout@v5
-        with:
-          persist-credentials: true
-          fetch-depth: 0
-
-      - name: Unpack the uploaded ZIP outside the repository
+      - name: Select source tree (prefer checkout; support archive-only repositories)
         run: |
-          set -euo pipefail
-          ZIP="$GITHUB_WORKSPACE/HorizonNav.zip"
-          UNPACKED="$RUNNER_TEMP/horizon-unpacked"
-          rm -rf "$UNPACKED"
-          mkdir -p "$UNPACKED"
-          [ -f "$ZIP" ] || { echo "ERROR: HorizonNav.zip not found"; exit 1; }
-          unzip -q "$ZIP" -d "$UNPACKED"
-
-          PROJECT_DIR="$(dirname "$(find "$UNPACKED" -name settings.gradle.kts -print -quit)")"
-          [ -f "$PROJECT_DIR/settings.gradle.kts" ] || {
-            echo "ERROR: Could not find settings.gradle.kts in HorizonNav.zip"
-            exit 1
-          }
-          [ -f "$PROJECT_DIR/app/build.gradle.kts" ] || {
-            echo "ERROR: Could not find the Android app module."
-            exit 1
-          }
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Project found at $PROJECT_DIR"
-
-      - name: Sync project source into the repository
-        run: |
-          set -euo pipefail
-          STAGING="$RUNNER_TEMP/horizon-source"
-          rm -rf "$STAGING"
-          mkdir -p "$STAGING"
-          rsync -a "$PROJECT_DIR/" "$STAGING/"
-
-          # Mirror project files into the repository root, preserving workflow files,
-          # README, uploaded ZIP and signing-key file.
-          rsync -a --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='README.md' \
-            --exclude='HorizonNav.zip' \
-            --exclude='signing.keystore' \
-            "$STAGING/" "$GITHUB_WORKSPACE/"
-
-          cd "$GITHUB_WORKSPACE"
-          git add -A
-          git reset -q -- HorizonNav.zip README.md signing.keystore .github 2>/dev/null || true
-
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Sync Horizon Nav source from uploaded ZIP [skip ci]"
-
-            # Incorporate newer remote commits before pushing; never force-push.
-            git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
-            echo "Source files committed to the repository."
+          if [ -f settings.gradle.kts ] && [ -f app/build.gradle.kts ]; then
+            PROJECT="$GITHUB_WORKSPACE"
+            echo "Building directly from checked-out source tree: $PROJECT"
           else
-            echo "Source files already match the uploaded ZIP."
+            ZIP="HorizonNav.zip"
+            if [ ! -f "$ZIP" ]; then echo "Neither a Gradle source tree nor $ZIP was found"; exit 1; fi
+            unzip -t "$ZIP"
+            unzip -q -o "$ZIP" -d src
+            SETTINGS=$(find src -name settings.gradle.kts -type f -print -quit)
+            if [ -z "$SETTINGS" ]; then echo "No settings.gradle.kts found in source archive"; exit 1; fi
+            PROJECT=$(dirname "$SETTINGS")
+            echo "Using source archive fallback: $PROJECT"
           fi
-
+          echo "PROJECT=$PROJECT" >> "$GITHUB_ENV"
       - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 17
-
+        with: { distribution: temurin, java-version: 17 }
       - name: Accept the Android licences
         run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-
-      - name: Restore the existing signing key from GitHub Secrets
-        env:
-          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+      - name: Use the existing signing key (never generate or replace it automatically)
         run: |
-          set -euo pipefail
-          [ -n "$SIGNING_KEYSTORE_BASE64" ] || { echo "Missing SIGNING_KEYSTORE_BASE64 secret"; exit 1; }
-          [ -n "$SIGNING_STORE_PASSWORD" ] || { echo "Missing SIGNING_STORE_PASSWORD secret"; exit 1; }
-          [ -n "$SIGNING_KEY_PASSWORD" ] || { echo "Missing SIGNING_KEY_PASSWORD secret"; exit 1; }
-          [ -n "$SIGNING_KEY_ALIAS" ] || { echo "Missing SIGNING_KEY_ALIAS secret"; exit 1; }
-
-          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/signing.keystore"
-          keytool -list -keystore "$RUNNER_TEMP/signing.keystore" \
-            -storepass "$SIGNING_STORE_PASSWORD" -alias "$SIGNING_KEY_ALIAS" > /dev/null
+          if [ ! -s signing.keystore ]; then
+            echo "ERROR: existing signing.keystore is missing. Refusing to generate a replacement because it could prevent updates to installed apps." >&2
+            exit 1
+          fi
           mkdir -p ~/.android
-          cp "$RUNNER_TEMP/signing.keystore" ~/.android/debug.keystore
-          cp "$RUNNER_TEMP/signing.keystore" "$GITHUB_WORKSPACE/signing.keystore"
-          echo "Existing signing key restored successfully."
-
+          cp signing.keystore ~/.android/debug.keystore
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.14.4
-
+        with: { gradle-version: 8.14.4 }
+      - name: Run navigation policy unit tests
+        working-directory: ${{ env.PROJECT }}
+        run: gradle :app:testPublicDebugUnitTest
       - name: Build release APK
-        working-directory: ${{ env.PROJECT_DIR }}
+        working-directory: ${{ env.PROJECT }}
+        # the Mapbox download token comes from the repo's secret (only used if Mapbox asks for it)
         env:
           MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
-        run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
-
-      - name: Verify APK signing certificate matches keystore
-        env:
-          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
+        run: gradle :app:assembleRelease -PtomtomApiKey="$TOMTOM_API_KEY"
+      - name: Verify release APK and stable signing
+        working-directory: ${{ env.PROJECT }}
         run: |
-          set -euo pipefail
-          APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
-          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
-          [ -f "$APK" ] || { echo "ERROR: APK not found"; exit 1; }
-          [ -n "$APKSIGNER" ] && [ -f "$APKSIGNER" ] || { echo "ERROR: apksigner not found"; exit 1; }
-
-          KEY_FP="$(keytool -list -v -keystore "$RUNNER_TEMP/signing.keystore" \
-            -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" |
-            sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APK_FP="$("$APKSIGNER" verify --print-certs "$APK" |
-            sed -n 's/.*certificate SHA-256 digest: //p' | head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          [ -n "$KEY_FP" ] && [ -n "$APK_FP" ] || { echo "ERROR: Could not read both certificate fingerprints."; exit 1; }
-          echo "Keystore fingerprint: $KEY_FP"
-          echo "APK fingerprint:      $APK_FP"
-          [ "$KEY_FP" = "$APK_FP" ] || { echo "FAIL: The APK and keystore certificates do not match."; exit 1; }
-          echo "PASS: The APK uses the expected signing certificate."
-
+          APK="app/build/outputs/apk/release/HorizonNav-public.apk"
+          if [ ! -s "$APK" ]; then echo "Expected release APK was not produced: $APK"; exit 1; fi
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          if [ -z "$BUILD_TOOLS" ] || [ ! -x "$BUILD_TOOLS/apksigner" ]; then echo "Android apksigner was not found"; exit 1; fi
+          "$BUILD_TOOLS/apksigner" verify --verbose "$APK"
       - uses: actions/upload-artifact@v4
         with:
           name: HorizonNav-public-apk
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/*.apk
+          path: ${{ env.PROJECT }}/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
-
+      # Only when you tick "publish" on Run workflow: the APK goes to the release called "app", replacing the one there,
+      # so this link always gives the newest version:
+      #   https://github.com/<you>/<repo>/releases/download/app/HorizonNav-public.apk
       - name: Publish the app
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
-          CHECKSUM="HorizonNav-public.apk.sha256"
-          VERSION_JSON="version.json"
+          APK="${{ env.PROJECT }}/app/build/outputs/apk/release/HorizonNav-public.apk"
           [ -f "$APK" ] || { echo "No APK was built"; exit 1; }
-
+          CHECKSUM="$APK.sha256"
+          VERSION_JSON="${{ env.PROJECT }}/version.json"
           BUILD="${GITHUB_RUN_NUMBER}"
           VERSION="1.0.${BUILD}"
           VERSION_CODE=$((100 + BUILD))
-          TAG="v${VERSION}"
-
           sha256sum "$APK" | awk '{print $1}' > "$CHECKSUM"
-          printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' \
-            "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
-
-          # Use the first version section in CHANGELOG.md from the uploaded ZIP.
-          CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
-          CHANGE_NOTES="$RUNNER_TEMP/horizon-change-notes.md"
-          : > "$CHANGE_NOTES"
-          if [ -f "$CHANGELOG" ]; then
-            awk '
-              /^##[[:space:]]+/ {
-                if (section_found) exit
-                section_found=1
-                next
-              }
-              section_found { print }
-            ' "$CHANGELOG" > "$CHANGE_NOTES"
-            # Remove leading blank lines from the extracted section.
-            sed -i '/./,$!d' "$CHANGE_NOTES"
-          fi
-
-          {
-            echo "## Horizon Nav ${VERSION}"
-            echo
-            if [ -s "$CHANGE_NOTES" ]; then
-              cat "$CHANGE_NOTES"
-            else
-              echo "This release contains the latest Horizon Nav build."
-              echo
-              echo "No release notes were found in CHANGELOG.md."
+          printf '{\n  "version": "%s",\n  "build": %s,\n  "versionCode": %s\n}\n' "$VERSION" "$BUILD" "$VERSION_CODE" > "$VERSION_JSON"
+          # Extract only the Unreleased section; never publish the changelog template.
+          CHANGELOG="${{ env.PROJECT }}/CHANGELOG.md"
+          CHANGELOG_NOTES=""
+          if [ -s "$CHANGELOG" ]; then
+            CHANGELOG_NOTES=$(awk '
+              /^## Unreleased[[:space:]]*$/ { in_section=1; next }
+              /^## / && in_section { exit }
+              in_section { print }
+            ' "$CHANGELOG" | perl -0777 -pe 's/<!--[\s\S]*?-->//g' | sed '/^[[:space:]]*$/d')
+            # Reject placeholder text and incomplete template headings.
+            if printf '%s' "$CHANGELOG_NOTES" | grep -qiE 'Describe a new app feature|Describe an improvement|Describe a bug fix|Add entries here before the next publish|DON CL|JON CLOS'; then
+              CHANGELOG_NOTES=""
             fi
-            echo
-            echo "### Downloads"
-            echo "- **HorizonNav-public.apk** — Android app installer"
-            echo "- **HorizonNav-public.apk.sha256** — SHA-256 checksum"
-            echo "- **version.json** — version information used by the updater"
-            echo
-            echo "Built on $(date -u '+%-d %b %Y') (UTC)."
-          } > release-notes.md
-
-          # Keep a permanent, versioned release for the public history.
-          # A rerun updates that same version rather than failing.
-          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit "$TAG" --repo "${{ github.repository }}" \
-              --title "Horizon Nav ${VERSION}" --notes-file release-notes.md
-          else
-            gh release create "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
-              --repo "${{ github.repository }}" \
-              --title "Horizon Nav ${VERSION}" --notes-file release-notes.md
           fi
-          gh release upload "$TAG" "$APK" "$CHECKSUM" "$VERSION_JSON" \
-            --repo "${{ github.repository }}" --clobber
-          gh release view "$TAG" --repo "${{ github.repository }}" \
-            --json assets --jq '.assets[].name' | tee versioned-assets.txt
-          grep -Fxq "HorizonNav-public.apk" versioned-assets.txt
-          grep -Fxq "HorizonNav-public.apk.sha256" versioned-assets.txt
-          grep -Fxq "version.json" versioned-assets.txt
-
-          # Also refresh the stable release URL used by the app's built-in updater.
-          if gh release view app --repo "${{ github.repository }}" >/dev/null 2>&1; then
-            gh release edit app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" --notes-file release-notes.md
-          else
-            gh release create app --repo "${{ github.repository }}" \
-              --title "Horizon Nav (${VERSION})" --notes-file release-notes.md --latest=false
+          # Leave out any notes that an earlier release already published, so nobody has to delete them from CHANGELOG.md
+          # by hand (the uploaded zip never gets its changelog emptied). If GitHub can't be asked, the notes are kept as they are.
+          PUBLISHED="$RUNNER_TEMP/published-notes.txt"
+          gh api "repos/${{ github.repository }}/releases?per_page=100" --paginate --jq '.[].body' > "$PUBLISHED" 2>/dev/null || : > "$PUBLISHED"
+          CHANGELOG_NOTES=$(printf '%s\n' "$CHANGELOG_NOTES" | python3 -c '
+          import re, sys
+          def key(t): return re.sub(r"[^a-z0-9]+", " ", t.lower()).strip()
+          old = set()
+          for line in open(sys.argv[1], encoding="utf-8", errors="ignore"):
+              m = re.match(r"\s*[-*]\s+(.*)", line)
+              if m: old.add(key(m.group(1)))
+          lines = sys.stdin.read().splitlines()
+          out, keep = [], True
+          for line in lines:
+              m = re.match(r"\s*-\s+(.*)", line)
+              if m: keep = key(m.group(1)) not in old
+              elif line[:1].isspace() and out is not None: pass  # a wrapped bullet line goes with its bullet
+              else: keep = True                                  # a heading: tidied below
+              if keep: out.append(line)
+          # drop headings that have no bullets left under them
+          tidy = []
+          for i, line in enumerate(out):
+              if not re.match(r"\s*-\s", line) and not line[:1].isspace():
+                  nxt = next((l for l in out[i + 1:] if re.match(r"\s*-\s", l) or not l[:1].isspace()), "")
+                  if not re.match(r"\s*-\s", nxt): continue
+              tidy.append(line)
+          print("\n".join(tidy))
+          ' "$PUBLISHED")
+          if ! printf '%s\n' "$CHANGELOG_NOTES" | grep -qE '^[[:space:]]*-[[:space:]]+[^[:space:]]'; then
+            # nothing new written down: publish anyway, with a general note, rather than stopping the release
+            CHANGELOG_NOTES="- Small fixes and improvements."
           fi
-          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" \
-            --repo "${{ github.repository }}" --clobber
-          gh release view app --repo "${{ github.repository }}" \
-            --json assets --jq '.assets[].name' | tee published-assets.txt
-          grep -Fxq "HorizonNav-public.apk" published-assets.txt
-          grep -Fxq "HorizonNav-public.apk.sha256" published-assets.txt
-          grep -Fxq "version.json" published-assets.txt
-          echo "Published ${VERSION} successfully."
-          echo "Permanent version release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
-          echo "Updater download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
+          NOTES=$(printf 'Horizon Nav %s\n\n%s' "$VERSION" "$CHANGELOG_NOTES")
+          # Publish an immutable versioned release for the What's New card, then update the stable release.
+          VERSION_TAG="v${VERSION}"
+          gh release create "$VERSION_TAG" --repo "${{ github.repository }}" --title "Horizon Nav ${VERSION}" --notes "$NOTES" --latest=false 2>/dev/null \
+            || gh release edit "$VERSION_TAG" --repo "${{ github.repository }}" --title "Horizon Nav ${VERSION}" --notes "$NOTES"
+          gh release create app --repo "${{ github.repository }}" --title "Horizon Nav (${VERSION})" --notes "$NOTES" --latest=false 2>/dev/null \
+            || gh release edit app --repo "${{ github.repository }}" --title "Horizon Nav (${VERSION})" --notes "$NOTES"
+          gh release upload app "$APK" "$CHECKSUM" "$VERSION_JSON" --repo "${{ github.repository }}" --clobber
+          echo "Download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
