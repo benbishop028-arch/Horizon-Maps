@@ -166,7 +166,7 @@ private fun KeyStep(prefs: Prefs, engine: NavEngine) {
     Text("Horizon Nav uses Mapbox for the map, live traffic, search and routes. It needs your own free Mapbox access token, so the map runs on your Mapbox account (it's free for personal use).", color = c.text, fontSize = 15.sp)
     Text("1. Go to account.mapbox.com and sign up or log in\n2. Open Tokens and copy your Default public token (it starts pk.)\n3. Paste it here", color = c.sub, fontSize = 14.sp)
     var k by remember { mutableStateOf(prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")) }
-    SField(k, { k = it; prefs.put(PreferenceKeys.MAPBOX_TOKEN, it.trim()) }, placeholder = "Mapbox access token (pk.…)", width = 560.dp, fill = true)
+    SField(k, { k = it; prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }, placeholder = "Mapbox access token (pk.…)", width = 560.dp, fill = true)
     val t = k.trim()
     when {
         t.isEmpty() -> Text("Without a token the map stays blank; routes can still come from the offline pack.", color = c.sub, fontSize = 13.sp)

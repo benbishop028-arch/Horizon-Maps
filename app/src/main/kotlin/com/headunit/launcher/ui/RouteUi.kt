@@ -688,6 +688,18 @@ fun AppUpdateCard(engine: NavEngine) {
             if (u.releaseNotes.isNotBlank() && !engine.updateBusy) {
                 Text(u.releaseNotes, color = c.sub, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
             }
+            // Horizon Nav isn't on Google Play, so "installed by Google Play" means a tool like AAEnabler installed it to get it into
+            // Android Auto. Android Auto drops apps that update themselves, so say so before they find it missing in the car.
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            val viaAaTool = remember {
+                try {
+                    val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
+                        else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
+                    inst == "com.android.vending"
+                } catch (e: Exception) { false }
+            }
+            if (viaAaTool && !engine.updateBusy) Text("Installed with AAEnabler (or similar)? Updating here takes it out of Android Auto: install the new version with AAEnabler again afterwards.",
+                color = Warn, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
         if (!engine.updateBusy) Pill("Update", true, { engine.installAppUpdate() })
         if (!engine.updateBusy) Pill("Later", false, { engine.snoozeAppUpdate() })
@@ -754,18 +766,20 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, onClose: () -> Unit) {
  * (filled in already if one was saved before). Skipping it is fine: it can be added later in Settings › Search & keys.
  */
 @Composable
-fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, onClose: () -> Unit) {
+fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false, onClose: () -> Unit) {
     val c = LocalVw.current
     var k by remember { mutableStateOf(prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")) }
     Dialog(onDismissRequest = {}) {
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp)
             .verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Add your Mapbox key", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(if (refused) "Mapbox turned down your key" else "Add your Mapbox key", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            if (refused) Text("Mapbox answered \"401\" for the key you saved, so the map can't load. Make a fresh one at account.mapbox.com › Tokens › " +
+                "Create a token: name it Horizon Nav, leave the public scopes ticked and the secret ones unticked, then paste it below.", color = Warn, fontSize = 14.sp)
             Text("Horizon Nav now draws its map with Mapbox. Your free Mapbox key adds the 3D map with buildings, trees and lane markings, " +
                 "live traffic on your route, and better search and speed limits.", color = c.text, fontSize = 15.sp)
             Text("Get it at account.mapbox.com › Tokens: copy the Default public token (it starts pk.).", color = c.sub, fontSize = 13.sp)
             SField(k, { k = it }, placeholder = "Mapbox access token (pk.…)", width = 500.dp, fill = true)
-            val t = k.trim()
+            val t = com.headunit.launcher.MapboxRest.clean(k)
             when {
                 t.startsWith("sk.") -> Text("That's a secret token: use the public one (pk.) here.", color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 t.isNotEmpty() && !com.headunit.launcher.MapboxRest.looksValid(t) -> Text("That doesn't look like a whole token yet: it's a long code starting pk.", color = Warn, fontSize = 13.sp)

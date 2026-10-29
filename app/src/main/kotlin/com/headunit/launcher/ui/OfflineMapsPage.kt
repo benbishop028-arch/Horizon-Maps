@@ -35,8 +35,12 @@ private fun MapboxOfflineGroup(prefs: Prefs, engine: NavEngine) {
         if (!engine.hasMapbox) SNote("Add your Mapbox access token in Search & keys first.")
         val km = prefs.s(PreferenceKeys.MBHOMEKM, "30").toIntOrNull() ?: 30
         val home = engine.places.slot("home")
-        SItem("Around home", if (home == null) "Set Home first (Search, then save a place as Home)" else "The 3D map within $km km of Home · about ${off.homeMb(km)} MB") {
+        SItem("Around home", if (home == null) "Set Home first (Search, then save a place as Home)" else "The 3D map within $km km of Home · about ${off.homeMb(km)} MB")
+        // (the distance choice and Save go on a line of their own: beside the title they squeezed it into a narrow column)
+        androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Segmented(listOf("15" to "15 km", "30" to "30 km", "50" to "50 km"), km.toString()) { prefs.put(PreferenceKeys.MBHOMEKM, it) }
+            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
             if (home != null && engine.hasMapbox) SButton(if (off.busy?.startsWith("Around home") == true) "Saving…" else "Save", primary = true) { off.saveHome(ctx, home.pos, km) }
         }
         val r = engine.route

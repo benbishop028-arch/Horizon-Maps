@@ -366,8 +366,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun setLightPreset(p: String) {
         if (p == lightPreset) return
         lightPreset = p
-        setBase("lightPreset", Value.valueOf(p))
+        setBase("lightPreset", Value.valueOf(satLight(p)))
     }
+
+    /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
+     *  so satellite goes no darker than dusk. */
+    private fun satLight(p: String): String = if (satellite && p == "night") "dusk" else p
 
     /** One of Standard's settings (only once a style is showing; they're also written into the style when it loads). */
     private fun setBase(key: String, v: Value) {
@@ -379,12 +383,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun baseConfig(): org.json.JSONObject {
         val sat = (wantedStyle ?: "") == Style.STANDARD_SATELLITE
         val c = org.json.JSONObject()
-        c.put("lightPreset", lightPreset)
+        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else lightPreset)
         // shop and place labels rest on the light map and (on the full map) while you're on the move: placing them is the costly part
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
         if (!sat) c.put("show3dObjects", buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail))
-        when (colours) {
+        // (colour themes are only for the drawn map: Standard Satellite has none, so nothing is sent for it)
+        if (!sat) when (colours) {
             "faded" -> c.put("theme", "faded")
             "grey" -> c.put("theme", "monochrome")
             // Mapbox's own colours with a gentle purple-blue hint (mostly at night), from a colour look-up table

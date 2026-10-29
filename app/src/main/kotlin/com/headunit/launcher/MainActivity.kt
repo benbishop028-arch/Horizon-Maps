@@ -58,8 +58,8 @@ class MainActivity : ComponentActivity() {
             setContent { StartupCrashPage(crashReport(crashFile)) { boot.edit().putInt(CrashGuardPrefs.START_FAILURES, 0).commit(); recreate() } }
             return
         }
-        // running fine for 25 seconds: clear the count
-        window.decorView.postDelayed({ try { boot.edit().putInt(CrashGuardPrefs.START_FAILURES, 0).apply() } catch (x: Throwable) { } }, 25_000L)
+        // running fine for 25 seconds: clear the counts and the "starting" marker
+        window.decorView.postDelayed({ try { boot.edit().putInt(CrashGuardPrefs.START_FAILURES, 0).putBoolean(CrashGuardPrefs.STARTING, false).putInt(CrashGuardPrefs.BAD_STARTS, 0).apply() } catch (x: Throwable) { } }, 25_000L)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideBars()
         // on Android 10 and older the bars come back whenever anything pops up (a dialog, the keyboard, a system message): hide them again
@@ -75,8 +75,14 @@ class MainActivity : ComponentActivity() {
             setContent { NoGlesPage(gl) }
             return
         }
+        // Safe start. Some freezes never reach the crash handler: the graphics driver takes the app (or the whole head unit) down
+        // with it, so nothing is recorded and it just happens again on every start. A marker is set while starting and cleared
+        // once the map has run for 25 seconds, or when the app is closed normally; if it's still set on the next start, that start
+        // went wrong. After three in a row the heavy map features are turned down (a fourth turns the map down to Lightest), and
+        // the app says so once, so it can be turned back up in Settings.
+        val safeLevel = try { safeStart(boot, prefs) } catch (e: Throwable) { 0 }
         // the Mapbox token from Settings, before the map is made
-        val tok = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "").trim()
+        val tok = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
         try { prefs.migrateToMapbox() } catch (e: Throwable) { }
         if (tok.isNotEmpty()) try { com.mapbox.common.MapboxOptions.accessToken = tok } catch (e: Throwable) { }
         map = MapBinding(this, prefs.b(PreferenceKeys.MAPFAST, true), (prefs.s(PreferenceKeys.MAP_RESOLUTION, "80").toIntOrNull() ?: 80) / 100f).also { it.setArrowScale((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f) }
@@ -88,6 +94,9 @@ class MainActivity : ComponentActivity() {
             if (la != null && lo != null) map.startAt(LL(la, lo), br?.takeIf { it >= 0 })
         } catch (e: Throwable) { }
         engine = NavEngine(applicationContext, prefs, map)
+        if (safeLevel > 0) window.decorView.postDelayed({
+            try { engine.toast(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Map", 10_000) } catch (e: Throwable) { }
+        }, 4000L)
 
         setContent { App(prefs, engine, map) }
 
@@ -172,6 +181,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onStop() {
         super.onStop()
+        // closed or put away normally: not a failed start
+        try { getSharedPreferences(CrashGuardPrefs.FILE, android.content.Context.MODE_PRIVATE).edit().putBoolean(CrashGuardPrefs.STARTING, false).apply() } catch (e: Throwable) { }
         if (!::engine.isInitialized) return
         engine.appVisible = false
         // with no route there is nothing to guide, so GPS is switched off while the app is in the background
@@ -209,6 +220,27 @@ private fun NoGlesPage(gl: Int) {
 }
 
 @androidx.compose.runtime.Composable
+/**
+ * Notes this start and, if the last start never got going (see onCreate), turns the map down. Returns 0 (normal), 1 (heavy
+ * features off) or 2 (map on Lightest as well). Only ever turns things down, and only after repeated failures.
+ */
+private fun safeStart(boot: android.content.SharedPreferences, prefs: Prefs): Int {
+    val bad = if (boot.getBoolean(CrashGuardPrefs.STARTING, false)) boot.getInt(CrashGuardPrefs.BAD_STARTS, 0) + 1 else 0
+    boot.edit().putBoolean(CrashGuardPrefs.STARTING, true).putInt(CrashGuardPrefs.BAD_STARTS, bad).commit()
+    // (three in a row before anything changes: a head unit losing power within 25 seconds of starting looks the same, and that
+    // happening once or twice shouldn't turn anyone's map down)
+    if (bad < 3) return 0
+    // the heaviest drawing: 3D street furniture and lamps, real terrain, rain and snow on the map, the 3D model locator, facades
+    // and landmarks, and an uncapped frame rate
+    for (k in listOf(PreferenceKeys.LAMPS, PreferenceKeys.FURNITURE3D, PreferenceKeys.TERRAIN, PreferenceKeys.RAIN_EFFECTS,
+        PreferenceKeys.FACADES, PreferenceKeys.LANDMARKS3D)) prefs.put(k, false)
+    if (prefs.s(PreferenceKeys.LOCATOR, "arrow") == "model") prefs.put(PreferenceKeys.LOCATOR, "arrow")
+    prefs.put(PreferenceKeys.MAP_FPS, "30")
+    if (bad >= 4) { prefs.put(PreferenceKeys.MAP_DETAIL, "lightest"); return 2 }
+    if (prefs.s(PreferenceKeys.MAP_DETAIL, "full") == "full") prefs.put(PreferenceKeys.MAP_DETAIL, "lite")
+    return 1
+}
+
 private fun StartupCrashPage(report: String, onRetry: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val bg = androidx.compose.ui.graphics.Color(0xFF15171C)

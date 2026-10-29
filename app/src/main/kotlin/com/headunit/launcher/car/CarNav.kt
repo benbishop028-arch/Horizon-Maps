@@ -51,6 +51,7 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.headunit.launcher.KEEP_LEFT
 import com.headunit.launcher.MapBinding
+import com.headunit.launcher.MapboxRest
 import com.headunit.launcher.locatorSpec
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.NavEngine
@@ -287,6 +288,13 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             val ratio = (dens * 1.7f).coerceIn(1.6f, 3.2f)
             displayDensity = dens
             fitScale()
+            // the Mapbox token has to be in place before the map is made. The phone app sets it when it opens, but when Android Auto
+            // starts the app by itself (after an update, or a restart, before the app has been opened on the phone) it wasn't set yet,
+            // so the map couldn't be made and the car screen stayed black
+            try {
+                val tok = MapboxRest.clean(Prefs(p.context.applicationContext).s(PreferenceKeys.MAPBOX_TOKEN, ""))
+                if (tok.isNotEmpty() && com.mapbox.common.MapboxOptions.accessToken != tok) com.mapbox.common.MapboxOptions.accessToken = tok
+            } catch (e: Throwable) { }
             // drawn straight to its own surface (no extra copy each frame, which a texture view would cost)
             val m = MapBinding(p.context, true, 1f, ratio)
             // Android Auto: keep street-lamp models and their light pools off to reduce visual clutter

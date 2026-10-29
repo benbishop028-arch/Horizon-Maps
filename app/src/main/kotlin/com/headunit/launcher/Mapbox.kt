@@ -20,6 +20,10 @@ object MapboxRest {
     private const val API = "https://api.mapbox.com"
 
     /** A public token ("pk.…") looks usable. Secret tokens ("sk.…") work too but shouldn't be put in an app. */
+    /** A pasted token with anything that can't be part of one taken out: spaces, line breaks, and the invisible characters some
+     *  phones and websites slip in when copying (one of those makes Mapbox answer 401 for a token that looks exactly right). */
+    fun clean(t: String) = t.filter { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '.' || it == '_' || it == '-' }
+
     fun looksValid(t: String) = t.length > 30 && (t.startsWith("pk.") || t.startsWith("sk.") || t.startsWith("tk."))
 
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")

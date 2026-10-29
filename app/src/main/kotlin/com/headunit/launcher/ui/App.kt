@@ -127,7 +127,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(mapColours) { map.setColours(mapColours) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
     LaunchedEffect(logoCorner) { map.setLogoCorner(logoCorner) }
-    val hideTraffic = prefs.b(PreferenceKeys.ROUTETRAFFICONLY, true)
+    // (off unless chosen: with it on, traffic on the roads round you vanished as soon as a route started, which looked like a bug)
+    val hideTraffic = prefs.b(PreferenceKeys.ROUTETRAFFICONLY, false)
     LaunchedEffect(hideTraffic) { map.setHideOtherTraffic(hideTraffic) }
     val altColour = prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")
     LaunchedEffect(altColour) { map.setAltColour(altColour) }
@@ -242,7 +243,13 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                     if (back.value > 0.01f) Box(Modifier.fillMaxSize().graphicsLayer { alpha = back.value }.background(c.bg))
                 }
                 // once, after updating from the old map: what the Mapbox key adds, and where to paste it
-                if (setupDone && !settings && prefs.b(PreferenceKeys.MAPBOX_PROMPT, false)) MapboxKeyDialog(prefs) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false) }
+                // ...and any time the map can't show for want of a working key (missing, half pasted, or turned down by Mapbox): the blank
+                // map with only stars on it looked broken, and the short message about it was easy to miss. "Later" puts it off until the
+                // app is next opened. (Not while the downloaded map is showing: that one needs no key.)
+                var mbLater by remember { mutableStateOf(false) }
+                val noMapKey = !engine.hasMapbox && !mbLater && !engine.useOfflineMap() && !(carOn && !phoneMap)
+                if (setupDone && !settings && (prefs.b(PreferenceKeys.MAPBOX_PROMPT, false) || noMapKey))
+                    MapboxKeyDialog(prefs, refused = engine.mbKeyRefused) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false); mbLater = true }
                 // short messages (saved, sent, no signal...) show over everything
                 val curMsg = engine.message
                 val lastMsg = remember { mutableStateOf(curMsg) }

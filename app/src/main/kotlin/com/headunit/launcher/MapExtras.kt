@@ -156,8 +156,10 @@ internal object ClearView {
         val feats = ArrayList<Feature>()
         val p = me ?: return FeatureCollection.fromFeatures(feats)
         val kx = 111320.0 * Math.cos(Math.toRadians(p.lat)); val ky = 111320.0
-        // round the arrow (about 22 m)
-        val ring = (0..20).map { k -> val a = 2 * Math.PI * k / 20; Point.fromLngLat(p.lon + 22.0 * Math.cos(a) / kx, p.lat + 22.0 * Math.sin(a) / ky) }
+        // round the arrow (about 14 m)
+        // (kept tight: Mapbox takes away the whole of any 3D model the area touches, and with a wider area big landmark buildings
+        // beside the road vanished as you drove past, not just the trees over the road)
+        val ring = (0..20).map { k -> val a = 2 * Math.PI * k / 20; Point.fromLngLat(p.lon + 14.0 * Math.cos(a) / kx, p.lat + 14.0 * Math.sin(a) / ky) }
         feats += Feature.fromGeometry(Polygon.fromLngLats(listOf(ring)))
         // the road just ahead: along the route when there is one, else straight on in the direction you're heading
         val ahead = ArrayList<LL>()
@@ -170,7 +172,8 @@ internal object ClearView {
             }
         }
         if (ahead.size < 2) { ahead.clear(); ahead += p; ahead += Furniture.offset(p, heading, 120.0) }
-        val half = 9.0
+        // the road itself only (about a carriageway wide), not the pavements and buildings beside it
+        val half = 5.0
         for (i in 0 until ahead.size - 1) {
             val a = ahead[i]; val b = ahead[i + 1]
             val br = Geo.bearing(a, b)

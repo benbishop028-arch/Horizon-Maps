@@ -259,10 +259,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val hasKey: Boolean get() = apiKey.isNotEmpty() && !apiKey.startsWith("YOUR_")
 
     /** Your Mapbox access token (Settings > Search & keys), for the Mapbox map, routes, search and traffic. */
-    val mbToken: String get() = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "").trim()
+    val mbToken: String get() = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
     val hasMapbox: Boolean get() = MapboxRest.looksValid(mbToken) && refusedMb != mbToken
-    /** A Mapbox token that Mapbox turned away: not used again until it's changed. */
-    @Volatile private var refusedMb: String? = null
+    /** A Mapbox token that Mapbox turned away: not used again until it's changed. (Screen state, so the map can say so.) */
+    private var refusedMb: String? by mutableStateOf<String?>(null)
+    /** The Mapbox token in Settings was turned down by Mapbox (401). */
+    val mbKeyRefused: Boolean get() = refusedMb != null && refusedMb == mbToken
 
     /**
      * Who plans routes and does the place search and live traffic: "tomtom", "mapbox", or "" for none (then the offline pack and
@@ -442,10 +444,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 resume = Place(o.optString("n"), o.optString("s"), LL(o.getDouble("la"), o.getDouble("lo")))
         } catch (e: Exception) { }
         tts = TextToSpeech(ctx) { status ->
+            if (status != TextToSpeech.SUCCESS) {
+                // no working text-to-speech on this unit: the beeps still sound, but nothing can be said (this used to fail silently)
+                scope.launch { toast("No voice for directions: install or turn on a text-to-speech engine (Settings > Sound > Voice and language)", 9000) }
+            }
             if (status == TextToSpeech.SUCCESS) {
                 ttsReady = true
                 val r = tts?.setLanguage(Locale.getDefault())
-                if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) tts?.setLanguage(Locale.UK)
+                if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    val r2 = tts?.setLanguage(Locale.UK)
+                    if (r2 == TextToSpeech.LANG_MISSING_DATA || r2 == TextToSpeech.LANG_NOT_SUPPORTED)
+                        scope.launch { toast("The text-to-speech voice has no language installed, so directions can't be spoken. Add one in Settings > Sound > Voice and language", 9000) }
+                }
+                voiceChan = prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav")
                 tts?.setAudioAttributes(speechAttrs)
                 tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(id: String?) {}
@@ -488,8 +499,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    private val speechAttrs = android.media.AudioAttributes.Builder()
-        .setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+    /** Which sound channel the voice uses: "nav" (navigation, the normal one) or "media" (Settings > Sound > Voice channel). Some
+     *  head units have the navigation channel turned right down or not wired to the speakers, so the beeps (on the media channel)
+     *  sounded but the spoken directions never did. */
+    private var voiceChan = "nav"
+    private val speechAttrs: android.media.AudioAttributes get() = android.media.AudioAttributes.Builder()
+        .setUsage(if (voiceChan == "media") android.media.AudioAttributes.USAGE_MEDIA else android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
         .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()
     private val audioMgr = ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
     private var focusReq: android.media.AudioFocusRequest? = null
@@ -770,8 +785,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.setToken(mbToken)
         map.keepBaseLook = false
         map.recolourBase = false
-        // no signal (or "Downloaded" chosen): the pack's own map, served from the phone
-        if (useOfflineMap()) {
+        // no signal (or "Downloaded" chosen): the pack's own map, served from the phone. Satellite is Mapbox's photos, so it
+        // wins while there's a connection (with "Downloaded" chosen, switching satellite on used to do nothing at all)
+        if (useOfflineMap() && !(map.isSatellite && online())) {
+            if (map.isSatellite) toast("Satellite view needs a connection: showing the downloaded map until it's back", 5000)
             try { map.setStyleUrl(OfflineServer.styleJson(ctx, dark)); return } catch (e: Exception) { android.util.Log.w("NavEngine", "offline map", e) }
         }
         OfflineServer.stop()
@@ -3371,7 +3388,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!prefs.b(PreferenceKeys.SMARTVOICE, true)) return word + tail
         val m = cur.maneuver.uppercase()
         val exitLike = m.contains("EXIT") || m.contains("KEEP") || m.contains("BEAR") || m.contains("RAMP")
-        var main = if (cur.exitNo.isNotBlank() && exitLike) "take junction ${cur.exitNo}" else word
+        // "junction 9" is how it's said in the UK and Ireland; everywhere else it's "exit 9"
+        val jWord = if (detectedCountry.ifBlank { "GB" }.uppercase() in setOf("GB", "IE", "IM", "JE", "GG")) "junction" else "exit"
+        var main = if (cur.exitNo.isNotBlank() && exitLike) "take $jWord ${cur.exitNo}" else word
         val dests = signDests(cur.sign)
         val refs = signRefs(cur.sign)
         main += when {
@@ -3948,8 +3967,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (quiet()) return
         val m = soundMode
         if (m == 2 || (m == 1 && !alert) || !ttsReady) return
+        val ch = prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav")
+        if (ch != voiceChan) { voiceChan = ch; try { tts?.setAudioAttributes(speechAttrs) } catch (e: Exception) { } }
         duck()
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "nav")
+        // a direction cuts off whatever is being said; an alert waits its turn, so a speed limit or camera call can no longer
+        // cut a direction off half way (with limits changing often in town, some directions were never heard)
+        tts?.speak(text, if (alert) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "nav")
     }
 
     // ---- demo drive ----

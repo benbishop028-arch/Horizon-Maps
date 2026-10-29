@@ -192,6 +192,8 @@ internal object PreferenceKeys {
     const val WXADVICE = "wxadvice"
     const val ZEBRAS = "zebras"
     const val ZONEWARN = "zonewarn"
+    const val TT_MAP_FIX = "ttmapfix"
+    const val VOICE_CHANNEL = "voicechan"
 }
 
 /**
@@ -269,17 +271,23 @@ fun Prefs.mapSource(): String = s(PreferenceKeys.MAP_STYLE, BuildConfig.DEFAULT_
 fun Prefs.migrateToMapbox() {
     // a short prompt for the Mapbox key shows once after this update (new installs get it in setup instead, which clears it)
     if (!b(PreferenceKeys.MAPBOX_PROMPTED, false)) { put(PreferenceKeys.MAPBOX_PROMPT, true); put(PreferenceKeys.MAPBOX_PROMPTED, true) }
-    if (b(PreferenceKeys.MAPBOX_MIGRATED, false)) return
-    put(PreferenceKeys.MAP_STYLE, "mapbox")
-    put(PreferenceKeys.GOOGLE_API_KEY, "")
-    put(PreferenceKeys.MAPBOX_MIGRATED, true)
+    if (!b(PreferenceKeys.MAPBOX_MIGRATED, false)) {
+        put(PreferenceKeys.MAP_STYLE, "mapbox")
+        put(PreferenceKeys.GOOGLE_API_KEY, "")
+        put(PreferenceKeys.MAPBOX_MIGRATED, true)
+    }
+    // Once: adding a TomTom key used to switch the map to TomTom's flat map by itself, so the 3D buildings, models and lane
+    // markings all vanished the moment people added their keys. Put those maps back to Mapbox (TomTom's map can still be picked
+    // in Settings > Map; from now on the key is only used for search, routes and traffic).
+    if (!b(PreferenceKeys.TT_MAP_FIX, false)) {
+        if (s(PreferenceKeys.MAP_STYLE, "") == "tomtom") put(PreferenceKeys.MAP_STYLE, "mapbox")
+        put(PreferenceKeys.TT_MAP_FIX, true)
+    }
 }
 
-/** Saves a TomTom key; entering one where there was none switches the map to TomTom (it can be switched back in Settings). */
+/** Saves a TomTom key. (It's used for search, routes and traffic; it no longer switches the map to TomTom's.) */
 fun Prefs.setApiKey(k: String) {
-    val was = s(PreferenceKeys.API_KEY, "").isNotBlank()
     put(PreferenceKeys.API_KEY, k.trim())
-    if (!was && k.isNotBlank()) put(PreferenceKeys.MAP_STYLE, "tomtom")
 }
 
 /** The locator setting as the map takes it: its style and colour ("model" takes "<arrow|car>|<colour>"). */

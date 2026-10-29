@@ -363,7 +363,7 @@ private fun NavigationSection(prefs: Prefs) {
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
         SToggle(prefs, "Tilt with speed", "speedtilt", true, "Flatter when slow, a longer view at speed")
         SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
-        SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", true)
+        SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
     }
     SGroup("Demo") {
         SToggle(prefs, "Demo drive button", "demo", false, "Plays a route back so you can try the guidance while parked")
@@ -393,6 +393,8 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
             "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
         SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
+        SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
+            "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
         SItem("Voice and language", "Uses the system text-to-speech voice") { SButton("Open") { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
         SItem("Volume") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
     }
@@ -635,7 +637,7 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
         SFieldItem("TomTom API key", prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) "Using the key built into this app unless you paste another" else "Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com",
             placeholder = "Paste a key") { prefs.setApiKey(it) }
         SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions.",
-            placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, it.trim()) }
+            placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }
     }
     if (engine.hasKey && engine.hasMapbox) SGroup("Routes, search and traffic", footer = "Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.") {
         SChoice("Use", listOf("auto" to "Auto", "tomtom" to "TomTom", "mapbox" to "Mapbox"), prefs.s(PreferenceKeys.DATAPROV, "auto")) { prefs.put(PreferenceKeys.DATAPROV, it) }
@@ -719,6 +721,15 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
         }
         if (hasAa) SItem("Android Auto app info", "To force stop it after changing its settings") {
             SButton("App info") { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri) }
+        }
+        // the most asked question: Android Auto only lists apps from Google Play unless told otherwise
+        if (hasAa) SItem("Not showing in Android Auto?", "1. In Android Auto's settings, tap Version repeatedly to unlock Developer settings, then turn on Unknown sources. " +
+            "2. Force stop Android Auto (App info above) and reconnect. 3. If it still isn't listed, install Horizon Nav with the free AAEnabler app, which most people need. " +
+            "Voice requests through Android Auto's own microphone may not reach apps from outside Google Play: use the app's search button instead.") {
+            SButton("AAEnabler") {
+                try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/malebuffy/AAEnabler")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                catch (e: Exception) { android.widget.Toast.makeText(ctx, "No browser on this device: search for AAEnabler on GitHub", android.widget.Toast.LENGTH_LONG).show() }
+            }
         }
     }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
