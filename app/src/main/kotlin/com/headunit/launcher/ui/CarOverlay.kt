@@ -238,7 +238,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Mic, null, tint = Color.White, modifier = Modifier.size(23.dp))
                 }
             }
-            CarChips(engine, actions)
+            // as many saved places as fit above the sound pill / speed (0 to 3), so the list never runs into what's below it
+            val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
+            CarChips(engine, actions, savedRows)
         }
 
         // alerts (cameras, limits, hazards...): beside the turn card on wide screens, under it on tall ones
@@ -532,50 +534,80 @@ private fun CarRoutePreview(engine: NavEngine) {
 }
 
 /**
- * Home, Work, your saved places and the nearby searches in one row that scrolls sideways. Android Auto doesn't say where a swipe
- * starts (a swipe always moves the map), so the row moves with the arrow buttons at its ends.
+ * Not navigating, under the search bar, as in the app: Home and Work as two tiles with the drive time, five round buttons to find
+ * things nearby (they open a list to pick from), then Saved & recent with the first few places ([rows], as many as fit) and "All" for
+ * the rest. Every part works by touch on cars that pass taps on.
  */
 @Composable
-private fun CarChips(engine: NavEngine, actions: CarActions) {
+private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
     val c = LocalVw.current
     val home = engine.places.slot("home"); val work = engine.places.slot("work")
-    val mine = engine.places.customs()
-    val state = androidx.compose.foundation.rememberScrollState()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val stepPx = with(LocalDensity.current) { 240.dp.toPx() }
-    @Composable fun arrow(id: String, back: Boolean) {
-        Box(Modifier.size(44.dp).panel(8.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap(id) {
-            scope.launch { state.animateScrollBy(if (back) -stepPx else stepPx) }
-        }, contentAlignment = Alignment.Center) {
-            androidx.compose.material3.Icon(
-                if (back) androidx.compose.material.icons.Icons.Rounded.ChevronLeft else androidx.compose.material.icons.Icons.Rounded.ChevronRight,
-                null, tint = c.text, modifier = Modifier.size(26.dp),
-            )
+    // the drive times (the engine throttles this itself: online only, every 10 minutes or after moving 3 km)
+    LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); kotlinx.coroutines.delay(60_000) } }
+    val here = engine.fix?.pos
+    @Composable fun tile(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, label: String, place: com.headunit.launcher.Place?, mins: Int?, m: Modifier) {
+        val sub = when {
+            place == null -> "Tap to set"
+            mins == 0 -> "You're here"
+            mins != null && mins > 0 -> Geo.fmtDur(mins * 60.0)
+            here != null -> Geo.fmtDist(Geo.dist(here, place.pos), engine.imperial)
+            else -> place.sub
+        }
+        Row(m.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else actions.search() }
+            .padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
+            }
+            Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                Text(if (place == null) "Set ${label.lowercase()}" else label, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
         }
     }
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        if (state.value > 0) arrow("chips-back", true)
-        Row(Modifier.weight(1f).horizontalScroll(state).padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.carTap("home") { if (home != null) engine.startRoute(home) else actions.search() }) {
-                ImmChip(androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), if (home != null) "Home" else "Set home") {}
-            }
-            Box(Modifier.carTap("work") { if (work != null) engine.startRoute(work) else actions.search() }) {
-                ImmChip(androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), if (work != null) "Work" else "Set work") {}
-            }
-            for (lp in mine.take(12)) Box(Modifier.carTap("place-" + lp.label) { engine.startRoute(lp.place) }) {
-                ImmChip(androidx.compose.material.icons.Icons.Rounded.Star, Color(0xFF12A4B4), lp.label) {}
-            }
-            Box(Modifier.carTap("saved") { actions.places() }) {
-                ImmChip(androidx.compose.material.icons.Icons.Rounded.History, Color(0xFF9CA4BF), "Saved & recent") {}
-            }
-            // things to find nearby, as in the app: they open a list to pick from
-            Box(Modifier.carTap("n-fuel") { actions.nearby("fuel") }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335), "Fuel") {} }
-            Box(Modifier.carTap("n-charging") { actions.nearby("charging") }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.EvStation, Color(0xFF34A853), "Charging") {} }
-            Box(Modifier.carTap("n-food") { actions.nearby("food") }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.Restaurant, Color(0xFFF29900), "Food") {} }
-            Box(Modifier.carTap("n-coffee") { actions.nearby("coffee") }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.LocalCafe, Color(0xFFA56BFF), "Coffee") {} }
-            Box(Modifier.carTap("n-parking") { actions.nearby("parking") }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.LocalParking, Color(0xFF4C8DFF), "Parking") {} }
-            Box(Modifier.carTap("settings") { actions.settings() }) { ImmChip(androidx.compose.material.icons.Icons.Rounded.Settings, Color(0xFF9CA4BF), "Settings") {} }
+    @Composable fun find(kind: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color) {
+        Box(Modifier.size(50.dp).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap("n-$kind") { actions.nearby(kind) }, contentAlignment = Alignment.Center) {
+            androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(24.dp))
         }
-        if (state.value < state.maxValue) arrow("chips-more", false)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            tile("home", androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), "Home", home, engine.slotMins["home"], Modifier.weight(1f))
+            tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), "Work", work, engine.slotMins["work"], Modifier.weight(1f))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            find("fuel", androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335))
+            find("charging", androidx.compose.material.icons.Icons.Rounded.EvStation, Color(0xFF34A853))
+            find("food", androidx.compose.material.icons.Icons.Rounded.Restaurant, Color(0xFFF29900))
+            find("coffee", androidx.compose.material.icons.Icons.Rounded.LocalCafe, Color(0xFFA56BFF))
+            find("parking", androidx.compose.material.icons.Icons.Rounded.LocalParking, Color(0xFF4C8DFF))
+        }
+        // your own places first, then favourites, then recent ones (as in the app)
+        val rawC = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, ""); val rawF = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""); val rawR = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
+        val saved = remember(rawC, rawF, rawR) {
+            val mine = engine.places.customs()
+            val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
+            val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
+            mine.map { Triple(it.place, true, it.label) } + favs.map { Triple(it, true, it.name) } + recents.take(4).map { Triple(it, false, it.name) }
+        }
+        Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
+            Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("SAVED & RECENT", color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
+                Text(if (saved.size > rows) "All ${saved.size}" else "Open", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+            for ((i, tr) in saved.take(rows).withIndex()) {
+                val (p, fav, label) = tr
+                Row(Modifier.fillMaxWidth().carTap("saved-$i") { engine.startRoute(p) }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
+                        androidx.compose.material3.Icon(if (fav) androidx.compose.material.icons.Icons.Rounded.Star else androidx.compose.material.icons.Icons.Rounded.History, null,
+                            tint = if (fav) Warn else c.sub, modifier = Modifier.size(20.dp))
+                    }
+                    Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                        Text(label, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (p.sub.isNotBlank()) Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    if (here != null) Text(Geo.fmtDist(Geo.dist(here, p.pos), engine.imperial), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+        }
     }
 }

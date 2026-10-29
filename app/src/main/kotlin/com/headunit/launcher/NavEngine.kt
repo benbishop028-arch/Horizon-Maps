@@ -2648,7 +2648,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.
         // Not navigating (on the phone / head unit screen): the arrow sits in the middle of the clear map between the search panel and
         // the buttons, whatever height they reach to, so it's always in the middle of what's left of the map.
-        tLeft = if (!navigating && !previewing && !isCar) idleShift(bottomCover > 0.0)
+        // (Android Auto too: there the outlines are measured within the part of the screen its own buttons leave clear)
+        tLeft = if (!navigating && !previewing) idleShift(bottomCover > 0.0)
                 else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
         map.cardsMirrored = mirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
