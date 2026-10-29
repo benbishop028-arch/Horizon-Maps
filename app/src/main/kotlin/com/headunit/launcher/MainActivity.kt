@@ -95,7 +95,7 @@ class MainActivity : ComponentActivity() {
         } catch (e: Throwable) { }
         engine = NavEngine(applicationContext, prefs, map)
         if (safeLevel > 0) window.decorView.postDelayed({
-            try { engine.toast(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Map", 10_000) } catch (e: Throwable) { }
+            try { engine.toast(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map look" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Map look and On the map", 10_000) } catch (e: Throwable) { }
         }, 4000L)
 
         setContent { App(prefs, engine, map) }

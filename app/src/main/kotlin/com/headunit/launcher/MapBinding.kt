@@ -1775,9 +1775,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** Free-flowing roads drawn green as well as the slow ones (Settings > Map > Light traffic in green). */
-    private var trafficGreen = true
+    private var trafficGreen = false
+    // (green only on the main roads (motorways, A roads and the bigger B roads): on every side street it painted the whole map green)
     private fun trafficFilter(): Expression = Expression.fromRaw(
-        if (trafficGreen) "[\"match\",[\"get\",\"congestion\"],[\"low\",\"moderate\",\"heavy\",\"severe\"],true,false]"
+        if (trafficGreen) "[\"any\",[\"match\",[\"get\",\"congestion\"],[\"moderate\",\"heavy\",\"severe\"],true,false]," +
+            "[\"all\",[\"==\",[\"get\",\"congestion\"],\"low\"],[\"match\",[\"get\",\"class\"],[\"motorway\",\"trunk\",\"primary\",\"secondary\"],true,false]]]"
         else "[\"match\",[\"get\",\"congestion\"],[\"moderate\",\"heavy\",\"severe\"],true,false]")
     fun setTrafficGreen(on: Boolean) {
         if (on == trafficGreen) return

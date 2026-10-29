@@ -29,7 +29,7 @@ object MapboxRest {
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
 
     private fun httpError(code: Int, body: String): IOException = IOException(when (code) {
-        401 -> "Mapbox didn't accept the access token (401). Check it in Settings > Search & keys"
+        401 -> "Mapbox didn't accept the access token (401). Check it in Settings > Keys & accounts"
         403 -> "This Mapbox token isn't allowed to use that service (403). Check its scopes at account.mapbox.com"
         429 -> "Mapbox's request limit was reached. Try again in a minute"
         else -> "HTTP $code ${body.take(140)}"

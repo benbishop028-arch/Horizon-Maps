@@ -138,7 +138,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(arrowPct, mainArrowScale) { map.setArrowScale(arrowPct / 100f * mainArrowScale) }
     val carModel = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
     LaunchedEffect(carModel) { map.setCarModel(carModel) }
-    val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, true)
+    val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, false)
     LaunchedEffect(trafficGreen) { map.setTrafficGreen(trafficGreen) }
     val roadNamePct = prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).coerceIn(70, 200)
     LaunchedEffect(roadNamePct) { map.setRoadNameScale(roadNamePct / 100f) }
@@ -318,23 +318,13 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(updateHeader).padding(18.dp)) {
                     androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
                         Text("HORIZON NAV  /  UPDATE", color = updatePalette.accent, fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.5.sp)
-                        Text("A fresh route ahead.", color = updateHeaderTitle, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                        Text("What's new in $installedVersion", color = updateHeaderSub, fontSize = 14.sp)
+                        Text("What's new in $installedVersion", color = updateHeaderTitle, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        val summary = remember(whatsNewNotes) { notesSummary(whatsNewNotes) }
+                        Text(summary.ifBlank { "Your settings and saved places stay as they were" }, color = updateHeaderSub, fontSize = 14.sp)
                     }
                 }
-                androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp), verticalAlignment = androidx.compose.ui.Alignment.Top) {
-                    Box(Modifier.size(42.dp).clip(RoundedCornerShape(14.dp)).background(updateIconBg), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                        Text("✦", color = updateIcon, fontSize = 25.sp)
-                    }
-                    androidx.compose.foundation.layout.Column(Modifier.weight(1f), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(5.dp)) {
-                        Text("Built for the next drive", color = updatePalette.text, fontSize = 17.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-                        Text("Your navigation settings and saved places stay as they were. Here's what changed in this version:", color = updatePalette.sub, fontSize = 13.sp)
-                    }
-                }
-                androidx.compose.foundation.layout.Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp * 0.32f).coerceAtLeast(90.dp)).verticalScroll(rememberScrollState()).clip(RoundedCornerShape(18.dp)).background(updateNotesBg).padding(15.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                    Text("RELEASE NOTES", color = updateLabel, fontSize = 10.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.4.sp)
-                    Text(whatsNewNotes.ifBlank { "This version is installed and ready. Detailed release notes aren't available right now, but you can still continue using Horizon Nav normally." }, color = updatePalette.text, fontSize = 13.sp, lineHeight = 19.sp)
-                }
+                // each change on its own card, under New, Improved and Fixed (it used to be one block of text)
+                WhatsNewList(whatsNewNotes, updatePalette.dark)
                 androidx.compose.material3.Button(
                     onClick = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false },
                     modifier = Modifier.fillMaxWidth(),

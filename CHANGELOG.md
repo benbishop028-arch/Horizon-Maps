@@ -1,6 +1,6 @@
 # Changelog
 
-Add user-facing Horizon Nav changes under **Unreleased** before publishing each build. Keep entries focused on features, improvements, and fixes in the app—not GitHub Actions or release-publishing maintenance. There is no need to delete entries after publishing: notes that an earlier release already included are left out of the next one automatically.
+Add user-facing Horizon Nav changes under **Unreleased** before publishing each build, under ### New, ### Improved or ### Fixed headings, each written as "Headline: what it does" (the What's new card shows the headline in bold with the rest underneath). Keep entries focused on features, improvements, and fixes in the app—not GitHub Actions or release-publishing maintenance. There is no need to delete entries after publishing: notes that an earlier release already included are left out of the next one automatically.
 
 ## Unreleased
 
@@ -35,12 +35,17 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Avoid tolls in chosen countries only (Settings > Routes): a route that would pay a toll in one of them is planned without toll roads.
 - Road name size: a slider for the name of the road you're on, under your arrow (Settings > Display, and for Android Auto in the car-screen sizes).
 - Car type for the car arrow: saloon, hatchback, estate, SUV, pickup, van or sports, in any colour (Settings > Your arrow).
-- Free-flowing roads now show in green on the traffic map as well as slow traffic in amber and red (can be turned off in Settings).
+- New option (Settings > Map, off unless chosen): free-flowing main roads in green on the traffic map, as well as slow traffic in amber and red.
 - Stop signs on your route are shown on the map, with a short chime before each one, where OpenStreetMap has them.
 - Home and Work can be set or changed from Settings, and favourites can be renamed or made Home or Work.
 - Easier stops: one-tap buttons in the stops box add the best fuel, charger, coffee, food, services or toilets along the route, plus your saved places; holding on the map while driving adds it as a stop.
 - Electric cars: set your battery level and the least you want to arrive with on the route options; a charging stop is suggested when the trip needs one (with the charge you'll arrive at it with), the trip card shows the battery you'll arrive with and a Chargers ahead button, and Eco route uses TomTom's electric eco routing.
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
+
+### Improved
+- Settings reorganised: 15 smaller sections in four groups (Map, Driving, You, Device), each split into short headed lists, with Android Auto in a section of its own. Search still finds every setting.
+- What's new card redesigned: each change on its own card with an icon, a headline and a short description, sorted under New, Improved and Fixed.
+
 
 ## 1.0.246 — 2026-10-28
 

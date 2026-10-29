@@ -372,7 +372,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 .sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
         ) {
             val baseSpeedDensity = LocalDensity.current
-            val speedSize = engine.prefs.i(PreferenceKeys.MAIN_SPEED_SIZE, 100).coerceIn(60, 180) / 100f
+            // (sized by Settings > Screen & sizes > Speed limit and speedometer size, inside ImmSpeed)
+            val speedSize = 1f
             CompositionLocalProvider(LocalDensity provides Density(baseSpeedDensity.density * speedSize, baseSpeedDensity.fontScale)) { ImmSpeed(engine) }
         }
 

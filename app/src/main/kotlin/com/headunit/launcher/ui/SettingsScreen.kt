@@ -1,3 +1,4 @@
+
 package com.headunit.launcher.ui
 
 import android.provider.Settings
@@ -27,6 +28,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Traffic
+import androidx.compose.material.icons.rounded.Route
+import androidx.compose.material.icons.rounded.TurnRight
+import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.DirectionsCar
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.BrightnessMedium
 import androidx.compose.material.icons.rounded.CloudDownload
@@ -76,18 +83,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private class Section(val title: String, val sub: String, val icon: ImageVector, val tint: Color)
+/** A settings section; [heading] puts a small group heading (Map, Driving, You, Device) above it in the list. */
+private class Section(val title: String, val sub: String, val icon: ImageVector, val tint: Color, val heading: String? = null)
 
+// (the order here is the order in the list; SettingsIndex refers to them by number)
 private val sections = listOf(
-    Section("Map", "Look, layers and colours", Icons.Rounded.Map, Color(0xFF4C8DFF)),
-    Section("Navigation", "Routes and what's on screen", Icons.Rounded.Navigation, Color(0xFF12A4B4)),
-    Section("Alerts & sound", "Voice, cameras and warnings", Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
-    Section("Places & trips", "Home, work, favourites, trip log", Icons.Rounded.Star, Color(0xFFF29900)),
-    Section("Fuel & sharing", "Fuel prices, cost, share ETA", Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
-    Section("Offline maps", "Maps and routes with no signal", Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
-    Section("Display", "Brightness, size, units, speed", Icons.Rounded.BrightnessMedium, Color(0xFFFFB020)),
-    Section("Search & keys", "Search area and map accounts", Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
-    Section("About & backup", "Permissions, sharing, backup", Icons.Rounded.Info, Color(0xFF9CA4BF)),
+    Section("Map look", "Day and night, detail, 3D, satellite", Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
+    Section("On the map", "Traffic, lights, cameras, signs, weather", Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
+    Section("Your arrow & route line", "Arrow or car, colours, route look", Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
+    Section("Routes", "Avoid, eco, faster routes, starting", Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
+    Section("Turn card & lanes", "Signs, lanes, trip card, arriving", Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
+    Section("Alerts", "Speed, cameras, hazards, reports", Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
+    Section("Sound & voice", "Spoken directions and volume", Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
+    Section("Places & trips", "Home, work, favourites, sharing, trip log", Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
+    Section("Fuel & charging", "Your fuel, prices, electric car", Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
+    Section("Offline maps", "Maps, routes and town names with no signal", Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
+    Section("Screen & sizes", "Brightness, sizes, units, while driving", Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
+    Section("Android Auto", "Car-screen sizes and setting it up", Icons.Rounded.DirectionsCar, Color(0xFF9CA4BF)),
+    Section("Performance", "Smoothness on slower head units, demo", Icons.Rounded.Speed, Color(0xFF9CA4BF)),
+    Section("Keys & accounts", "Map keys and search", Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
+    Section("About & backup", "Updates, permissions, backup", Icons.Rounded.Info, Color(0xFF9CA4BF)),
 )
 
 /** Every setting in one screen: sections on the left, the chosen section on the right, in the map screen's soft style. */
@@ -160,6 +175,9 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                     }
                 }
             } else sections.forEachIndexed { i, s ->
+                // the small group headings in the list: Map, Driving, You, Device
+                if (s.heading != null) Text(s.heading, color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp,
+                    modifier = Modifier.padding(start = 14.dp, top = if (i == 0) 2.dp else 12.dp, bottom = 2.dp))
                 val on = i == cat
                 val rowBg by androidx.compose.animation.animateColorAsState(if (on) c.accent.copy(alpha = 0.16f) else Color.Transparent, androidx.compose.animation.core.tween(200), label = "secBg")
                 Row(
@@ -199,14 +217,20 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                 Text(sections[cat].sub, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp, bottom = 16.dp))
                 Column(Modifier.widthIn(max = 820.dp)) {
                     when (cat) {
-                        0 -> MapSection(prefs, engine)
-                        1 -> NavigationSection(prefs)
-                        2 -> AlertsSection(prefs, engine)
-                        3 -> PlacesSection(engine)
-                        4 -> FuelSection(prefs)
-                        5 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
-                        6 -> DisplaySection(prefs, engine)
-                        7 -> KeysSection(prefs, engine)
+                        0 -> MapLookSection(prefs, engine)
+                        1 -> OnTheMapSection(prefs, engine)
+                        2 -> ArrowSection(prefs, engine)
+                        3 -> RoutesSection(prefs)
+                        4 -> GuidanceSection(prefs)
+                        5 -> AlertsSection(prefs, engine)
+                        6 -> SoundSection(prefs, engine)
+                        7 -> { PlacesSection(engine); SharingGroups(prefs) }
+                        8 -> FuelSection(prefs)
+                        9 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
+                        10 -> ScreenSection(prefs, engine)
+                        11 -> AndroidAutoSection(prefs)
+                        12 -> PerformanceSection(prefs)
+                        13 -> KeysSection(prefs, engine)
                         else -> AboutSection(prefs, engine)
                     }
                 }
@@ -216,17 +240,19 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
     }
 }
 
-// ------------------------------------------------------------------ Map
+// ------------------------------------------------------------------ Map look
 
 @Composable
-private fun MapSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Look") {
+private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
+    SGroup("Day and night") {
         SChoice("Day and night", listOf("auto" to "Auto", "lights" to "Headlights", "sun" to "Sun times", "times" to "My times", "day" to "Day", "night" to "Night"), prefs.s(PreferenceKeys.THEME, "auto"),
             "Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set") { prefs.put(PreferenceKeys.THEME, it) }
         if (prefs.s(PreferenceKeys.THEME, "auto") == "times") {
             SFieldItem("Night starts at", prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), "24-hour clock, for example 19:30", placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
             SFieldItem("Day starts at", prefs.s(PreferenceKeys.DAY_FROM, "07:00"), "24-hour clock, for example 06:45", placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
+    }
+    SGroup("The map") {
         SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
             "Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them") { prefs.put(PreferenceKeys.MAP_STYLE, it) }
         if (prefs.mapSource() == "mapbox") {
@@ -234,32 +260,55 @@ private fun MapSection(prefs: Prefs, engine: NavEngine) {
                 "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
             MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
         }
+        SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
         SToggle(prefs, "Glass panels", "glass", true, "See-through cards tinted by the map. Off gives solid cards")
+        SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
+            "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
-    SGroup("On the map") {
-        SToggle(prefs, "Live traffic", "traffic", true)
+    SGroup("3D and satellite") {
         SToggle(prefs, "Satellite", "satellite", false)
         SToggle(prefs, "3D buildings", "buildings3d", true)
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
-        SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")
-        SToggle(prefs, "Route ribbon", "ribbon", true, "A soft shadow under the route line, and the route showing faintly through 3D buildings in front of it")
         SToggle(prefs, "Fog and sky", "skyweather", true, "Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog")
-        SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
+        SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
+        SToggle(prefs, "Trees in parks", "trees", true, "Mapbox's 3D trees in parks and along streets")
         SToggle(prefs, "Keep the road ahead clear", "clearview", true, "Mapbox's 3D trees and landmarks are left out round your arrow and along the road just ahead, so they never hide it")
         SToggle(prefs, "Tap to highlight", "tapselect", true, "Tap a building to light it up; tap a shop or place, then hold on it to go there")
-        SToggle(prefs, "3D street lamps, traffic lights and cameras", "furniture3d", true, "Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks")
+    }
+}
+
+// ------------------------------------------------------------------ On the map
+
+@Composable
+private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
+    SGroup("Traffic") {
+        SToggle(prefs, "Live traffic", "traffic", true)
+        SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
+        SToggle(prefs, "Light traffic in green", PreferenceKeys.TRAFFIC_GREEN, false, "Free-flowing main roads shown green, as well as slow traffic in amber and red")
+    }
+    SGroup("On your route") {
         SToggle(prefs, "Traffic lights", "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) "Only the ones on your route. Now: " + engine.map.signalInfo() else null)
         SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true)
+        SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
+        SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
+    }
+    SGroup("3D street furniture") {
+        SToggle(prefs, "3D street lamps, traffic lights and cameras", "furniture3d", true, "Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks")
         SToggle(prefs, "Street lamps", "lamps", true, if (prefs.b(PreferenceKeys.LAMPS, true)) "Now: " + engine.map.lampInfo() else null)
-        SToggle(prefs, "Trees in parks", "trees", true, "Mapbox's 3D trees in parks and along streets")
         if (prefs.b(PreferenceKeys.LAMPS, true)) SSlider("Street lamp spacing", prefs.s(PreferenceKeys.LAMPGAP, "40").toFloatOrNull() ?: 40f, 15f..120f, " m", reset = 40f) { prefs.put(PreferenceKeys.LAMPGAP, it.toString()) }
+    }
+    SGroup("Weather") {
         SToggle(prefs, "Weather effects on the map", "rainfx", false, "Real rain and snow falling on the map (and fog) to match the weather where you are")
         SToggle(prefs, "Rain radar layer", "radar", false, "Live radar from RainViewer, under the route")
-        SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
-            "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
+}
+
+// ------------------------------------------------------------------ Your arrow & route line
+
+@Composable
+private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Your arrow", footer = "Real 3D model: drawn in the map itself, lit and shadowed like the buildings (Full 3D only; otherwise the picture of the same shape is used). The 3D arrow and car are pictures of 3D shapes. The flat arrow is the lightest to draw on a slow unit.") {
         val loc = prefs.s(PreferenceKeys.LOCATOR, "arrow")
         val ctx = LocalContext.current
@@ -318,16 +367,25 @@ private fun MapSection(prefs: Prefs, engine: NavEngine) {
             "#FF6FB5" to "Pink", "#A56BFF" to "Purple",
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
         SSlider(if (shapeCar) "Car size" else if (loc == "custom") "Picture size" else "Arrow size", prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
+    }
+    SGroup("Route line") {
         SToggle(prefs, "Turn arrow on the route", "turnarrows", true, "A white arrow through the next junction or roundabout")
         SToggle(prefs, "Chevrons along the route", "routechevrons", true, "Small arrows along the line when zoomed in")
+        SToggle(prefs, "Route ribbon", "ribbon", true, "A soft shadow under the route line, and the route showing faintly through 3D buildings in front of it")
+        SToggle(prefs, "Flowing light along the route", "routeflow", true)
+        SColours("Alternative route line colour", listOf(
+            "#C4D9E6" to "Pale blue-grey (default)", "#A9D4F0" to "Light blue", "#5AB7F5" to "Blue", "#315CBA" to "Dark blue",
+            "#A9B4C2" to "Silver grey", "#FFFFFF" to "White", "#42CFA5" to "Mint", "#F4C542" to "Yellow",
+            "#FF9A4A" to "Orange", "#F05D6C" to "Red", "#C58AF9" to "Purple", "#F08AC5" to "Pink",
+        ), prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")) { prefs.put(PreferenceKeys.ALT_ROUTE_COLOUR, it) }
     }
 }
 
-// ------------------------------------------------------------------ Navigation
+// ------------------------------------------------------------------ Routes
 
 @Composable
-private fun NavigationSection(prefs: Prefs) {
-    SGroup("Routes", footer = "Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.") {
+private fun RoutesSection(prefs: Prefs) {
+    SGroup("Avoid", footer = "Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.") {
         SToggle(prefs, "Avoid toll roads", "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "Everywhere" else null)
         // ...or only in some countries: a route that would use a toll road in one of them is planned without toll roads
         if (!prefs.b(PreferenceKeys.AVOID_TOLL, false)) {
@@ -345,68 +403,56 @@ private fun NavigationSection(prefs: Prefs) {
         SToggle(prefs, "Avoid ferries", "avoid_ferry", false)
         SToggle(prefs, "Avoid unpaved roads", "avoid_unpaved", true)
         SToggle(prefs, "Avoid Clean Air Zones and ULEZ", "avoidzones", false, "A zone you start or finish in can't be avoided")
-        SToggle(prefs, "Eco routes", "route_eco", false, "Fuel-efficient instead of fastest")
         ZonesItem()
     }
-    SGroup("Route start") {
-        SToggle(prefs, "Auto-start route countdown", PreferenceKeys.AUTO_START_ROUTE, true, "Automatically start navigation when the countdown finishes")
-        SSlider("Auto-start countdown", prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = "How long before navigation starts", steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
-    }
-    SGroup("While you drive") {
+    SGroup("Choosing a route") {
+        SToggle(prefs, "Eco routes", "route_eco", false, "Fuel-efficient instead of fastest")
         SToggle(prefs, "Offer faster routes", "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, "Keep other routes on the map", "livealts", true, "Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead")
-        SColours("Alternative route line colour", listOf(
-            "#C4D9E6" to "Pale blue-grey (default)", "#A9D4F0" to "Light blue", "#5AB7F5" to "Blue", "#315CBA" to "Dark blue",
-            "#A9B4C2" to "Silver grey", "#FFFFFF" to "White", "#42CFA5" to "Mint", "#F4C542" to "Yellow",
-            "#FF9A4A" to "Orange", "#F05D6C" to "Red", "#C58AF9" to "Purple", "#F08AC5" to "Pink",
-        ), prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")) { prefs.put(PreferenceKeys.ALT_ROUTE_COLOUR, it) }
-        SToggle(prefs, "Fly along a new route", "cinematic", true, "A 3-second 3D fly-through before the overview. Tap the map to skip")
-        SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
-        SToggle(prefs, "Parking near your destination", "parkprompt", true, "About a mile before you arrive, car parks close by with the walk from each")
         SToggle(prefs, "Suggest where you're going", "predict", true, "With the live journey time, including home and work at your usual times")
         SToggle(prefs, "Weather on the route", "routewx", true)
-        SToggle(prefs, "Fewer buttons while driving", "drivesimple", true)
-        SToggle(prefs, "Lock typing while driving", "drivelock", true, "Voice search still works")
     }
-    SGroup("On screen") {
-        SToggle(prefs, "Route bar on the trip card", "routebar", true, "Traffic, cameras, services and stops, with your progress")
-        SToggle(prefs, "Next services card", "servicescard", true)
-        SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, forks and lane splits the view drops lower and closer for the last 200 m")
+    SGroup("Starting a route") {
+        SToggle(prefs, "Auto-start route countdown", PreferenceKeys.AUTO_START_ROUTE, true, "Automatically start navigation when the countdown finishes")
+        SSlider("Auto-start countdown", prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = "How long before navigation starts", steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
+        SToggle(prefs, "Fly along a new route", "cinematic", true, "A 3-second 3D fly-through before the overview. Tap the map to skip")
         SToggle(prefs, "Fly over route button", "flyover", true, "On the route options: a 3D flight along the whole drive before you set off")
-        SToggle(prefs, "Route back", "routeback", true, "On the arrival card: one tap for the way back to where you started")
-        SToggle(prefs, "Weather advice", "wxadvice", true, "A quiet note in heavy rain, snow, fog or ice when you're near the limit")
-        SToggle(prefs, "Level crossings and fords", "railford", true, "A warning sign and a spoken warning for level crossings and fords on your route")
-        SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
-        SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
-        SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On the phone and the car screen", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
-        SToggle(prefs, "Hazard radar", "hazardradar", false, "The next 2 miles: bends, crossings, schools, bumps, cameras and checks")
-        SToggle(prefs, "UK road signs on the turn card", "uksigns", true)
-        SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
-        SToggle(prefs, "Dim the map in tunnels", "tunneldim", true)
-        SToggle(prefs, "Living turn card", "livecard", true, "Grows and glows as the turn gets close")
-        SToggle(prefs, "Flowing light along the route", "routeflow", true)
-        SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
     }
-    SGroup("Junctions and lanes") {
+}
+
+// ------------------------------------------------------------------ Turn card & lanes
+
+@Composable
+private fun GuidanceSection(prefs: Prefs) {
+    SGroup("Turn card") {
+        SToggle(prefs, "UK road signs on the turn card", "uksigns", true)
+        SToggle(prefs, "Living turn card", "livecard", true, "Grows and glows as the turn gets close")
         SToggle(prefs, "Lane guidance on the turn card", "lanestrip", true)
         if (prefs.b(PreferenceKeys.LANE_STRIP, true)) SChoice("Lane guidance style", listOf("hero" to "Lane hero view", "classic" to "Classic strip"), prefs.s(PreferenceKeys.LANE_STYLE, "hero"),
             if (prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero") "Before junctions with two or more lanes the turn card shows a big lane picture with yours lit" else "The small lane strip at every junction") { prefs.put(PreferenceKeys.LANE_STYLE, it) }
         SChoice("Next turn on the turn card", listOf("close" to "When close", "always" to "Always", "off" to "Off"), prefs.s(PreferenceKeys.THEN_MODE, "close"),
             when (prefs.s(PreferenceKeys.THEN_MODE, "close")) { "close" -> "Only when the turn after comes straight after (within about 15 seconds)"; "always" -> "The turn after the next one, all the time"; else -> null }) { prefs.put(PreferenceKeys.THEN_MODE, it) }
         if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
+    }
+    SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes painted on the map", "lanemap", true)
         SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
+        SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, forks and lane splits the view drops lower and closer for the last 200 m")
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
         SToggle(prefs, "Tilt with speed", "speedtilt", true, "Flatter when slow, a longer view at speed")
-        SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
-        SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
-        SToggle(prefs, "Light traffic in green", PreferenceKeys.TRAFFIC_GREEN, true, "Free-flowing roads shown green, as well as slow traffic in amber and red")
-        SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
     }
-    SGroup("Demo") {
-        SToggle(prefs, "Demo drive button", "demo", false, "Plays a route back so you can try the guidance while parked")
+    SGroup("Trip card") {
+        SToggle(prefs, "Route bar on the trip card", "routebar", true, "Traffic, cameras, services and stops, with your progress")
+        SToggle(prefs, "Next services card", "servicescard", true)
+        SToggle(prefs, "Hazard radar", "hazardradar", false, "The next 2 miles: bends, crossings, schools, bumps, cameras and checks")
+    }
+    SGroup("Arriving") {
+        SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
+        SToggle(prefs, "Parking near your destination", "parkprompt", true, "About a mile before you arrive, car parks close by with the walk from each")
+        SToggle(prefs, "Route back", "routeback", true, "On the arrival card: one tap for the way back to where you started")
     }
 }
+
 
 /** What the app knows about clean air zones, with a button to download them again. */
 @Composable
@@ -422,21 +468,10 @@ private fun ZonesItem() {
     }
 }
 
-// ------------------------------------------------------------------ Alerts & sound
+// ------------------------------------------------------------------ Alerts
 
 @Composable
 private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
-    val ctx = LocalContext.current
-    SGroup("Sound") {
-        SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
-            "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
-        SToggle(prefs, "Say road names", PreferenceKeys.VOICE_ROADS, true, "Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs")
-        SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
-        SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
-            "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
-        SItem("Voice and language", "Uses the system text-to-speech voice") { SButton("Open") { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
-        SItem("Volume") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
-    }
     SGroup("Speed") {
         SToggle(prefs, "Warn when over the limit", "speedwarn", true)
         if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice("Warn when over by", listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
@@ -453,12 +488,32 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Schools at school-run times", "schools", true)
         SToggle(prefs, "Clean Air Zones and ULEZ", "zonewarn", true)
         SToggle(prefs, "Break reminder after 2 hours", "breakremind", true)
+        SToggle(prefs, "Level crossings and fords", "railford", true, "A warning sign and a spoken warning for level crossings and fords on your route")
+        SToggle(prefs, "Weather advice", "wxadvice", true, "A quiet note in heavy rain, snow, fog or ice when you're near the limit")
     }
     SGroup("Your reports", footer = "Make a report from the map options button. Reports stay on this unit and fade after a few hours.") {
         SToggle(prefs, "Warn about reports ahead", "policealerts", true)
         SItem("Reports still active", "${engine.reportsActive().size}") { SButton("Clear", danger = true) { engine.clearReports() } }
     }
 }
+
+// ------------------------------------------------------------------ Sound & voice
+
+@Composable
+private fun SoundSection(prefs: Prefs, engine: NavEngine) {
+    val ctx = LocalContext.current
+    SGroup("Sound") {
+        SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
+            "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
+        SToggle(prefs, "Say road names", PreferenceKeys.VOICE_ROADS, true, "Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs")
+        SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
+        SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
+            "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
+        SItem("Voice and language", "Uses the system text-to-speech voice") { SButton("Open") { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
+        SItem("Volume") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
+    }
+}
+
 
 // ------------------------------------------------------------------ Places & trips
 
@@ -561,7 +616,30 @@ private fun TripsGroup(engine: NavEngine) {
     }
 }
 
-// ------------------------------------------------------------------ Fuel & sharing
+
+/** Share your ETA and places sent from other apps (part of Places & trips). */
+@Composable
+private fun SharingGroups(prefs: Prefs) {
+    val ctx = LocalContext.current
+    val pkg = android.net.Uri.parse("package:" + ctx.packageName)
+    SGroup("Share your ETA", footer = "The share button on the trip card texts your arrival time and a map link. On a head unit without a SIM it opens your messaging app instead.") {
+        val pickEta = rememberEtaContactPicker(prefs)
+        SItem("Send it to", prefs.s(PreferenceKeys.ETA_NAME, "").ifBlank { "No one chosen yet" }) {
+            SButton(if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isBlank()) "Choose" else "Change") { pickEta() }
+            if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isNotBlank()) SButton("Clear", danger = true) { prefs.put(PreferenceKeys.ETA_NUMBER, ""); prefs.put(PreferenceKeys.ETA_NAME, "") }
+        }
+    }
+    SGroup("Places from other apps", footer = "Share a place to Horizon Nav from Google Maps, WhatsApp, Contacts or a web page and it plans the route. To open Google Maps links here straight away, tap Open by default and add the links.") {
+        SItem("Google Maps links") {
+            SButton("Open by default") {
+                if (android.os.Build.VERSION.SDK_INT >= 31) openSystemSettings(ctx, Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, pkg)
+                else openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)
+            }
+        }
+    }
+}
+
+// ------------------------------------------------------------------ Fuel & charging
 
 @Composable
 private fun FuelSection(prefs: Prefs) {
@@ -598,14 +676,8 @@ private fun FuelSection(prefs: Prefs) {
         SFieldItem("Fuel economy (miles per gallon)", prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = "e.g. 45", number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, s.filter { it.isDigit() || it == '.' }.take(5)) }
         SFieldItem("Fuel price (pence per litre)", prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = "e.g. 139.9", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
     }
-    SGroup("Share your ETA", footer = "The share button on the trip card texts your arrival time and a map link. On a head unit without a SIM it opens your messaging app instead.") {
-        val pickEta = rememberEtaContactPicker(prefs)
-        SItem("Send it to", prefs.s(PreferenceKeys.ETA_NAME, "").ifBlank { "No one chosen yet" }) {
-            SButton(if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isBlank()) "Choose" else "Change") { pickEta() }
-            if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isNotBlank()) SButton("Clear", danger = true) { prefs.put(PreferenceKeys.ETA_NUMBER, ""); prefs.put(PreferenceKeys.ETA_NAME, "") }
-        }
-    }
 }
+
 
 /** Town and village names for your country, so search works with no signal even without the full pack. */
 @Composable
@@ -635,10 +707,10 @@ private fun OfflinePlacesGroup(engine: NavEngine) {
     }
 }
 
-// ------------------------------------------------------------------ Display
+// ------------------------------------------------------------------ Screen & sizes
 
 @Composable
-private fun DisplaySection(prefs: Prefs, engine: NavEngine) {
+private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Screen") {
         SSlider("Brightness", prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = "100% leaves it to the system", live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, "Dim the screen at night", "dimnight", false)
@@ -672,10 +744,19 @@ private fun DisplaySection(prefs: Prefs, engine: NavEngine) {
             SSlider("Button size", prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "On-screen controls", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_BUTTON_SIZE, it) }
             SSlider("Text size", prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent text scaling", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
             SSlider("Navigation arrow size", prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", sub = "Map position arrow", steps = 11, reset = 100f) { prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, it) }
-            SSlider("Speedometer and speed-limit sign", prefs.i(PreferenceKeys.MAIN_SPEED_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.MAIN_SPEED_SIZE, it) }
             SSlider("Road name size", prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
         }
 
+    }
+    SGroup("While driving") {
+        SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
+        SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
+        SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On the phone and the car screen", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
+        SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
+        SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
+        SToggle(prefs, "Dim the map in tunnels", "tunneldim", true)
+        SToggle(prefs, "Fewer buttons while driving", "drivesimple", true)
+        SToggle(prefs, "Lock typing while driving", "drivelock", true, "Voice search still works")
     }
     SGroup("Units") {
         SChoice("Distance and speed", listOf("mi" to "Miles", "km" to "Kilometres"), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
@@ -687,76 +768,16 @@ private fun DisplaySection(prefs: Prefs, engine: NavEngine) {
                 else -> "Follows the country you're in" + (if (engine.mirrored) ": left-hand drive, screen mirrored" else ": right-hand drive")
             }) { prefs.put(PreferenceKeys.DRIVE, it) }
     }
-    SGroup("Smoothness", footer = "Lower these if the map feels slow or the head unit gets warm. Sharpness and fast drawing apply after restarting the app.") {
-        SChoice("Map sharpness", listOf("100" to "Full", "80" to "Balanced", "65" to "Light", "50" to "Lowest"), prefs.s(PreferenceKeys.MAP_RESOLUTION, "80")) { prefs.put(PreferenceKeys.MAP_RESOLUTION, it) }
-        SChoice("Frame rate", listOf("auto" to "Auto", "20" to "20", "30" to "30", "45" to "45", "60" to "60"), prefs.s(PreferenceKeys.MAP_FPS, "auto"),
-            if (prefs.s(PreferenceKeys.MAP_FPS, "auto") == "auto") "Starts at 30 and steps down when the head unit can't keep up, so the map moves evenly" else "Lower is lighter on the head unit") { prefs.put(PreferenceKeys.MAP_FPS, it) }
-        SToggle(prefs, "Fast map drawing", "mapfast", true)
-        // (the old "Light map" switch is now Settings > Map > Map detail)
-        SToggle(prefs, "Performance meter", "perfmeter", false, "A line at the top of the map: frames drawn, camera moves and pauses. Handy for finding what slows the map")
-    }
 }
 
-// ------------------------------------------------------------------ Search & keys
+// ------------------------------------------------------------------ Android Auto
 
 @Composable
-private fun KeysSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Search") {
-        SChoice("Search results", searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
-        if (engine.hasKey && engine.hasMapbox) SChoice("Search with", listOf("auto" to "TomTom", "mapbox" to "Mapbox"), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
-            "TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers") { prefs.put(PreferenceKeys.SEARCHWITH, it) }
-        else if (!engine.hasKey) SNote("For the most accurate address search, add a free TomTom key below.")
-    }
-    SGroup("Map accounts", footer = "Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.") {
-        SFieldItem("TomTom API key", prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) "Using the key built into this app unless you paste another" else "Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com",
-            placeholder = "Paste a key") { prefs.setApiKey(it) }
-        SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions.",
-            placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }
-    }
-    if (engine.hasKey && engine.hasMapbox) SGroup("Routes, search and traffic", footer = "Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.") {
-        SChoice("Use", listOf("auto" to "Auto", "tomtom" to "TomTom", "mapbox" to "Mapbox"), prefs.s(PreferenceKeys.DATAPROV, "auto")) { prefs.put(PreferenceKeys.DATAPROV, it) }
-    }
-}
-
-// ------------------------------------------------------------------ About & backup
-
-@Composable
-private fun AboutSection(prefs: Prefs, engine: NavEngine) {
+private fun AndroidAutoSection(prefs: Prefs) {
     val ctx = LocalContext.current
-    val pkg = android.net.Uri.parse("package:" + ctx.packageName)
-    SGroup("Horizon Nav") {
-        SItem("Version", BuildConfig.VERSION_NAME)
-        if (com.headunit.launcher.Updater.enabled) {
-            SItem("Check for updates", engine.updateStatus.ifBlank { null }) {
-                val u = engine.appUpdate
-                if (u != null && !engine.updateBusy) SButton("Update to ${u.version}", primary = true) { engine.installAppUpdate() }
-                else SButton(if (engine.updateBusy) "Updating…" else "Check now") { engine.checkForUpdate(manual = true) }
-            }
-            SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
-        }
-        SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
-        var feedback by remember { mutableStateOf(false) }
-        SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
-        if (feedback) FeedbackDialog(engine) { feedback = false }
-    }
-    SGroup("Permissions", footer = "While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.") {
-        val hasLoc = ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        SItem("Location", if (hasLoc) "Allowed" else "Not allowed: navigation needs it") {
-            SButton("App permissions", primary = !hasLoc) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg) }
-        }
-        SItem("Location services") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_LOCATION_SOURCE_SETTINGS) } }
-    }
-    SGroup("Places from other apps", footer = "Share a place to Horizon Nav from Google Maps, WhatsApp, Contacts or a web page and it plans the route. To open Google Maps links here straight away, tap Open by default and add the links.") {
-        SItem("Google Maps links") {
-            SButton("Open by default") {
-                if (android.os.Build.VERSION.SDK_INT >= 31) openSystemSettings(ctx, Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, pkg)
-                else openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)
-            }
-        }
-    }
     // Android Auto only lists apps that weren't installed from Play when its own "Unknown sources" is on, and some phones hide them
     // anyway: the steps that get it showing, with shortcuts
-    SGroup("Android Auto", footer = "If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).") {
+    SGroup("Car screen", footer = "If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).") {
         val gh = "com.google.android.projection.gearhead"
         val ghUri = android.net.Uri.parse("package:$gh")
         val hasAa = remember { try { ctx.packageManager.getPackageInfo(gh, 0); true } catch (e: Exception) { false } }
@@ -806,6 +827,74 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
                 catch (e: Exception) { android.widget.Toast.makeText(ctx, "No browser on this device: search for AAEnabler on GitHub", android.widget.Toast.LENGTH_LONG).show() }
             }
         }
+    }
+}
+
+// ------------------------------------------------------------------ Performance
+
+@Composable
+private fun PerformanceSection(prefs: Prefs) {
+    SGroup("Smoothness", footer = "Lower these if the map feels slow or the head unit gets warm. Sharpness and fast drawing apply after restarting the app.") {
+        SChoice("Map sharpness", listOf("100" to "Full", "80" to "Balanced", "65" to "Light", "50" to "Lowest"), prefs.s(PreferenceKeys.MAP_RESOLUTION, "80")) { prefs.put(PreferenceKeys.MAP_RESOLUTION, it) }
+        SChoice("Frame rate", listOf("auto" to "Auto", "20" to "20", "30" to "30", "45" to "45", "60" to "60"), prefs.s(PreferenceKeys.MAP_FPS, "auto"),
+            if (prefs.s(PreferenceKeys.MAP_FPS, "auto") == "auto") "Starts at 30 and steps down when the head unit can't keep up, so the map moves evenly" else "Lower is lighter on the head unit") { prefs.put(PreferenceKeys.MAP_FPS, it) }
+        SToggle(prefs, "Fast map drawing", "mapfast", true)
+        // (the old "Light map" switch is now Settings > Map > Map detail)
+        SToggle(prefs, "Performance meter", "perfmeter", false, "A line at the top of the map: frames drawn, camera moves and pauses. Handy for finding what slows the map")
+    }
+    SGroup("Demo") {
+        SToggle(prefs, "Demo drive button", "demo", false, "Plays a route back so you can try the guidance while parked")
+    }
+}
+
+// ------------------------------------------------------------------ Keys & accounts
+
+@Composable
+private fun KeysSection(prefs: Prefs, engine: NavEngine) {
+    SGroup("Search") {
+        SChoice("Search results", searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
+        if (engine.hasKey && engine.hasMapbox) SChoice("Search with", listOf("auto" to "TomTom", "mapbox" to "Mapbox"), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
+            "TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers") { prefs.put(PreferenceKeys.SEARCHWITH, it) }
+        else if (!engine.hasKey) SNote("For the most accurate address search, add a free TomTom key below.")
+    }
+    SGroup("Map accounts", footer = "Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.") {
+        SFieldItem("TomTom API key", prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) "Using the key built into this app unless you paste another" else "Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com",
+            placeholder = "Paste a key") { prefs.setApiKey(it) }
+        SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions.",
+            placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }
+    }
+    if (engine.hasKey && engine.hasMapbox) SGroup("Routes, search and traffic", footer = "Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.") {
+        SChoice("Use", listOf("auto" to "Auto", "tomtom" to "TomTom", "mapbox" to "Mapbox"), prefs.s(PreferenceKeys.DATAPROV, "auto")) { prefs.put(PreferenceKeys.DATAPROV, it) }
+    }
+}
+
+// ------------------------------------------------------------------ About & backup
+
+@Composable
+private fun AboutSection(prefs: Prefs, engine: NavEngine) {
+    val ctx = LocalContext.current
+    val pkg = android.net.Uri.parse("package:" + ctx.packageName)
+    SGroup("Horizon Nav") {
+        SItem("Version", BuildConfig.VERSION_NAME)
+        if (com.headunit.launcher.Updater.enabled) {
+            SItem("Check for updates", engine.updateStatus.ifBlank { null }) {
+                val u = engine.appUpdate
+                if (u != null && !engine.updateBusy) SButton("Update to ${u.version}", primary = true) { engine.installAppUpdate() }
+                else SButton(if (engine.updateBusy) "Updating…" else "Check now") { engine.checkForUpdate(manual = true) }
+            }
+            SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
+        }
+        SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
+        var feedback by remember { mutableStateOf(false) }
+        SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
+        if (feedback) FeedbackDialog(engine) { feedback = false }
+    }
+    SGroup("Permissions", footer = "While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.") {
+        val hasLoc = ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        SItem("Location", if (hasLoc) "Allowed" else "Not allowed: navigation needs it") {
+            SButton("App permissions", primary = !hasLoc) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg) }
+        }
+        SItem("Location services") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_LOCATION_SOURCE_SETTINGS) } }
     }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {

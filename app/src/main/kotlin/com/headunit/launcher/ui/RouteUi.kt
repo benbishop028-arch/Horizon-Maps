@@ -784,7 +784,7 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, slot: String? = null, onCl
 
 /**
  * Shown once after updating from a Horizon Nav from before the Mapbox map: what the Mapbox key adds, and a box to paste it in
- * (filled in already if one was saved before). Skipping it is fine: it can be added later in Settings › Search & keys.
+ * (filled in already if one was saved before). Skipping it is fine: it can be added later in Settings › Keys & accounts.
  */
 @Composable
 fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false, onClose: () -> Unit) {

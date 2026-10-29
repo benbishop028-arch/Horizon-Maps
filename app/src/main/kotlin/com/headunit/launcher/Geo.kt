@@ -197,7 +197,7 @@ object TomTomRest {
 
     /** A failed request, explained in plain words for the common cases (a missing or wrong key, the daily limit). */
     private fun httpError(code: Int, body: String): IOException = IOException(when (code) {
-        401, 403 -> "TomTom didn't accept the API key. Check it in Settings > Search & keys (a free key from developer.tomtom.com needs the Search and Routing APIs)"
+        401, 403 -> "TomTom didn't accept the API key. Check it in Settings > Keys & accounts (a free key from developer.tomtom.com needs the Search and Routing APIs)"
         429 -> "This TomTom key has reached its daily limit. It resets tomorrow"
         else -> "HTTP $code ${body.take(140)}"
     })

@@ -180,7 +180,7 @@ private fun KeyStep(prefs: Prefs, engine: NavEngine) {
     Text("1. Go to developer.tomtom.com and sign up or log in\n2. Open your Dashboard (Keys) and copy your API key\n3. Paste it here", color = c.sub, fontSize = 14.sp)
     var tk by remember { mutableStateOf(prefs.s(PreferenceKeys.API_KEY, "")) }
     SField(tk, { tk = it; prefs.setApiKey(it) }, placeholder = "TomTom API key", width = 560.dp, fill = true)
-    if (tk.isBlank()) Text("Without it, search uses Mapbox and OpenStreetMap instead, which miss more house numbers. You can add it later in Settings › Search & keys.", color = c.sub, fontSize = 13.sp)
+    if (tk.isBlank()) Text("Without it, search uses Mapbox and OpenStreetMap instead, which miss more house numbers. You can add it later in Settings › Keys & accounts.", color = c.sub, fontSize = 13.sp)
     else SetupPoint("TomTom key added: search uses TomTom")
 }
 

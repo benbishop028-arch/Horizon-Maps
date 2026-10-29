@@ -258,7 +258,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         get() = prefs.s(PreferenceKeys.API_KEY, "").ifBlank { BuildConfig.TOMTOM_API_KEY }.trim()
     val hasKey: Boolean get() = apiKey.isNotEmpty() && !apiKey.startsWith("YOUR_")
 
-    /** Your Mapbox access token (Settings > Search & keys), for the Mapbox map, routes, search and traffic. */
+    /** Your Mapbox access token (Settings > Keys & accounts), for the Mapbox map, routes, search and traffic. */
     val mbToken: String get() = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
     val hasMapbox: Boolean get() = MapboxRest.looksValid(mbToken) && refusedMb != mbToken
     /** A Mapbox token that Mapbox turned away: not used again until it's changed. (Screen state, so the map can say so.) */
@@ -320,7 +320,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun noteMbRefused(e: Exception) {
         val m = e.message ?: ""
-        if (m.contains("(401)")) { refusedMb = mbToken; scope.launch { toast("Mapbox didn't accept your access token, so it isn't being used. Check it in Settings > Search & keys.", 8000) } }
+        if (m.contains("(401)")) { refusedMb = mbToken; scope.launch { toast("Mapbox didn't accept your access token, so it isn't being used. Check it in Settings > Keys & accounts.", 8000) } }
     }
 
     /** Routes from whichever service is set up (see [provider]). */
@@ -337,7 +337,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /**
      * Place search. With a TomTom key it's TomTom's search, the same as the original Horizon Nav (fuzzy, finds house numbers near
-     * you as you type), topped up with Mapbox's when TomTom finds little; Settings > Search & keys > Search with can pick Mapbox
+     * you as you type), topped up with Mapbox's when TomTom finds little; Settings > Keys & accounts > Search with can pick Mapbox
      * instead. Without a key it's Mapbox's (with OpenStreetMap's alongside), or OpenStreetMap's alone with neither.
      */
     private fun netGeocode(country: String, q: String, near: LL?): List<Place> {
@@ -448,7 +448,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         tts = TextToSpeech(ctx) { status ->
             if (status != TextToSpeech.SUCCESS) {
                 // no working text-to-speech on this unit: the beeps still sound, but nothing can be said (this used to fail silently)
-                scope.launch { toast("No voice for directions: install or turn on a text-to-speech engine (Settings > Sound > Voice and language)", 9000) }
+                scope.launch { toast("No voice for directions: install or turn on a text-to-speech engine (Settings > Sound & voice > Voice and language)", 9000) }
             }
             if (status == TextToSpeech.SUCCESS) {
                 ttsReady = true
@@ -456,7 +456,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
                     val r2 = tts?.setLanguage(Locale.UK)
                     if (r2 == TextToSpeech.LANG_MISSING_DATA || r2 == TextToSpeech.LANG_NOT_SUPPORTED)
-                        scope.launch { toast("The text-to-speech voice has no language installed, so directions can't be spoken. Add one in Settings > Sound > Voice and language", 9000) }
+                        scope.launch { toast("The text-to-speech voice has no language installed, so directions can't be spoken. Add one in Settings > Sound & voice > Voice and language", 9000) }
                 }
                 voiceChan = prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav")
                 tts?.setAudioAttributes(speechAttrs)
@@ -686,7 +686,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Mapbox turned the token away: say so (the map can't show without a working token)
         if (m.contains("401") || m.contains("403") || m.contains("unauthor") || m.contains("forbidden") || m.contains("access token")) {
             if (m.contains("401")) refusedMb = mbToken
-            toast("Mapbox turned down your access token (${if (m.contains("403")) "403" else "401"}), so the map can't load. Check the token in Settings > Search & keys and at account.mapbox.com.", 9000)
+            toast("Mapbox turned down your access token (${if (m.contains("403")) "403" else "401"}), so the map can't load. Check the token in Settings > Keys & accounts and at account.mapbox.com.", 9000)
             return
         }
         val network = m.contains("resolve") || m.contains("host") || m.contains("timeout") || m.contains("timed out") || m.contains("connect") || m.contains("network") || m.contains("unreachable")
@@ -782,7 +782,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val now = System.currentTimeMillis()
             if (refusedMb != mbToken && now - noTokenToldAt > 60_000L) {
                 noTokenToldAt = now
-                toast("Add your Mapbox access token (it starts pk.) in Settings > Search & keys to show the map", 8000)
+                toast("Add your Mapbox access token (it starts pk.) in Settings > Keys & accounts to show the map", 8000)
             }
             return
         }
@@ -805,7 +805,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     map.recolourBase = true
                     map.setStyleUrl(TomTomRest.styleUrl(apiKey, dark, prefs.b(PreferenceKeys.TRAFFIC, true)))
                 } else {
-                    toast(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Search & keys for TomTom's map. Showing Mapbox's map", 5000)
+                    toast(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Keys & accounts for TomTom's map. Showing Mapbox's map", 5000)
                     map.setStyleUrl(map.baseStyle())
                 }
             }
@@ -1473,7 +1473,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         syncRoutePrefs(fix?.pos ?: map.center(), to.pos)
         resume = null
         if (!keepVia) via = emptyList()
-        if (!hasOnline && !OfflineRouter.installed(ctx)) { toast("To plan routes, add a free TomTom key or Mapbox token in Settings > Search & keys, or download the offline pack", 7000); return }
+        if (!hasOnline && !OfflineRouter.installed(ctx)) { toast("To plan routes, add a free TomTom key or Mapbox token in Settings > Keys & accounts, or download the offline pack", 7000); return }
         val from = fix?.pos ?: map.center() ?: return
         if (fix == null) toast("No GPS fix yet: routing from the map centre. Use the demo drive to simulate.", 5000)
         busy = true

@@ -203,7 +203,7 @@ object Updater {
                     value == "DON CL" || value == "JON CLOS"
             }
             .joinToString("\n")
-            .replace(Regex("(?m)^#{1,6}\\s*(Added|Improved|Fixed)\\s*$"), "")
+            // (### New / Improved / Fixed headings are kept: the What's new card sorts the changes by them)
             .replace(Regex("(?m)^[-•⁃]\\s*$"), "")
             .trim()
         return cleaned.takeIf { it.isNotBlank() }
