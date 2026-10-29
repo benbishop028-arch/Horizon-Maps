@@ -190,7 +190,7 @@ class CarNavSession : Session() {
         // Keep the locator proportionate to the more compact Android Auto overlay sizing.
         // Android Auto uses a smaller map surface than the main head-unit app. Keep the
         // user preference, but normalise it so the 240% main-app default doesn't create an enormous car-screen locator.
-        map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.78f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f))
+        map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f))
         map.setMapDetail(prefs.mapDetail())
         map.setColours(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox"))
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
@@ -293,6 +293,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             // and rendering work on the car display. This is scoped to the car map; the phone app's
             // Street lamps preference remains unchanged.
             m.lampsEnabled(false)
+            // a touch thicker route line on the car screen, where it looked thin against the buildings
+            m.routeBoost = 1.2f
             val root = FrameLayout(p.context)
             root.addView(m.mapView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             root.addView(m.roadView, FrameLayout.LayoutParams(1, 1))
@@ -909,7 +911,7 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             .setOnClickListener {
                 val next = when (arrowScale) { in 0..149 -> 150; in 150..199 -> 200; in 200..249 -> 250; in 250..299 -> 300; else -> 100 }
                 prefs.put(PreferenceKeys.ARROW_PERCENT, next)
-                try { holder.map?.setArrowScale((next / 100f).coerceIn(1f, 5f) * 0.78f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f)) } catch (_: Exception) { }
+                try { holder.map?.setArrowScale((next / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f)) } catch (_: Exception) { }
                 invalidate()
             }.build()
         val reroute: (Boolean) -> Unit = { holder.engine?.rerouteForSettings() }

@@ -692,7 +692,15 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
 }
 
 @Composable
-internal fun ImmTurnCard(engine: NavEngine, t: com.headunit.launcher.TurnInfo, compact: Boolean = false) {
+internal fun ImmTurnCard(
+    engine: NavEngine, t: com.headunit.launcher.TurnInfo, compact: Boolean = false,
+    /** Android Auto: no written lane advice under the lane arrows (the arrows already say it). */
+    car: Boolean = false,
+    /** Android Auto with the turn still far off: just one line (arrow, distance, road), so more of the map shows. */
+    slim: Boolean = false,
+    /** Extra row along the bottom of the card (Android Auto puts the hazards ahead there). */
+    footer: (@Composable () -> Unit)? = null,
+) {
     val shape = RoundedCornerShape(28.dp)
     val frac = ((450.0 - t.dist) / 450.0).coerceIn(0.0, 1.0).toFloat()
     // living card: it grows a touch and starts to glow as the turn comes up, and pulses in the last 80 m
@@ -726,6 +734,11 @@ internal fun ImmTurnCard(engine: NavEngine, t: com.headunit.launcher.TurnInfo, c
             // tap for the list of every turn on the route
             .clickable { engine.itineraryOpen = true },
     ) {
+        if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
+            RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
+            Text(t.street, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 12.dp))
+        } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
@@ -791,17 +804,19 @@ internal fun ImmTurnCard(engine: NavEngine, t: com.headunit.launcher.TurnInfo, c
         if (!compact && engine.prefs.b(PreferenceKeys.LANE_STRIP, true)) t.lanes?.let { ls ->
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
             val hero = engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && ls.lanes.size >= 2 && t.dist < 900.0
-            if (hero) LaneHero(ls, t.maneuver, t.laneAdvice)
+            if (hero) LaneHero(ls, t.maneuver, if (car) null else t.laneAdvice)
             else Box(Modifier.fillMaxWidth().background(TealDeep).padding(vertical = 4.dp), contentAlignment = Alignment.Center) { LaneRow(ls, t.maneuver, t.dist < 400.0) }
         }
         val heroShown = engine.prefs.b(PreferenceKeys.LANE_STRIP, true) && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && (t.lanes?.lanes?.size ?: 0) >= 2 && t.dist < 900.0
-        if (!compact && !heroShown) t.laneAdvice?.let { Text(it, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth().background(TealDeep).padding(horizontal = 18.dp, vertical = 6.dp)) }
+        if (!compact && !heroShown && !(car && t.lanes != null && engine.prefs.b(PreferenceKeys.LANE_STRIP, true))) t.laneAdvice?.let { Text(it, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth().background(TealDeep).padding(horizontal = 18.dp, vertical = 6.dp)) }
         if (!compact && t.thenManeuver != null && !thenIcon) {
             Row(Modifier.fillMaxWidth().background(TealDeep).padding(horizontal = 18.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
                 Text(t.thenText, color = Color.White.copy(alpha = 0.92f), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 10.dp))
             }
         }
+        } // (end of the full card)
+        footer?.invoke()
         Box(Modifier.fillMaxWidth().height(4.dp).background(Color.Black.copy(alpha = 0.18f))) {
             Box(Modifier.fillMaxWidth(frac).fillMaxHeight().background(Color.White.copy(alpha = 0.9f)))
         }

@@ -1870,7 +1870,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** How thick the route is drawn overall (1 = the standard width). */
-    private val ROUTE_K = 1.0f
+    /** Makes the route line (and everything sized with it) thicker: the Android Auto map sets this a little above 1, as the
+     *  line looked thin there against the buildings. Set straight after creating the map, before its style is built. */
+    var routeBoost = 1f
+    private val ROUTE_K: Float get() = routeBoost
 
     private fun line(p: List<LL>): Feature =
         Feature.fromGeometry(LineString.fromLngLats(p.map { Point.fromLngLat(it.lon, it.lat) }))

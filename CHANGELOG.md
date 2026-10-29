@@ -15,6 +15,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Stop the speedometer covering the trip card on left-hand-drive layouts, and stop the exit banner repeating what the road sign on the turn card already says.
 - Smoother map drawing: the map is no longer capped at 30 frames a second on top of the camera's own pacing, which made it judder.
 - Android Auto with left-hand drive: your arrow no longer hides under the turn and trip cards, and the speed limit sign no longer runs off the right-hand edge of the screen.
+- Android Auto: the speedometer sits down in the bottom-right corner again, level with the trip card, instead of floating halfway up the screen.
+- Android Auto, tidier screen: hazards ahead now sit along the bottom of the turn card, the sound button has moved onto the trip card, the "Use the right lane" line is gone where the lane arrows already show it, the trip card has a slimmer progress bar and bigger labels, and while the next turn is far away the turn card shrinks to one line.
+- Android Auto: the car arrow and route line are a little bigger, so they stand out from the buildings.
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ## 1.0.246 — 2026-10-28

@@ -121,7 +121,7 @@ private fun barColor(kind: String): Color = when (kind) {
  * average speed checks, stops and zones, and an arrow that moves along it as you drive (start on the left, destination on the right).
  */
 @Composable
-fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier) {
+fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = false) {
     val r = engine.route ?: return
     val c = LocalVw.current
     val len = max(1.0, r.len)
@@ -141,11 +141,13 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier) {
     val accent = c.accent
     val theme = engine.map.theme
     val locator = remember(theme) { engine.map.locatorBitmap().asImageBitmap() }
-    BoxWithConstraints(modifier.height(48.dp)) {
+    // [thin]: the slimmer bar on the car screen (smaller markers, a thinner track and a smaller arrow)
+    val dot = if (thin) 16.dp else 20.dp
+    BoxWithConstraints(modifier.height(if (thin) 34.dp else 48.dp)) {
         val w = maxWidth
         // the track, with the part already driven greyed out, and the arrow
-        Canvas(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(26.dp)) {
-            val th = 8.dp.toPx()
+        Canvas(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (thin) 18.dp else 26.dp)) {
+            val th = (if (thin) 4.dp else 8.dp).toPx()
             val y0 = (size.height - th) / 2f
             val bw = size.width / bins
             drawRoundRect(Color.Black.copy(alpha = 0.45f), Offset(0f, y0 - 1.5f), Size(size.width, th + 3f), CornerRadius(th))
@@ -155,7 +157,7 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier) {
                 drawRect(if (done) Color(0xFF8A8F99) else col, Offset(b * bw, y0), Size(bw + 0.6f, th))
             }
             // the arrow: the map's own locator, shrunk and turned to point along the bar
-            val sz = 32.dp.toPx()
+            val sz = (if (thin) 22.dp else 32.dp).toPx()
             val ax = (frac * size.width).coerceIn(sz / 2f, size.width - sz / 2f)
             val cy = size.height / 2f
             rotate(90f, Offset(ax, cy)) {
@@ -174,14 +176,14 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier) {
             if (x - lastX < 22f) continue
             lastX = x
             Box(
-                Modifier.offset(x = (w * f - 10.dp).coerceIn(0.dp, w - 20.dp), y = 0.dp).size(20.dp).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White),
+                Modifier.offset(x = (w * f - dot / 2).coerceIn(0.dp, w - dot), y = 0.dp).size(dot).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White),
                 contentAlignment = Alignment.Center,
-            ) { Icon(barIcon(e.kind), null, tint = barColor(e.kind), modifier = Modifier.size(13.dp)) }
+            ) { Icon(barIcon(e.kind), null, tint = barColor(e.kind), modifier = Modifier.size(dot * 0.65f)) }
         }
         Box(
-            Modifier.offset(x = w - 20.dp, y = 0.dp).size(20.dp).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White),
+            Modifier.offset(x = w - dot, y = 0.dp).size(dot).shadow(3.dp, CircleShape).clip(CircleShape).background(Color.White),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.Flag, null, tint = Color(0xFFEA4335), modifier = Modifier.size(13.dp)) }
+        ) { Icon(Icons.Rounded.Flag, null, tint = Color(0xFFEA4335), modifier = Modifier.size(dot * 0.65f)) }
     }
 }
 

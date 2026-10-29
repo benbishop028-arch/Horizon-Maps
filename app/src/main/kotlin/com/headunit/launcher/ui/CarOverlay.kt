@@ -200,13 +200,28 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // the turn card, top left (as in the app)
         val t = engine.turn
         val showTurn = guiding && t != null && !arriving
+        // hazards ahead (an incident, a speed camera) go along the bottom of the turn card when it's showing, instead of a
+        // separate pill: the left side is then just the turn card and the trip card
+        val alert = engine.alert
+        val inc = engine.incidentAhead; val cam = engine.cameraDist
+        val incShown = inc != null && alert?.kind != "incident"
+        val camShown = cam != null && alert?.kind != "camera"
+        // one slim line while the turn is far off (about 2 km), the full card as it comes up (a little either side, so it can't flicker)
+        val slimHold = remember { booleanArrayOf(false) }
+        if (t != null) slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
         if (showTurn && t != null) Box(Modifier.padding(start = left, top = top).width(if (portrait) topW else minOf(420.dp, maxWidth * 0.36f))
             .onSizeChanged { turnH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
                 // (the car's "Navigation arrow size" is the arrow on the map, as on the phone: CarNav applies it there)
                 CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    ImmTurnCard(engine, t, compact = compact)
+                    ImmTurnCard(engine, t, compact = compact, car = true, slim = slimHold[0],
+                        footer = {
+                            if (incShown || camShown) Column(Modifier.fillMaxWidth().background(GmGreenDeep).padding(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (incShown && inc != null) CarHazardLine("incident", inc.label, Geo.fmtDist(inc.dist, engine.imperial))
+                                if (camShown && cam != null) CarHazardLine("camera", "Speed camera", Geo.fmtDist(cam.toDouble(), engine.imperial))
+                            }
+                        })
                 }
                 if (!compact) engine.advice?.let { AdvicePill(it) }
             }
@@ -227,18 +242,17 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         }
 
         // alerts (cameras, limits, hazards...): beside the turn card on wide screens, under it on tall ones
-        val alert = engine.alert
         val below = if (showTurn && turnH > 0) with(dens) { turnH.toDp() } + 10.dp else if (engine.route == null && topBlockH > 0) with(dens) { topBlockH.toDp() } + 10.dp else 0.dp
         val alertMod = if (portrait) Modifier.align(Alignment.TopStart).padding(start = left, end = rightTop + 64.dp, top = top + below)
             else Modifier.align(Alignment.TopCenter).padding(top = top, start = if (guiding) maxWidth * 0.42f else left, end = maxOf(rightTop, maxWidth * 0.30f))
         AnimatedVisibility(alert != null, modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
 
         if (!previewing && !arriving) {
-            val inc = engine.incidentAhead; val cam = engine.cameraDist
             val hazards: @Composable () -> Unit = {
-                if ((inc != null && alert?.kind != "incident") || (cam != null && alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (inc != null && alert?.kind != "incident") HazardBadge("incident", inc.label, Geo.fmtDist(inc.dist, engine.imperial))
-                    if (cam != null && alert?.kind != "camera") HazardBadge("camera", "Speed camera", Geo.fmtDist(cam.toDouble(), engine.imperial))
+                // (only when there's no turn card to carry them)
+                if (!showTurn && (incShown || camShown)) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (incShown && inc != null) HazardBadge("incident", inc.label, Geo.fmtDist(inc.dist, engine.imperial))
+                    if (camShown && cam != null) HazardBadge("camera", "Speed camera", Geo.fmtDist(cam.toDouble(), engine.imperial))
                 }
             }
             if (portrait) {
@@ -246,7 +260,8 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 // bottom, the trip card spans the width (clear of Android Auto's buttons) with the hazards on the left above it and
                 // your speed on the right above it
                 var tripPx by remember { mutableStateOf(0) }
-                CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) {
+                // (while guiding, the sound button is on the trip card)
+                if (!guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) {
                     ImmRound(engine.soundIcon(), "sound", { engine.cycleSound() }, Modifier.align(Alignment.TopEnd).padding(end = rightTop, top = top + below))
                 }
                 Column(
@@ -273,16 +288,18 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.widthIn(max = 520.dp)) }
-                    CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
+                    // (while guiding, the sound button is on the trip card instead of a pill of its own)
+                    if (!guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
                     hazards()
                     if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false) }
                 }
                 // your speed and the limit, bottom right as in the app (clear of Android Auto's zoom buttons); on a small screen where
                 // it would run into the cards on the left, it sits above them instead
                 val crowded = with(dens) { (left + 16.dp + 34.dp + rightBottom).toPx() } + leftColW + speedW > wPx
-                // Keep the speedometer against the screen edge, above Android Auto's native zoom/re-centre controls.
-                val speedBottom = if (crowded && leftColH > 0) bottom + with(dens) { leftColH.toDp() } + 10.dp else bottom + 154.dp
-                BoxWithConstraints(Modifier.align(Alignment.BottomEnd).padding(end = insR + 12.dp, bottom = speedBottom, start = 34.dp, top = 20.dp)
+                // Down in the bottom corner, level with the trip card and just left of Android Auto's zoom and re-centre buttons
+                // (halfway up the side it looked lost in the middle of the screen)
+                val speedBottom = if (crowded && leftColH > 0) bottom + with(dens) { leftColH.toDp() } + 10.dp else bottom
+                BoxWithConstraints(Modifier.align(Alignment.BottomEnd).padding(end = rightBottom, bottom = speedBottom, start = 34.dp, top = 20.dp)
                     .onSizeChanged { speedW = it.width }) {
                     val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
                     val fittedScale = requestedSpeedScale * availableFit
@@ -349,38 +366,62 @@ private fun SoundPill(engine: NavEngine) {
     }
 }
 
-/** Time left, arrival, distance and the route bar, with the red button that ends the route. [fill]: across the width, compact (tall screens). */
+/** Time left, arrival, distance and the route bar, with the sound button and the red button that ends the route.
+ *  [fill]: across the width, compact (tall screens). */
 @Composable
 private fun TripCard(engine: NavEngine, fill: Boolean) {
     val e = engine.eta ?: return
     val c = LocalVw.current
     val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
-    val w = if (fill) Modifier.fillMaxWidth() else Modifier.width(380.dp)
+    val w = if (fill) Modifier.fillMaxWidth() else Modifier.width(400.dp)
     Column((if (fill) Modifier.fillMaxWidth() else Modifier).panel(10.dp, RoundedCornerShape(22.dp), c.surface)) {
-        if (engine.showRouteBar) {
-            RouteBar(engine, w.padding(start = 16.dp, end = 16.dp, top = if (fill) 7.dp else 9.dp, bottom = if (fill) 2.dp else 4.dp))
-            Box(w.padding(horizontal = 18.dp).height(1.dp).background(c.line))
-        }
+        // a slim bar: the full-height one took up nearly half the card
+        if (engine.showRouteBar) RouteBar(engine, w.padding(start = 16.dp, end = 16.dp, top = 6.dp), thin = true)
         val end: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
             // end the route, as in the app
             Box(Modifier.size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
                 androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Close, null, tint = Color.White, modifier = Modifier.size(sz * 0.52f))
             }
         }
-        if (fill) Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "time left", dc, compact = true)
-                ImmStat(e.arrive, "arrival", c.text, compact = true)
-                ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text, compact = true)
+        // sound: tap for all / alerts only / off, as the app's sound button; lit up in its colour unless it's fully on
+        val sound: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
+            val sm = engine.prefs.i(PreferenceKeys.SOUND_MODE, if (engine.prefs.b(PreferenceKeys.VOICE, true)) 0 else 2).coerceIn(0, 2)
+            val tint = when (sm) { 0 -> c.sub; 1 -> Warn; else -> Bad }
+            Box(Modifier.size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(if (sm == 0) c.line else tint.copy(alpha = 0.22f))
+                .carTap("sound") { engine.cycleSound() }, contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(engine.soundIcon(), null, tint = if (sm == 0) c.text else tint, modifier = Modifier.size(sz * 0.52f))
             }
-            Box(Modifier.padding(start = 12.dp)) { end(36.dp) }
-        } else Row(Modifier.widthIn(min = 380.dp).padding(start = 18.dp, end = 12.dp, top = 9.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp)) {
-            ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min traffic" else "time left", dc)
-            ImmStat(e.arrive, "arrival", c.text)
-            ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
-            end(40.dp)
         }
+        Row((if (fill) Modifier.fillMaxWidth() else Modifier.widthIn(min = 400.dp)).padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), horizontalArrangement = if (fill) Arrangement.SpaceBetween else Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                CarStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "left", dc)
+                CarStat(e.arrive, "arrive", c.text)
+                CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
+            }
+            Box(Modifier.padding(start = 12.dp)) { sound(if (fill) 36.dp else 40.dp) }
+            Box(Modifier.padding(start = 8.dp)) { end(if (fill) 36.dp else 40.dp) }
+        }
+    }
+}
+
+/** A figure on the car trip card, with a label big enough to read at a glance (the app's own labels were tiny on a car screen). */
+@Composable
+private fun CarStat(value: String, label: String, color: Color) {
+    val c = LocalVw.current
+    Column {
+        Text(value, color = color, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+        Text(label, color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false)
+    }
+}
+
+/** One hazard along the bottom of the car turn card: its road sign, what it is and how far. */
+@Composable
+private fun CarHazardLine(kind: String, label: String, dist: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AlertSign(com.headunit.launcher.AlertInfo(kind, label), 22.dp)
+        Text("$label in $dist", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
