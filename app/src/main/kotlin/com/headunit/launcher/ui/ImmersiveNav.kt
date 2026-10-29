@@ -257,6 +257,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
+        // where the button panel ends and the speedometer starts (in pixels), so zoom only moves when it would really touch either
+        var railBottomPx by remember { mutableStateOf(0) }
+        var speedTopPx by remember { mutableStateOf(-1) }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
         LaunchedEffect(narrow, tripPx, screenH) { engine.bottomCover = if (narrow && tripPx > 0) (tripH / screenH).coerceIn(0f, 0.5f).toDouble() else 0.0 }
@@ -284,7 +287,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             // every block slides and fades in and out instead of popping, so the screen changes feel like one piece
             AnimatedVisibility(!routing && !previewing, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, onSettings)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
                 val showResults = engine.results.isNotEmpty()
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine) { q = "" }
@@ -338,8 +341,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             if (engine.nearbyKind != null && (!previewing || engine.stopMode)) NearbyCard(engine)
         }
 
-        // ---- right side: one panel of map buttons (voice and Settings only while navigating, as the search bar has them otherwise),
-        // with zoom under it. If the two won't fit above the speedometer on a short screen, zoom moves beside the panel instead.
+        // ---- right side: Settings in the top corner as before, the map buttons grouped in one panel under it, and zoom halfway down
+        // the edge where it always was. Zoom only moves up beside the panel when it would touch the panel or the speedometer (both
+        // are measured), and on a really short screen the panel splits into two columns rather than run into the speedometer.
         if (!previewing) {
             val buttonBaseDensity = LocalDensity.current
             val railItems = ArrayList<@Composable () -> Unit>()
@@ -352,13 +356,18 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Route, { engine.overview() }, desc = "Route overview") })
                 if (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0) railItems.add(@Composable { ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive") })
             }
-            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings") })
-            // how many 52dp buttons fit down the right above the speedometer: all of them and zoom in one column if they fit, else zoom
-            // moves beside the panel, and on a really short screen the panel splits into two columns
             val unit = 52.dp * mainButtonScale
-            val perCol = ((maxHeight - 32.dp - 190.dp) / unit).toInt().coerceAtLeast(3)
-            val oneColumn = narrow || railItems.size + 2.3f <= perCol
-            val chunks = if (oneColumn || railItems.size <= perCol) listOf(railItems.toList()) else railItems.chunked(perCol)
+            // the top of the speedometer (measured; a fair guess until it has been laid out)
+            val speedTop = if (speedTopPx >= 0) with(dens) { speedTopPx.toDp() } else maxHeight - 190.dp
+            // buttons that fit in one column between Settings and the speedometer
+            val perCol = ((speedTop - 16.dp - unit - 10.dp - 12.dp) / unit).toInt().coerceAtLeast(3)
+            val chunks = if (narrow || railItems.size <= perCol) listOf(railItems.toList()) else railItems.chunked(perCol)
+            // where zoom sits when it stays put: centred between 80dp from the top and 110dp from the bottom, as before
+            val zoomH = (2 * 52 + 1).dp * mainButtonScale
+            // (its 80dp / 110dp margins are laid out at the button size too)
+            val zoomTop = 80.dp * mainButtonScale + ((maxHeight - 190.dp * mainButtonScale) - zoomH) / 2
+            val railBottom = with(dens) { railBottomPx.toDp() }
+            val zoomBeside = !narrow && railBottomPx > 0 && (railBottom - 8.dp > zoomTop || zoomTop + zoomH + 8.dp > speedTop)
             CompositionLocalProvider(LocalDensity provides Density(buttonBaseDensity.density * mainButtonScale, buttonBaseDensity.fontScale)) {
                 val rail: @Composable (List<@Composable () -> Unit>) -> Unit = { part ->
                     Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -372,11 +381,20 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                         Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
                     }
                 }
-                if (oneColumn) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) { rail(chunks[0]); zoom() }
-                // the first part stays against the screen edge, zoom furthest in
-                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
-                    if (mir) { for (part in chunks) rail(part); zoom() } else { zoom(); for (part in chunks.asReversed()) rail(part) }
+                // Settings, then the panel (in two columns if it must split; the first stays against the screen edge)
+                Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp)
+                    .onGloballyPositioned { val b = it.boundsInParent().bottom.toInt(); if (b != railBottomPx) railBottomPx = b },
+                    verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
+                    ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings")
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                        val parts = if (mir) chunks else chunks.asReversed()
+                        if (zoomBeside && !mir) zoom()
+                        for (part in parts) rail(part)
+                        if (zoomBeside && mir) zoom()
+                    }
+                    if (narrow) zoom()
                 }
+                if (!narrow && !zoomBeside) Box(Modifier.align(side(Alignment.CenterEnd)).sides(end = 16.dp, top = 80.dp, bottom = 110.dp)) { zoom() }
             }
         }
 
@@ -385,6 +403,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         if (!previewing) Box(
             Modifier.align(side(Alignment.BottomEnd))
                 .sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
+                .onGloballyPositioned { val t = it.boundsInParent().top.toInt(); if (it.size.height > 0 && t != speedTopPx) speedTopPx = t }
         ) {
             val baseSpeedDensity = LocalDensity.current
             // (sized by Settings > Screen & sizes > Speed limit and speedometer size, inside ImmSpeed)
@@ -454,20 +473,24 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             modifier = Modifier.align(side(Alignment.CenterEnd)),
             enter = slideInHorizontally(initialOffsetX = { if (mir) -it else it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { if (mir) -it else it }) + fadeOut(),
-        ) { OptionsSheet(engine, shareEta) { sheet = false } }
+        ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth) { sheet = false } }
         if (engine.stopsEditor) StopsDialog(engine, onClose = { engine.stopsEditor = false })
     }
 }
 
-/** Map layers, things to find, trip tools and reports, in one panel down the right. */
+/**
+ * Map options: the map's look first (Standard or Satellite, Auto / Day / Night), then what's shown on it as tiles that light up when
+ * on, then the trip tools, reports and things to find. In landscape on a wide screen it's twice as wide, in two columns, so nothing
+ * needs scrolling; it still scrolls if a small screen needs it.
+ */
 @Composable
-private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, close: () -> Unit) {
+private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, close: () -> Unit) {
     val c = LocalVw.current
     val p = engine.prefs
     val routing = engine.route != null && !engine.previewing
     val shape = RoundedCornerShape(28.dp)
     Column(
-        Modifier.fillMaxHeight().widthIn(max = 410.dp).fillMaxWidth().padding(10.dp).shadow(16.dp, shape).clip(shape).background(c.panel)
+        Modifier.fillMaxHeight().widthIn(max = if (wide) 760.dp else 410.dp).fillMaxWidth().padding(10.dp).shadow(16.dp, shape).clip(shape).background(c.panel)
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { }
             .verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -476,50 +499,148 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, close: () -> U
             Text("Map options", color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             ImmIcon(Icons.Rounded.Close, close, size = 42.dp, desc = "Close")
         }
-
-        SheetHeading(if (engine.route != null) "Find along the route" else "Find nearby")
-        fun find(kind: String): () -> Unit = { engine.loadNearby(kind, false); close() }
-        TileGrid(listOfNotNull(
-            TileSpec(Icons.Rounded.LocalGasStation, "Fuel", Color(0xFFEA4335), find("fuel")),
-            TileSpec(Icons.Rounded.EvStation, "Charging", Color(0xFF34A853), find("charging")),
-            TileSpec(Icons.Rounded.Restaurant, "Food", Color(0xFFF29900), find("food")),
-            TileSpec(Icons.Rounded.LocalCafe, "Coffee", Color(0xFFA56BFF), find("coffee")),
-            TileSpec(Icons.Rounded.Wc, "Toilets", Color(0xFF4C8DFF), find("toilets")),
-            TileSpec(Icons.Rounded.LocalParking, "Parking", Color(0xFF4C8DFF), find("parking")),
-            if (engine.route != null) TileSpec(Icons.Rounded.Apartment, "Services", Color(0xFF12A4B4), find("services")) else null,
-            if (engine.dest != null) TileSpec(Icons.Rounded.Place, "Park at end", Color(0xFFEA4335), { engine.loadNearby("parking", true); close() }) else null,
-        ))
-
-        if (routing) {
-            SheetHeading("This trip")
-            TileGrid(listOfNotNull(
-                TileSpec(Icons.Rounded.Add, if (engine.via.isEmpty()) "Add stop" else "Stops", c.accent, { engine.stopsEditor = true; close() }),
-                TileSpec(Icons.Rounded.DoNotDisturbOn, "Avoid road", Warn, { engine.avoidRoadAhead(); close() }),
-                TileSpec(Icons.Rounded.Route, "Overview", c.accent, { engine.overview(); close() }),
-                TileSpec(Icons.Rounded.Share, "Share ETA", Good, { shareEta(); close() }),
-            ))
+        val mapPart: @Composable () -> Unit = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // the map's look: two picture cards, then day and night
+                val sat = p.b(PreferenceKeys.SATELLITE, false)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    LookCard(Modifier.weight(1f), "Standard", false, !sat) { p.put(PreferenceKeys.SATELLITE, false) }
+                    LookCard(Modifier.weight(1f), "Satellite", true, sat) { p.put(PreferenceKeys.SATELLITE, true) }
+                }
+                // Auto covers every automatic choice in Settings (headlights, sun times, your own times): tapping it while one of those
+                // is on leaves it as it is
+                val theme = p.s(PreferenceKeys.THEME, "auto")
+                val seg = when (theme) { "day" -> 1; "night" -> 2; else -> 0 }
+                Row(Modifier.fillMaxWidth().height(42.dp).clip(RoundedCornerShape(14.dp)).background(c.tile).padding(3.dp)) {
+                    for ((i, label) in listOf("Auto", "Day", "Night").withIndex()) {
+                        Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp)).background(if (i == seg) c.accent else Color.Transparent)
+                            .clickable { if (i != seg) p.put(PreferenceKeys.THEME, listOf("auto", "day", "night")[i]) }, contentAlignment = Alignment.Center) {
+                            Text(label, color = if (i == seg) Color.White else c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+                SheetHeading("On the map")
+                fun tog(key: String, def: Boolean): Pair<Boolean, () -> Unit> { val on = p.b(key, def); return on to { p.put(key, !on) } }
+                val layers = listOf(
+                    Triple(Icons.Rounded.Traffic, "Traffic", tog(PreferenceKeys.TRAFFIC, true)),
+                    Triple(Icons.Rounded.Apartment, "3D buildings", tog(PreferenceKeys.BUILDINGS_3D, true)),
+                    Triple(Icons.Rounded.Traffic, "Traffic lights", tog(PreferenceKeys.SIGNALS, true)),
+                    Triple(Icons.Rounded.CameraAlt, "Cameras", tog(PreferenceKeys.HAZARD_ICONS, true)),
+                    Triple(Icons.Rounded.Lightbulb, "Street lamps", tog(PreferenceKeys.LAMPS, true)),
+                    Triple(Icons.Rounded.Park, "Trees", tog(PreferenceKeys.TREES, true)),
+                    Triple(Icons.Rounded.DirectionsWalk, "Footpaths", tog(PreferenceKeys.PATHS, true)),
+                    Triple(Icons.Rounded.WaterDrop, "Rain radar", tog(PreferenceKeys.RAIN_RADAR, false)),
+                    Triple(Icons.Rounded.AcUnit, "Weather", tog(PreferenceKeys.RAIN_EFFECTS, false)),
+                )
+                for (row in layers.chunked(3)) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for ((icon, label, st) in row) ToggleTile(Modifier.weight(1f), icon, label, st.first, st.second)
+                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
         }
+        val tripPart: @Composable () -> Unit = {
+            if (routing) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SheetHeading("This trip")
+                WideTiles(4, listOf(
+                    TileSpec(Icons.Rounded.Add, if (engine.via.isEmpty()) "Add stop" else "Stops", c.accent, { engine.stopsEditor = true; close() }),
+                    TileSpec(Icons.Rounded.DoNotDisturbOn, "Avoid road", Warn, { engine.avoidRoadAhead(); close() }),
+                    TileSpec(Icons.Rounded.Route, "Overview", c.accent, { engine.overview(); close() }),
+                    TileSpec(Icons.Rounded.Share, "Share ETA", Good, { shareEta(); close() }),
+                ))
+            }
+        }
+        val restPart: @Composable () -> Unit = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SheetHeading("Report here")
+                WideTiles(5, listOf(
+                    TileSpec(Icons.Rounded.LocalPolice, "Police", Color(0xFF1E66F5), { engine.report("police"); close() }),
+                    TileSpec(Icons.Rounded.CarCrash, "Crash", Bad, { engine.report("accident"); close() }),
+                    TileSpec(Icons.Rounded.PriorityHigh, "Hazard", Warn, { engine.report("hazard"); close() }),
+                    TileSpec(Icons.Rounded.Build, "Broken down", Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
+                    TileSpec(Icons.Rounded.CameraAlt, "Mobile cam", Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
+                ), compact = true)
+                // with no route the map page already has fuel, charging, food, coffee and parking, so only the rest are here
+                fun find(kind: String): () -> Unit = { engine.loadNearby(kind, false); close() }
+                val finds = listOfNotNull(
+                    if (engine.route != null) TileSpec(Icons.Rounded.LocalGasStation, "Fuel", Color(0xFFEA4335), find("fuel")) else null,
+                    if (engine.route != null) TileSpec(Icons.Rounded.EvStation, "Charging", Color(0xFF34A853), find("charging")) else null,
+                    if (engine.route != null) TileSpec(Icons.Rounded.Restaurant, "Food", Color(0xFFF29900), find("food")) else null,
+                    if (engine.route != null) TileSpec(Icons.Rounded.LocalCafe, "Coffee", Color(0xFFA56BFF), find("coffee")) else null,
+                    TileSpec(Icons.Rounded.Wc, "Toilets", Color(0xFF4C8DFF), find("toilets")),
+                    if (engine.route != null) TileSpec(Icons.Rounded.LocalParking, "Parking", Color(0xFF4C8DFF), find("parking")) else null,
+                    if (engine.route != null) TileSpec(Icons.Rounded.Apartment, "Services", Color(0xFF12A4B4), find("services")) else null,
+                    if (engine.dest != null) TileSpec(Icons.Rounded.Place, "Park at end", Color(0xFFEA4335), { engine.loadNearby("parking", true); close() }) else null,
+                )
+                SheetHeading(if (engine.route != null) "Find along the route" else "Find nearby")
+                WideTiles(4, finds)
+            }
+        }
+        if (wide) Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Box(Modifier.weight(1f)) { mapPart() }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) { tripPart(); restPart() }
+        } else {
+            // while navigating the trip tools come first; otherwise the map
+            tripPart(); mapPart(); restPart()
+        }
+    }
+}
 
-        SheetHeading("Report here")
-        TileGrid(listOf(
-            TileSpec(Icons.Rounded.LocalPolice, "Police", Color(0xFF1E66F5), { engine.report("police"); close() }),
-            TileSpec(Icons.Rounded.CarCrash, "Accident", Bad, { engine.report("accident"); close() }),
-            TileSpec(Icons.Rounded.PriorityHigh, "Hazard", Warn, { engine.report("hazard"); close() }),
-            TileSpec(Icons.Rounded.Build, "Breakdown", Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
-            TileSpec(Icons.Rounded.CameraAlt, "Mobile cam", Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
-        ))
+/** Standard or Satellite, as a little picture with its name under it; outlined when it's the one in use. */
+@Composable
+private fun LookCard(modifier: Modifier, label: String, satellite: Boolean, selected: Boolean, onClick: () -> Unit) {
+    val c = LocalVw.current
+    val shape = RoundedCornerShape(16.dp)
+    Column(modifier.clip(shape).background(if (selected) c.accent.copy(alpha = 0.18f) else c.tile)
+        .border(if (selected) 2.dp else 0.dp, if (selected) c.accent else Color.Transparent, shape).pressClick(onClick)) {
+        androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(54.dp)) {
+            val w = size.width; val h = size.height
+            if (satellite) {
+                drawRect(Color(0xFF3E5A35))
+                drawRect(Color(0xFF6B7F4A), topLeft = Offset(w * 0.08f, h * 0.12f), size = androidx.compose.ui.geometry.Size(w * 0.3f, h * 0.38f))
+                drawRect(Color(0xFF7C6A4E), topLeft = Offset(w * 0.55f, h * 0.55f), size = androidx.compose.ui.geometry.Size(w * 0.35f, h * 0.3f))
+                drawLine(Color(0xFFBDB6A6), Offset(0f, h * 0.72f), Offset(w, h * 0.38f), strokeWidth = h * 0.08f)
+            } else {
+                drawRect(if (c.dark) Color(0xFF2A3348) else Color(0xFFE9EDF3))
+                val road = if (c.dark) Color(0xFF55607A) else Color.White
+                drawLine(road, Offset(0f, h * 0.65f), Offset(w, h * 0.35f), strokeWidth = h * 0.1f)
+                drawLine(road, Offset(w * 0.35f, 0f), Offset(w * 0.5f, h), strokeWidth = h * 0.07f)
+                drawRect(if (c.dark) Color(0xFF2E4A3A) else Color(0xFFCDE8D2), topLeft = Offset(w * 0.62f, h * 0.6f), size = androidx.compose.ui.geometry.Size(w * 0.28f, h * 0.3f))
+            }
+        }
+        Text(label, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+    }
+}
 
-        SheetHeading("Map")
-        SheetToggle(Icons.Rounded.Traffic, "Live traffic", p.b(PreferenceKeys.TRAFFIC, true)) { p.put(PreferenceKeys.TRAFFIC, it) }
-        SheetToggle(Icons.Rounded.Satellite, "Satellite", p.b(PreferenceKeys.SATELLITE, false)) { p.put(PreferenceKeys.SATELLITE, it) }
-        SheetToggle(Icons.Rounded.Apartment, "3D buildings", p.b(PreferenceKeys.BUILDINGS_3D, true)) { p.put(PreferenceKeys.BUILDINGS_3D, it) }
-        SheetToggle(Icons.Rounded.Traffic, "Traffic lights", p.b(PreferenceKeys.SIGNALS, true)) { p.put(PreferenceKeys.SIGNALS, it) }
-        SheetToggle(Icons.Rounded.CameraAlt, "Cameras & roadworks", p.b(PreferenceKeys.HAZARD_ICONS, true)) { p.put(PreferenceKeys.HAZARD_ICONS, it) }
-        SheetToggle(Icons.Rounded.Lightbulb, "Street lamps", p.b(PreferenceKeys.LAMPS, true)) { p.put(PreferenceKeys.LAMPS, it) }
-        SheetToggle(Icons.Rounded.Park, "Trees in parks", p.b(PreferenceKeys.TREES, true)) { p.put(PreferenceKeys.TREES, it) }
-        SheetToggle(Icons.Rounded.DirectionsWalk, "Footpaths and trails", p.b(PreferenceKeys.PATHS, true)) { p.put(PreferenceKeys.PATHS, it) }
-        SheetToggle(Icons.Rounded.WaterDrop, "Rain radar", p.b(PreferenceKeys.RAIN_RADAR, false)) { p.put(PreferenceKeys.RAIN_RADAR, it) }
-        SheetToggle(Icons.Rounded.AcUnit, "Weather effects", p.b(PreferenceKeys.RAIN_EFFECTS, false)) { p.put(PreferenceKeys.RAIN_EFFECTS, it) }
+/** A switch as a tile: lit up in blue when it's on. */
+@Composable
+private fun ToggleTile(modifier: Modifier, icon: ImageVector, label: String, on: Boolean, onClick: () -> Unit) {
+    val c = LocalVw.current
+    val shape = RoundedCornerShape(16.dp)
+    Column(modifier.clip(shape).background(if (on) c.accent.copy(alpha = 0.2f) else c.tile)
+        .border(if (on) 1.5.dp else 0.dp, if (on) c.accent else Color.Transparent, shape).pressClick(onClick).padding(vertical = 10.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(icon, if (on) "$label on" else "$label off", tint = if (on) c.accent else c.sub, modifier = Modifier.size(24.dp))
+        Text(label, color = if (on) c.text else c.sub, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 5.dp))
+    }
+}
+
+/** Tiles in rows of [cols] that share the width evenly. [compact]: smaller, for a row of five. */
+@Composable
+private fun WideTiles(cols: Int, tiles: List<TileSpec>, compact: Boolean = false) {
+    val c = LocalVw.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        for (row in tiles.chunked(cols)) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 8.dp)) {
+            for (t in row) Column(
+                Modifier.weight(1f).clip(RoundedCornerShape(16.dp)).background(c.tile).pressClick(t.onClick).padding(vertical = if (compact) 9.dp else 11.dp, horizontal = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(Modifier.size(if (compact) 32.dp else 38.dp).clip(CircleShape).background(t.tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                    Icon(t.icon, null, tint = t.tint, modifier = Modifier.size(if (compact) 19.dp else 22.dp))
+                }
+                Text(t.label, color = c.text, fontSize = if (compact) 11.sp else 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 5.dp))
+            }
+            repeat(cols - row.size) { Spacer(Modifier.weight(1f)) }
+        }
     }
 }
 
@@ -850,7 +971,7 @@ internal fun ImmTurnCard(
 }
 
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: () -> Unit) {
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit) {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -863,10 +984,6 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                 else Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.padding(end = 8.dp).size(44.dp).clip(CircleShape).background(c.accent).pressClick { voice() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Mic, "Voice search", tint = Color.White, modifier = Modifier.size(23.dp))
-                    }
-                    // Settings lives here while the search bar shows (the buttons on the right have it while navigating)
-                    Box(Modifier.padding(end = 6.dp).size(44.dp).clip(CircleShape).pressClick { onSettings() }, contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Settings, "Settings", tint = c.sub, modifier = Modifier.size(24.dp))
                     }
                 }
             },

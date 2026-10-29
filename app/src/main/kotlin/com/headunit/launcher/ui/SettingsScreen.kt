@@ -333,8 +333,8 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             SToggle(prefs, "Turns with you", PreferenceKeys.LOCATOR_IMAGE_TURNS, true, "Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright")
             SToggle(prefs, "Round crop", PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false, "Cuts it to a circle with a white edge (good for photos)")
         }
-        // the car picture's shape (the "Car" picture only: the real 3D model keeps its own car)
-        if (loc == "car") {
+        // the car's shape: for the Car picture and the real 3D car alike
+        if (shapeCar) {
             val cur = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
             val colour = prefs.s(PreferenceKeys.CAR_COLOUR, "#F4F5F7")
             val names = listOf("saloon" to "Saloon", "hatch" to "Hatchback", "estate" to "Estate", "suv" to "SUV", "pickup" to "Pickup", "van" to "Van", "sports" to "Sports")

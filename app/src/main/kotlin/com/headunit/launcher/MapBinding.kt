@@ -2616,11 +2616,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         return Value(models)
     }
 
+    /** The real 3D car's files for the chosen car type (Settings > Your arrow > Car type); the saloon is the original model. */
+    private fun carUri(part: String): String = if (carModel == "saloon" || carModel !in CAR_MODELS) "asset://models/car_$part.glb" else "asset://models/car_${part}_$carModel.glb"
+
     private fun installModel(st: Style) {
         val car = modelShape == "car"
         val p = me
-        val uriA = if (car) "asset://models/car_body.glb" else "asset://models/arrow.glb"
-        val uriB = if (car) "asset://models/car_parts.glb" else "asset://models/disc.glb"
+        val uriA = if (car) carUri("body") else "asset://models/arrow.glb"
+        val uriB = if (car) carUri("parts") else "asset://models/disc.glb"
         try {
             for ((id, uri) in listOf("dl-me-ma" to uriA, "dl-me-mb" to uriB)) {
                 val props = HashMap<String, Value>()
@@ -2663,8 +2666,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         modelAt = p; modelHead = meHeading
         val car = modelShape == "car"
         try {
-            st.setStyleSourceProperty("dl-me-ma", "models", modelSourceValue(if (car) "asset://models/car_body.glb" else "asset://models/arrow.glb", p, meHeading))
-            st.setStyleSourceProperty("dl-me-mb", "models", modelSourceValue(if (car) "asset://models/car_parts.glb" else "asset://models/disc.glb", p, meHeading))
+            st.setStyleSourceProperty("dl-me-ma", "models", modelSourceValue(if (car) carUri("body") else "asset://models/arrow.glb", p, meHeading))
+            st.setStyleSourceProperty("dl-me-mb", "models", modelSourceValue(if (car) carUri("parts") else "asset://models/disc.glb", p, meHeading))
             if (modelGlow && (first || prev == null || Math.abs(prev.lat - p.lat) > 1e-8 || Math.abs(prev.lon - p.lon) > 1e-8))
                 src("dl-me-glow")?.featureCollection(FeatureCollection.fromFeatures(listOf(Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)))))
             if (first) { layer("dl-me-model-a")?.visibility(vis(true)); layer("dl-me-model-b")?.visibility(vis(true)) }
@@ -2732,7 +2735,18 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val v = if (m in CAR_MODELS) m else "saloon"
         if (v == carModel) return
         carModel = v
-        main0.post { spriteBmps.clear(); spriteName = null; try { pushModel(true) } catch (e: Throwable) { } }
+        main0.post {
+            spriteBmps.clear(); spriteName = null
+            // the real 3D car: point it at the new car type's model files (only the two model sources change, nothing else is redrawn)
+            try {
+                val st = style
+                if (st != null && modelOn && modelShape == "car") {
+                    st.setStyleSourceProperty("dl-me-ma", "models", modelSourceValue(carUri("body"), me ?: modelAt, meHeading))
+                    st.setStyleSourceProperty("dl-me-mb", "models", modelSourceValue(carUri("parts"), me ?: modelAt, meHeading))
+                }
+            } catch (e: Throwable) { }
+            try { pushModel(true) } catch (e: Throwable) { }
+        }
     }
 
     /** A small top-down picture of a car model in a colour, for choosing one in Settings. */
