@@ -2542,7 +2542,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.
         tLeft = if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
-        map.cardsMirrored = mirrored
+        map.cardsMirrored = mirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }
 
@@ -2563,16 +2563,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Use a slightly taller collision band so the locator clears cards in compact Android Auto
         // surfaces too (full-screen, music split, and app-launcher split layouts report different bounds).
         val band = 0.14
-        var cover = 0.0
+        // Which side the cards are on is read from where they actually are, not from the driving side: Android Auto keeps
+        // its cards on the left even for left-hand drive, and assuming they'd swapped sides pushed the arrow under them.
+        var coverL = 0.0; var coverR = 0.0
         for (p in panels) {
             if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
-            if (p[1] < y + band && p[3] > y - band) cover = max(cover, if (mirrored) (1.0 - p[0]) else p[2].toDouble())
+            if (p[1] < y + band && p[3] > y - band) {
+                if (p[0] + p[2] < 1.0) coverL = max(coverL, p[2].toDouble()) else coverR = max(coverR, 1.0 - p[0])
+            }
         }
+        val cover = max(coverL, coverR)
         if (cover < 0.05) return 0.0
         // Move farther away from the info/turn card; panel bounds are measured from the actual
         // Compose surface, so this adapts as Android Auto changes between full and split layouts.
         val shift = (cover * 0.78).coerceAtMost(0.42)
-        return if (mirrored) -shift else shift
+        return if (coverR > coverL) -shift else shift
     }
 
     private fun incidentLabel(i: Incident): String = when (i.cat) {

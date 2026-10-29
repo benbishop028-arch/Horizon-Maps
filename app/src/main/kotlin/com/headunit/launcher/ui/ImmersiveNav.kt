@@ -680,14 +680,11 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
                     lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center, androidx.compose.ui.text.style.LineHeightStyle.Trim.Both)))
             Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 11.sp, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 9.dp))
         }
+        // The speed always sits against the right-hand edge (on the phone and in Android Auto, either driving side),
+        // so the limit sign always goes on its inner, left side: on the right it ran off the edge of the screen.
         if (lim != null) Box(
-            Modifier.align(
-                if (!show) Alignment.Center
-                else if (engine.mirrored) Alignment.TopEnd else Alignment.TopStart
-            ).offset(
-                x = if (!show) 0.dp else if (engine.mirrored) 30.dp else (-30).dp,
-                y = if (show) (-18).dp else 0.dp
-            )
+            Modifier.align(if (show) Alignment.TopStart else Alignment.Center)
+                .offset(x = if (show) (-30).dp else 0.dp, y = if (show) (-18).dp else 0.dp)
         ) {
             SpeedLimitSign(engine, if (show) 50.dp else 70.dp)
         }
