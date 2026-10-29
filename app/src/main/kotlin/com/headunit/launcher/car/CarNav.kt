@@ -497,6 +497,9 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         // voice guidance: all / alerts only / off (the same as the app's sound button)
         val soundIcon = when (e?.soundMode ?: 0) { 0 -> R.drawable.ic_car_sound_on; 1 -> R.drawable.ic_car_sound_alerts; else -> R.drawable.ic_car_sound_off }
         val sound = Action.Builder().setIcon(icon(soundIcon)).setOnClickListener { e?.cycleSound(); invalidate() }.build()
+        // 2D / 3D (as the app's own button): the title says which view a tap switches to
+        val view = Action.Builder().setTitle(if (e?.tilt3d != false) "2D" else "3D").setOnClickListener { e?.toggleTilt(); invalidate() }.build()
+        val demoOn = e != null && (e.prefs.b(PreferenceKeys.DEMO, false) || e.simMode != 0)
         val fr = e?.faster
         if (guiding && fr != null) {
             // a faster route turned up: switch or keep (also on the map card, for cars that pass taps on)
@@ -505,18 +508,22 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             strip.addAction(sound)
         } else if (guiding) {
             strip.addAction(Action.Builder().setTitle("Stop").setOnClickListener { e?.endRoute(); invalidate() }.build())
-            // the demo drive (for trying it out parked): starts it, speeds it up, stops it
-            strip.addAction(Action.Builder().setTitle(when (e?.simMode ?: 0) { 0 -> "Demo"; 1 -> "Faster"; else -> "End demo" })
+            // the demo drive (for trying it out parked; only with Demo switched on in Settings, as in the app): starts it, speeds it
+            // up, stops it. Otherwise that space is the 2D / 3D button
+            if (demoOn) strip.addAction(Action.Builder().setTitle(when (e?.simMode ?: 0) { 0 -> "Demo"; 1 -> "Faster"; else -> "End demo" })
                 .setOnClickListener { e?.cycleSim(); invalidate() }.build())
+            else strip.addAction(view)
             strip.addAction(sound)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_search)).setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
         } else if (taps) {
             // cars that pass taps on use the app's own search bar and chips on the map; Android Auto still needs one of its own buttons
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_search)).setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
+            strip.addAction(view)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_settings)).setOnClickListener { openSettings() }.build())
         } else {
             strip.addAction(Action.Builder().setTitle("Search").setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
             strip.addAction(Action.Builder().setTitle("Places").setOnClickListener { screenManager.push(PlacesScreen(carContext, holder)) }.build())
+            strip.addAction(view)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_settings)).setOnClickListener { openSettings() }.build())
         }
         val mapStrip = ActionStrip.Builder()

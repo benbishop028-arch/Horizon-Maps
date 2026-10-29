@@ -42,7 +42,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var turn by mutableStateOf<TurnInfo?>(null)
     var eta by mutableStateOf<EtaInfo?>(null)
     var following by mutableStateOf(true)
-    var tilt3d by mutableStateOf(true)
+    // (remembered: it used to start in 3D every time, even if you'd left it in 2D)
+    var tilt3d by mutableStateOf(prefs.b(PreferenceKeys.VIEW_3D, true))
     var simMode by mutableIntStateOf(0)
     var message by mutableStateOf<String?>(null)
     var busy by mutableStateOf(false)
@@ -1698,6 +1699,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun toggleTilt() {
         tilt3d = !tilt3d
+        prefs.put(PreferenceKeys.VIEW_3D, tilt3d)
         map.setTilt(if (tilt3d) 55.0 else 0.0)
         if (following) fix?.let { onPosition(it, true) }
     }
@@ -2083,7 +2085,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                     if (alongRoute && rt != null) {
                         val line = RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45)
-                        val raw = Overpass.nearbyAlong(kind, line, if (kind == "services") 400 else 900)
+                        // OpenStreetMap first (free); when its servers are busy, Mapbox at a few points along the next 40 km instead
+                        val raw = try { Overpass.nearbyAlong(kind, line, if (kind == "services") 400 else 900) }
+                            catch (e: Exception) { if (mbToken.isNotBlank() && online()) mapboxAlong(kind, line) else throw e }
                         raw.mapNotNull { n ->
                             val pr = RouteExtras.project(rt, n.place.pos, 1200.0, progress) ?: return@mapNotNull null
                             if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
@@ -2102,8 +2106,32 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
                 nearby = sortNearby(list).take(15)
                 if (nearby.isEmpty()) toast(if (alongRoute) "Nothing found along the route ahead" else "Nothing found nearby", 3000)
-            } catch (e: Exception) { toast("Search failed: ${e.message}", 4000) }
+            } catch (e: Exception) { toast(searchFailText(e), 4500) }
             finally { nearbyBusy = false }
+        }
+    }
+
+    /** Places along the route ahead from Mapbox: its category search round a point every 8 km or so (at most 5 asks). */
+    private fun mapboxAlong(kind: String, line: List<LL>): List<Nearby> {
+        val pts = ArrayList<LL>(); var last: LL? = null
+        for (q in line) if (last == null || Geo.dist(last, q) > 8000.0) { pts += q; last = q }
+        val seen = HashSet<String>(); val out = ArrayList<Nearby>()
+        for (q in pts.take(5)) {
+            val found = try { MapboxRest.poiNearby(mbToken, kind, q, 2500) } catch (e: Exception) { if (out.isEmpty() && q == pts.first()) throw e else emptyList() }
+            for (n in found) if (seen.add(String.format(java.util.Locale.US, "%.4f,%.4f", n.place.pos.lat, n.place.pos.lon))) out += n
+        }
+        return out
+    }
+
+    /** A search failure in plain words (it used to show the servers' own errors, like "HTTP 429" or "HTTP 502"). */
+    private fun searchFailText(e: Exception): String {
+        val m = (e.message ?: "").lowercase()
+        return when {
+            m.contains("no signal") || m.contains("unable to resolve") || m.contains("failed to connect") -> "No signal, so the search couldn't run. Try again in a moment."
+            m.contains("429") || m.contains("502") || m.contains("503") || m.contains("504") || m.contains("busy") || m.contains("timeout") || m.contains("timed out") ->
+                "The free map servers are busy right now. Try again in a minute."
+            m.contains("mapbox") -> e.message ?: "Search failed"
+            else -> "Search failed. Try again in a moment."
         }
     }
 

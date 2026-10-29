@@ -591,11 +591,53 @@ object MapboxRest {
         "food" -> "restaurant"; "coffee" -> "cafe"; "toilets" -> "public toilet"; "services" -> "motorway services"; else -> kind
     }
 
-    /** Places of a kind around [c] within about [radius] metres (Mapbox's Search Box, points of interest only). */
+    /**
+     * Mapbox's category ids for each kind, most likely first. "gas_station" is in Mapbox's documentation; the rest are its usual
+     * names, so a kind tries the next id when Mapbox doesn't know one (and the free-text search after that).
+     */
+    private fun categoryIds(kind: String): List<String> = when (kind) {
+        "fuel" -> listOf("gas_station")
+        "charging" -> listOf("charging_station", "ev_charging_station")
+        "parking" -> listOf("parking_lot", "parking")
+        "food" -> listOf("restaurant", "food")
+        "coffee" -> listOf("coffee", "cafe")
+        "toilets" -> listOf("toilet", "public_toilet", "restroom")
+        "services" -> listOf("rest_area")
+        else -> emptyList()
+    }
+
+    /** Category ids Mapbox said it doesn't know this run, so they aren't asked for again. */
+    private val badCategories = java.util.Collections.synchronizedSet(HashSet<String>())
+
+    /**
+     * Places of a kind around [c] within about [radius] metres. Mapbox's category search first (it returns the nearest places of that
+     * kind, up to 25), then its free-text search. The free-text search alone often returned places too far away, which were all
+     * filtered out, so the app fell back to the free OpenStreetMap servers; those are often busy ("HTTP 429", "HTTP 502").
+     */
     fun poiNearby(token: String, kind: String, c: LL, radius: Int): List<Nearby> {
         val lang = java.util.Locale.getDefault().language.ifBlank { "en" }
-        val body = get("$API/search/searchbox/v1/forward?q=${enc(poiQuery(kind))}&types=poi&limit=10&language=$lang" +
-            String.format(java.util.Locale.US, "&proximity=%.5f,%.5f", c.lon, c.lat) + "&access_token=${enc(token)}", 8000, 12000)
+        val near = String.format(java.util.Locale.US, "&proximity=%.5f,%.5f", c.lon, c.lat)
+        // a box round the point (about [radius] each way), so the results really are nearby
+        val dLat = radius / 111320.0; val dLon = radius / (111320.0 * Math.cos(Math.toRadians(c.lat)).coerceAtLeast(0.2))
+        val box = String.format(java.util.Locale.US, "&bbox=%.5f,%.5f,%.5f,%.5f", c.lon - dLon, c.lat - dLat, c.lon + dLon, c.lat + dLat)
+        for (id in categoryIds(kind)) {
+            if (id in badCategories) continue
+            val body = try {
+                get("$API/search/searchbox/v1/category/${enc(id)}?limit=25&language=$lang$near$box&access_token=${enc(token)}", 8000, 12000)
+            } catch (e: IOException) {
+                // 400 / 404: Mapbox doesn't know that id, so try the next; anything else (no signal, key refused) goes to the caller
+                val m = e.message ?: ""
+                if (m.contains("400") || m.contains("404") || m.contains("unknown", true) || m.contains("not found", true) || m.contains("invalid", true)) { badCategories += id; continue }
+                throw e
+            }
+            val out = parsePois(body, kind, c, radius)
+            if (out.isNotEmpty()) return out
+        }
+        val body = get("$API/search/searchbox/v1/forward?q=${enc(poiQuery(kind))}&types=poi&limit=10&language=$lang$near&access_token=${enc(token)}", 8000, 12000)
+        return parsePois(body, kind, c, radius)
+    }
+
+    private fun parsePois(body: String, kind: String, c: LL, radius: Int): List<Nearby> {
         val arr = JSONObject(body).optJSONArray("features") ?: JSONArray()
         val out = ArrayList<Nearby>()
         for (i in 0 until arr.length()) {

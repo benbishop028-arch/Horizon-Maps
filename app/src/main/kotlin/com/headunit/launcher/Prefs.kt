@@ -157,6 +157,8 @@ internal object PreferenceKeys {
     const val POLICEREP = "policerep"
     const val PREDICT = "predict"
     const val QUICKLIST = "quicklist"
+    /** The map in 3D (true) or flat 2D: remembered between drives, and shared by the phone / head unit and Android Auto. */
+    const val VIEW_3D = "view3d"
     const val RAILFORD = "railford"
     const val REPORTS = "reports"
     const val RESUME = "resume"
