@@ -104,16 +104,22 @@ object Updater {
      * Always fetch the installed tag directly first so the card still has useful notes if the releases-list
      * endpoint is rate-limited, unavailable, or its first page does not include the target release.
      */
-    fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME, previouslySeenVersion: String = ""): String {
+    fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME, previouslySeenVersion: String = "", ctx: android.content.Context? = null): String {
         if (!enabled || !version.matches(Regex("1\\.0\\.\\d+"))) return ""
         val installedBuild = version.substringAfterLast('.').toIntOrNull() ?: return ""
         val previousBuild = previouslySeenVersion.takeIf { it.matches(Regex("1\\.0\\.\\d+")) }
             ?.substringAfterLast('.')?.toIntOrNull() ?: (installedBuild - 1)
         if (previousBuild >= installedBuild) return ""
 
+        // This version's notes are built into the app (the build puts them in as whatsnew.md), so they show straight away, with no
+        // connection, and without GitHub's API: that only allows 60 requests an hour per connection, and once update checks had
+        // used them up the card came up with no notes at all. The API is only asked for the notes of versions in between.
+        val bundled = try { ctx?.assets?.open("whatsnew.md")?.bufferedReader()?.use { it.readText() } } catch (_: Exception) { null }
+            ?.takeIf { it.isNotBlank() }?.let { cleanReleaseNotes(it) }
+        if (bundled != null && previousBuild == installedBuild - 1) return bundled
+
         // Direct tag endpoint is more reliable for the installed release than depending on list pagination.
-        val installedTagNotes = fetchReleaseBody("v$version")
-        val installedFallback = installedTagNotes?.let { cleanReleaseNotes(it) }
+        val installedFallback = bundled ?: fetchReleaseBody("v$version")?.let { cleanReleaseNotes(it) }
             ?.takeIf { it.isNotBlank() }
 
         // A normal one-version update only needs the installed release; avoid the list API entirely.

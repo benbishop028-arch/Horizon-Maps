@@ -76,11 +76,12 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     var whatsNewVisible by remember { mutableStateOf(false) }
     var whatsNewNotes by remember { mutableStateOf("") }
     val installedVersion = com.headunit.launcher.BuildConfig.VERSION_NAME
+    val appCtx = androidx.compose.ui.platform.LocalContext.current.applicationContext
     LaunchedEffect(installedVersion) {
         if (com.headunit.launcher.BuildConfig.UPDATE_REPO.isNotBlank() && prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "") != installedVersion) {
             whatsNewVisible = true
             val previousVersion = prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "")
-            whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion) } } catch (_: Exception) { "" }
+            whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
         }
     }
     LaunchedEffect(Unit) { while (true) { delay(60_000); nowMs = System.currentTimeMillis() } }
