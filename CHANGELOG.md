@@ -4,7 +4,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 
 ## Unreleased
 
-- Move the road-and-heading pill to the top of the map while driving without a route, preventing it from overlapping the road-name pill beneath the locator.
+- Add alternative-route line colour customisation, with a pale blue-grey default for better contrast against grey roads.
 - Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
 
 ## 1.0.246 — 2026-10-28

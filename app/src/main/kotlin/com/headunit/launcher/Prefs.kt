@@ -69,6 +69,7 @@ internal object PreferenceKeys {
     const val SETUP_DONE = "setupdone"
     const val OFF_MAP = "offmap"
     const val LIVE_ALTERNATIVES = "livealts"
+    const val ALT_ROUTE_COLOUR = "altroutecolour"
     const val FASTER_ROUTE = "fasterroute"
     const val CAMERA_WARNINGS = "cameras"
     const val VOICE = "voice"

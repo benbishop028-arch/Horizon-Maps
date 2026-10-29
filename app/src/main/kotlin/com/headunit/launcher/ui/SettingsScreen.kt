@@ -319,6 +319,11 @@ private fun NavigationSection(prefs: Prefs) {
     SGroup("While you drive") {
         SToggle(prefs, "Offer faster routes", "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, "Keep other routes on the map", "livealts", true, "Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead")
+        SColours("Alternative route line colour", listOf(
+            "#C4D9E6" to "Pale blue-grey (default)", "#A9D4F0" to "Light blue", "#5AB7F5" to "Blue", "#315CBA" to "Dark blue",
+            "#A9B4C2" to "Silver grey", "#FFFFFF" to "White", "#42CFA5" to "Mint", "#F4C542" to "Yellow",
+            "#FF9A4A" to "Orange", "#F05D6C" to "Red", "#C58AF9" to "Purple", "#F08AC5" to "Pink",
+        ), prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")) { prefs.put(PreferenceKeys.ALT_ROUTE_COLOUR, it) }
         SToggle(prefs, "Fly along a new route", "cinematic", true, "A 3-second 3D fly-through before the overview. Tap the map to skip")
         SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
         SToggle(prefs, "Parking near your destination", "parkprompt", true, "About a mile before you arrive, car parks close by with the walk from each")

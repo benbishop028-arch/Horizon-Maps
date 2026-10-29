@@ -98,6 +98,7 @@ import com.mapbox.android.gestures.StandardScaleGestureDetector
 class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1f, ratio: Float = 0f) : DefaultLifecycleObserver {
     val mapView: MapView
     private val mbMap: MapboxMap get() = mapView.mapboxMap
+    private val prefs = Prefs(ctx)
     private var style: Style? = null
     private var wantedStyle: String? = null
     private var loadedStyle: String? = null
@@ -1554,9 +1555,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .iconSize(zoomed(1.6, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(16.0))
-        addL(st, ln("dl-alts-line", "dl-alts").lineColor(if (im) "#9AA7B8" else "#8fa3bd").lineWidth(if (im) 8.0 else 7.0).lineOpacity(0.85))
+        addL(st, ln("dl-alts-line", "dl-alts").lineColor(prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")).lineWidth(if (im) 8.0 else 7.0).lineOpacity(0.92))
         // other ways to go while driving: grey, under the route
-        addL(st, ln("dl-live-alts-line", "dl-live-alts").lineColor(if (im) "#8E9AAE" else "#8a97ab").lineWidth(routeW(0.75f)).lineOpacity(0.8))
+        addL(st, ln("dl-live-alts-line", "dl-live-alts").lineColor(prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")).lineWidth(routeW(0.75f)).lineOpacity(0.92))
         // route ribbon: a soft shadow just below the line, so it looks lifted off the road (Full 3D, Settings > Route ribbon)
         if (ribbonOn && !lite) addL(st, ln("dl-route-shadow", "dl-route").lineColor("#000000").lineOpacity(if (dayLook) 0.22 else 0.35)
             .lineWidth(routeW(if (im) 1.2f else 1.1f)).lineBlur(5.0).lineTranslate(listOf(0.0, 5.0))
