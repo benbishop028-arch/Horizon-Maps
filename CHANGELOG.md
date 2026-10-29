@@ -12,7 +12,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - The "Look for updates by itself" switch works again, and automatic update and map-data checks run at most every half hour instead of every time the app opens or the connection comes back.
 - Changing the alternative-route colour now applies straight away.
 - The car screen's "Navigation arrow size" now sizes the arrow on the map (as on the phone) instead of the turn card.
-- Stop the speedometer covering the trip card on left-hand-drive layouts, and stop the exit banner repeating what the road sign on the turn card already says.
+- Left-hand drive: the speedometer moves back to the bottom left (the cards are on the right), so the turn card no longer covers it; the speed limit sign stays on the screen side of it. The exit banner no longer repeats what the road sign on the turn card already says.
 - Smoother map drawing: the map is no longer capped at 30 frames a second on top of the camera's own pacing, which made it judder.
 - Android Auto with left-hand drive: your arrow no longer hides under the turn and trip cards, and the speed limit sign no longer runs off the right-hand edge of the screen.
 - Android Auto: the speedometer sits down in the bottom-right corner again, level with the trip card, instead of floating halfway up the screen.

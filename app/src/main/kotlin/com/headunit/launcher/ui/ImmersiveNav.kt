@@ -365,12 +365,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
         }
 
-        // ---- speed limit and speedometer. When the mirrored layout puts this cluster on the left edge,
-        // keep it on the right instead: the outer-left edge is often obscured by the dashboard bezel.
+        // ---- speed limit and speedometer: bottom right, or bottom left when mirrored for left-hand drive (the cards are on the
+        // right then; keeping the speed on the right too put it under the turn card on shorter screens)
         if (!previewing) Box(
-            // (mirrored, the trip card is bottom right too, so the speed sits just above it rather than on top of it)
-            Modifier.align(Alignment.BottomEnd)
-                .padding(end = if (mir) 28.dp else 16.dp, bottom = if ((narrow || mir) && tripPx > 0) tripH + 4.dp else 16.dp)
+            Modifier.align(side(Alignment.BottomEnd))
+                .sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
         ) {
             val baseSpeedDensity = LocalDensity.current
             val speedSize = engine.prefs.i(PreferenceKeys.MAIN_SPEED_SIZE, 100).coerceIn(60, 180) / 100f
@@ -619,7 +618,7 @@ private fun SpeedBlock(engine: NavEngine) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         // Keep the speed cluster in the same screen position, but mirror the sign's
         // relationship to the speed readout for left-hand-drive layouts.
-        if (show && engine.mirrored && lim != null) SpeedLimitSign(engine, 70.dp)
+        if (show && engine.mirrored && !engine.isCar && lim != null) SpeedLimitSign(engine, 70.dp)
         if (show) Column(
             Modifier.width(78.dp).panel(8.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -627,7 +626,7 @@ private fun SpeedBlock(engine: NavEngine) {
             Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: c.text, fontSize = 30.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 12.sp)
         }
-        if (lim != null && !(show && engine.mirrored)) SpeedLimitSign(engine, 70.dp)
+        if (lim != null && !(show && engine.mirrored && !engine.isCar)) SpeedLimitSign(engine, 70.dp)
     }
 }
 
@@ -680,11 +679,13 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
                     lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center, androidx.compose.ui.text.style.LineHeightStyle.Trim.Both)))
             Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 11.sp, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 9.dp))
         }
-        // The speed always sits against the right-hand edge (on the phone and in Android Auto, either driving side),
-        // so the limit sign always goes on its inner, left side: on the right it ran off the edge of the screen.
+        // The limit sign goes on the speed's inner side, so it never runs off the screen: the left normally, the right when the
+        // app is mirrored for left-hand drive (the speed is then on the left edge). Android Auto never mirrors: its speed is
+        // always on the right.
+        val signRight = engine.mirrored && !engine.isCar
         if (lim != null) Box(
-            Modifier.align(if (show) Alignment.TopStart else Alignment.Center)
-                .offset(x = if (show) (-30).dp else 0.dp, y = if (show) (-18).dp else 0.dp)
+            Modifier.align(if (!show) Alignment.Center else if (signRight) Alignment.TopEnd else Alignment.TopStart)
+                .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (show) (-18).dp else 0.dp)
         ) {
             SpeedLimitSign(engine, if (show) 50.dp else 70.dp)
         }
