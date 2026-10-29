@@ -343,23 +343,27 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // ---- right side: the map buttons grouped in one panel at the top, zoom under it, and Settings beside it
         if (!previewing) {
             val buttonBaseDensity = LocalDensity.current
+            // just two buttons on the map: the compass and map options. 3D / 2D and sound are at the top of map options, voice and sound
+            // are on the trip card while navigating, Settings is beside these when you're not (and in map options' header when you are)
             val railItems = ArrayList<@Composable () -> Unit>()
-            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Mic, { voice() }, desc = "Voice search") })
             railItems.add(@Composable { ImmCompass(engine) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = "Map options") })
-            if (!simple) {
-                railItems.add(@Composable { ImmCircle({ engine.toggleTilt() }, 52.dp, engine.tilt3d) { Text(if (engine.tilt3d) "3D" else "2D", color = if (engine.tilt3d) Color.White else c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold) } })
-                railItems.add(@Composable { ImmIcon(when (engine.soundMode) { 0 -> Icons.Rounded.VolumeUp; 1 -> Icons.Rounded.NotificationsActive; else -> Icons.Rounded.VolumeOff }, { engine.cycleSound() }, desc = "Sound") })
-                if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Route, { engine.overview() }, desc = "Route overview") })
-                if (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0) railItems.add(@Composable { ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive") })
-            }
+            if (!simple && (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0)) railItems.add(@Composable { ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive") })
+            // zoom: hidden while the map is following you on the move (it zooms itself); back as soon as you touch or zoom the map, or
+            // whenever you're stopped. (A little hysteresis on the speed, so it doesn't flicker at walking pace.)
+            var stopped by remember { mutableStateOf(true) }
+            val spNow = engine.fix?.speed ?: 0.0
+            androidx.compose.runtime.SideEffect { if (spNow > 3.0) stopped = false else if (spNow < 1.0) stopped = true }
+            val showZoom = stopped || !engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01
+            val showSettings = !routing
             val unit = 52.dp * mainButtonScale
             // the top of the speedometer (measured; a fair guess until it has been laid out)
             val speedTop = if (speedTopPx >= 0) with(dens) { speedTopPx.toDp() } else maxHeight - 190.dp
             // landscape: Settings sits to the left of the panel (to the right when mirrored) so the panel starts at the very top, with
             // zoom straight under it. Portrait: Settings above the panel, as there's no room beside it next to the search bar.
-            val settingsAbove = narrow
+            val settingsAbove = narrow && showSettings
             val top = 16.dp * mainButtonScale + (if (settingsAbove) unit + 10.dp * mainButtonScale else 0.dp)
+            // (with zoom hidden there's nothing to fit under the panel)
             val zoomH = (2 * 52 + 1).dp * mainButtonScale
             // zoom goes under the panel unless that would touch the speedometer; then it moves beside the panel, and on a really short
             // screen the panel splits into two columns rather than run into the speedometer
@@ -374,13 +378,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                     }
                 }
                 val zoom: @Composable () -> Unit = {
-                    Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(Modifier.size(52.dp).pressClick { engine.zoom(1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Add, "Zoom in", tint = c.text, modifier = Modifier.size(26.dp)) }
-                        Box(Modifier.width(26.dp).height(1.dp).background(c.line))
-                        Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
+                    AnimatedVisibility(showZoom, enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(220)), exit = fadeOut(tween(250)) + androidx.compose.animation.shrinkVertically(tween(260))) {
+                        Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(Modifier.size(52.dp).pressClick { engine.zoom(1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Add, "Zoom in", tint = c.text, modifier = Modifier.size(26.dp)) }
+                            Box(Modifier.width(26.dp).height(1.dp).background(c.line))
+                            Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
+                        }
                     }
                 }
-                val settings: @Composable () -> Unit = { ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings") }
+                val settings: @Composable () -> Unit = { if (showSettings) ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings") }
                 // the panel against the screen edge with zoom under it (or beside it), in as many columns as it needs
                 val panelAndZoom: @Composable () -> Unit = {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
@@ -395,14 +401,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                         if (!zoomUnder && mir) zoom()
                     }
                 }
-                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
+                // (its outline goes to the camera too, so with no route your arrow sits in the middle of the clear map)
+                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()) }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
                 }
-                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()) }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
                 }
             }
-        }
+        } else androidx.compose.runtime.SideEffect { engine.setPanel(2, 0f, 0f, 0f, 0f) }
 
         // ---- speed limit and speedometer: bottom right, or bottom left when mirrored for left-hand drive (the cards are on the
         // right then; keeping the speed on the right too put it under the turn card on shorter screens)
@@ -424,7 +431,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             Box(Modifier.align(side(Alignment.BottomStart)).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height }
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
                 CompositionLocalProvider(LocalDensity provides Density(tripBaseDensity.density * tripCardScale, tripBaseDensity.fontScale)) {
-                    TripArea(engine, shareEta, narrow)
+                    TripArea(engine, shareEta, narrow, voice)
                 }
             }
         }
@@ -479,7 +486,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             modifier = Modifier.align(side(Alignment.CenterEnd)),
             enter = slideInHorizontally(initialOffsetX = { if (mir) -it else it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { if (mir) -it else it }) + fadeOut(),
-        ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth) { sheet = false } }
+        ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth, onSettings = { sheet = false; onSettings() }) { sheet = false } }
         if (engine.stopsEditor) StopsDialog(engine, onClose = { engine.stopsEditor = false })
     }
 }
@@ -490,7 +497,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
  * needs scrolling; it still scrolls if a small screen needs it.
  */
 @Composable
-private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, close: () -> Unit) {
+private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, onSettings: () -> Unit = {}, close: () -> Unit) {
     val c = LocalVw.current
     val p = engine.prefs
     val routing = engine.route != null && !engine.previewing
@@ -503,10 +510,18 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Map options", color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            ImmIcon(Icons.Rounded.Settings, onSettings, size = 42.dp, desc = "Settings")
+            Spacer(Modifier.width(8.dp))
             ImmIcon(Icons.Rounded.Close, close, size = 42.dp, desc = "Close")
         }
         val mapPart: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // quick rows: the view and the sound (they were round buttons on the map)
+                SheetHeading("View")
+                Segments(listOf("2D", "3D"), if (engine.tilt3d) 1 else 0) { i -> if ((i == 1) != engine.tilt3d) engine.toggleTilt() }
+                SheetHeading("Sound")
+                Segments(listOf("Voice", "Alerts only", "Mute"), engine.soundMode) { i -> p.put(PreferenceKeys.SOUND_MODE, i) }
+                SheetHeading("Map")
                 // the map's look: two picture cards, then day and night
                 val sat = p.b(PreferenceKeys.SATELLITE, false)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -517,14 +532,7 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
                 // is on leaves it as it is
                 val theme = p.s(PreferenceKeys.THEME, "auto")
                 val seg = when (theme) { "day" -> 1; "night" -> 2; else -> 0 }
-                Row(Modifier.fillMaxWidth().height(42.dp).clip(RoundedCornerShape(14.dp)).background(c.tile).padding(3.dp)) {
-                    for ((i, label) in listOf("Auto", "Day", "Night").withIndex()) {
-                        Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp)).background(if (i == seg) c.accent else Color.Transparent)
-                            .clickable { if (i != seg) p.put(PreferenceKeys.THEME, listOf("auto", "day", "night")[i]) }, contentAlignment = Alignment.Center) {
-                            Text(label, color = if (i == seg) Color.White else c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
+                Segments(listOf("Auto", "Day", "Night"), seg) { i -> if (i != seg) p.put(PreferenceKeys.THEME, listOf("auto", "day", "night")[i]) }
                 SheetHeading("On the map")
                 fun tog(key: String, def: Boolean): Pair<Boolean, () -> Unit> { val on = p.b(key, def); return on to { p.put(key, !on) } }
                 val layers = listOf(
@@ -591,6 +599,22 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
     }
 }
 
+/** A row of choices with the chosen one filled in blue (2D / 3D, sound, day and night). */
+@Composable
+private fun Segments(labels: List<String>, selected: Int, onPick: (Int) -> Unit) {
+    val c = LocalVw.current
+    Row(Modifier.fillMaxWidth().height(42.dp).clip(RoundedCornerShape(14.dp)).background(c.tile).padding(3.dp)) {
+        for ((i, label) in labels.withIndex()) {
+            Box(Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(11.dp)).background(if (i == selected) c.accent else Color.Transparent)
+                .clickable { onPick(i) }, contentAlignment = Alignment.Center) {
+                Text(label, color = if (i == selected) Color.White else c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            }
+        }
+    }
+}
+
+private fun soundIcon(mode: Int): ImageVector = when (mode) { 0 -> Icons.Rounded.VolumeUp; 1 -> Icons.Rounded.NotificationsActive; else -> Icons.Rounded.VolumeOff }
+
 /** Standard or Satellite, as a little picture with its name under it; outlined when it's the one in use. */
 @Composable
 private fun LookCard(modifier: Modifier, label: String, satellite: Boolean, selected: Boolean, onClick: () -> Unit) {
@@ -652,7 +676,7 @@ private fun WideTiles(cols: Int, tiles: List<TileSpec>, compact: Boolean = false
 
 /** Bottom left: hazard badges, then the trip card with the route bar, arrival, time and distance left, and the trip buttons. */
 @Composable
-private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = false) {
+private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = false, voice: () -> Unit = {}) {
     val c = LocalVw.current
     val inc = engine.incidentAhead
     val cam = engine.cameraDist
@@ -695,7 +719,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                 val buttons: @Composable () -> Unit = {
                     // electric: chargers along the route from here
                     if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(20.dp)) }
-                    ImmCircle({ shareEta() }, 40.dp) { Icon(Icons.Rounded.Share, "Share ETA", tint = c.text, modifier = Modifier.size(19.dp)) }
+                    ImmCircle({ voice() }, 40.dp) { Icon(Icons.Rounded.Mic, "Voice", tint = c.text, modifier = Modifier.size(20.dp)) }
+                    ImmCircle({ engine.cycleSound() }, 40.dp) { Icon(soundIcon(engine.soundMode), "Sound", tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(20.dp)) }
                     ImmCircle({ engine.stopsEditor = true }, 40.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(21.dp)) }
                     Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Close, "End route", tint = Color.White, modifier = Modifier.size(21.dp))
@@ -720,7 +745,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     }
                     Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 36.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(19.dp)) }
-                        ImmCircle({ shareEta() }, 36.dp) { Icon(Icons.Rounded.Share, "Share ETA", tint = c.text, modifier = Modifier.size(18.dp)) }
+                        ImmCircle({ voice() }, 36.dp) { Icon(Icons.Rounded.Mic, "Voice", tint = c.text, modifier = Modifier.size(19.dp)) }
+                        ImmCircle({ engine.cycleSound() }, 36.dp) { Icon(soundIcon(engine.soundMode), "Sound", tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(19.dp)) }
                         ImmCircle({ engine.stopsEditor = true }, 36.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(20.dp)) }
                         Box(Modifier.size(36.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
                             Icon(Icons.Rounded.Close, "End route", tint = Color.White, modifier = Modifier.size(20.dp))

@@ -3092,7 +3092,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val pt = try { mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat)).let { android.graphics.PointF(it.x.toFloat(), it.y.toFloat()) } } catch (e: Throwable) { return }
         // the road name: drawn at 2x and shown at half, its top a little below the locator (lower when the view is flatter)
         val rb = (roadView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
-        if (roadName.isBlank() || rb == null) gone(roadView) else {
+        if (roadName.isBlank() || rb == null || roadNameHidden) gone(roadView) else {
             // (times the road name size from Settings > Display)
             val rw = (rb.width / 2 * roadNameScale).toInt(); val rh = (rb.height / 2 * roadNameScale).toInt()
             val rlp = roadView.layoutParams
@@ -3252,6 +3252,17 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         roadNameScale = v
         try { roadView.scaleType = android.widget.ImageView.ScaleType.FIT_XY } catch (e: Throwable) { }
         placeLocator()
+    }
+
+    /**
+     * Hides the road name pill under the locator while the screen shows the road elsewhere (the "road · Heading NW" pill at the
+     * bottom when driving with no route): the two used to sit on top of each other.
+     */
+    @Volatile private var roadNameHidden = false
+    fun setRoadNameHidden(h: Boolean) {
+        if (h == roadNameHidden) return
+        roadNameHidden = h
+        main0.post { try { placeLocator() } catch (e: Throwable) { } }
     }
 
     /** Shows the name of the road you are on in a small pill under the locator (empty hides it). */

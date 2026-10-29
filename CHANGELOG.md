@@ -42,12 +42,17 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Electric cars: set your battery level and the least you want to arrive with on the route options; a charging stop is suggested when the trip needs one (with the charge you'll arrive at it with), the trip card shows the battery you'll arrive with and a Chargers ahead button, and Eco route uses TomTom's electric eco routing.
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
+### Fixed
+- Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
+- Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.
+
 ### Improved
+- Arrow centred in the clear map: when you're not navigating, your arrow sits in the middle of the map between the search panel and the buttons, instead of dead centre behind them.
 - Settings reorganised: 15 smaller sections in four groups (Map, Driving, You, Device), each split into short headed lists, with Android Auto in a section of its own. Search still finds every setting.
 - What's new card redesigned: each change on its own card with an icon, a headline and a short description, sorted under New, Improved and Fixed.
 - What's new in landscape: the card now spreads across the screen, with the title and Let's go button on the left and the changes in two columns on the right.
 - Tidier map page: Home and Work are two tiles showing the drive time, and fuel, charging, food, coffee and parking are five round buttons that always fit. Saved & recent shows three places with "All" for the rest, and your own saved places are in it too.
-- Map buttons grouped: compass, map options, 3D and sound sit together in one panel at the top right with the zoom buttons straight under it, and Settings just to its left. If zoom would touch the speedometer on a short screen, it moves beside the panel instead.
+- Fewer buttons on the map: just the compass and map options stay up while you drive. Zoom appears when you touch the map or stop, voice and sound are on the trip card, 3D / 2D and sound are quick switches at the top of map options, and Settings is beside the buttons when you're not navigating (and in map options at any time).
 - Car types for the real 3D model: the hatchback, estate, SUV, pickup, van and sports car now have their own 3D models too, not just the saloon, and the car type picker shows for the real 3D car.
 - Map options redesigned: Standard or Satellite as two picture cards, a quick Auto / Day / Night switch, and the map layers as tiles that light up when on. Reports fit on one row, and in landscape the panel is wider, in two columns, so nothing needs scrolling.
 

@@ -437,7 +437,7 @@ private fun GuidanceSection(prefs: Prefs) {
     SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes painted on the map", "lanemap", true)
         SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
-        SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, forks and lane splits the view drops lower and closer for the last 200 m")
+        SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m")
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
         SToggle(prefs, "Tilt with speed", "speedtilt", true, "Flatter when slow, a longer view at speed")
     }

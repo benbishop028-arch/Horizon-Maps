@@ -71,7 +71,7 @@ internal val settingsIndex = listOf(
     SettingRef("Shown as", "", "Turn card", 4),
     SettingRef("Lanes painted on the map", "", "Lanes and junctions", 4),
     SettingRef("Zoom in on lanes before a junction", "", "Lanes and junctions", 4),
-    SettingRef("Junction close-up", "A lower, closer view at complicated junctions", "Lanes and junctions", 4),
+    SettingRef("Junction close-up", "A closer, flatter view at slip roads, exits and forks", "Lanes and junctions", 4),
     SettingRef("Flatten the map to 2D at turns", "", "Lanes and junctions", 4),
     SettingRef("Tilt with speed", "Flatter when slow, a longer view at speed", "Lanes and junctions", 4),
     SettingRef("Route bar on the trip card", "Traffic, cameras, services and stops, with your progress", "Trip card", 4),

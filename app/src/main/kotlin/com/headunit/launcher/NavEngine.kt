@@ -2578,15 +2578,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 pad = pad * f + flatPad * (1.0 - f)
             }
         }
-        // junction close-up: at slip roads, forks and lane splits the view drops lower and closer for the last 200 m or so
+        // junction close-up: at slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last
+        // 200 m or so. Never at ordinary turns and roundabouts (those flatten to 2D above), and it never tilts the view lower than
+        // usual: it used to swing up to 66 degrees (more than the map's normal limit), which filled the screen with horizon just as
+        // the 2D view should have shown the junction.
         closeF = 0.0
         if (navigating && tilt3d && prefs.b(PreferenceKeys.JUNCTION_VIEW, true)) {
             val t = turn
             val m = t?.maneuver?.uppercase() ?: ""
-            val complex = t != null && (laneKey != null || m.startsWith("KEEP") || m.contains("EXIT") || m.contains("RAMP") || t.exitNo.isNotBlank())
+            val ordinaryTurn = m.contains("ROUNDABOUT") || m.contains("ROTARY") || m.contains("TURN") || m.startsWith("SHARP") || m.contains("UTURN")
+            val complex = t != null && !ordinaryTurn && (m.startsWith("KEEP") || m.contains("EXIT") || m.contains("RAMP") || m.contains("FORK") || laneKey != null || t.exitNo.isNotBlank())
             if (t != null && complex && t.dist in 5.0..220.0) {
                 closeF = ((220.0 - t.dist) / 140.0).coerceIn(0.0, 1.0)
-                tilt += (66.0 - tilt) * closeF
+                if (tilt > 44.0) tilt += (44.0 - tilt) * closeF
             }
         }
         // portrait: keep the locator clear of the trip card (its centre sits at (1 + pad) / 2 of the height)
@@ -2614,13 +2618,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // landscape: your arrow moves sideways just enough to clear whatever card is beside it at its height (the search panel
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.
-        tLeft = if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
+        // Not navigating (on the phone / head unit screen): the arrow sits in the middle of the clear map between the search panel and
+        // the buttons, whatever height they reach to, so it's always in the middle of what's left of the map.
+        tLeft = if (!navigating && !previewing && !isCar) idleShift(bottomCover > 0.0)
+                else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
         map.cardsMirrored = mirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }
 
     // outlines of the cards on screen, as parts of its width and height (left, top, right, bottom), reported by the screen
-    private val panels = Array(2) { FloatArray(4) }
+    // (0: the search panel / turn card, 1: the trip card, 2: the map buttons down the other side)
+    private val panels = Array(3) { FloatArray(4) }
 
     fun setPanel(i: Int, l: Float, t: Float, r: Float, b: Float) {
         if (i !in panels.indices) return
@@ -2651,6 +2659,24 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Compose surface, so this adapts as Android Auto changes between full and split layouts.
         val shift = (cover * 0.78).coerceAtMost(0.42)
         return if (coverR > coverL) -shift else shift
+    }
+
+    /**
+     * Not navigating: how far to move the arrow sideways so it's centred between the search panel on one side and the map buttons
+     * on the other (as a part of the screen width; positive moves it right). Portrait: the search panel is above the arrow, so only the
+     * buttons count. Kept small, so it's a gentle nudge off centre rather than a jump.
+     */
+    private fun idleShift(portrait: Boolean): Double {
+        var left = 0.0; var right = 1.0
+        for ((i, p) in panels.withIndex()) {
+            if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
+            if (i == 1) continue                                   // the trip card isn't up when you're not navigating
+            if (i == 0 && (portrait || p[2] - p[0] > 0.6f)) continue // full-width in portrait: it's above the arrow, not beside it
+            if (p[0] + p[2] < 1.0) left = max(left, p[2].toDouble()) else right = minOf(right, p[0].toDouble())
+        }
+        if (right - left < 0.2) return 0.0
+        // the arrow's spot moves by half the side padding, so twice the distance from the middle
+        return (2.0 * ((left + right) / 2.0 - 0.5)).coerceIn(-0.42, 0.42)
     }
 
     private fun incidentLabel(i: Incident): String = when (i.cat) {
