@@ -3,6 +3,7 @@ package com.headunit.launcher.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
@@ -306,31 +307,56 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         val updateIcon = if (updatePalette.dark) Color(0xFF9AF0C9) else Color(0xFF16734D)
         val updateNotesBg = if (updatePalette.dark) Color(0xFF192638) else Color(0xFFF4F7FC)
         val updateLabel = updatePalette.accent
-        androidx.compose.ui.window.Dialog(onDismissRequest = {
-            prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion)
-            whatsNewVisible = false
-        }) {
+        val conf = LocalConfiguration.current
+        // landscape (wide and short, like most head units): a wide card with the title and button on the left and the changes in
+        // two columns on the right, so more of them show at once; portrait keeps the tall single-column card
+        val wideCard = conf.screenWidthDp > conf.screenHeightDp && conf.screenWidthDp >= 640
+        val dismissWhatsNew = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false }
+        androidx.compose.ui.window.Dialog(onDismissRequest = dismissWhatsNew,
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = !wideCard)) {
             val shape = RoundedCornerShape(28.dp)
-            androidx.compose.foundation.layout.Column(
-                Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp - 32.dp).coerceAtLeast(240.dp)).clip(shape).background(updatePalette.surface).border(1.dp, updatePalette.line, shape).padding(22.dp),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
-            ) {
+            val maxH = (conf.screenHeightDp.dp - 32.dp).coerceAtLeast(240.dp)
+            val header: @Composable () -> Unit = {
                 Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(updateHeader).padding(18.dp)) {
                     androidx.compose.foundation.layout.Column(verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
                         Text("HORIZON NAV  /  UPDATE", color = updatePalette.accent, fontSize = 11.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, letterSpacing = 1.5.sp)
-                        Text("What's new in $installedVersion", color = updateHeaderTitle, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        Text("What's new in $installedVersion", color = updateHeaderTitle, fontSize = 25.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, lineHeight = 30.sp)
                         val summary = remember(whatsNewNotes) { notesSummary(whatsNewNotes) }
                         Text(summary.ifBlank { "Your settings and saved places stay as they were" }, color = updateHeaderSub, fontSize = 14.sp)
                     }
                 }
-                // each change on its own card, under New, Improved and Fixed (it used to be one block of text)
-                WhatsNewList(whatsNewNotes, updatePalette.dark)
+            }
+            val goButton: @Composable () -> Unit = {
                 androidx.compose.material3.Button(
-                    onClick = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false },
+                    onClick = dismissWhatsNew,
                     modifier = Modifier.fillMaxWidth(),
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = updatePalette.accent, contentColor = if (updatePalette.dark) Color(0xFF102039) else Color.White),
                     shape = RoundedCornerShape(16.dp)
                 ) { Text("Let's go", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp)) }
+            }
+            if (wideCard) {
+                val cardW = (conf.screenWidthDp.dp * 0.92f).coerceAtMost(1100.dp)
+                // the list's share of the width, less the padding and gap: two columns once there's room for two readable cards
+                val listW = cardW * 0.66f - 58.dp
+                androidx.compose.foundation.layout.Row(
+                    Modifier.width(cardW).heightIn(max = maxH).clip(shape).background(updatePalette.surface).border(1.dp, updatePalette.line, shape).padding(18.dp),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(18.dp)
+                ) {
+                    androidx.compose.foundation.layout.Column(Modifier.weight(0.34f), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)) {
+                        header(); goButton()
+                    }
+                    Box(Modifier.weight(0.66f)) { WhatsNewList(whatsNewNotes, updatePalette.dark, columns = if (listW >= 480.dp) 2 else 1, maxHeight = maxH - 36.dp) }
+                }
+            } else {
+                androidx.compose.foundation.layout.Column(
+                    Modifier.fillMaxWidth().heightIn(max = maxH).clip(shape).background(updatePalette.surface).border(1.dp, updatePalette.line, shape).padding(22.dp),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp)
+                ) {
+                    header()
+                    // each change on its own card, under New, Improved and Fixed (it used to be one block of text)
+                    WhatsNewList(whatsNewNotes, updatePalette.dark)
+                    goButton()
+                }
             }
         }
     }

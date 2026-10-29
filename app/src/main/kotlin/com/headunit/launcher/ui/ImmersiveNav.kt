@@ -138,11 +138,15 @@ fun ImmersiveNav(engine: NavEngine, onSettings: () -> Unit) {
 
 // ------------------------------------------------------------------ small building blocks
 
+/** True for buttons inside the grouped column on the right: they sit flat in its one panel instead of each floating on its own. */
+private val LocalInRail = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 @Composable
 private fun ImmCircle(onClick: () -> Unit, size: Dp = 52.dp, active: Boolean = false, content: @Composable BoxScope.() -> Unit) {
     val c = LocalVw.current
     Box(
-        Modifier.size(size).panel(6.dp, CircleShape, if (active) c.accent else c.surface).pressClick(onClick),
+        if (LocalInRail.current) Modifier.size(size).pressClick(onClick).padding(4.dp).clip(CircleShape).background(if (active) c.accent else Color.Transparent)
+        else Modifier.size(size).panel(6.dp, CircleShape, if (active) c.accent else c.surface).pressClick(onClick),
         contentAlignment = Alignment.Center, content = content,
     )
 }
@@ -258,6 +262,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         LaunchedEffect(narrow, tripPx, screenH) { engine.bottomCover = if (narrow && tripPx > 0) (tripH / screenH).coerceIn(0f, 0.5f).toDouble() else 0.0 }
         // left-hand drive: everything swaps sides (cards on the right, round buttons on the left)
         val mir = engine.mirrored
+        // Settings > sizes > map buttons: scales the button column on the right
+        val mainButtonScale = engine.prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
         fun side(a: Alignment): Alignment = if (!mir) a else when (a) {
             Alignment.TopStart -> Alignment.TopEnd; Alignment.TopEnd -> Alignment.TopStart
             Alignment.CenterStart -> Alignment.CenterEnd; Alignment.CenterEnd -> Alignment.CenterStart
@@ -271,14 +277,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // the panels' outlines (as parts of the screen) go to the camera, so your arrow is moved clear of whatever is beside it
         val boxW = constraints.maxWidth.toFloat().coerceAtLeast(1f); val boxH = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) { engine.setPanel(i, r.left / boxW, r.top / boxH, r.right / boxW, r.bottom / boxH) }
-        Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (narrow) Modifier.fillMaxWidth().sides(end = 62.dp) else Modifier.width(380.dp))
+        Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // every block slides and fades in and out instead of popping, so the screen changes feel like one piece
             AnimatedVisibility(!routing && !previewing, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, onSettings)
                 val showResults = engine.results.isNotEmpty()
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine) { q = "" }
@@ -332,36 +338,45 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             if (engine.nearbyKind != null && (!previewing || engine.stopMode)) NearbyCard(engine)
         }
 
-        // ---- top right: voice (while navigating), compass, options and settings
-        if (!previewing) {
-            val topIcons: @Composable () -> Unit = {
-                if (routing) ImmIcon(Icons.Rounded.Mic, { voice() }, desc = "Voice search")
-                ImmCompass(engine)
-                ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = "Map options")
-                ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings")
-            }
-            if (narrow) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) { topIcons() }
-            else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { topIcons() }
-        }
-
-        // ---- right edge: view controls and zoom
+        // ---- right side: one panel of map buttons (voice and Settings only while navigating, as the search bar has them otherwise),
+        // with zoom under it. If the two won't fit above the speedometer on a short screen, zoom moves beside the panel instead.
         if (!previewing) {
             val buttonBaseDensity = LocalDensity.current
-            val mainButtonScale = engine.prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
-            CompositionLocalProvider(LocalDensity provides Density(buttonBaseDensity.density * mainButtonScale, buttonBaseDensity.fontScale)) {
-            Column((if (narrow) Modifier.align(side(Alignment.TopEnd)).sides(end = 16.dp, top = 278.dp) else Modifier.align(side(Alignment.CenterEnd)).sides(end = 16.dp, top = 80.dp, bottom = 110.dp)), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            val railItems = ArrayList<@Composable () -> Unit>()
+            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Mic, { voice() }, desc = "Voice search") })
+            railItems.add(@Composable { ImmCompass(engine) })
+            railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = "Map options") })
             if (!simple) {
-                ImmCircle({ engine.toggleTilt() }, 52.dp, engine.tilt3d) { Text(if (engine.tilt3d) "3D" else "2D", color = if (engine.tilt3d) Color.White else c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
-                ImmIcon(when (engine.soundMode) { 0 -> Icons.Rounded.VolumeUp; 1 -> Icons.Rounded.NotificationsActive; else -> Icons.Rounded.VolumeOff }, { engine.cycleSound() }, desc = "Sound")
-                if (routing) ImmIcon(Icons.Rounded.Route, { engine.overview() }, desc = "Route overview")
-                if (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0) ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive")
+                railItems.add(@Composable { ImmCircle({ engine.toggleTilt() }, 52.dp, engine.tilt3d) { Text(if (engine.tilt3d) "3D" else "2D", color = if (engine.tilt3d) Color.White else c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold) } })
+                railItems.add(@Composable { ImmIcon(when (engine.soundMode) { 0 -> Icons.Rounded.VolumeUp; 1 -> Icons.Rounded.NotificationsActive; else -> Icons.Rounded.VolumeOff }, { engine.cycleSound() }, desc = "Sound") })
+                if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Route, { engine.overview() }, desc = "Route overview") })
+                if (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0) railItems.add(@Composable { ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive") })
             }
-            Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.size(52.dp).pressClick { engine.zoom(1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Add, "Zoom in", tint = c.text, modifier = Modifier.size(26.dp)) }
-                Box(Modifier.width(26.dp).height(1.dp).background(c.line))
-                Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
-            }
-            }
+            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = "Settings") })
+            // how many 52dp buttons fit down the right above the speedometer: all of them and zoom in one column if they fit, else zoom
+            // moves beside the panel, and on a really short screen the panel splits into two columns
+            val unit = 52.dp * mainButtonScale
+            val perCol = ((maxHeight - 32.dp - 190.dp) / unit).toInt().coerceAtLeast(3)
+            val oneColumn = narrow || railItems.size + 2.3f <= perCol
+            val chunks = if (oneColumn || railItems.size <= perCol) listOf(railItems.toList()) else railItems.chunked(perCol)
+            CompositionLocalProvider(LocalDensity provides Density(buttonBaseDensity.density * mainButtonScale, buttonBaseDensity.fontScale)) {
+                val rail: @Composable (List<@Composable () -> Unit>) -> Unit = { part ->
+                    Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
+                        CompositionLocalProvider(LocalInRail provides true) { for (item in part) item() }
+                    }
+                }
+                val zoom: @Composable () -> Unit = {
+                    Column(Modifier.panel(6.dp, RoundedCornerShape(26.dp), c.surface), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(Modifier.size(52.dp).pressClick { engine.zoom(1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Add, "Zoom in", tint = c.text, modifier = Modifier.size(26.dp)) }
+                        Box(Modifier.width(26.dp).height(1.dp).background(c.line))
+                        Box(Modifier.size(52.dp).pressClick { engine.zoom(-1.0) }, contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Remove, "Zoom out", tint = c.text, modifier = Modifier.size(26.dp)) }
+                    }
+                }
+                if (oneColumn) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = Alignment.CenterHorizontally) { rail(chunks[0]); zoom() }
+                // the first part stays against the screen edge, zoom furthest in
+                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                    if (mir) { for (part in chunks) rail(part); zoom() } else { zoom(); for (part in chunks.asReversed()) rail(part) }
+                }
             }
         }
 
@@ -594,7 +609,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
 private fun ImmCompass(engine: NavEngine) {
     val c = LocalVw.current
     Box(
-        Modifier.size(52.dp).panel(6.dp, CircleShape, c.surface).pressClick { engine.toggleNorthUp() },
+        (if (LocalInRail.current) Modifier.size(52.dp) else Modifier.size(52.dp).panel(6.dp, CircleShape, c.surface)).pressClick { engine.toggleNorthUp() },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -835,7 +850,7 @@ internal fun ImmTurnCard(
 }
 
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit) {
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: () -> Unit) {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -846,16 +861,12 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
             trailingIcon = {
                 if (q.isNotEmpty()) Icon(Icons.Rounded.Close, "Clear", tint = c.sub, modifier = Modifier.padding(end = 8.dp).clickable { onQ(""); engine.results = emptyList() })
                 else Row(verticalAlignment = Alignment.CenterVertically) {
-                    // folds Saved & recent up under the bar, and back down again
-                    val hasList = remember(engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""), engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")) { engine.places.favourites().isNotEmpty() || engine.places.recents().isNotEmpty() }
-                    if (hasList) {
-                        val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true)
-                        Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.QUICKLIST, !open) }, contentAlignment = Alignment.Center) {
-                            Icon(if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, if (open) "Hide saved and recent" else "Show saved and recent", tint = c.sub, modifier = Modifier.size(26.dp))
-                        }
-                    }
                     Box(Modifier.padding(end = 8.dp).size(44.dp).clip(CircleShape).background(c.accent).pressClick { voice() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Mic, "Voice search", tint = Color.White, modifier = Modifier.size(23.dp))
+                    }
+                    // Settings lives here while the search bar shows (the buttons on the right have it while navigating)
+                    Box(Modifier.padding(end = 6.dp).size(44.dp).clip(CircleShape).pressClick { onSettings() }, contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Settings, "Settings", tint = c.sub, modifier = Modifier.size(24.dp))
                     }
                 }
             },
@@ -909,30 +920,59 @@ internal fun ImmChip(icon: ImageVector, tint: Color, label: String, onClick: () 
     }
 }
 
-/** Quick destinations and things to find, under the search bar. */
+/** Under the search bar: Home and Work as two tiles with the drive time, then five round buttons to find things nearby. */
 @Composable
 private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
     val home = engine.places.slot("home")
     val work = engine.places.slot("work")
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 2.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ImmChip(Icons.Rounded.Home, Color(0xFF4C8DFF), if (home != null) "Home" else "Set home") {
-            if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast("Search for your home address", 3500); focusSearch() }
+    // the drive times: the engine throttles this itself (online only, every 10 minutes or after moving 3 km), so a minute's tick is cheap
+    LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); delay(60_000) } }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Home, Color(0xFF4C8DFF), "Home", home, engine.slotMins["home"]) {
+                if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast("Search for your home address", 3500); focusSearch() }
+            }
+            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Work, Color(0xFFF29900), "Work", work, engine.slotMins["work"]) {
+                if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast("Search for your work address", 3500); focusSearch() }
+            }
         }
-        ImmChip(Icons.Rounded.Work, Color(0xFFF29900), if (work != null) "Work" else "Set work") {
-            if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast("Search for your work address", 3500); focusSearch() }
+        // things to find nearby: always all five on show, no scrolling sideways to find them
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            FindButton(Icons.Rounded.LocalGasStation, Color(0xFFEA4335), "Fuel nearby") { engine.loadNearby("fuel", false) }
+            FindButton(Icons.Rounded.EvStation, Color(0xFF34A853), "Charging nearby") { engine.loadNearby("charging", false) }
+            FindButton(Icons.Rounded.Restaurant, Color(0xFFF29900), "Food nearby") { engine.loadNearby("food", false) }
+            FindButton(Icons.Rounded.LocalCafe, Color(0xFFA56BFF), "Coffee nearby") { engine.loadNearby("coffee", false) }
+            FindButton(Icons.Rounded.LocalParking, Color(0xFF4C8DFF), "Parking nearby") { engine.loadNearby("parking", false) }
         }
-        // your own saved places, in the order you added them, then a button to add another
-        val raw = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
-        val mine = remember(raw) { engine.places.customs() }
-        for (lp in mine) ImmChip(Icons.Rounded.Star, Color(0xFF12A4B4), lp.label) { engine.startRoute(lp.place) }
-        var adding by remember { mutableStateOf(false) }
-        ImmChip(Icons.Rounded.Add, Color(0xFF9CA4BF), if (mine.isEmpty()) "Add place" else "Add") { adding = true }
-        if (adding) AddPlaceDialog(engine, null) { adding = false }
-        ImmChip(Icons.Rounded.LocalGasStation, Color(0xFFEA4335), "Fuel") { engine.loadNearby("fuel", false) }
-        ImmChip(Icons.Rounded.EvStation, Color(0xFF34A853), "Charging") { engine.loadNearby("charging", false) }
-        ImmChip(Icons.Rounded.Restaurant, Color(0xFFF29900), "Food") { engine.loadNearby("food", false) }
-        ImmChip(Icons.Rounded.LocalCafe, Color(0xFFA56BFF), "Coffee") { engine.loadNearby("coffee", false) }
-        ImmChip(Icons.Rounded.LocalParking, Color(0xFF4C8DFF), "Parking") { engine.loadNearby("parking", false) }
+    }
+}
+
+@Composable
+private fun PlaceTile(engine: NavEngine, modifier: Modifier, icon: ImageVector, tint: Color, label: String, place: com.headunit.launcher.Place?, mins: Int?, onClick: () -> Unit) {
+    val c = LocalVw.current
+    val here = engine.fix?.pos
+    val sub = when {
+        place == null -> "Tap to set"
+        mins == 0 -> "You're here"
+        mins != null && mins > 0 -> Geo.fmtDur(mins * 60.0)
+        here != null -> Geo.fmtDist(Geo.dist(here, place.pos), engine.imperial)
+        else -> place.sub
+    }
+    Row(modifier.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick(onClick).padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)) }
+        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+            Text(if (place == null) "Set ${label.lowercase()}" else label, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun FindButton(icon: ImageVector, tint: Color, desc: String, onClick: () -> Unit) {
+    val c = LocalVw.current
+    Box(Modifier.size(50.dp).panel(6.dp, CircleShape, c.surface).pressClick(onClick), contentAlignment = Alignment.Center) {
+        Icon(icon, desc, tint = tint, modifier = Modifier.size(24.dp))
     }
 }
 
@@ -940,9 +980,19 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
 @Composable
 private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
     val c = LocalVw.current
-    val favs = engine.places.favourites()
-    val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } }
-    val saved: List<Pair<com.headunit.launcher.Place, Boolean>> = favs.map { it to true } + recents.take(4).map { it to false }
+    val rawCustom = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
+    val rawFav = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+    val rawRecent = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
+    // (kind 0 = one of your own labelled places, 1 = a favourite, 2 = recent; the label is the name shown)
+    val saved: List<Triple<com.headunit.launcher.Place, Int, String>> = remember(rawCustom, rawFav, rawRecent) {
+        val mine = engine.places.customs()
+        val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
+        val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
+        mine.map { Triple(it.place, 0, it.label) } + favs.map { Triple(it, 1, it.name) } + recents.take(4).map { Triple(it, 2, it.name) }
+    }
+    var showAll by rememberSaveable { mutableStateOf(false) }
+    var adding by remember { mutableStateOf(false) }
+    if (adding) AddPlaceDialog(engine, null) { adding = false }
     val here = engine.fix?.pos
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         engine.resume?.let { rp ->
@@ -986,24 +1036,35 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             }
             Text("Go", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
-        // folded up and down with the arrow in the search bar
-        AnimatedVisibility(showSaved && saved.isNotEmpty() && engine.prefs.b(PreferenceKeys.QUICKLIST, true),
+        // three places on show to keep the map clear; "All" opens the rest (it used to be a list up to five tall)
+        AnimatedVisibility(showSaved,
             enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-        Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 8.dp)) {
-            Text("SAVED & RECENT", color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.padding(start = 18.dp, top = 6.dp, bottom = 4.dp))
+        Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 6.dp)) {
+            Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("SAVED & RECENT", color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
+                if (saved.size > 3) Text(if (showAll) "Less" else "All ${saved.size}", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { showAll = !showAll }.padding(horizontal = 10.dp, vertical = 8.dp))
+                Row(Modifier.clip(RoundedCornerShape(12.dp)).clickable { adding = true }.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Add, null, tint = c.accent, modifier = Modifier.size(18.dp))
+                    Text("Add", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 2.dp))
+                }
+            }
+            if (saved.isEmpty()) Text("Places you save or drive to show up here", color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 8.dp))
             LazyColumn(Modifier.heightIn(max = 250.dp)) {
-                items(saved) { (p, fav) ->
-                    // swipe a place sideways to take it off the list (a favourite is unstarred, a recent one forgotten)
+                items(if (showAll) saved else saved.take(3)) { (p, kind, label) ->
+                    val fav = kind != 2
+                    // swipe a place sideways to take it off the list (a favourite is unstarred, a recent one forgotten, your own place removed)
                     var dx by remember { mutableStateOf(0f) }
                     var w by remember { mutableStateOf(1) }
                     val shown by androidx.compose.animation.core.animateFloatAsState(dx, label = "swipe")
                     Row(Modifier.fillMaxWidth().onSizeChanged { w = it.width }
-                        .pointerInput(p) {
+                        .pointerInput(p, kind) {
                             detectHorizontalDragGestures(
                                 onDragEnd = {
-                                    if (kotlin.math.abs(dx) > w * 0.35f) {
-                                        if (fav) { engine.places.toggleFavourite(p); engine.toast("Removed from favourites", 2000) }
-                                        else { engine.places.removeRecent(p); engine.toast("Removed from recent places", 2000) }
+                                    if (kotlin.math.abs(dx) > w * 0.35f) when (kind) {
+                                        0 -> { engine.places.removeCustom(label); engine.toast("Removed $label", 2000) }
+                                        1 -> { engine.places.toggleFavourite(p); engine.toast("Removed from favourites", 2000) }
+                                        else -> { engine.places.removeRecent(p); engine.toast("Removed from recent places", 2000) }
                                     }
                                     dx = 0f
                                 },
@@ -1011,12 +1072,12 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
                             ) { change, amount -> change.consume(); dx += amount }
                         }
                         .graphicsLayer { translationX = shown; alpha = 1f - (kotlin.math.abs(shown) / w.toFloat()).coerceIn(0f, 0.7f) }
-                        .clickable { engine.startRoute(p) }.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        .clickable { engine.startRoute(p) }.padding(horizontal = 16.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(44.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
                             Icon(if (fav) Icons.Rounded.Star else Icons.Rounded.History, null, tint = if (fav) Warn else c.sub, modifier = Modifier.size(22.dp))
                         }
                         Column(Modifier.padding(start = 14.dp).weight(1f)) {
-                            Text(p.name, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(label, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (p.sub.isNotBlank()) Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         if (here != null) Text(Geo.fmtDist(Geo.dist(here, p.pos), engine.imperial), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))

@@ -45,6 +45,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 ### Improved
 - Settings reorganised: 15 smaller sections in four groups (Map, Driving, You, Device), each split into short headed lists, with Android Auto in a section of its own. Search still finds every setting.
 - What's new card redesigned: each change on its own card with an icon, a headline and a short description, sorted under New, Improved and Fixed.
+- What's new in landscape: the card now spreads across the screen, with the title and Let's go button on the left and the changes in two columns on the right.
+- Tidier map page: Home and Work are two tiles showing the drive time, and fuel, charging, food, coffee and parking are five round buttons that always fit. Saved & recent shows three places with "All" for the rest, and your own saved places are in it too.
+- Map buttons grouped: compass, map options, 3D and sound sit together in one panel with zoom under it, and Settings is in the search bar. On shorter screens zoom moves beside the panel so it stays clear of the speedometer.
 
 
 ## 1.0.246 — 2026-10-28

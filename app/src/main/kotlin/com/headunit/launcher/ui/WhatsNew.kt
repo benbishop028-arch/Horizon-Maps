@@ -5,6 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -122,39 +126,56 @@ private fun iconFor(low: String): ImageVector = when {
     else -> Icons.Rounded.AutoAwesome
 }
 
-/** The What's new card's list: a heading pill for each kind, then a card per change. */
+/**
+ * The What's new card's list: a heading pill for each kind, then a card per change. [columns] 2 lays the cards out in pairs (the
+ * wide landscape card); [maxHeight] caps how tall it gets before it scrolls.
+ */
 @Composable
-internal fun WhatsNewList(notes: String, dark: Boolean) {
+internal fun WhatsNewList(notes: String, dark: Boolean, columns: Int = 1, maxHeight: androidx.compose.ui.unit.Dp? = null) {
     val items = remember(notes) { parseNotes(notes) }
     val v = if (dark) DarkVw else LightVw
     // new: green, improved: blue, fixed: amber (darker tints on the light card)
     val tints = if (dark) listOf(Color(0xFF7FE0A5), Color(0xFF7FB0FF), Color(0xFFFFC46B)) else listOf(Color(0xFF15803D), Color(0xFF1D5FD1), Color(0xFFB45309))
     val tintBg = if (dark) listOf(Color(0xFF1D4A30), Color(0xFF1D3359), Color(0xFF4A3613)) else listOf(Color(0xFFDDF5E7), Color(0xFFDDE8FC), Color(0xFFFBEBD5))
     val cardBg = if (dark) Color(0xFF222737) else Color(0xFFF4F6FA)
-    Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp.dp * 0.55f).coerceAtLeast(160.dp)).verticalScroll(rememberScrollState()),
+    val capH = maxHeight ?: (LocalConfiguration.current.screenHeightDp.dp * 0.55f).coerceAtLeast(160.dp)
+    Column(Modifier.fillMaxWidth().heightIn(max = capH).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (items.isEmpty()) {
             Text(if (notes.isBlank()) "This version is installed and ready. The details of what changed aren't available right now." else notes,
                 color = v.text, fontSize = 14.sp, lineHeight = 20.sp, modifier = Modifier.padding(4.dp))
             return@Column
         }
-        var last = -1
-        for (it in items) {
-            if (it.kind != last) {
-                last = it.kind
-                Text(kindNames[it.kind], color = tints[it.kind], fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp,
-                    modifier = Modifier.padding(top = if (it === items.first()) 2.dp else 10.dp, start = 2.dp).clip(RoundedCornerShape(10.dp)).background(tintBg[it.kind]).padding(horizontal = 9.dp, vertical = 3.dp))
-            }
-            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(cardBg).padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(tintBg[it.kind]), contentAlignment = Alignment.Center) {
-                    Icon(it.icon, null, tint = tints[it.kind], modifier = Modifier.size(21.dp))
+        val cols = columns.coerceIn(1, 2)
+        var first = true
+        for (kind in 0..2) {
+            val group = items.filter { it.kind == kind }
+            if (group.isEmpty()) continue
+            Text(kindNames[kind], color = tints[kind], fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp,
+                modifier = Modifier.padding(top = if (first) 2.dp else 10.dp, start = 2.dp).clip(RoundedCornerShape(10.dp)).background(tintBg[kind]).padding(horizontal = 9.dp, vertical = 3.dp))
+            first = false
+            for (row in group.chunked(cols)) {
+                if (cols == 1) NoteCard(row[0], v, tints, tintBg, cardBg, Modifier.fillMaxWidth())
+                else Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for (it in row) NoteCard(it, v, tints, tintBg, cardBg, Modifier.weight(1f).fillMaxHeight())
+                    // an odd one out keeps half the width, so it lines up with the cards above it
+                    if (row.size < cols) Spacer(Modifier.weight(1f))
                 }
-                Column(Modifier.weight(1f)) {
-                    if (it.title.isNotBlank()) Text(it.title, color = v.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 19.sp)
-                    if (it.desc.isNotBlank()) Text(it.desc, color = v.sub, fontSize = 13.sp, lineHeight = 18.sp, modifier = Modifier.padding(top = if (it.title.isNotBlank()) 3.dp else 0.dp))
-                }
             }
+        }
+    }
+}
+
+@Composable
+private fun NoteCard(it: NoteItem, v: Vw, tints: List<Color>, tintBg: List<Color>, cardBg: Color, modifier: Modifier) {
+    Row(modifier.clip(RoundedCornerShape(16.dp)).background(cardBg).padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Box(Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(tintBg[it.kind]), contentAlignment = Alignment.Center) {
+            Icon(it.icon, null, tint = tints[it.kind], modifier = Modifier.size(21.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            if (it.title.isNotBlank()) Text(it.title, color = v.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, lineHeight = 19.sp)
+            if (it.desc.isNotBlank()) Text(it.desc, color = v.sub, fontSize = 13.sp, lineHeight = 18.sp, modifier = Modifier.padding(top = if (it.title.isNotBlank()) 3.dp else 0.dp))
         }
     }
 }

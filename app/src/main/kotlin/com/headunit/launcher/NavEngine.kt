@@ -3380,6 +3380,42 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    /**
+     * Drive times in minutes to Home and Work, for their tiles on the map page (0 = you're there; missing or -1 = not known, and the
+     * tile shows the distance instead). Online only, so it never runs the offline router on the head unit in the background: at most
+     * once every 10 minutes, sooner if you've moved 3 km or Home / Work changed. Two small route requests at a time.
+     */
+    val slotMins = androidx.compose.runtime.mutableStateMapOf<String, Int>()
+    private var slotMinsAt = 0L
+    private var slotMinsFrom: LL? = null
+    private var slotMinsKey = ""
+    private var slotMinsJob: Job? = null
+    fun refreshSlotTimes() {
+        if (route != null || previewing || !hasOnline) return
+        val here = fix?.pos ?: return
+        val home = places.slot("home"); val work = places.slot("work")
+        val key = "${home?.pos?.lat},${home?.pos?.lon}|${work?.pos?.lat},${work?.pos?.lon}"
+        val now = System.currentTimeMillis()
+        val moved = slotMinsFrom?.let { Geo.dist(it, here) > 3000.0 } ?: true
+        if (key == slotMinsKey && !moved && now - slotMinsAt < 600_000L) return
+        if (slotMinsJob?.isActive == true) return
+        if (key != slotMinsKey) slotMins.clear()
+        slotMinsAt = now; slotMinsFrom = here; slotMinsKey = key
+        slotMinsJob = scope.launch {
+            for ((k, p) in listOf("home" to home, "work" to work)) {
+                if (p == null) { slotMins.remove(k); continue }
+                if (Geo.dist(here, p.pos) < 800.0) { slotMins[k] = 0; continue }
+                val r = kotlinx.coroutines.withTimeoutOrNull(15_000L) {
+                    withContext(Dispatchers.IO) {
+                        try { if (online()) netRoutes(here, p.pos, false, 0L, emptyList(), -1.0, true).firstOrNull() else null } catch (e: Exception) { null }
+                    }
+                }
+                if (route != null) return@launch
+                slotMins[k] = r?.let { Math.round(it.time / 60.0).toInt() } ?: -1
+            }
+        }
+    }
+
     // ---- turn arrow on the route ----
     private var turnArrowKey = -1
 
