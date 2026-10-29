@@ -228,6 +228,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         }
 
         // not navigating: the app's search bar and quick chips, top left (tap them as in the app)
+        // as many saved places as fit above the sound pill / speed (0 to 3), so the list never runs into what's below it
+        // (worked out here: the screen's height can't be read from inside the column below)
+        val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
         if (engine.route == null && !arriving) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).carTap("search") { actions.search() }.padding(start = 18.dp, end = 8.dp),
@@ -238,8 +241,6 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Mic, null, tint = Color.White, modifier = Modifier.size(23.dp))
                 }
             }
-            // as many saved places as fit above the sound pill / speed (0 to 3), so the list never runs into what's below it
-            val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
             CarChips(engine, actions, savedRows)
         }
 
