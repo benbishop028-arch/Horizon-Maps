@@ -398,6 +398,7 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
                 CarStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "left", dc)
                 CarStat(e.arrive, "arrive", c.text)
                 CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
+                engine.evArrivalPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
             }
             Box(Modifier.padding(start = 12.dp)) { sound(if (fill) 36.dp else 40.dp) }
             Box(Modifier.padding(start = 8.dp)) { end(if (fill) 36.dp else 40.dp) }

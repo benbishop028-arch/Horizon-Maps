@@ -710,6 +710,36 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         listOf(-1.0, 1.0).map { side -> val at = Furniture.offset(p, b + 90.0 * side, 5.0); Feature.fromGeometry(Point.fromLngLat(at.lon, at.lat)) }
     }
 
+    /** Stop signs on the route (from OpenStreetMap), drawn as small red octagon badges standing at the junction. */
+    private var stopSigns: List<LL> = emptyList()
+    private fun stopFeats(): List<Feature> = stopSigns.map { Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat)) }
+    fun setStopSigns(list: List<LL>) {
+        main0.post {
+            stopSigns = list
+            try { src("dl-stops")?.featureCollection(FeatureCollection.fromFeatures(stopFeats())) } catch (e: Throwable) { }
+        }
+    }
+
+    /** A stop sign: a red octagon with a white rim and STOP across it (drawn at 2x, shown at half). */
+    private fun stopBitmap(): Bitmap {
+        val s = 72
+        val bmp = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        fun octagon(r: Float): Path = Path().apply {
+            for (i in 0 until 8) {
+                val a = Math.toRadians(22.5 + 45.0 * i)
+                val x = s / 2f + r * Math.cos(a).toFloat(); val y = s / 2f + r * Math.sin(a).toFloat()
+                if (i == 0) moveTo(x, y) else lineTo(x, y)
+            }
+            close()
+        }
+        c.drawPath(octagon(35f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() })
+        c.drawPath(octagon(30f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFC8102E.toInt() })
+        val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt(); textSize = 18f; typeface = android.graphics.Typeface.DEFAULT_BOLD; textAlign = Paint.Align.CENTER }
+        c.drawText("STOP", s / 2f, s / 2f - (tp.descent() + tp.ascent()) / 2f, tp)
+        return bmp
+    }
+
     fun setCrossings(list: List<Triple<LL, Double, Boolean>>) {
         main0.post {
             crossings = list
@@ -1506,11 +1536,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // your destination's building is lit up in the app's blue as you get close
             setBase("colorBuildingHighlight", Value.valueOf("#7FB3FF"))
         }
-        // live traffic on the other roads (Mapbox Traffic): only slow, heavy and stopped traffic is coloured, under the route
+        // live traffic on the other roads (Mapbox Traffic): slow, heavy and stopped traffic coloured, and free-flowing roads in
+        // green too unless that's switched off (Settings > Map), under the route
         addS(st, VectorSource.Builder("dl-traffic-src").url("mapbox://mapbox.mapbox-traffic-v1").build())
         addL(st, LineLayer("dl-traffic", "dl-traffic-src").sourceLayer("traffic").inSlot(MID)
-            .filter(Expression.fromRaw("[\"match\",[\"get\",\"congestion\"],[\"moderate\",\"heavy\",\"severe\"],true,false]"))
-            .lineColor(Expression.fromRaw("[\"match\",[\"get\",\"congestion\"],\"moderate\",\"#F9AB00\",\"heavy\",\"#E8453C\",\"severe\",\"#A51D1D\",\"#F9AB00\"]"))
+            .filter(trafficFilter())
+            .lineColor(Expression.fromRaw("[\"match\",[\"get\",\"congestion\"],\"low\",\"#1EA362\",\"moderate\",\"#F9AB00\",\"heavy\",\"#E8453C\",\"severe\",\"#A51D1D\",\"#F9AB00\"]"))
             .lineWidth(zoomed(1.5, 8 to 1.0, 13 to 2.5, 16 to 4.5, 19 to 9.0))
             .lineOffset(zoomed(1.5, 10 to 0.5, 16 to 2.5, 19 to 5.0))
             .lineOpacity(0.85).lineEmissiveStrength(1.0)
@@ -1557,6 +1588,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // (sized to about 9 m across the road: the picture is 200 px wide, shown at the screen's density)
             .iconSize(run { val d = mapView.resources.displayMetrics.density.toDouble(); zoomed(2.0, 16 to 0.06 * d, 20 to 0.96 * d) })
             .iconOpacity(0.92).iconEmissiveStrength(0.8).minZoom(16.0))
+        // stop signs on the route: a small badge that stands up at the junction (from zoom 14)
+        addImg(st, "dl-stop", stopBitmap())
+        addS(st, GeoJsonSource.Builder("dl-stops").featureCollection(FeatureCollection.fromFeatures(stopFeats())).build())
+        addL(st, SymbolLayer("dl-stop", "dl-stops").inSlot(TOP).iconImage("dl-stop").iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
+            .iconSize(zoomed(1.5, 14 to 0.35, 17 to 0.55, 20 to 0.8)).iconEmissiveStrength(1.0).minZoom(14.0))
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .iconSize(zoomed(1.6, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(16.0))
@@ -1735,6 +1772,17 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (trafficOn == on) return
         trafficOn = on
         applyTraffic()
+    }
+
+    /** Free-flowing roads drawn green as well as the slow ones (Settings > Map > Light traffic in green). */
+    private var trafficGreen = true
+    private fun trafficFilter(): Expression = Expression.fromRaw(
+        if (trafficGreen) "[\"match\",[\"get\",\"congestion\"],[\"low\",\"moderate\",\"heavy\",\"severe\"],true,false]"
+        else "[\"match\",[\"get\",\"congestion\"],[\"moderate\",\"heavy\",\"severe\"],true,false]")
+    fun setTrafficGreen(on: Boolean) {
+        if (on == trafficGreen) return
+        trafficGreen = on
+        main0.post { try { (layer("dl-traffic") as? LineLayer)?.filter(trafficFilter()) } catch (e: Throwable) { } }
     }
 
     private fun applyTraffic() {
@@ -2200,7 +2248,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // ---- data from the engine ----
     fun setRoute(mainPts: List<LL>, altPts: List<List<LL>>, sev: IntArray? = null) {
         main = mainPts; alts = altPts; mainSev = sev; mainOff = 0; pushRoute(); pushSignals()
-        if (mainPts.isEmpty()) { setAvgZones(emptyList(), emptyList()); setTunnels(emptyList()); setCrossings(emptyList()) }
+        if (mainPts.isEmpty()) { setAvgZones(emptyList(), emptyList()); setTunnels(emptyList()); setCrossings(emptyList()); setStopSigns(emptyList()) }
         if (mainPts.size >= 2) loadSignalsAlong(mainPts) else { sigRoute = null; signalToken++; signalBusy = false; signalStage = "no route" }
         val on = mainPts.isNotEmpty()
         if (on != routing) { routing = on; applyTraffic(); applyNearLook() }
@@ -2675,12 +2723,110 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         return listOf(Prism(shape, 0.0, 0.19, shade(col, 1f)))
     }
 
-    private fun carParts(col: String): List<Prism> {
-        // a chunky, friendly, cartoon car in the style of the Google Maps one: short and wide, very rounded, a big domed glasshouse,
-        // a fat white roof, tall red tail lights in the rear corners, a dark under-bumper and black mirrors. Length 4.4.
+    /** Which car the "Car" locator is: saloon, hatch, estate, suv, pickup, van or sports (Settings > Your arrow). */
+    @Volatile var carModel = "saloon"
+        private set
+    fun setCarModel(m: String) {
+        val v = if (m in CAR_MODELS) m else "saloon"
+        if (v == carModel) return
+        carModel = v
+        main0.post { spriteBmps.clear(); spriteName = null; try { pushModel(true) } catch (e: Throwable) { } }
+    }
+
+    /** A small top-down picture of a car model in a colour, for choosing one in Settings. */
+    fun carPreview(model: String, col: String): Bitmap = renderSprite(carParts(col, model), 300.0 / 5.4, 0.0, 0.0, true)
+
+    private fun carParts(col: String, model: String = carModel): List<Prism> {
         val body = shade(col, 1f); val lower = shade(col, 0.9f); val roof = shade(col, 1.05f)
         val glass = 0xFF2C4F8C.toInt(); val dark = 0xFF1B1E26.toInt(); val red = 0xFFE3262F.toInt()
         val l = ArrayList<Prism>()
+        fun wheels(front: Double, back: Double, x: Double = 0.98, r: Double = 0.36, h: Double = 0.52) {
+            for (sx in listOf(-1.0, 1.0)) for (sy in listOf(back, front)) l += Prism(rrect(sx * x - 0.13, sx * x + 0.13, sy - r, sy + r, 0.12), 0.0, h, 0xFF101114.toInt())
+        }
+        fun tails(y: Double, x: Double, z0: Double, z1: Double) {
+            l += Prism(rrect(-x, -x + 0.32, y, y + 0.25, 0.12), z0, z1, red); l += Prism(rrect(x - 0.32, x, y, y + 0.25, 0.12), z0, z1, red)
+        }
+        fun mirrors(y: Double, x: Double, z: Double) {
+            l += Prism(rrect(-x - 0.18, -x, y, y + 0.26, 0.08), z, z + 0.14, dark); l += Prism(rrect(x, x + 0.18, y, y + 0.26, 0.08), z, z + 0.14, dark)
+        }
+        when (model) {
+            // a short, rounded hatchback
+            "hatch" -> {
+                wheels(1.2, -1.15)
+                l += Prism(rrect(-0.9, 0.9, -1.92, -1.62, 0.28), 0.1, 0.36, dark)
+                l += Prism(rrect(-1.0, 1.0, -1.86, 1.95, 0.8), 0.24, 0.6, lower)
+                l += Prism(rrect(-1.06, 1.06, -1.82, 1.9, 0.9), 0.6, 0.98, body)
+                tails(-1.87, 0.96, 0.5, 1.0)
+                mirrors(0.3, 1.04, 0.96)
+                l += Prism(rrect(-0.88, 0.88, -1.6, 0.75, 0.62), 0.98, 1.44, glass)
+                l += Prism(rrect(-0.8, 0.8, -1.5, 0.48, 0.55), 1.44, 1.6, roof)
+            }
+            // a long estate with a long flat roof
+            "estate" -> {
+                wheels(1.42, -1.5)
+                l += Prism(rrect(-0.92, 0.92, -2.42, -2.1, 0.28), 0.1, 0.36, dark)
+                l += Prism(rrect(-1.02, 1.02, -2.36, 2.2, 0.7), 0.24, 0.6, lower)
+                l += Prism(rrect(-1.08, 1.08, -2.32, 2.14, 0.8), 0.6, 0.98, body)
+                tails(-2.37, 0.98, 0.46, 0.95)
+                mirrors(0.42, 1.04, 0.96)
+                l += Prism(rrect(-0.9, 0.9, -2.08, 0.95, 0.55), 0.98, 1.42, glass)
+                l += Prism(rrect(-0.82, 0.82, -1.98, 0.66, 0.45), 1.42, 1.58, roof)
+            }
+            // a tall, square SUV with roof rails
+            "suv" -> {
+                wheels(1.45, -1.4, 1.02, 0.42, 0.66)
+                l += Prism(rrect(-0.98, 0.98, -2.3, -2.0, 0.22), 0.14, 0.46, dark)
+                l += Prism(rrect(-1.08, 1.08, -2.24, 2.24, 0.55), 0.3, 0.78, lower)
+                l += Prism(rrect(-1.14, 1.14, -2.2, 2.18, 0.62), 0.78, 1.22, body)
+                tails(-2.25, 1.04, 0.66, 1.18)
+                mirrors(0.5, 1.1, 1.2)
+                l += Prism(rrect(-0.98, 0.98, -2.0, 1.0, 0.4), 1.22, 1.74, glass)
+                l += Prism(rrect(-0.92, 0.92, -1.92, 0.78, 0.34), 1.74, 1.88, roof)
+                l += Prism(rrect(-0.84, -0.74, -1.8, 0.6, 0.04), 1.88, 1.96, dark)
+                l += Prism(rrect(0.74, 0.84, -1.8, 0.6, 0.04), 1.88, 1.96, dark)
+            }
+            // a pickup: a cab at the front and an open load bed behind
+            "pickup" -> {
+                wheels(1.5, -1.55, 1.04, 0.42, 0.66)
+                l += Prism(rrect(-1.0, 1.0, -2.5, -2.22, 0.18), 0.14, 0.46, dark)
+                l += Prism(rrect(-1.1, 1.1, -2.44, 2.3, 0.5), 0.3, 0.78, lower)
+                l += Prism(rrect(-1.14, 1.14, -0.25, 2.26, 0.6), 0.78, 1.2, body)
+                l += Prism(rrect(-1.14, 1.14, -2.42, -0.25, 0.14), 0.78, 0.86, dark)                      // the bed floor
+                l += Prism(rrect(-1.14, -0.98, -2.42, -0.25, 0.06), 0.86, 1.24, body)                    // bed sides and tailgate
+                l += Prism(rrect(0.98, 1.14, -2.42, -0.25, 0.06), 0.86, 1.24, body)
+                l += Prism(rrect(-1.14, 1.14, -2.42, -2.28, 0.06), 0.86, 1.24, body)
+                tails(-2.45, 1.06, 0.7, 1.16)
+                mirrors(0.95, 1.1, 1.2)
+                l += Prism(rrect(-0.98, 0.98, -0.2, 1.3, 0.4), 1.2, 1.72, glass)
+                l += Prism(rrect(-0.92, 0.92, -0.12, 1.06, 0.34), 1.72, 1.86, roof)
+            }
+            // a tall box van
+            "van" -> {
+                wheels(1.75, -1.6, 1.04, 0.4, 0.62)
+                l += Prism(rrect(-1.0, 1.0, -2.55, -2.3, 0.14), 0.12, 0.44, dark)
+                l += Prism(rrect(-1.1, 1.1, -2.5, 2.35, 0.45), 0.26, 0.74, lower)
+                l += Prism(rrect(-1.14, 1.14, -2.48, 2.3, 0.5), 0.74, 1.1, body)
+                tails(-2.52, 1.06, 0.7, 1.4)
+                mirrors(1.55, 1.1, 1.15)
+                l += Prism(rrect(-1.0, 1.0, 1.25, 2.0, 0.4), 1.1, 1.72, glass)                           // the windscreen
+                l += Prism(rrect(-1.14, 1.14, -2.48, 1.3, 0.24), 1.1, 2.15, body)                       // the load box
+                l += Prism(rrect(-1.06, 1.06, -2.4, 1.25, 0.2), 2.15, 2.22, roof)
+            }
+            // a low, wide sports car with a little spoiler
+            "sports" -> {
+                wheels(1.3, -1.38, 1.04, 0.38, 0.46)
+                l += Prism(rrect(-0.95, 0.95, -2.28, -2.0, 0.3), 0.08, 0.3, dark)
+                l += Prism(rrect(-1.1, 1.1, -2.22, 2.28, 0.95), 0.18, 0.5, lower)
+                l += Prism(rrect(-1.16, 1.16, -2.18, 2.24, 1.0), 0.5, 0.78, body)
+                tails(-2.22, 1.02, 0.42, 0.72)
+                mirrors(0.25, 1.1, 0.78)
+                l += Prism(rrect(-0.84, 0.84, -1.0, 0.85, 0.7), 0.78, 1.12, glass)
+                l += Prism(rrect(-0.72, 0.72, -0.78, 0.5, 0.6), 1.12, 1.22, roof)
+                l += Prism(rrect(-0.98, 0.98, -2.2, -1.96, 0.08), 0.86, 0.94, dark)                       // spoiler
+            }
+            else -> {
+        // the saloon: a chunky, friendly, cartoon car in the style of the Google Maps one: short and wide, very rounded, a big domed
+        // glasshouse, a fat white roof, tall red tail lights in the rear corners, a dark under-bumper and black mirrors. Length 4.4.
         for (sx in listOf(-1.0, 1.0)) for (sy in listOf(-1.38, 1.42)) l += Prism(rrect(sx * 0.98 - 0.13, sx * 0.98 + 0.13, sy - 0.36, sy + 0.36, 0.12), 0.0, 0.52, 0xFF101114.toInt())
         l += Prism(rrect(-0.92, 0.92, -2.24, -1.9, 0.3), 0.1, 0.36, dark)                // under-bumper
         l += Prism(rrect(-1.02, 1.02, -2.16, 2.2, 0.85), 0.24, 0.6, lower)             // lower body
@@ -2691,6 +2837,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         l += Prism(rrect(1.04, 1.22, 0.42, 0.68, 0.08), 0.96, 1.1, dark)
         l += Prism(rrect(-0.9, 0.9, -1.35, 0.95, 0.7), 0.98, 1.42, glass)             // domed glasshouse
         l += Prism(rrect(-0.8, 0.8, -1.05, 0.66, 0.62), 1.42, 1.58, roof)              // fat roof
+            }
+        }
         return l
     }
 
@@ -2816,7 +2964,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val upright = custom && !cTurns
         val yawB = if (upright) 0L else (Math.round(rel / 8.0) * 8) % 360
         val pitB = if (upright) 0L else Math.round(cam.pitch / 5.0) * 5
-        val key = "spr-$locatorStyle-${locatorColor.removePrefix("#")}-$yawB-$pitB"
+        val key = "spr-$locatorStyle-${if (locatorStyle == "car") carModel else ""}-${locatorColor.removePrefix("#")}-$yawB-$pitB"
         if (key != spriteName || force) {
             val have = spriteBmps[key]
             if (have != null) {
@@ -2929,7 +3077,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // the road name: drawn at 2x and shown at half, its top a little below the locator (lower when the view is flatter)
         val rb = (roadView.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
         if (roadName.isBlank() || rb == null) gone(roadView) else {
-            val rw = rb.width / 2; val rh = rb.height / 2
+            // (times the road name size from Settings > Display)
+            val rw = (rb.width / 2 * roadNameScale).toInt(); val rh = (rb.height / 2 * roadNameScale).toInt()
             val rlp = roadView.layoutParams
             if (rlp == null || rlp.width != rw || rlp.height != rh) roadView.layoutParams = android.widget.FrameLayout.LayoutParams(rw, rh)
             roadView.translationX = pt.x - rw / 2f
@@ -3077,6 +3226,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         c.drawRoundRect(android.graphics.RectF(rect).apply { inset(1.5f, 1.5f) }, hgt / 2, hgt / 2, Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 2.5f; color = 0x40FFFFFF })
         c.drawText(shown, rect.left + 32f, rect.centerY() - (tp.descent() + tp.ascent()) / 2, tp)
         return bmp
+    }
+
+    /** Size of the road name pill under the locator (1 = normal), from Settings > Display. */
+    private var roadNameScale = 1f
+    fun setRoadNameScale(s: Float) {
+        val v = s.coerceIn(0.5f, 2.5f)
+        if (v == roadNameScale) return
+        roadNameScale = v
+        try { roadView.scaleType = android.widget.ImageView.ScaleType.FIT_XY } catch (e: Throwable) { }
+        placeLocator()
     }
 
     /** Shows the name of the road you are on in a small pill under the locator (empty hides it). */
@@ -3506,5 +3665,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     companion object {
         /** Stands in for the access token until one is entered (the map can't even be created without some token). */
         const val NO_TOKEN = "pk.none"
+        /** The car shapes for the "Car" locator, in the order they're offered. */
+        val CAR_MODELS = listOf("saloon", "hatch", "estate", "suv", "pickup", "van", "sports")
     }
 }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -334,6 +335,24 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                 Text("Stops on the way", color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Icon(Icons.Rounded.Close, "Close", tint = c.sub, modifier = Modifier.size(28.dp).clickable { onClose() })
             }
+            // one tap, no typing: the best one along the route ahead is added straight away
+            if (engine.dest != null) {
+                Text("ONE TAP: THE BEST ONE ALONG YOUR ROUTE", color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
+                    for ((kind, name) in listOfNotNull(if (ev) null else "fuel" to "Fuel", "charging" to "Charger", "coffee" to "Coffee", "food" to "Food", "services" to "Services", "toilets" to "Toilets"))
+                        Pill(name, false, { engine.addBestStop(kind); onClose() })
+                }
+            }
+            // your own places, added to the list below (then Update route)
+            val mine = remember { listOfNotNull(engine.places.slot("home")?.let { "Home" to it }, engine.places.slot("work")?.let { "Work" to it }) +
+                engine.places.favourites().take(4).map { "★ " + it.name to it } }
+            if (mine.isNotEmpty()) {
+                Text("YOUR PLACES", color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    for ((name, p) in mine) Pill(name, false, { stops = (stops + p).take(8) })
+                }
+            }
             TextField(
                 value = q, onValueChange = { q = it }, singleLine = true,
                 placeholder = { Text("Search for a stop to add") },
@@ -502,8 +521,8 @@ fun FuelSuggestionRow(engine: NavEngine) {
     ) {
         Text(if (engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") "Charging stop" else "Fuel stop", color = Good, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Text(
-            n.place.name + " · " + Geo.fmtDist(n.dist, engine.imperial) + " in" + (if (n.price != null) String.format(java.util.Locale.UK, " · %.1fp", n.price) else "") + (if (n.detourMin >= 0) " · +${n.detourMin} min" else ""),
-            color = c.text, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 420.dp),
+            n.place.name + " · " + Geo.fmtDist(n.dist, engine.imperial) + " in" + (if (n.price != null) " · " + com.headunit.launcher.fmtFuelPrice(n.price, n.unit) else "") + (if (n.detourMin >= 0) " · +${n.detourMin} min" else "") + (if (n.extra.startsWith("arrive")) " · " + n.extra else ""),
+            color = c.text, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 420.dp),
         )
         Pill("Add stop", false, { engine.addStop(n.place); engine.fuelSuggestion = null })
     }
@@ -713,7 +732,7 @@ fun AppUpdateCard(engine: NavEngine) {
  * otherwise you search for the address too. Saved places show as pills under the search bar, after Home and Work.
  */
 @Composable
-fun AddPlaceDialog(engine: NavEngine, preset: Place?, onClose: () -> Unit) {
+fun AddPlaceDialog(engine: NavEngine, preset: Place?, slot: String? = null, onClose: () -> Unit) {
     val c = LocalVw.current
     var label by remember { mutableStateOf("") }
     var q by remember { mutableStateOf("") }
@@ -727,8 +746,9 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, onClose: () -> Unit) {
     fun close() { onClose() }
     Dialog(onDismissRequest = { close() }) {
         Column(Modifier.widthIn(max = 520.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).border(1.dp, c.line, RoundedCornerShape(26.dp)).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(if (preset != null) "Save this place" else "Add a place", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            SField(label, { label = it.take(24) }, placeholder = "Name, e.g. Mum's, Gym, Office 2", width = 476.dp, fill = true)
+            // [slot] "home" or "work": setting Home or Work from Settings (no name to type, it's saved straight into that slot)
+            Text(if (slot == "home") "Set Home" else if (slot == "work") "Set Work" else if (preset != null) "Save this place" else "Add a place", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            if (slot == null) SField(label, { label = it.take(24) }, placeholder = "Name, e.g. Mum's, Gym, Office 2", width = 476.dp, fill = true)
             val pk = picked
             if (pk != null) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.tile).padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Place, null, tint = c.accent, modifier = Modifier.size(22.dp))
@@ -753,7 +773,8 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, onClose: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Pill("Save", pk != null, {
                     val p = picked
-                    if (p != null) { engine.places.addCustom(label, p); engine.toast("Saved as ${label.trim().ifBlank { p.name }}", 2500); close() }
+                    if (p != null && slot != null) { engine.places.setSlot(slot, p); engine.toast(if (slot == "home") "Home saved" else "Work saved", 2500); close() }
+                    else if (p != null) { engine.places.addCustom(label, p); engine.toast("Saved as ${label.trim().ifBlank { p.name }}", 2500); close() }
                 })
                 Pill("Cancel", false, { close() })
             }

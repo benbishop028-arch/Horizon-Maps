@@ -120,6 +120,23 @@ fun AlertSign(a: AlertInfo, size: Dp) {
                     Text(n, color = Color.Black, fontSize = (size.value * (if (n.length >= 3) 0.30f else 0.40f)).sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 }
             }
+            "stop" -> {
+                // a red octagon with a white rim and STOP across it
+                androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    fun oct(r: Float) = androidx.compose.ui.graphics.Path().apply {
+                        for (i in 0 until 8) {
+                            val a = Math.toRadians(22.5 + 45.0 * i)
+                            val x = size.width / 2f + r * Math.cos(a).toFloat(); val y = size.height / 2f + r * Math.sin(a).toFloat()
+                            if (i == 0) moveTo(x, y) else lineTo(x, y)
+                        }
+                        close()
+                    }
+                    val r = size.minDimension / 2f
+                    drawPath(oct(r), Color.White)
+                    drawPath(oct(r * 0.86f), Color(0xFFC8102E))
+                }
+                Text("STOP", color = Color.White, fontSize = (size.value * 0.26f).sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            }
             "wrongway" -> {
                 // the no-entry sign
                 Box(Modifier.fillMaxSize().clip(CircleShape).background(Bad).border(size * 0.05f, Color.White, CircleShape), contentAlignment = Alignment.Center) {

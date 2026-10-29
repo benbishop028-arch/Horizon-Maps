@@ -194,6 +194,17 @@ internal object PreferenceKeys {
     const val ZONEWARN = "zonewarn"
     const val TT_MAP_FIX = "ttmapfix"
     const val VOICE_CHANNEL = "voicechan"
+    const val TANKERKOENIG_KEY = "tkkey"
+    const val VOICE_ROADS = "voiceroads"
+    const val AVOID_TOLL_COUNTRIES = "avoid_toll_cc"
+    const val ROAD_NAME_SIZE = "roadnamesize"
+    const val CAR_ROAD_NAME_SIZE = "carroadnamesize"
+    const val CAR_MODEL = "carmodel"
+    const val TRAFFIC_GREEN = "trafficgreen"
+    const val STOP_SIGNS = "stopsigns"
+    const val EV_BATTERY_KWH = "evbatt"
+    const val EV_CHARGE_PCT = "evcharge"
+    const val EV_MIN_ARRIVE = "evminarr"
 }
 
 /**

@@ -194,6 +194,23 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         }
         Pill("Arrive by…", hold, { arriveBy = true })
     }
+    // electric: the battery now, the least you want to arrive with, and the eco route; a charging stop is then suggested
+    // below if the trip needs one
+    if (ev) Row(
+        Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        val pct = engine.prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100)
+        val minArr = engine.prefs.i(PreferenceKeys.EV_MIN_ARRIVE, 20)
+        Text("Battery now", color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
+        Pill("−", false, { engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (pct - 10).coerceAtLeast(5)); engine.refreshEvPlan() })
+        Text("$pct%", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
+        Pill("+", false, { engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (pct + 10).coerceAtMost(100)); engine.refreshEvPlan() })
+        Text("Arrive with at least", color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 14.dp, end = 4.dp))
+        for (m in listOf(10, 20, 30)) Pill("$m%", minArr == m, { engine.prefs.put(PreferenceKeys.EV_MIN_ARRIVE, m); engine.refreshEvPlan() })
+        val eco = engine.prefs.b(PreferenceKeys.ROUTE_ECO, false)
+        Pill(if (eco) "Eco route ✓" else "Eco route", eco, { engine.prefs.put(PreferenceKeys.ROUTE_ECO, !eco); engine.rerouteForSettings() })
+    }
     FuelSuggestionRow(engine)
     // landscape: everything in one row. Portrait (narrow): destination on top, the route choices across, Start underneath.
     val narrowP = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 720
@@ -388,7 +405,7 @@ internal fun NearbyCard(engine: NavEngine) {
                         val sub = listOfNotNull(n.extra.takeIf { it.isNotBlank() }, n.place.sub.takeIf { it.isNotBlank() && engine.nearbyKind == "fuel" }).joinToString(" · ")
                         if (sub.isNotBlank()) Text(sub, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    if (n.price != null) Text(String.format(java.util.Locale.UK, "%.1fp", n.price), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+                    if (n.price != null) Text(com.headunit.launcher.fmtFuelPrice(n.price, n.unit), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
                     Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 10.dp)) {
                         Text(Geo.fmtDist(n.dist, engine.imperial), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.14f)).padding(horizontal = 10.dp, vertical = 4.dp))
                         if (n.detourMin >= 0) Text("+${n.detourMin} min", color = c.sub, fontSize = 11.sp, modifier = Modifier.padding(top = 2.dp))

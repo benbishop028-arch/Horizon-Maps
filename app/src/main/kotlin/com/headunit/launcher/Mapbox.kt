@@ -195,6 +195,30 @@ object MapboxRest {
     /** True when the last request was accepted with its departure time. */
     @Volatile var departApplied = false
 
+    /** Countries (two-letter codes) where toll roads are avoided even though "Avoid toll roads" is off. */
+    @Volatile var tollCountries: Set<String> = emptySet()
+
+    /** The route pays a toll in one of [countries]: a toll stretch (Mapbox marks its junctions "toll") in that country. */
+    private fun tollIn(route: JSONObject, countries: Set<String>): Boolean {
+        val legs = route.optJSONArray("legs") ?: return false
+        for (li in 0 until legs.length()) {
+            val leg = legs.optJSONObject(li) ?: continue
+            val admins = leg.optJSONArray("admins") ?: continue
+            val steps = leg.optJSONArray("steps") ?: continue
+            for (si in 0 until steps.length()) {
+                val ints = steps.optJSONObject(si)?.optJSONArray("intersections") ?: continue
+                for (ii in 0 until ints.length()) {
+                    val x = ints.optJSONObject(ii) ?: continue
+                    val cl = x.optJSONArray("classes") ?: continue
+                    if ((0 until cl.length()).none { cl.optString(it) == "toll" }) continue
+                    val cc = admins.optJSONObject(x.optInt("admin_index", 0))?.optString("iso_3166_1")?.uppercase() ?: continue
+                    if (cc in countries) return true
+                }
+            }
+        }
+        return false
+    }
+
     /** Turns TomTom-style route preferences (avoid tollRoads, motorways, ferries, unpavedRoads) into Mapbox's. */
     private fun excludes(avoid: List<String>): String = avoid.mapNotNull {
         when (it) { "tollRoads" -> "toll"; "motorways" -> "motorway"; "ferries" -> "ferry"; "unpavedRoads" -> "unpaved"; else -> null }
@@ -232,8 +256,18 @@ object MapboxRest {
             }
         }
         if (body == null) throw last ?: IOException("Routing failed")
-        val o = JSONObject(body)
+        var o = JSONObject(body)
         if (o.optString("code") != "Ok") throw IOException(if (o.optString("code") == "NoRoute") "No route found" else o.optString("message").ifBlank { "Routing failed" })
+        // tolls avoided in chosen countries only (Settings > Routes): Mapbox can only leave out toll roads everywhere, so when the
+        // best route would pay a toll in one of those countries it's asked again without toll roads
+        val tc = tollCountries
+        if (tc.isNotEmpty() && !ex.split(',').contains("toll") && o.optJSONArray("routes")?.optJSONObject(0)?.let { tollIn(it, tc) } == true) {
+            val ex2 = (ex.split(',').filter { it.isNotBlank() } + "toll").joinToString(",")
+            try {
+                val o2 = JSONObject(get("$base&exclude=$ex2" + (if (departApplied) dep else ""), if (quick) 8000 else 12000, if (quick) 12000 else 25000))
+                if (o2.optString("code") == "Ok" && (o2.optJSONArray("routes")?.length() ?: 0) > 0) o = o2
+            } catch (e: IOException) { /* keep the route with the toll rather than none */ }
+        }
         val arr = o.optJSONArray("routes") ?: JSONArray()
         return (0 until arr.length()).mapNotNull { try { parse(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
     }

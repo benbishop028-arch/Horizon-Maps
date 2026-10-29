@@ -99,6 +99,7 @@ object RouteExtras {
             "(node(around:14,$pl)[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"];" +
             "node(around:90,$pl)[\"amenity\"=\"school\"];way(around:90,$pl)[\"amenity\"=\"school\"];)->.a;.a out center tags 300;" +
             "node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"]->.c;.c out body 400;" +
+            "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;" +
             "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;" +
             "rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;"
         val els = Overpass.query(q, 12000, 40000, 3)
@@ -115,7 +116,8 @@ object RouteExtras {
                     if (pos != null && e.optString("type") == "node") nodes[e.optLong("id")] = pos
                     val t = e.optJSONObject("tags") ?: continue
                     if (pos == null) continue
-                    if (t.optString("railway") == "level_crossing") pois += RoutePoi("rail", "Level crossing", pos)
+                    if (t.optString("highway") == "stop") pois += RoutePoi("stop", "Stop", pos)
+                    else if (t.optString("railway") == "level_crossing") pois += RoutePoi("rail", "Level crossing", pos)
                     else if (t.optString("ford") == "yes") pois += RoutePoi("ford", "Ford", pos)
                     else if (t.optString("highway") == "crossing") pois += RoutePoi("crossing", t.optString("crossing"), pos)
                     else if (t.has("traffic_calming")) pois += RoutePoi("bump", t.optString("traffic_calming"), pos)

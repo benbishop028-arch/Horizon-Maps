@@ -51,6 +51,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -283,6 +284,29 @@ private fun MapSection(prefs: Prefs, engine: NavEngine) {
             SToggle(prefs, "Turns with you", PreferenceKeys.LOCATOR_IMAGE_TURNS, true, "Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright")
             SToggle(prefs, "Round crop", PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false, "Cuts it to a circle with a white edge (good for photos)")
         }
+        // the car picture's shape (the "Car" picture only: the real 3D model keeps its own car)
+        if (loc == "car") {
+            val cur = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
+            val colour = prefs.s(PreferenceKeys.CAR_COLOUR, "#F4F5F7")
+            val names = listOf("saloon" to "Saloon", "hatch" to "Hatchback", "estate" to "Estate", "suv" to "SUV", "pickup" to "Pickup", "van" to "Van", "sports" to "Sports")
+            SItem("Car type", names.firstOrNull { it.first == cur }?.second)
+            androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                for ((id, name) in names) {
+                    val pic = remember(id, colour) { try { engine.map.carPreview(id, colour).asImageBitmap() } catch (e: Throwable) { null } }
+                    val sel = id == cur
+                    androidx.compose.foundation.layout.Column(
+                        Modifier.width(92.dp).clip(RoundedCornerShape(16.dp)).background(if (sel) LocalVw.current.accent.copy(alpha = 0.22f) else LocalVw.current.tile)
+                            .border(if (sel) 2.dp else 0.dp, if (sel) LocalVw.current.accent else androidx.compose.ui.graphics.Color.Transparent, RoundedCornerShape(16.dp))
+                            .clickable { prefs.put(PreferenceKeys.CAR_MODEL, id) }.padding(vertical = 6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        if (pic != null) androidx.compose.foundation.Image(pic, name, Modifier.size(80.dp))
+                        Text(name, color = LocalVw.current.text, fontSize = 12.sp)
+                    }
+                }
+            }
+        }
         if (shapeCar) SColours("Car colour", listOf(
             "#F4F5F7" to "White", "#B9BEC8" to "Silver", "#7A808C" to "Grey", "#3E434D" to "Graphite", "#2A2D34" to "Black", "#1E2A4A" to "Navy",
             "#2F6BDF" to "Blue", "#5FB3E8" to "Sky blue", "#1FA39A" to "Teal", "#2E8B57" to "Green", "#6E8B3D" to "Olive", "#F2C230" to "Yellow",
@@ -304,7 +328,19 @@ private fun MapSection(prefs: Prefs, engine: NavEngine) {
 @Composable
 private fun NavigationSection(prefs: Prefs) {
     SGroup("Routes", footer = "Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.") {
-        SToggle(prefs, "Avoid toll roads", "avoid_toll", false)
+        SToggle(prefs, "Avoid toll roads", "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "Everywhere" else null)
+        // ...or only in some countries: a route that would use a toll road in one of them is planned without toll roads
+        if (!prefs.b(PreferenceKeys.AVOID_TOLL, false)) {
+            val chosen = prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').filter { it.isNotBlank() }.toSet()
+            SItem("Avoid tolls only in", if (chosen.isEmpty()) "Pick countries: a route that would pay a toll in one of them is planned without toll roads" else "A route that would pay a toll in one of these is planned without toll roads")
+            androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                for ((cc, name) in listOf("FR" to "France", "IT" to "Italy", "ES" to "Spain", "PT" to "Portugal", "AT" to "Austria", "CH" to "Switzerland",
+                    "SI" to "Slovenia", "HR" to "Croatia", "PL" to "Poland", "CZ" to "Czechia", "HU" to "Hungary", "GR" to "Greece", "IE" to "Ireland", "NO" to "Norway", "US" to "USA")) {
+                    Pill(name, cc in chosen, { prefs.put(PreferenceKeys.AVOID_TOLL_COUNTRIES, (if (cc in chosen) chosen - cc else chosen + cc).joinToString(",")) })
+                }
+            }
+        }
         SToggle(prefs, "Avoid motorways", "avoid_motorway", false)
         SToggle(prefs, "Avoid ferries", "avoid_ferry", false)
         SToggle(prefs, "Avoid unpaved roads", "avoid_unpaved", true)
@@ -363,6 +399,8 @@ private fun NavigationSection(prefs: Prefs) {
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
         SToggle(prefs, "Tilt with speed", "speedtilt", true, "Flatter when slow, a longer view at speed")
         SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
+        SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
+        SToggle(prefs, "Light traffic in green", PreferenceKeys.TRAFFIC_GREEN, true, "Free-flowing roads shown green, as well as slow traffic in amber and red")
         SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
     }
     SGroup("Demo") {
@@ -392,6 +430,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Sound") {
         SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
             "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
+        SToggle(prefs, "Say road names", PreferenceKeys.VOICE_ROADS, true, "Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs")
         SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
         SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
             "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
@@ -424,17 +463,24 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
 // ------------------------------------------------------------------ Places & trips
 
 @Composable
-private fun PlaceItem(label: String, p: Place?, onClear: () -> Unit) {
-    SItem(label, p?.let { it.name + (if (it.sub.isNotBlank()) ", " + it.sub else "") } ?: "Not set") { if (p != null) SButton("Clear", danger = true, onClick = onClear) }
+private fun PlaceItem(label: String, p: Place?, onChange: () -> Unit, onClear: () -> Unit) {
+    SItem(label, p?.let { it.name + (if (it.sub.isNotBlank()) ", " + it.sub else "") } ?: "Not set") {
+        SButton(if (p != null) "Change" else "Set", primary = true, onClick = onChange)
+        if (p != null) SButton("Clear", danger = true, onClick = onClear)
+    }
 }
 
 @Composable
 private fun PlacesSection(engine: NavEngine) {
     val pl = engine.places
-    SGroup("Saved places", footer = "To set Home or Work, tap Set home / Set work under the search bar, or the house or briefcase on the route options.") {
-        PlaceItem("Home", pl.slot("home")) { pl.clearSlot("home") }
-        PlaceItem("Work", pl.slot("work")) { pl.clearSlot("work") }
+    var settingSlot by remember { mutableStateOf<String?>(null) }
+    // (read again whenever the saved places change, so a change shows straight away)
+    val slotsRaw = engine.prefs.s(PreferenceKeys.PLACE_HOME, "") + engine.prefs.s("place_work", "")
+    SGroup("Saved places", footer = "Home and Work can also be set from the pills under the search bar, or the house or briefcase on the route options.") {
+        PlaceItem("Home", remember(slotsRaw) { pl.slot("home") }, { settingSlot = "home" }) { pl.clearSlot("home") }
+        PlaceItem("Work", remember(slotsRaw) { pl.slot("work") }, { settingSlot = "work" }) { pl.clearSlot("work") }
     }
+    settingSlot?.let { s -> AddPlaceDialog(engine, null, slot = s) { settingSlot = null } }
     // your own labelled places: rename, reorder or remove
     val raw = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
     val mine = remember(raw) { pl.customs() }
@@ -458,10 +504,33 @@ private fun PlacesSection(engine: NavEngine) {
         SItem("Add a place") { SButton("Add", primary = true) { adding = true } }
     }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
-    val favs = pl.favourites()
+    val favRaw = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+    val favs = remember(favRaw) { pl.favourites() }
+    var renamingFav by remember { mutableStateOf<Place?>(null) }
+    var slotFor by remember { mutableStateOf<Place?>(null) }
     SGroup("Favourites") {
         if (favs.isEmpty()) SNote("No favourites yet. Tap the star on a destination to add one.")
-        favs.forEach { f -> SItem(f.name, f.sub) { SButton("Remove") { pl.toggleFavourite(f) } } }
+        favs.forEach { f ->
+            when {
+                renamingFav == f -> {
+                    var t by remember(f) { mutableStateOf(f.name) }
+                    SItem("Rename ${f.name}") {
+                        SField(t, { t = it.take(40) }, width = 220.dp)
+                        SButton("Save", primary = true) { pl.renameFavourite(f, t); renamingFav = null }
+                    }
+                }
+                slotFor == f -> SItem("Make ${f.name}…") {
+                    SButton("Home", primary = true) { pl.setSlot("home", f); slotFor = null; engine.toast("${f.name} is now Home", 2500) }
+                    SButton("Work", primary = true) { pl.setSlot("work", f); slotFor = null; engine.toast("${f.name} is now Work", 2500) }
+                    SButton("Cancel") { slotFor = null }
+                }
+                else -> SItem(f.name, f.sub) {
+                    SButton("Rename") { renamingFav = f }
+                    SButton("Make Home / Work") { slotFor = f }
+                    SButton("Remove", danger = true) { pl.toggleFavourite(f) }
+                }
+            }
+        }
         if (favs.size > 1) SItem("Remove every favourite") { SButton("Remove all", danger = true) { pl.clearFavourites() } }
     }
     SGroup("History", footer = "Swipe a place sideways on the Saved & recent list to take it off.") {
@@ -499,7 +568,7 @@ private fun FuelSection(prefs: Prefs) {
     val ctx = LocalContext.current
     val sc = rememberCoroutineScope()
     SGroup("Fuel prices", footer = "Live prices come from the government's Fuel Finder scheme. It's free: on gov.uk search \"Fuel Finder\", register as an information recipient with a GOV.UK One Login, then paste the client ID and secret here. Without them the fuel list still works, just without prices.") {
-        SChoice("Your fuel", listOf("E10" to "Unleaded", "E5" to "Super", "B7" to "Diesel", "EV" to "Electric"), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
+        SChoice("Your fuel", listOf("E10" to "Unleaded", "E5" to "Super", "B7" to "Diesel", "E85" to "Bioethanol (E85)", "EV" to "Electric"), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
         SToggle(prefs, "Suggest a fuel stop on long trips", "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") "Over about 95 miles, a charging point along the way with the shortest detour" else "Over about 95 miles, the best-value station along the way")
         SFieldItem("Client ID", prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
         SFieldItem("Client secret", prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
@@ -518,8 +587,12 @@ private fun FuelSection(prefs: Prefs) {
         }
         SItem("Spotted a wrong price?") { SButton("Report it") { openSystemSettings(ctx, android.content.Intent.ACTION_VIEW, android.net.Uri.parse(FuelFinder.REPORT_URL)) } }
     }
-    if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Fuel cost on the route options", footer = "With both filled in, each route shows roughly what it will cost to charge for.") {
+    SGroup("Fuel prices outside the UK", footer = "France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Elsewhere the fuel list still works, without prices.") {
+        SFieldItem("Tankerkönig key (Germany)", prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = "Paste the key", password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
+    }
+    if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Your electric car", footer = "With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).") {
         SFieldItem("Efficiency (miles per kWh)", prefs.s(PreferenceKeys.EVMPK, ""), placeholder = "e.g. 3.5", number = true) { s -> prefs.put(PreferenceKeys.EVMPK, s.filter { it.isDigit() || it == '.' }.take(5)) }
+        SFieldItem("Usable battery (kWh)", prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), "For the battery estimate and charging stops (60 if left blank)", placeholder = "e.g. 64", number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
         SFieldItem("Electricity price (pence per kWh)", prefs.s(PreferenceKeys.EVPPK, ""), placeholder = "e.g. 28", number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
     } else SGroup("Fuel cost on the route options", footer = "With both filled in, each route shows roughly what it will cost in fuel.") {
         SFieldItem("Fuel economy (miles per gallon)", prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = "e.g. 45", number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, s.filter { it.isDigit() || it == '.' }.take(5)) }
@@ -600,6 +673,7 @@ private fun DisplaySection(prefs: Prefs, engine: NavEngine) {
             SSlider("Text size", prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent text scaling", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
             SSlider("Navigation arrow size", prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", sub = "Map position arrow", steps = 11, reset = 100f) { prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, it) }
             SSlider("Speedometer and speed-limit sign", prefs.i(PreferenceKeys.MAIN_SPEED_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.MAIN_SPEED_SIZE, it) }
+            SSlider("Road name size", prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
         }
 
     }
@@ -709,6 +783,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             SSlider("Button size", prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Round controls and tappable buttons", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
             SSlider("Text size", prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent of card and button sizing", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
             SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
+            SSlider("Road name size", prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
         }
         SItem("Installed by", source)
         SItem("Android Auto settings", if (hasAa) null else "Android Auto isn't installed on this phone") {

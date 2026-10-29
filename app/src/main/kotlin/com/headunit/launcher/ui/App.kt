@@ -136,6 +136,12 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     val arrowPct = prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240
     val mainArrowScale = prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).coerceIn(60, 180) / 100f
     LaunchedEffect(arrowPct, mainArrowScale) { map.setArrowScale(arrowPct / 100f * mainArrowScale) }
+    val carModel = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
+    LaunchedEffect(carModel) { map.setCarModel(carModel) }
+    val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, true)
+    LaunchedEffect(trafficGreen) { map.setTrafficGreen(trafficGreen) }
+    val roadNamePct = prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).coerceIn(70, 200)
+    LaunchedEffect(roadNamePct) { map.setRoadNameScale(roadNamePct / 100f) }
     val mbToken = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")
     val mbLook = prefs.s(PreferenceKeys.MBLOOK, "horizon")
     LaunchedEffect(dark, style, traffic, key, mbToken, mbLook) { engine.applyStyle(dark) }

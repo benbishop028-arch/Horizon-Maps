@@ -273,6 +273,8 @@ object TomTomRest {
     /** Route preferences applied to every classic routing request: avoid=tollRoads|motorways|ferries|unpavedRoads. */
     @Volatile var avoid: List<String> = emptyList()
     @Volatile var routeType: String = "fastest"
+    /** Extra settings for an electric car's eco route (empty otherwise): tried first, and dropped if TomTom won't take them. */
+    @Volatile var evParams: String = ""
     /** Areas the route must keep out of (clean air zones, a road you asked to avoid): south-west and north-east corners. */
     @Volatile var avoidRects: List<Pair<LL, LL>> = emptyList()
     /** True when the last request had to drop the areas to avoid to find a route at all. */
@@ -344,6 +346,7 @@ object TomTomRest {
             attempts += "$classic$dep&sectionType=traffic&sectionType=lanes"
             attempts += "$classic$dep"
         }
+        if (evParams.isNotEmpty()) attempts += "$classic$lang&sectionType=traffic&sectionType=lanes$evParams"
         attempts += "$classic$lang&sectionType=traffic&sectionType=lanes"
         attempts += "$classic&sectionType=traffic&sectionType=lanes"
         attempts += "$classic&sectionType=traffic"

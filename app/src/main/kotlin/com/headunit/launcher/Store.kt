@@ -83,6 +83,13 @@ class PlaceStore(private val prefs: Prefs) {
         }
     }
 
+    /** Gives a favourite a name of your own (it stays in the same place in the list). */
+    fun renameFavourite(p: Place, name: String) {
+        val n = name.trim().take(40)
+        if (n.isEmpty()) return
+        writeList("places_fav", favourites().map { if (same(it, p)) it.copy(name = n) else it })
+    }
+
     fun recents(): List<Place> = readList("places_recent")
     /** Takes one place off the recent list (it's still remembered for searching without signal). */
     fun removeRecent(p: Place) = writeList("places_recent", recents().filterNot { same(it, p) })

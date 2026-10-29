@@ -540,12 +540,18 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     RouteBar(engine, barMod.padding(start = if (narrow) 16.dp else 18.dp, end = if (narrow) 16.dp else 18.dp, top = if (narrow) 7.dp else 9.dp, bottom = if (narrow) 2.dp else 4.dp))
                     Box(barMod.padding(horizontal = 18.dp).height(1.dp).background(c.line))
                 }
+                // electric: roughly how much battery you'll arrive with (amber under 20%, red under 10%)
+                val evPct = engine.evArrivalPct()
+                val evCol = if (evPct == null) c.text else if (evPct < 10) Bad else if (evPct < 20) Warn else Good
                 val stats: @Composable () -> Unit = {
                     ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min traffic" else "time left", dc)
                     ImmStat(e.arrive, "arrival", c.text)
                     ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
+                    if (evPct != null) ImmStat("$evPct%", "battery at arrival", evCol)
                 }
                 val buttons: @Composable () -> Unit = {
+                    // electric: chargers along the route from here
+                    if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(20.dp)) }
                     ImmCircle({ shareEta() }, 40.dp) { Icon(Icons.Rounded.Share, "Share ETA", tint = c.text, modifier = Modifier.size(19.dp)) }
                     ImmCircle({ engine.stopsEditor = true }, 40.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(21.dp)) }
                     Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
@@ -567,8 +573,10 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                         ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "time left", dc, compact = true)
                         ImmStat(e.arrive, "arrival", c.text, compact = true)
                         ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text, compact = true)
+                        if (evPct != null) ImmStat("$evPct%", "battery", evCol, compact = true)
                     }
                     Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 36.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(19.dp)) }
                         ImmCircle({ shareEta() }, 36.dp) { Icon(Icons.Rounded.Share, "Share ETA", tint = c.text, modifier = Modifier.size(18.dp)) }
                         ImmCircle({ engine.stopsEditor = true }, 36.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(20.dp)) }
                         Box(Modifier.size(36.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {

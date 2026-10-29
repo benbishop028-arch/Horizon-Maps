@@ -193,6 +193,9 @@ class CarNavSession : Session() {
         // user preference, but normalise it so the 240% main-app default doesn't create an enormous car-screen locator.
         map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f))
         map.setMapDetail(prefs.mapDetail())
+        map.setTrafficGreen(prefs.b(PreferenceKeys.TRAFFIC_GREEN, true))
+        map.setCarModel(prefs.s(PreferenceKeys.CAR_MODEL, "saloon"))
+        map.setRoadNameScale(prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).coerceIn(70, 200) / 100f)
         map.setColours(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox"))
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
         map.setExtras(prefs.b(PreferenceKeys.FACADES, true), prefs.b(PreferenceKeys.LANDMARKS3D, true), prefs.b(PreferenceKeys.PATHS, true), prefs.b(PreferenceKeys.TERRAIN, false),

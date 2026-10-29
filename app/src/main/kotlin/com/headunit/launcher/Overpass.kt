@@ -8,7 +8,12 @@ import java.net.URL
 import java.net.URLEncoder
 
 /** A place found nearby or along the route. [price] is pence per litre (fuel), [detourMin] the rough extra time to call there (-1 when not known). */
-data class Nearby(val place: Place, val dist: Double, val extra: String, val price: Double? = null, val detourMin: Int = -1, val ahead: Boolean = false)
+/** [price] is in pence or cents a litre; [unit] says which ("p" or "€"), so it can be shown the local way (139.9p, €1.789). */
+data class Nearby(val place: Place, val dist: Double, val extra: String, val price: Double? = null, val detourMin: Int = -1, val ahead: Boolean = false, val unit: String = "p")
+
+/** A fuel price the local way: "139.9p" in the UK, "€1.789" in the euro countries. [price] is in pence or cents a litre. */
+fun fmtFuelPrice(price: Double, unit: String): String =
+    if (unit == "€") String.format(java.util.Locale.UK, "€%.3f", price / 100.0) else String.format(java.util.Locale.UK, "%.1fp", price)
 
 /** Free OpenStreetMap queries: speed limits, speed cameras and nearby fuel / charging / parking. */
 object Overpass {
@@ -413,6 +418,8 @@ object Overpass {
     /** OpenStreetMap filter for each kind of place that can be searched for nearby or along the route. */
     private fun filterOf(kind: String): String = when (kind) {
         "fuel" -> "[\"amenity\"=\"fuel\"]"
+        // stations mapped as selling bioethanol (E85)
+        "fuel_e85" -> "[\"amenity\"=\"fuel\"][\"fuel:e85\"=\"yes\"]"
         "charging" -> "[\"amenity\"=\"charging_station\"]"
         "food" -> "[\"amenity\"~\"^(restaurant|fast_food)$\"]"
         "coffee" -> "[\"amenity\"=\"cafe\"]"
@@ -422,7 +429,7 @@ object Overpass {
     }
 
     fun kindLabel(kind: String): String = when (kind) {
-        "fuel" -> "Fuel station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
+        "fuel" -> "Fuel station"; "fuel_e85" -> "E85 station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
         "toilets" -> "Toilets"; "services" -> "Services"; else -> "Car park"
     }
 
@@ -453,7 +460,7 @@ object Overpass {
             val name = tags.optString("name").ifBlank { tags.optString("brand") }.ifBlank { tags.optString("operator") }.ifBlank { label }
             val extra = ArrayList<String>()
             when (kind) {
-                "fuel" -> {
+                "fuel", "fuel_e85" -> {
                     tags.optString("brand").takeIf { it.isNotBlank() && it != name }?.let { extra += it }
                     tags.optString("opening_hours").takeIf { it.isNotBlank() }?.let { extra += it }
                 }

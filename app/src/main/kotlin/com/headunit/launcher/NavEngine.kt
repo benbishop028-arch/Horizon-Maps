@@ -275,7 +275,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val chosen = when (prefs.s(PreferenceKeys.DATAPROV, "auto")) {
             "tomtom" -> if (hasKey) "tomtom" else if (hasMapbox) "mapbox" else ""
             "mapbox" -> if (hasMapbox) "mapbox" else if (hasKey) "tomtom" else ""
-            else -> if (prefs.mapSource() == "mapbox" && hasMapbox) "mapbox" else if (hasKey) "tomtom" else if (hasMapbox) "mapbox" else ""
+            // (eco routes are TomTom's: Mapbox has none, so with Eco routes on and a TomTom key, TomTom plans them)
+            else -> if (prefs.b(PreferenceKeys.ROUTE_ECO, false) && hasKey) "tomtom"
+                else if (prefs.mapSource() == "mapbox" && hasMapbox) "mapbox" else if (hasKey) "tomtom" else if (hasMapbox) "mapbox" else ""
         }
         // the chosen one isn't working right now (its limit reached, the key refused, an outage): the other one meanwhile
         val now = System.currentTimeMillis()
@@ -466,12 +468,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         // holding on a place you've just tapped on the map goes there by its name (a shop, a station...), anywhere else to a dropped pin
+        // (while you're driving a route, holding adds the place as a stop on the way instead of replacing where you're going)
         map.onLongPress = { p ->
             val t = tappedPoi
-            if (t != null && Geo.dist(t.second, p) < 60.0 && android.os.SystemClock.uptimeMillis() - tappedAt < 120_000L) { tappedPoi = null; startRoute(Place(t.first, "", t.second)) }
-            else startRoute(Place("Dropped pin", "", p))
+            val place = if (t != null && Geo.dist(t.second, p) < 60.0 && android.os.SystemClock.uptimeMillis() - tappedAt < 120_000L) { tappedPoi = null; Place(t.first, "", t.second) }
+                else Place("Dropped pin", "", p)
+            if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
-        map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast("$name: hold on it to go there", 3000) }
+        map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(if (route != null && !previewing) "$name: hold on it to add it as a stop" else "$name: hold on it to go there", 3000) }
         map.onUserGesture = { if (following) { following = false }; scheduleRecentre(12_000) }
         map.onAltTap = { i -> switchToAlt(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
@@ -1452,6 +1456,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (prefs.b(PreferenceKeys.AVOID_UNPAVED, true)) "unpavedRoads" else null,
         )
         TomTomRest.routeType = if (prefs.b(PreferenceKeys.ROUTE_ECO, false)) "eco" else "fastest"
+        // electric: TomTom's eco route for an electric car uses the least battery, from how much the car uses at different speeds
+        TomTomRest.evParams = if (isEv && prefs.b(PreferenceKeys.ROUTE_ECO, false)) {
+            val k = evKwhPerKm() * 100.0
+            val batt = evBatteryKwh()
+            val now = batt * prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100) / 100.0
+            String.format(java.util.Locale.US, "&vehicleEngineType=electric&constantSpeedConsumptionInkWhPerHundredkm=50,%.1f:90,%.1f:130,%.1f&currentChargeInkWh=%.1f&maxChargeInkWh=%.1f",
+                k * 0.7, k, k * 1.45, now, batt)
+        } else ""
+        // tolls avoided only in chosen countries (when "Avoid toll roads" itself is off)
+        MapboxRest.tollCountries = if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) emptySet()
+            else prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').map { it.trim().uppercase() }.filter { it.length == 2 }.toSet()
     }
 
     fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false) {
@@ -1975,15 +1990,22 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * (sorted by how far ahead, with roughly how long the detour adds); otherwise around you.
      * Fuel uses live Fuel Finder prices when you have added your Fuel Finder details in Settings.
      */
-    fun loadNearby(kind: String, nearDest: Boolean) {
+    /**
+     * One tap from the stops box: finds [kind] along the route ahead and adds the best one as a stop straight away (fuel: the
+     * cheapest once a little detour time is counted; everything else: the shortest detour), so nothing needs typing while driving.
+     */
+    fun addBestStop(kind: String) { loadNearby(kind, false, pickBest = true) }
+
+    fun loadNearby(kind: String, nearDest: Boolean, pickBest: Boolean = false) {
         val centre = (if (nearDest) dest?.pos else null) ?: fix?.pos ?: map.center() ?: run { toast("No position yet"); return }
         val origin = fix?.pos ?: centre
         val rt = route
         val alongRoute = rt != null && !nearDest && kind != "parking"
         val progress = if (rt != null && !previewing) curProgress else 0.0
         val radius = if (nearDest) 900 else if (kind == "parking") 2000 else if (kind == "toilets" || kind == "coffee") 3000 else 6000
-        val fuelLive = kind == "fuel" && FuelFinder.configured(prefs)
         val fuelType = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
+        // (Fuel Finder has no E85 prices, and its station list would show every station rather than ones selling it)
+        val fuelLive = kind == "fuel" && FuelFinder.configured(prefs) && fuelType != "E85"
         nearbyKind = kind; nearbyBusy = true; nearby = emptyList()
         scope.launch {
             try {
@@ -2019,6 +2041,31 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             if (out.isNotEmpty()) return@withContext out
                         }
                     }
+                    // outside the UK: live prices from the country's own price service (France, Austria, Germany with a key)
+                    val cc = detectedCountry.uppercase()
+                    if (kind == "fuel" && cc != "GB" && EuFuel.supported(cc, prefs) && EuFuel.hasFuel(cc, fuelType) && online()) {
+                        val eu = if (alongRoute && rt != null) EuFuel.along(cc, prefs, RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45), fuelType)
+                            else EuFuel.near(cc, prefs, centre, radius / 1000 + 1, fuelType)
+                        val out = ArrayList<Nearby>()
+                        for (s0 in eu) {
+                            if (alongRoute && rt != null) {
+                                val pr = RouteExtras.project(rt, s0.pos, 1500.0, progress) ?: continue
+                                if (pr.first < progress - 100) continue
+                                out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first - progress, "", s0.cents, detour(pr.second), true, unit = "€")
+                            } else if (Geo.dist(centre, s0.pos) <= radius) out += Nearby(Place(s0.name, s0.sub, s0.pos), Geo.dist(origin, s0.pos), "", s0.cents, unit = "€")
+                        }
+                        if (out.isNotEmpty()) return@withContext out
+                    }
+                    // bioethanol: only stations mapped as selling E85 (TomTom's search can't tell which do)
+                    val e85 = kind == "fuel" && fuelType == "E85"
+                    if (e85) {
+                        return@withContext if (alongRoute && rt != null) {
+                            Overpass.nearbyAlong("fuel_e85", RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45), 1500).mapNotNull { n ->
+                                val pr = RouteExtras.project(rt, n.place.pos, 2000.0, progress) ?: return@mapNotNull null
+                                if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
+                            }
+                        } else Overpass.nearby("fuel_e85", centre, 15_000).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
+                    }
                     // TomTom's place search first (quick, and it knows the detour time along a route); OpenStreetMap if that fails
                     if (hasOnline && online()) {
                         val tt = try {
@@ -2044,6 +2091,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     } else Overpass.nearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                 } }
                 if (list == null) { toast("Search took too long. Check the signal and try again.", 4000); clearNearby(); return@launch }
+                if (pickBest) {
+                    val ahead = list.filter { it.ahead || route == null }
+                    val best = if (ahead.any { it.price != null }) ahead.filter { it.price != null && it.detourMin in 0..10 }.minByOrNull { (it.price ?: 999.0) + it.detourMin }
+                        else ahead.filter { it.detourMin >= 0 }.minByOrNull { it.detourMin * 1000.0 + it.dist / 100.0 } ?: ahead.minByOrNull { it.dist }
+                    nearbyBusy = false
+                    if (best == null) { toast("Nothing found along the route ahead", 3000); clearNearby() }
+                    else { clearNearby(); addStop(best.place) }
+                    return@launch
+                }
                 nearby = sortNearby(list).take(15)
                 if (nearby.isEmpty()) toast(if (alongRoute) "Nothing found along the route ahead" else "Nothing found nearby", 3000)
             } catch (e: Exception) { toast("Search failed: ${e.message}", 4000) }
@@ -3210,7 +3266,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val ot = turn
             if (ot == null || ot.maneuver != newTurn.maneuver || ot.street != newTurn.street || ot.lanes !== newTurn.lanes || ot.thenText != newTurn.thenText || abs(ot.dist - newTurn.dist) >= 3.0 || newTurn.dist < 30.0) turn = newTurn
             val word = Geo.maneuverText(cur.maneuver, cur.roundExit)
-            val tail = if (arriving || cur.street.isBlank()) "" else " onto ${cur.street}"
+            // (Settings > Sound > Say road names off: just the direction, "In 200 metres, turn left")
+            val tail = if (arriving || cur.street.isBlank() || !prefs.b(PreferenceKeys.VOICE_ROADS, true)) "" else " onto ${cur.street}"
             val lane = if (laneAdv != null) ". $laneAdv" else ""
             if (onRoad.isNotBlank()) tripRoads.add(onRoad)
             // smarter voice: junction numbers, sign destinations and the next move when it follows quickly
@@ -3386,6 +3443,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** "take junction 9 towards Winchester, then keep left for the A34", from the route's step and sign data. */
     private fun smartPhrase(cur: Step, nxt: Step?, word: String, tail: String): String {
         if (!prefs.b(PreferenceKeys.SMARTVOICE, true)) return word + tail
+        val sayRoads = prefs.b(PreferenceKeys.VOICE_ROADS, true)
         val m = cur.maneuver.uppercase()
         val exitLike = m.contains("EXIT") || m.contains("KEEP") || m.contains("BEAR") || m.contains("RAMP")
         // "junction 9" is how it's said in the UK and Ireland; everywhere else it's "exit 9"
@@ -3394,6 +3452,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val dests = signDests(cur.sign)
         val refs = signRefs(cur.sign)
         main += when {
+            !sayRoads -> tail
             dests.isNotEmpty() -> (if (refs.isNotEmpty() && cur.exitNo.isNotBlank()) " for the ${refs[0]}" else "") + " towards " + dests.take(2).joinToString(" and ")
             refs.isNotEmpty() && exitLike -> " for the ${refs[0]}"
             else -> tail
@@ -3401,7 +3460,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (nxt != null && nxt.off - cur.off in 1.0..450.0 && !nxt.maneuver.uppercase().startsWith("ARRIVE")) {
             val target = signRefs(nxt.sign).firstOrNull() ?: nxt.street
             val forWhat = when {
-                target.isBlank() -> ""
+                target.isBlank() || !sayRoads -> ""
                 refRx.matches(target) -> " for the $target"
                 else -> " onto $target"
             }
@@ -3532,12 +3591,37 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- smart fuel stop ----
     /** On a long trip, finds a good place to fill up around the middle of the route: the cheapest (with Fuel Finder) or the quickest detour. */
+    // ---- electric cars: battery estimate ----
+    val isEv: Boolean get() = prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
+    /** Usable battery (kWh), from Settings > Fuel (60 if not set). */
+    private fun evBatteryKwh(): Double = (prefs.s(PreferenceKeys.EV_BATTERY_KWH, "").toDoubleOrNull() ?: 60.0).coerceIn(10.0, 200.0)
+    /** kWh used per km: from the efficiency in Settings > Fuel (miles per kWh), or a typical 0.18. */
+    private fun evKwhPerKm(): Double = prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.takeIf { it in 1.0..8.0 }?.let { 1.0 / (it * 1.609344) } ?: 0.18
+    /** Roughly how much battery (%) you'll arrive with: the charge you set before the trip, less what's been driven and what's left. */
+    fun evArrivalPct(): Int? {
+        if (!isEv) return null
+        val e = eta ?: return null
+        val start = prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(1, 100)
+        val driven = if (navStartMs > 0) max(0.0, tripDist - navStartDist) else 0.0
+        val usedPct = (driven + e.dist) / 1000.0 * evKwhPerKm() / evBatteryKwh() * 100.0
+        return Math.round(start - usedPct).toInt().coerceIn(-50, 100)
+    }
+
+    /** The battery level or the charge to arrive with changed on the route options: look again for a charging stop. */
+    fun refreshEvPlan() { val r = route ?: return; fuelSuggestion = null; suggestFuel(r) }
+
     private fun suggestFuel(r: Route) {
-        if (r.len < 150_000) return
-        val a = r.len * 0.35; val b = r.len * 0.75
         val fuel = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
-        // electric: a charging point around the middle of the trip with the shortest detour
+        if (fuel != "EV" && r.len < 150_000) return
+        var a = r.len * 0.35; var b = r.len * 0.75
+        // electric: a charger before the battery gets down to the charge you want to keep (Settings > Fuel), with the shortest
+        // detour, and how much you'll have when you get there. Only when the trip needs one.
         if (fuel == "EV") {
+            val cons = evKwhPerKm(); val batt = evBatteryKwh()
+            val startPct = prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(1, 100); val minPct = prefs.i(PreferenceKeys.EV_MIN_ARRIVE, 20).coerceIn(0, 60)
+            val rangeM = max(0.0, (startPct - minPct) / 100.0 * batt / cons * 1000.0)
+            if (r.len <= rangeM) { fuelSuggestion = null; return }
+            a = max(5_000.0, rangeM * 0.5); b = max(a + 5_000.0, rangeM * 0.92)
             scope.launch {
                 val best = withContext(Dispatchers.IO) {
                     try {
@@ -3558,7 +3642,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                                 if (pr.first in a..b) out += n.copy(dist = pr.first, detourMin = detour(pr.second), ahead = true)
                             }
                         }
-                        out.filter { it.detourMin >= 0 }.minByOrNull { it.detourMin }
+                        out.filter { it.detourMin >= 0 }.minByOrNull { it.detourMin }?.let { n ->
+                            val arr = Math.round(startPct - n.dist / 1000.0 * cons / batt * 100.0).toInt().coerceAtLeast(0)
+                            val mins = Math.round((80 - arr).coerceAtLeast(10) / 100.0 * batt / 50.0 * 60.0).toInt()
+                            n.copy(extra = "arrive about $arr% · charge to 80%, about $mins min")
+                        }
                     } catch (e: Exception) { null }
                 }
                 if (route === r) fuelSuggestion = best
@@ -3581,7 +3669,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             out += Nearby(Place(s0.name, s0.brand, s0.pos), pr.first, if (s0.motorway) "Motorway services" else "", price.pence, detour(pr.second), true)
                         }
                     }
-                    if (out.isEmpty() && hasKey && online()) {
+                    // outside the UK: the country's own price service, at a few points along the middle of the trip
+                    val cc = detectedCountry.uppercase()
+                    if (out.isEmpty() && cc != "GB" && EuFuel.supported(cc, prefs) && EuFuel.hasFuel(cc, fuel) && online()) {
+                        for (s0 in EuFuel.along(cc, prefs, RouteExtras.line(r, a, b, 1500.0, 45), fuel, maxAsks = 5)) {
+                            val pr = RouteExtras.project(r, s0.pos, 1200.0) ?: continue
+                            if (pr.first !in a..b) continue
+                            out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first, "", s0.cents, detour(pr.second), true, unit = "€")
+                        }
+                    }
+                    if (out.isEmpty() && hasKey && online() && fuel != "E85") {
                         val line = RouteExtras.line(r, a, b, 800.0, 140)
                         for ((n, secs) in TomTomRest.poiAlong(apiKey, "fuel", line, 600)) {
                             val pr = RouteExtras.project(r, n.place.pos, 3000.0) ?: continue
@@ -3782,6 +3879,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     // zebra and other marked crossings on the route, painted on the road
                     map.setCrossings(if (prefs.b(PreferenceKeys.ZEBRAS, true)) pl.hz.filter { it.poi.kind == "crossing" && it.poi.name in setOf("zebra", "marked", "uncontrolled") }
                         .take(300).map { Triple(it.poi.pos, pointAt(r, it.off).second, it.poi.name == "zebra") } else emptyList())
+                    // stop signs on the route
+                    map.setStopSigns(if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) pl.hz.filter { it.poi.kind == "stop" }.take(300).map { it.poi.pos } else emptyList())
                 } catch (e: Exception) { placedSig = sig } finally { placing = false }
             }
         }
@@ -3853,6 +3952,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
 
+        // stop signs on the route just ahead: a short chime and a pill (Settings > Junctions and lanes > Stop signs)
+        if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) for (h in pl.hz) {
+            if (h.poi.kind != "stop") continue
+            val ahead = h.off - progress
+            if (ahead < 0.0 || ahead > max(80.0, sp * 6.0)) continue
+            val key = "stop${Math.round(h.poi.pos.lat * 1e5)},${Math.round(h.poi.pos.lon * 1e5)}"
+            if (!hzAlerted.add(key)) continue
+            chime(android.media.ToneGenerator.TONE_PROP_ACK)
+            raiseAlert("stop", "Stop sign ahead", 4000)
+        }
+
         // level crossings and fords just ahead: a sign and a spoken warning
         if (prefs.b(PreferenceKeys.RAILFORD, true)) for (h in pl.hz) {
             if (h.poi.kind != "rail" && h.poi.kind != "ford") continue
@@ -3867,7 +3977,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // speed bumps and schools just ahead
         for (h in pl.hz) {
             val ahead = h.off - progress
-            if (ahead < 0.0 || ahead > 320.0 || h.poi.kind == "crossing" || h.poi.kind == "rail" || h.poi.kind == "ford") continue
+            if (ahead < 0.0 || ahead > 320.0 || h.poi.kind == "crossing" || h.poi.kind == "rail" || h.poi.kind == "ford" || h.poi.kind == "stop") continue
             val key = "${h.poi.kind}${Math.round(h.poi.pos.lat * 1e5)},${Math.round(h.poi.pos.lon * 1e5)}"
             if (h.poi.kind == "bump") {
                 if (prefs.b(PreferenceKeys.BUMPS, true) && sp > 6.7 && ahead < max(70.0, sp * 6.0) && now - lastBumpAt > 25_000L && hzAlerted.add(key)) {
