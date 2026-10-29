@@ -123,15 +123,17 @@ fun AlertSign(a: AlertInfo, size: Dp) {
             "stop" -> {
                 // a red octagon with a white rim and STOP across it
                 androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+                    // (the canvas's own size: the badge's [size] parameter has the same name)
+                    val cx = this.size.width / 2f; val cy = this.size.height / 2f
                     fun oct(r: Float) = androidx.compose.ui.graphics.Path().apply {
                         for (i in 0 until 8) {
                             val a = Math.toRadians(22.5 + 45.0 * i)
-                            val x = size.width / 2f + r * Math.cos(a).toFloat(); val y = size.height / 2f + r * Math.sin(a).toFloat()
+                            val x = cx + r * Math.cos(a).toFloat(); val y = cy + r * Math.sin(a).toFloat()
                             if (i == 0) moveTo(x, y) else lineTo(x, y)
                         }
                         close()
                     }
-                    val r = size.minDimension / 2f
+                    val r = this.size.minDimension / 2f
                     drawPath(oct(r), Color.White)
                     drawPath(oct(r * 0.86f), Color(0xFFC8102E))
                 }
