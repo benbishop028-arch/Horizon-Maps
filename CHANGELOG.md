@@ -45,6 +45,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 ### Fixed
 - Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
 - Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.
+- Android Auto trip card on wide screens: it no longer stretches right across a very wide car screen with its sound and end-route buttons hidden under Android Auto's own buttons; it's now just as wide as its figures and buttons.
 
 ### Improved
 - Arrow centred in the clear map: when you're not navigating, your arrow sits in the middle of the map between the search panel and the buttons, instead of dead centre behind them.

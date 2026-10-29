@@ -373,7 +373,13 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
     val e = engine.eta ?: return
     val c = LocalVw.current
     val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
-    val w = if (fill) Modifier.fillMaxWidth() else Modifier.width(400.dp)
+    // the card is as wide as its figures and buttons (at least 400dp), never the whole screen: the figures used to share a row that
+    // was told to fill the space, so on a very wide car screen the card stretched right across and its sound and end buttons ended
+    // up under Android Auto's own buttons on the right. The route bar is set to the row's measured width (it can't be asked for
+    // its natural width).
+    var rowW by remember { mutableStateOf(0) }
+    val dens = LocalDensity.current
+    val w = if (fill) Modifier.fillMaxWidth() else Modifier.width(if (rowW > 0) with(dens) { rowW.toDp() } else 400.dp)
     Column((if (fill) Modifier.fillMaxWidth() else Modifier).panel(10.dp, RoundedCornerShape(22.dp), c.surface)) {
         // a slim bar: the full-height one took up nearly half the card
         if (engine.showRouteBar) RouteBar(engine, w.padding(start = 16.dp, end = 16.dp, top = 6.dp), thin = true)
@@ -392,16 +398,20 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
                 androidx.compose.material3.Icon(engine.soundIcon(), null, tint = if (sm == 0) c.text else tint, modifier = Modifier.size(sz * 0.52f))
             }
         }
-        Row((if (fill) Modifier.fillMaxWidth() else Modifier.widthIn(min = 400.dp)).padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically) {
-            Row(Modifier.weight(1f), horizontalArrangement = if (fill) Arrangement.SpaceBetween else Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                CarStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "left", dc)
-                CarStat(e.arrive, "arrive", c.text)
-                CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
-                engine.evArrivalPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
-            }
-            Box(Modifier.padding(start = 12.dp)) { sound(if (fill) 36.dp else 40.dp) }
-            Box(Modifier.padding(start = 8.dp)) { end(if (fill) 36.dp else 40.dp) }
+        val stats: @Composable () -> Unit = {
+            CarStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "left", dc)
+            CarStat(e.arrive, "arrive", c.text)
+            CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
+            engine.evArrivalPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
+        }
+        if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
+            Box(Modifier.padding(start = 12.dp)) { sound(36.dp) }
+            Box(Modifier.padding(start = 8.dp)) { end(36.dp) }
+        } else Row(Modifier.widthIn(min = 400.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
+            Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { sound(40.dp); end(40.dp) }
         }
     }
 }
