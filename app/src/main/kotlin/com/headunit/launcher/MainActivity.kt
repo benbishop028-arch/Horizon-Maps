@@ -219,7 +219,6 @@ private fun NoGlesPage(gl: Int) {
     }
 }
 
-@androidx.compose.runtime.Composable
 /**
  * Notes this start and, if the last start never got going (see onCreate), turns the map down. Returns 0 (normal), 1 (heavy
  * features off) or 2 (map on Lightest as well). Only ever turns things down, and only after repeated failures.
@@ -241,6 +240,7 @@ private fun safeStart(boot: android.content.SharedPreferences, prefs: Prefs): In
     return 1
 }
 
+@androidx.compose.runtime.Composable
 private fun StartupCrashPage(report: String, onRetry: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val bg = androidx.compose.ui.graphics.Color(0xFF15171C)
