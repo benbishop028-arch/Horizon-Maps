@@ -124,7 +124,6 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val dens = LocalDensity.current
         val cardScale = engine.prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).coerceIn(70, 150) / 100f
         val buttonScale = engine.prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
-        val arrowScale = engine.prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f
         val requestedSpeedScale = engine.prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).coerceIn(40, 180) / 100f
         // Conservative auto-fit for the compact layout; the edge-positioned layout applies a second fit to its exact bounds.
         val speedScale = requestedSpeedScale * minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
@@ -205,10 +204,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
             .onSizeChanged { turnH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
+                // (the car's "Navigation arrow size" is the arrow on the map, as on the phone: CarNav applies it there)
                 CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    CompositionLocalProvider(LocalDensity provides Density(dens.density * arrowScale, dens.fontScale)) {
-                        ImmTurnCard(engine, t, compact = compact)
-                    }
+                    ImmTurnCard(engine, t, compact = compact)
                 }
                 if (!compact) engine.advice?.let { AdvicePill(it) }
             }

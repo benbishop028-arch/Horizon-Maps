@@ -227,6 +227,15 @@ fun MapHost(map: MapBinding, modifier: Modifier = Modifier, cornerDp: Int = 0) {
     }
 }
 
+/** How far round a roundabout's exit is from the road you came in on (0 ahead, 90 right, -90 left), or NaN when unknown. */
+fun roundaboutTurn(inBearing: Double, outBearing: Double): Float {
+    if (inBearing < 0.0 || outBearing < 0.0) return Float.NaN
+    var d = (outBearing - inBearing) % 360.0
+    if (d > 180.0) d -= 360.0
+    if (d <= -180.0) d += 360.0
+    return d.toFloat()
+}
+
 /** Turn arrow drawn from the manoeuvre name (no image assets needed). */
 @Composable
 fun ManeuverArrow(
@@ -236,6 +245,8 @@ fun ManeuverArrow(
     color: Color = Color.White,
     roundaboutExit: Int = 0,
     roundaboutClockwise: Boolean = true,
+    /** The real exit direction at a roundabout (degrees, 0 ahead, 90 right), when the route data has it. */
+    exitAngle: Float = Float.NaN,
 ) {
     Canvas(modifier) {
         val s = size.minDimension / 48f
@@ -273,35 +284,32 @@ fun ManeuverArrow(
             return@Canvas
         }
         if (u.startsWith("ROUNDABOUT")) {
-            // Draw the actual exit number, not a generic left/right arrow. Traffic keeps left
-            // in the UK/Australia/Japan etc (clockwise around the ring on screen); it keeps
-            // right in the US/most of continental Europe (anticlockwise around the ring).
+            // The ring with the road you come in on (bottom) and the exit you take, drawn in the direction the real exit
+            // points ([exitAngle] from the route's road bearings when known, otherwise the manoeuvre's left/right/ahead).
+            // The highlighted arc follows the traffic: clockwise where people keep left (UK), anticlockwise elsewhere.
+            // (The exit's number isn't used for the direction: a "2nd exit" can point anywhere, depending on the roundabout.)
             val cx = 24f; val cy = 25f; val rr = 8f
             val ringRect = Rect(Offset((cx - rr) * s, (cy - rr) * s), Size(rr * 2f * s, rr * 2f * s))
             val ringStroke = Stroke(width = 3.5f * s, cap = StrokeCap.Round)
-            drawCircle(color.copy(alpha = 0.25f), rr * s, p(cx, cy), style = ringStroke)
+            drawCircle(color.copy(alpha = 0.3f), rr * s, p(cx, cy), style = ringStroke)
             drawLine(color, p(24f, 46f), p(24f, cy + rr), sw, StrokeCap.Round)
-            if (roundaboutExit > 0) {
-                val direction = if (roundaboutClockwise) 1f else -1f
-                val sweep = direction * (90f * roundaboutExit.coerceIn(1, 4))
-                drawArc(color, 90f, sweep, false, ringRect.topLeft, ringRect.size, style = Stroke(width = 3.5f * s, cap = StrokeCap.Round))
-                val endDeg = Math.toRadians((90f + sweep).toDouble())
-                val dx = kotlin.math.cos(endDeg).toFloat()
-                val dy = kotlin.math.sin(endDeg).toFloat()
-                val sx = cx + dx * rr; val sy = cy + dy * rr
-                val ex = cx + dx * (rr + 10f); val ey = cy + dy * (rr + 10f)
-                drawLine(color, p(sx, sy), p(ex, ey), sw, StrokeCap.Round)
-                val tip = p(ex + dx * 5f, ey + dy * 5f)
-                val px = -dy; val py = dx
-                val h1 = p(ex - dx * 3f + px * 4.5f, ey - dy * 3f + py * 4.5f)
-                val h2 = p(ex - dx * 3f - px * 4.5f, ey - dy * 3f - py * 4.5f)
-                drawPath(Path().apply { moveTo(tip.x, tip.y); lineTo(h1.x, h1.y); lineTo(h2.x, h2.y); close() }, color)
-            } else {
-                val ar = Math.toRadians(angle.toDouble())
-                val dx = sin(ar).toFloat(); val dy = -cos(ar).toFloat()
-                val ex = cx + dx * (rr + 11f); val ey = cy + dy * (rr + 11f)
-                drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
-            }
+            val turn = if (exitAngle.isFinite()) exitAngle else angle
+            // screen angle of the exit on the ring (0 = right, 90 = down, where you come in)
+            val exitDeg = turn - 90f
+            fun wrap(d: Float) = ((d % 360f) + 360f) % 360f
+            var sweep = if (roundaboutClockwise) wrap(exitDeg - 90f) else -wrap(90f - exitDeg)
+            if (kotlin.math.abs(sweep) < 25f) sweep = if (roundaboutClockwise) 335f else -335f // all the way round
+            drawArc(color, 90f, sweep, false, ringRect.topLeft, ringRect.size, style = ringStroke)
+            val endDeg = Math.toRadians((90f + sweep).toDouble())
+            val dx = kotlin.math.cos(endDeg).toFloat()
+            val dy = kotlin.math.sin(endDeg).toFloat()
+            val ex = cx + dx * (rr + 10f); val ey = cy + dy * (rr + 10f)
+            drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
+            val tip = p(ex + dx * 5f, ey + dy * 5f)
+            val px = -dy; val py = dx
+            val h1 = p(ex - dx * 3f + px * 4.5f, ey - dy * 3f + py * 4.5f)
+            val h2 = p(ex - dx * 3f - px * 4.5f, ey - dy * 3f - py * 4.5f)
+            drawPath(Path().apply { moveTo(tip.x, tip.y); lineTo(h1.x, h1.y); lineTo(h2.x, h2.y); close() }, color)
             return@Canvas
         }
         val r = Math.toRadians(angle.toDouble())

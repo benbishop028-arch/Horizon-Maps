@@ -3079,13 +3079,24 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         try { if (name.isNotBlank()) roadView.setImageBitmap(roadBitmap(name)) } catch (e: Exception) { }
         placeLocator()
     }
-    /** The map itself is no longer capped separately: the glide already limits how often the camera moves, and a second cap on top of it makes frames arrive unevenly (judder). */
+
+    /** Recolours the other-route lines straight away when the colour is changed in Settings (the style itself is only built once). */
+    fun setAltColour(hex: String) {
+        val c = try { android.graphics.Color.parseColor(hex); hex } catch (e: Exception) { return }
+        main0.post {
+            val st = style ?: return@post
+            for (id in listOf("dl-alts-line", "dl-live-alts-line")) try {
+                if (st.styleLayerExists(id)) st.setStyleLayerProperty(id, "line-color", Value.valueOf(c))
+            } catch (e: Throwable) { }
+        }
+    }
+
     /**
      * The map only redraws when something on it changes, and while following you that's the camera, which the engine moves on a steady
      * beat set by Settings > Display > Frame rate. The map itself is left free to draw each of those updates the moment it arrives: capping
      * it at the same rate made it drop the odd update (its timer and the screen's never line up exactly), which looked jumpy.
      */
-    fun setMaxFps(n: Int) { try { mapView.setMaximumFps(NavigationPolicy.mapFrameLimit(n)) } catch (e: Exception) { } }
+    fun setMaxFps(n: Int) { try { mapView.setMaximumFps(60) } catch (e: Exception) { } } // (deliberately not [n]: see above)
 
     private var doneEmpty = true
 

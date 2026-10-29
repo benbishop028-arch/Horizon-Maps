@@ -368,8 +368,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // ---- speed limit and speedometer. When the mirrored layout puts this cluster on the left edge,
         // keep it on the right instead: the outer-left edge is often obscured by the dashboard bezel.
         if (!previewing) Box(
-            Modifier.align(if (mir) Alignment.BottomEnd else Alignment.BottomEnd)
-                .padding(end = if (mir) 28.dp else 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
+            // (mirrored, the trip card is bottom right too, so the speed sits just above it rather than on top of it)
+            Modifier.align(Alignment.BottomEnd)
+                .padding(end = if (mir) 28.dp else 16.dp, bottom = if ((narrow || mir) && tripPx > 0) tripH + 4.dp else 16.dp)
         ) {
             val baseSpeedDensity = LocalDensity.current
             val speedSize = engine.prefs.i(PreferenceKeys.MAIN_SPEED_SIZE, 100).coerceIn(60, 180) / 100f
@@ -730,7 +731,7 @@ internal fun ImmTurnCard(engine: NavEngine, t: com.headunit.launcher.TurnInfo, c
     ) {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored)
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
             Column(Modifier.padding(start = if (compact) 9.dp else 16.dp).weight(1f)) {
                 RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, if (compact) 28.sp else 38.sp, fontWeight = FontWeight.Bold)
                 val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit"))
@@ -759,7 +760,9 @@ internal fun ImmTurnCard(engine: NavEngine, t: com.headunit.launcher.TurnInfo, c
             maneuverUpper.contains("OFF_RAMP") ||
             maneuverUpper == "TAKE_EXIT" ||
             maneuverUpper.startsWith("MOTORWAY_EXIT")
-        if (exitLike) {
+        // Only when the UK road sign below isn't shown: it already carries the exit, and the same thing twice on the card is clutter.
+        val signShown = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit"))
+        if (exitLike && !signShown && !maneuverUpper.startsWith("ROUNDABOUT")) {
             val exitLabel = t.exitNo.ifBlank {
                 t.tag.replaceFirst(Regex("^Exit\\s*", RegexOption.IGNORE_CASE), "").trim().takeIf { it.isNotBlank() }.orEmpty()
             }

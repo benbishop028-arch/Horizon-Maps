@@ -656,7 +656,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
                 if (u != null && !engine.updateBusy) SButton("Update to ${u.version}", primary = true) { engine.installAppUpdate() }
                 else SButton(if (engine.updateBusy) "Updating…" else "Check now") { engine.checkForUpdate(manual = true) }
             }
-            SToggle(prefs, "Look for updates by itself", "updcheck", true, "About twice a day, when there's a connection")
+            SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
         }
         SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
         var feedback by remember { mutableStateOf(false) }

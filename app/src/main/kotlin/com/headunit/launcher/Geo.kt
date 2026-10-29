@@ -519,10 +519,9 @@ object TomTomRest {
             var man = snake(i.optString("maneuver", "STRAIGHT"))
             val rx = i.optInt("roundaboutExitNumber", 0)
             if (i.optString("junctionType").equals("ROUNDABOUT", true) && !man.startsWith("ROUNDABOUT") && !man.startsWith("ARRIVE")) {
-                // A turn angle describes the exit direction, not an instruction to turn before entering
-                // the roundabout. Use the roundabout symbol and the provider's exit number instead of
-                // misleadingly showing a normal left/right-turn arrow on the approach.
-                man = "ROUNDABOUT_CROSS"
+                // These are all drawn as a roundabout (never a plain turn arrow): the angle just says which way the exit points
+                val ang = i.optDouble("turnAngleInDecimalDegrees", 0.0)
+                man = if (ang > 135 || ang < -135) "ROUNDABOUT_BACK" else if (ang > 25) "ROUNDABOUT_RIGHT" else if (ang < -25) "ROUNDABOUT_LEFT" else "ROUNDABOUT_CROSS"
             }
             Step(
                 if (i.has("routeOffsetInMeters")) i.getDouble("routeOffsetInMeters") else i.optDouble("offsetInMeters", 0.0),

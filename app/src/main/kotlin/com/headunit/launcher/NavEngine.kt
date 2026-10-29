@@ -1143,7 +1143,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Guards the check before its coroutine is launched, preventing overlapping lifecycle/network callbacks. */
     @Volatile private var updateCheckInFlight = false
 
-    /** Check on every launch/resume. Network work runs on IO and duplicate overlapping checks are suppressed. */
+    /** When the last automatic app / map-data checks ran (opening the app, or the connection coming back). */
+    private var lastAutoUpdateCheck = 0L
+    private var lastAutoDataCheck = 0L
+    /** Automatic checks run at most this often: the head unit opens and resumes the app, and drops and regains its
+     *  connection, many times a drive, and each check is network work (GitHub also limits how often it can be asked). */
+    private val autoCheckGapMs = 30 * 60_000L
+
+    /** Check when the app is opened or resumed (at most every half hour). Network work runs on IO. */
     fun onOpened() {
         if (!online()) return
         checkForUpdate()
@@ -1153,8 +1160,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Synchronized
     fun checkForUpdate(manual: Boolean = false) {
         if (!Updater.enabled || updateBusy || updateCheckInFlight) return
-        updateCheckInFlight = true
         val now = System.currentTimeMillis()
+        if (!manual) {
+            // "Look for updates by itself" switched off in Settings: only the Check button looks
+            if (!prefs.b(PreferenceKeys.UPDCHECK, true)) return
+            if (now - lastAutoUpdateCheck < autoCheckGapMs) return
+            lastAutoUpdateCheck = now
+        }
+        updateCheckInFlight = true
         if (manual) updateStatus = "Checking…"
         scope.launch {
             val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = "Couldn't check: no connection"; return@launch } finally { updateCheckInFlight = false }
@@ -1175,6 +1188,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun checkDataUpdates() {
         if (packBusy) return
+        val nowMs = System.currentTimeMillis()
+        if (nowMs - lastAutoDataCheck < autoCheckGapMs) return
+        lastAutoDataCheck = nowMs
         val snoozed = (prefs.s(PreferenceKeys.DATASNOOZE, "0").toLongOrNull() ?: 0L) > System.currentTimeMillis()
         if (snoozed) return
         scope.launch {
@@ -2387,6 +2403,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Zoom that adapts: closer when a turn is near or the destination is close, wider on fast roads with a long way to go. */
     private var smoothZ = 0.0
+    private var smoothZAt = 0L
     // Start each app session with a slightly wider overview. Once real movement is detected,
     // hand control back to the existing speed-based zoom curve for the rest of the session.
     private var hasDetectedMovement = false
@@ -2446,13 +2463,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             top = 18.2
         }
         if (navigating && closeF > 0.0) { z = max(z, 17.5 + 0.35 * closeF); top = max(top, 18.2) }
-        // Two zoom-out button steps (~0.8 zoom levels) on first opening only. As soon as
-        // movement is detected, the existing automatic zoom settings take over unchanged.
-        val initialOverviewOffset = if (hasDetectedMovement) 0.0 else 0.8
-        val target = (z - (if (navigating) 0.45 else 0.15) - initialOverviewOffset)
+        // (the first-open overview zoom-out is applied once, in followCamera; applying it here too doubled it)
+        val target = (z - (if (navigating) 0.45 else 0.15))
             .coerceIn(if (navigating) 13.5 else 14.6, top - 0.3)
-        // Dampen automatic zoom changes to prevent the camera pulsing in and out around junctions.
-        smoothZ = NavigationPolicy.smoothZoom(smoothZ, target)
+        // Dampen automatic zoom changes to prevent the camera pulsing in and out around junctions. The limit is per
+        // second rather than per GPS fix: at one fix a second a fixed 0.1 step took 10+ seconds to zoom in for a turn.
+        val dt = if (smoothZAt == 0L) 1.0 else ((now - smoothZAt) / 1000.0).coerceIn(0.05, 2.0)
+        smoothZAt = now
+        smoothZ = NavigationPolicy.smoothZoom(smoothZ, target, maxStep = 0.6 * dt)
         return smoothZ
     }
 

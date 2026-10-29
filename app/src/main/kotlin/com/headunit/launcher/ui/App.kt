@@ -129,6 +129,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(logoCorner) { map.setLogoCorner(logoCorner) }
     val hideTraffic = prefs.b(PreferenceKeys.ROUTETRAFFICONLY, true)
     LaunchedEffect(hideTraffic) { map.setHideOtherTraffic(hideTraffic) }
+    val altColour = prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")
+    LaunchedEffect(altColour) { map.setAltColour(altColour) }
     val arrowPct = prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240
     val mainArrowScale = prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).coerceIn(60, 180) / 100f
     LaunchedEffect(arrowPct, mainArrowScale) { map.setArrowScale(arrowPct / 100f * mainArrowScale) }

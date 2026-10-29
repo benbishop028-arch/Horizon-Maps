@@ -57,7 +57,9 @@ android {
         create("public") {
             dimension = "key"
             applicationIdSuffix = ".public"
-            buildConfigField("String", "TOMTOM_API_KEY", "\"$escapedTomtomApiKey\"")
+            // No TomTom key is ever built into the app: anyone can pull it out of a shared APK and run up the bill on it.
+            // People paste their own in Settings > Data (or the app uses Mapbox).
+            buildConfigField("String", "TOMTOM_API_KEY", "\"\"")
             buildConfigField("String", "DEFAULT_MAP", "\"mapbox\"")
             // where the build's "publish" option puts new versions (the "app" release); the app checks it for updates
             buildConfigField("String", "UPDATE_REPO", "\"benbishop028-arch/Horizon-Maps\"")
