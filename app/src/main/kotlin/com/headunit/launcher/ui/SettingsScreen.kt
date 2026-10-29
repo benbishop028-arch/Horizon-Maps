@@ -874,6 +874,11 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
 private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     val ctx = LocalContext.current
     val pkg = android.net.Uri.parse("package:" + ctx.packageName)
+    var donating by remember { mutableStateOf(false) }
+    if (donating) DonateDialog(LocalVw.current.dark) { donating = false }
+    SGroup("Support Horizon Nav") {
+        SItem("Donate", "Free, no ads. Donations help keep it going (PayPal)") { SButton("Donate", primary = true) { donating = true } }
+    }
     SGroup("Horizon Nav") {
         SItem("Version", BuildConfig.VERSION_NAME)
         if (com.headunit.launcher.Updater.enabled) {

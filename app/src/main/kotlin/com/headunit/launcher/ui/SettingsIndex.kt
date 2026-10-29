@@ -164,6 +164,7 @@ internal val settingsIndex = listOf(
     SettingRef("TomTom API key", "", "Map accounts", 13),
     SettingRef("Mapbox access token", "", "Map accounts", 13),
     SettingRef("Use", "", "Routes, search and traffic", 13),
+    SettingRef("Donate", "Support Horizon Nav: donate with PayPal", "Support Horizon Nav", 14),
     SettingRef("Version", "", "Horizon Nav", 14),
     SettingRef("Check for updates", "", "Horizon Nav", 14),
     SettingRef("Look for updates by itself", "When the app opens and there's a connection (at most every half hour)", "Horizon Nav", 14),

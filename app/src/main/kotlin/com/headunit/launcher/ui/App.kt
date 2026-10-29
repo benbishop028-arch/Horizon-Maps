@@ -86,6 +86,19 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         }
     }
     LaunchedEffect(Unit) { while (true) { delay(60_000); nowMs = System.currentTimeMillis() } }
+    // the donate card: once, the first time the app is open a day or more after it was installed. Never while you're moving (it
+    // waits until you've stopped), and not over the What's new card. (The car screen never shows it.)
+    var donateVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (prefs.b(PreferenceKeys.DONATE_SHOWN, false)) return@LaunchedEffect
+        val installed = try { appCtx.packageManager.getPackageInfo(appCtx.packageName, 0).firstInstallTime } catch (e: Exception) { 0L }
+        if (installed <= 0L || System.currentTimeMillis() - installed < 24L * 3600_000L) return@LaunchedEffect
+        delay(20_000)   // let the map settle first
+        while (true) {
+            if (!whatsNewVisible && (engine.fix?.speed ?: 0.0) < 2.0) { donateVisible = true; break }
+            delay(15_000)
+        }
+    }
     // the head unit has switched to its night mode at least once (so it links night mode to the headlights): noted for "Headlights"
     val sysDark = rememberSystemNight()
     LaunchedEffect(sysDark) { if (sysDark && !prefs.b(PreferenceKeys.SYSDARKSEEN, false)) prefs.put(PreferenceKeys.SYSDARKSEEN, true) }
@@ -300,6 +313,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
             }
         }
     }
+    if (donateVisible) DonateDialog(dark) { prefs.put(PreferenceKeys.DONATE_SHOWN, true); donateVisible = false }
     if (whatsNewVisible) {
         // Follow the app's active day/night palette so the update card stays readable in both modes.
         val updatePalette = if (dark) DarkVw else LightVw

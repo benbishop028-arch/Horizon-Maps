@@ -159,6 +159,8 @@ internal object PreferenceKeys {
     const val QUICKLIST = "quicklist"
     /** The map in 3D (true) or flat 2D: remembered between drives, and shared by the phone / head unit and Android Auto. */
     const val VIEW_3D = "view3d"
+    /** The donate card has been shown (it's shown once, a day or more after install). */
+    const val DONATE_SHOWN = "donateshown"
     const val RAILFORD = "railford"
     const val REPORTS = "reports"
     const val RESUME = "resume"
