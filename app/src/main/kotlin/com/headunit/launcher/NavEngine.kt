@@ -1033,6 +1033,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · driving side: ${if (mirrored) "left-hand" else "right-hand"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
+            if (laneDiag.isNotBlank()) appendLine(laneDiag)
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -4364,9 +4365,24 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (hdTries < 8 && now - hdAskAt > 3000L && d < 700.0) {
                 hdAskAt = now; hdTries++
                 val askOff = cur.off
-                val (q, qb) = pointAt(r, max(0.0, cur.off - 30.0))
-                map.laneCentresAt(q, qb) { offs ->
-                    if (offs != null && offs.size >= 2 && hdTriesFor == askOff) { hdLanes = offs; hdLanesFor = askOff; laneKey = null }
+                val nLanes = sec?.lanes?.size ?: 0
+                // several places across the approach: close to the junction the exit lanes have often already split off behind
+                // the hatched area, so the lanes are looked at further back too, and followed from one place to the next
+                val backs = listOf(150.0, 120.0, 90.0, 60.0, 35.0, 15.0).filter { cur.off - it > 0.0 }
+                map.laneCentresAlong(backs.map { pointAt(r, cur.off - it) }) { res, lines ->
+                    if (hdTriesFor != askOff) return@laneCentresAlong
+                    val prof = ArrayList<Pair<Double, List<Double>>>()
+                    res?.forEachIndexed { k, offs -> pickLaneWindow(offs, nLanes)?.let { prof += (askOff - backs[k]) to it } }
+                    laneDiag = when {
+                        res == null -> "Lane data: the junction isn't on screen yet"
+                        lines == 0 -> "Lane data: no HD lanes from Mapbox here (lanes laid out from the road's line)"
+                        prof.isEmpty() -> "Lane data: HD lanes found ($lines lines) but they didn't match the $nLanes lanes listed (found " + res.joinToString(", ") { it.size.toString() } + " across the road)"
+                        else -> "Lane data: HD lanes lined up at ${prof.size} of ${backs.size} points along the approach"
+                    }
+                    if (res != null && (prof.size >= 3 || hdTries >= 8) && laneDiagFor != askOff && prefs.b(PreferenceKeys.DEMO, false)) { laneDiagFor = askOff; toast(laneDiag, 5000) }
+                    // a better read (more places matched) replaces the last; it keeps looking until at least 3 places match
+                    if (prof.isNotEmpty() && (hdProfileFor != askOff || prof.size > hdProfile.size)) { hdProfile = prof.sortedBy { it.first }; hdProfileFor = askOff; laneKey = null }
+                    if (prof.size >= 3) hdLanesFor = askOff
                 }
             }
         }
@@ -4406,11 +4422,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else (n - 1) / 2.0
         // each lane's middle and edges, sideways from the route line (metres, + to the right): the real ones read off the map when
         // they match the lane list, else laid out at standard widths as described above
-        val hd = if (hdLanesFor == cur.off) pickLaneWindow(hdLanes, n) else null
-        val lat = DoubleArray(n) { i -> hd?.get(i) ?: (i - centre) * laneW }
-        val leftE = DoubleArray(n) { i -> if (hd == null) lat[i] - laneW / 2 else if (i > 0) (lat[i - 1] + lat[i]) / 2 else lat[0] - (lat[1] - lat[0]) / 2 }
-        val rightE = DoubleArray(n) { i -> if (hd == null) lat[i] + laneW / 2 else if (i < n - 1) (lat[i] + lat[i + 1]) / 2 else lat[n - 1] + (lat[n - 1] - lat[n - 2]) / 2 }
-        val lined = aligned || hd != null
+        val prof = if (hdProfileFor == cur.off) hdProfile.filter { it.second.size == n } else emptyList()
+        val lined = aligned || prof.isNotEmpty()
+        // each lane's middle at [o] metres along the route: from the real lanes (in between the places they were read, and held
+        // at the first / last beyond them), else the standard layout
+        fun mids(o: Double): DoubleArray {
+            if (prof.isEmpty()) return DoubleArray(n) { i -> (i - centre) * laneW }
+            if (o <= prof.first().first) return prof.first().second.toDoubleArray()
+            if (o >= prof.last().first) return prof.last().second.toDoubleArray()
+            val k = prof.indexOfLast { it.first <= o }
+            val (oa, a) = prof[k]; val (ob, b) = prof[k + 1]
+            val t = if (ob > oa) (o - oa) / (ob - oa) else 0.0
+            return DoubleArray(n) { i -> a[i] + (b[i] - a[i]) * t }
+        }
+        fun leftE(m: DoubleArray, i: Int) = if (prof.isEmpty()) m[i] - laneW / 2 else if (i > 0) (m[i - 1] + m[i]) / 2 else m[0] - (m[1] - m[0]) / 2
+        fun rightE(m: DoubleArray, i: Int) = if (prof.isEmpty()) m[i] + laneW / 2 else if (i < n - 1) (m[i] + m[i + 1]) / 2 else m[n - 1] + (m[n - 1] - m[n - 2]) / 2
         fun shifted(p: LL, brg: Double, lateral: Double): LL {
             val rad = Math.toRadians(brg + 90.0)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
@@ -4420,8 +4446,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val off = cur.off - back
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
+            val m = mids(off)
             sec.lanes.forEachIndexed { i, lane ->
-                val at = shifted(p, brg, lat[i])
+                val at = shifted(p, brg, m[i])
                 val active = i in activeIdx
                 lane.dirs.forEach { dir ->
                     val hit = active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))
@@ -4439,22 +4466,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val divs = ArrayList<MapBinding.LaneEdge>()
         if (to - from > 20.0) {
             val samples = ArrayList<Pair<LL, Double>>()
+            val sampleMids = ArrayList<DoubleArray>()
             var o = from
-            while (o < to) { samples += pointAt(r, o); o += 10.0 }
-            samples += pointAt(r, to)
+            while (o < to) { samples += pointAt(r, o); sampleMids += mids(o); o += 10.0 }
+            samples += pointAt(r, to); sampleMids += mids(to)
             val last = samples.size - 1
             for (i in 0 until n) {
                 // cut into short pieces so the ribbon can fade in softly at its start
                 for (k in 0 until last) {
                     val l = ArrayList<LL>(); val rt = ArrayList<LL>()
-                    for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, leftE[i]); rt += shifted(p, brg, rightE[i]) }
+                    for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, leftE(sampleMids[m], i)); rt += shifted(p, brg, rightE(sampleMids[m], i)) }
                     val a = 0.5 + 0.5 * min(1.0, k / 3.0)
                     bands += MapBinding.LaneBand(l + rt.asReversed(), i in activeIdx, a)
                 }
-                val edge = ArrayList<LL>(); for ((p, brg) in samples) edge += shifted(p, brg, rightE[i])
+                val edge = ArrayList<LL>(); for ((j, sp) in samples.withIndex()) edge += shifted(sp.first, sp.second, rightE(sampleMids[j], i))
                 divs += MapBinding.LaneEdge(edge, i == n - 1)
             }
-            val outer = ArrayList<LL>(); for ((p, brg) in samples) outer += shifted(p, brg, leftE[0])
+            val outer = ArrayList<LL>(); for ((j, sp) in samples.withIndex()) outer += shifted(sp.first, sp.second, leftE(sampleMids[j], 0))
             divs += MapBinding.LaneEdge(outer, true)
         }
         map.setLaneBands(bands, divs)
@@ -4466,18 +4494,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val shift = ArrayList<LL>()
         laneLatAt = null; laneShiftEnd = 0.0
         if (lined && activeIdx.isNotEmpty()) {
-            val mid = activeIdx.map { lat[it] }.average()
+            // the middle of the lit-up lanes, wherever they are along the approach
+            fun midAt(o: Double): Double { val m = mids(o); return activeIdx.map { m[it] }.average() }
+            val mid = midAt(cur.off - 40.0)
             val s0 = max(0.0, max(sec.off, cur.off - 250.0))
             val s1 = min(r.len, cur.off + 25.0)
             // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
             val stripStart = cur.off - 110.0
             val ramp = if (stripStart - s0 >= 20.0) min(60.0, stripStart - s0) else max(10.0, (cur.off - s0) * 0.5)
-            if (Math.abs(mid) > 0.3 && cur.off - s0 > 30.0) {
+            if (maxOf(Math.abs(mid), Math.abs(midAt(cur.off - 100.0)), Math.abs(midAt(cur.off - 10.0))) > 0.3 && cur.off - s0 > 30.0) {
                 val fn: (Double) -> Double = { o ->
                     val inF = ((o - s0) / ramp).coerceIn(0.0, 1.0)
                     val outF = ((s1 - o) / 35.0).coerceIn(0.0, 1.0)     // from 10 m before the junction to 25 m after it
                     val f = minOf(inF, outF)
-                    mid * f * f * (3 - 2 * f)
+                    midAt(min(o, cur.off)) * f * f * (3 - 2 * f)
                 }
                 laneLatAt = fn; laneShiftEnd = s1
                 var o = s0
@@ -4496,7 +4526,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The sideways offset (metres, + to the right) of the route line in the lane you need, by distance along the route; null when none. */
     private var laneLatAt: ((Double) -> Double)? = null
     /** The real lanes' middles (sideways from the route line, left to right) read off the map for the junction at [hdLanesFor]. */
-    private var hdLanes: List<Double> = emptyList()
+    private var hdProfile: List<Pair<Double, List<Double>>> = emptyList()
+    /** What the last look for the real lanes found (for Demo mode and the feedback report). */
+    var laneDiag = ""
+        private set
+    private var laneDiagFor = -1.0
+    private var hdProfileFor = -1.0
     private var hdLanesFor = -1.0
     private var hdTriesFor = -1.0
     private var hdTries = 0

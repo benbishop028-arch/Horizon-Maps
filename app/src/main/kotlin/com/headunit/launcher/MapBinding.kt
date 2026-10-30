@@ -968,21 +968,37 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * sideways from [p] (+ to the right), left to right. [done] gets null when it isn't on screen, there's no HD road there, or the
      * map didn't answer. On the main thread.
      */
-    fun laneCentresAt(p: LL, heading: Double, done: (List<Double>?) -> Unit) {
+    /**
+     * Where the real lanes are (Mapbox's HD lane lines) across the road at each of [samples] (a place and the road's heading
+     * there), in metres from the route line, left to right. One map read covers them all. [done] gets one list per sample (empty
+     * where nothing was found or that place is off screen) and how many lane lines were read, or null when none of the places is
+     * on screen or the map can't be read yet.
+     */
+    fun laneCentresAlong(samples: List<Pair<LL, Double>>, done: (List<List<Double>>?, Int) -> Unit) {
         main0.post {
             val st = style
-            if (st == null || !canQuery() || !st.styleLayerExists("dl-hdq")) { done(null); return@post }
-            val sc = try { mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat)) } catch (e: Throwable) { null }
-            if (sc == null || sc.x < 0 || sc.y < 0 || sc.x > mapView.width || sc.y > mapView.height) { done(null); return@post }
-            val r = 110f * mapView.resources.displayMetrics.density
-            query(RectF((sc.x - r).toFloat(), (sc.y - r).toFloat(), (sc.x + r).toFloat(), (sc.y + r).toFloat()), listOf("dl-hdq"), 2500L) { feats ->
+            if (st == null || samples.isEmpty() || !canQuery() || !st.styleLayerExists("dl-hdq")) { done(null, 0); return@post }
+            val w = mapView.width.toFloat(); val h = mapView.height.toFloat()
+            val onScreen = samples.map { (p, _) ->
+                val sc = try { mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat)) } catch (e: Throwable) { null }
+                sc != null && sc.x >= 0 && sc.y >= 0 && sc.x <= w && sc.y <= h && !sc.x.isNaN()
+            }
+            val pts = samples.indices.filter { onScreen[it] }.mapNotNull { i ->
+                try { mbMap.pixelForCoordinate(Point.fromLngLat(samples[i].first.lon, samples[i].first.lat)) } catch (e: Throwable) { null }
+            }
+            if (pts.isEmpty()) { done(null, 0); return@post }
+            val m = 90f * mapView.resources.displayMetrics.density
+            val box = RectF((pts.minOf { it.x }.toFloat() - m).coerceAtLeast(0f), (pts.minOf { it.y }.toFloat() - m).coerceAtLeast(0f),
+                (pts.maxOf { it.x }.toFloat() + m).coerceAtMost(w), (pts.maxOf { it.y }.toFloat() + m).coerceAtMost(h))
+            query(box, listOf("dl-hdq"), 3000L) { feats ->
+                if (feats == null) { done(null, 0); return@query }
                 val lines = ArrayList<List<LL>>()
-                for (f in feats ?: emptyList()) when (val g = f.geometry()) {
+                for (f in feats) when (val g = f.geometry()) {
                     is LineString -> lines += g.coordinates().map { LL(it.latitude(), it.longitude()) }
                     is MultiLineString -> for (c in g.coordinates()) lines += c.map { LL(it.latitude(), it.longitude()) }
                     else -> { }
                 }
-                done(if (feats == null) null else MapRouteGeometry.laneOffsets(lines, p, heading).takeIf { it.size >= 2 })
+                done(samples.mapIndexed { i, (p, hd) -> if (onScreen[i]) MapRouteGeometry.laneOffsets(lines, p, hd) else emptyList() }, lines.size)
             }
         }
     }
