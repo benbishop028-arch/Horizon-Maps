@@ -507,6 +507,62 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    // ---- the lane sign: an overhead sign standing at the junction, like a motorway gantry, with the lanes to use lit up ----
+    @Volatile private var signAt: LL? = null
+    @Volatile private var signBmp: Bitmap? = null
+    private var signKey = ""
+
+    /**
+     * Shows the lane sign standing on the road at [at] (null hides it). [lanes] is each lane, left to right: its arrows (each
+     * with whether it's the way to go) and whether it's a lane to use. It stays upright and faces you as the map tilts.
+     */
+    fun setLaneSign(at: LL?, lanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>) {
+        val key = if (at == null) "" else "${at.lat},${at.lon}|" + lanes.joinToString(";") { (d, on) -> d.joinToString(",") { "${it.first}${if (it.second) 1 else 0}" } + (if (on) "*" else "") }
+        if (key == signKey) return
+        signKey = key
+        main0.post {
+            val st = style ?: return@post
+            try {
+                if (at != null && lanes.isNotEmpty()) {
+                    val b = laneSignBitmap(lanes)
+                    signBmp = b; signAt = at
+                    addImg(st, "dl-lanesign", b)
+                    src("dl-lanesign")?.featureCollection(FeatureCollection.fromFeatures(listOf(Feature.fromGeometry(Point.fromLngLat(at.lon, at.lat)))))
+                } else {
+                    signAt = null
+                    src("dl-lanesign")?.featureCollection(FeatureCollection.fromFeatures(emptyList()))
+                }
+            } catch (e: Throwable) { }
+        }
+    }
+
+    /** The sign itself: a panel with a white edge, one cell per lane (the ones to use lit), on two posts. */
+    private fun laneSignBitmap(lanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>): Bitmap {
+        val cw = 64; val ch = 80; val pad = 10; val gap = 4; val post = 44
+        val w = pad * 2 + cw * lanes.size + gap * (lanes.size - 1)
+        val ph = ch + pad * 2
+        val bmp = Bitmap.createBitmap(w, ph + post, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        // posts
+        p.color = 0xFF8A949C.toInt()
+        c.drawRect(pad + 6f, ph - 4f, pad + 14f, (ph + post).toFloat(), p)
+        c.drawRect(w - pad - 14f, ph - 4f, w - pad - 6f, (ph + post).toFloat(), p)
+        // panel: dark teal (the turn card's colour) with a white edge
+        val panel = android.graphics.RectF(1.5f, 1.5f, w - 1.5f, ph - 1.5f)
+        p.color = 0xFF1F5E52.toInt(); c.drawRoundRect(panel, 14f, 14f, p)
+        p.style = Paint.Style.STROKE; p.strokeWidth = 3f; p.color = 0xFFFFFFFF.toInt(); c.drawRoundRect(panel, 14f, 14f, p)
+        p.style = Paint.Style.FILL
+        for ((i, lane) in lanes.withIndex()) {
+            val x = pad + i * (cw + gap)
+            val cell = android.graphics.RectF(x.toFloat(), pad.toFloat(), (x + cw).toFloat(), (pad + ch).toFloat())
+            p.color = if (lane.second) 0xFF3FB596.toInt() else 0xFF173F37.toInt()
+            c.drawRoundRect(cell, 9f, 9f, p)
+            for ((d, hit) in lane.first.sortedBy { it.second }) c.drawBitmap(laneBitmap(d, hit && lane.second), x.toFloat(), pad.toFloat(), null)
+        }
+        return bmp
+    }
+
     /** A blue round badge with a white car, for where you parked. */
     private fun parkedBitmap(): Bitmap {
         val n = 112
@@ -1778,6 +1834,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addImg(st, "dl-car-pin", parkedBitmap())
         addS(st, GeoJsonSource.Builder("dl-parked").featureCollection(FeatureCollection.fromFeatures(
             parkedAt?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())).build())
+        signBmp?.let { addImg(st, "dl-lanesign", it) }
+        addS(st, GeoJsonSource.Builder("dl-lanesign").featureCollection(FeatureCollection.fromFeatures(
+            signAt?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())).build())
+        addL(st, SymbolLayer("dl-lanesign-l", "dl-lanesign").iconImage("dl-lanesign").iconAnchor(IconAnchor.BOTTOM)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconSize(zoomed(1.0, 13 to 0.45, 16 to 0.7, 18 to 0.9)))
         addL(st, SymbolLayer("dl-parked-l", "dl-parked").iconImage("dl-car-pin").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(zoomed(1.0, 10 to 0.4, 15 to 0.55, 18 to 0.7)))
         if (im) {

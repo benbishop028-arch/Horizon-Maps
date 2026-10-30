@@ -1689,7 +1689,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         sessionAvoid.clear(); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
-        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
+        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
         tts?.stop()
@@ -4386,9 +4386,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             }
         }
+        // the lane sign goes once you're up to it
+        if (laneSignFor >= 0.0 && curProgress > laneSignFor - 15.0) { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
         if (key == laneKey) return
         laneKey = key
         if (key == null || sec == null) {
+            map.setLaneSign(null, emptyList()); laneSignFor = -1.0
             map.setLanes(emptyList())
             if (laneShiftEnd <= 0.0 || curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0 }
             return
@@ -4422,8 +4425,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else (n - 1) / 2.0
         // each lane's middle and edges, sideways from the route line (metres, + to the right): the real ones read off the map when
         // they match the lane list, else laid out at standard widths as described above
-        val prof = if (hdProfileFor == cur.off) hdProfile.filter { it.second.size == n } else emptyList()
-        val lined = aligned || prof.isNotEmpty()
+        // Lanes are only painted on the road (and the route line moved into them) once the real lanes have been read off the
+        // map and matched at 3 or more places along the approach. Everywhere else a lane sign stands over the road at the junction
+        // instead, like a motorway gantry, so nothing is drawn that might not sit on the painted lanes.
+        val prof = if (hdLanesFor == cur.off && hdProfileFor == cur.off) hdProfile.filter { it.second.size == n } else emptyList()
+        val lined = prof.isNotEmpty()
+        if (!lined && curProgress < cur.off - 15.0) {
+            map.setLaneSign(pointAt(r, max(0.0, cur.off - 10.0)).first, sec.lanes.mapIndexed { i, lane ->
+                val active = i in activeIdx
+                lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
+            })
+            laneSignFor = cur.off
+        } else { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
         // each lane's middle at [o] metres along the route: from the real lanes (in between the places they were read, and held
         // at the first / last beyond them), else the standard layout
         fun mids(o: Double): DoubleArray {
@@ -4442,7 +4455,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
         }
         val marks = ArrayList<MapBinding.LaneMark>()
-        for (back in listOf(28.0, 65.0)) {
+        for (back in if (lined) listOf(28.0, 65.0) else emptyList()) {
             val off = cur.off - back
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
@@ -4464,7 +4477,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
-        if (to - from > 20.0) {
+        if (lined && to - from > 20.0) {
             val samples = ArrayList<Pair<LL, Double>>()
             val sampleMids = ArrayList<DoubleArray>()
             var o = from
@@ -4532,6 +4545,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         private set
     private var laneDiagFor = -1.0
     private var hdProfileFor = -1.0
+    /** The junction the lane sign is standing at (−1 for none). */
+    private var laneSignFor = -1.0
     private var hdLanesFor = -1.0
     private var hdTriesFor = -1.0
     private var hdTries = 0
