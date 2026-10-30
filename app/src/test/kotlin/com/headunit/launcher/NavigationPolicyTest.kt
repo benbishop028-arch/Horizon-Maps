@@ -115,8 +115,8 @@ class NavigationPolicyTest {
         assertEquals(0.0, NavigationPolicy.carViewportZoomOffset(0, 1200, 240), 0.0)
         val compact = NavigationPolicy.carViewportZoomOffset(800, 480, 160)
         val wide = NavigationPolicy.carViewportZoomOffset(2000, 1200, 240)
-        assertTrue(compact in -1.80..-1.00)
-        assertTrue(wide in -1.80..-1.00)
+        assertTrue(compact in -0.90..-0.15)
+        assertTrue(wide in -0.90..-0.15)
         assertTrue(compact < wide)
     }
 }

@@ -7,8 +7,6 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 ## Bugs still open
 
 1. **The whole head unit freezes and restarts on a built-in Android 9 unit (Snapdragon 8155).** *Pending.* The app now spots the unit restarting and steps down to safer drawing. The first step draws the map in the app's own window instead of straight onto the screen. The next feedback report from that unit will show memory and what happened just before the restart. The user has also been asked to try turning off Fast map drawing.
-2. **The in-app update download stops at full size and never finishes.** Two reports from before the update download was reworked. Needs confirming.
-3. **Turn-by-turn voice silent for one user while the speed limit alerts still spoke.** A voice channel setting and a message when the voice fails have been added since. Needs confirming.
 
 ## Features requested
 
@@ -35,6 +33,11 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 
 ## Done (from these requests)
 
+- Trees missing on Android Auto (GitHub #19): the car map is now drawn at close to the phone's zoom.
+- Wrong road name under the arrow (GitHub #20).
+- AAEnabler not finding the update file (GitHub #19): updates are now saved to Downloads for AAEnabler installs.
+- The in-app update download stalling at full size.
+- Turn-by-turn voice silent for one user.
 - Updating no longer takes the app out of Android Auto for AAEnabler installs: the new version is saved to Downloads to install with AAEnabler.
 - Missing 3D buildings: the "keep the road ahead clear" area no longer cuts through buildings. There's no straight line ahead without a route, and the strip along a route is narrower.
 - The old "Search & keys" name on the offline maps page.

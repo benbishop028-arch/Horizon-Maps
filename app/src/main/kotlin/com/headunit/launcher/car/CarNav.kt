@@ -288,7 +288,9 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             // car screens have few pixels per inch for their size: drawn at the phone's own scale the map looked far too zoomed out
             // (and had to draw a huge area, which made it laggy), so it's drawn larger, like the app on a head unit
             val dens = p.context.resources.displayMetrics.density
-            val ratio = (dens * 1.7f).coerceIn(1.6f, 3.2f)
+            // (1.3x, down from 1.7x: with the zoom out that went with it, the car map sat so far out that Mapbox's 3D trees and other
+            // close-up detail never appeared. Now it's drawn at close to the phone's zoom, with text a little smaller than before)
+            val ratio = (dens * 1.3f).coerceIn(1.25f, 2.5f)
             displayDensity = dens
             fitScale()
             // the Mapbox token has to be in place before the map is made. The phone app sets it when it opens, but when Android Auto

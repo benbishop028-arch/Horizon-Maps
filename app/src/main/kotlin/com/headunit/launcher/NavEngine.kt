@@ -1858,16 +1858,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val hd = if (p.speed > 2.0) p.heading else -1.0
                     val r = withContext(Dispatchers.IO) { lookUpLimit(look, hd, routeHere) }
                     if (r != null) {
-                        if (r.wayId != 0L || r.road.isNotBlank()) { limitRoad = r.road; refreshRoad() }; limitFails = 0
+                        if (r.wayId != 0L || r.road.isNotBlank()) noteRoad(r.road, hd); limitFails = 0
                         if (!routeLimitLive()) showLimit(r, p.pos)
                     } else if (Overpass.lastError == null) {
-                        // looked fine, but you're not on a mapped road (a car park, a new estate): no limit rather than the last road's
+                        // looked fine, but you're not on a mapped road (a car park, a new estate): no road name or limit rather than the
+                        // last road's
+                        noteRoad("", hd)
                         if (!routeLimitLive()) showLimit(Overpass.Limit(-1.0, true), p.pos)
                     } else {
                         // keep showing the last known limit through a failed lookup; only drop it once it is clearly out of date (10 minutes or 3 km)
                         val okPos = limitOkPos
                         if (!routeLimitLive() && (System.currentTimeMillis() - limitOkAt > 600_000 || (okPos != null && Geo.dist(okPos, p.pos) > 3000))) { speedLimit = null; limitEstimated = false }
-                        // the lookup itself failed: try again soon instead of waiting until the car has moved
+                        // the lookup itself failed: try again soon instead of waiting until the car has moved (and let an old road name
+                        // drop once it's out of date)
+                        refreshRoad()
                         limitFails++
                         limitPos = null
                         limitAt = System.currentTimeMillis() + minOf(limitFails * 8000L, 60_000L)
@@ -3311,7 +3315,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             updateLaneMarks(r, cur, laneSec, d)
             updateTurnArrow(r, k, cur, d, arriving)
-            onRoad = ins.getOrNull(k - 1)?.street ?: ""
+            // (after an unnamed slip road the step's "street" is the exit sign's text, not a road: the map's own name is used then)
+            onRoad = ins.getOrNull(k - 1)?.let { st -> if (st.exitNo.isNotBlank() || st.maneuver.uppercase().contains("RAMP")) "" else st.street } ?: ""
             refreshRoad()
             // the turn after this one: only when it comes soon after it (about 15 seconds at your speed, and never less than 300 m),
             // unless set to always show or never
@@ -4225,9 +4230,30 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var limitRoad = ""
     private var roadShown = ""
 
+    private var limitRoadAt = 0L
+    private var limitRoadHead = -1.0
+    private var roadCandidate = ""
+
+    /**
+     * A road name from the lookup round you. A different name only shows once a second lookup agrees, or straight away if you've
+     * clearly turned (40 degrees or more), so it no longer jumps to a side road for a moment at junctions. An empty name (no road
+     * found, like a car park) clears it.
+     */
+    private fun noteRoad(name: String, heading: Double) {
+        val now = System.currentTimeMillis()
+        val turned = heading >= 0 && limitRoadHead >= 0 && abs(((heading - limitRoadHead + 540.0) % 360.0) - 180.0) >= 40.0
+        if (name == limitRoad || name.isBlank() || limitRoad.isBlank() || turned || name == roadCandidate) {
+            limitRoad = name; roadCandidate = ""
+            limitRoadAt = now; if (heading >= 0) limitRoadHead = heading
+        } else roadCandidate = name
+        refreshRoad()
+    }
+
     /** Name of the road you are on: from the route while navigating, otherwise from the map data around you. */
     private fun refreshRoad() {
-        val n = Geo.shortRoad(if (route != null && !previewing && onRoad.isNotBlank()) onRoad else limitRoad)
+        // the map-data name is dropped once it's 45 seconds old (lookups that kept failing used to leave the last road up)
+        val mapRoad = if (System.currentTimeMillis() - limitRoadAt < 45_000L) limitRoad else ""
+        val n = Geo.shortRoad(if (route != null && !previewing && onRoad.isNotBlank()) onRoad else mapRoad)
         if (n != roadShown) { roadShown = n; map.setRoadName(n) }
         if (roadNow != n) roadNow = n
     }

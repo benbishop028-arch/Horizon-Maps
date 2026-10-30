@@ -89,7 +89,8 @@ internal object NavigationPolicy {
             aspect > 2.50 -> 0.05
             else -> 0.0
         }
-        return (-1.15 + sizeOffset + shapeOffset).coerceIn(-1.80, -1.00)
+        // (close to the phone's zoom: it used to be 1.15 to 1.8 levels further out, too far for Mapbox's 3D trees to be drawn)
+        return (-0.30 + sizeOffset + shapeOffset).coerceIn(-0.90, -0.15)
     }
 
     /** Clamp the map renderer frame cap to a safe range; settings expose 20/30/45/60 and auto defaults to 30. */

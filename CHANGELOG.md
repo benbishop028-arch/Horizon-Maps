@@ -53,6 +53,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Updating with AAEnabler: if you installed Horizon Nav with AAEnabler, Update now saves the new version to your Downloads folder to install with AAEnabler, so it stays in Android Auto (updating inside the app used to take it out).
 - Missing 3D buildings: the clear area kept round your arrow no longer cuts through buildings. With no route there's no longer a straight strip ahead (it went through buildings on bends), and on a route the strip is narrower, so buildings in narrow streets stay.
 - The offline maps page now points to Settings > Keys & accounts for the Mapbox token (it still said "Search & keys").
+- Road name under your arrow: it no longer jumps to a side road for a moment at junctions (a new name now has to be confirmed, unless you've clearly turned), it clears in car parks and when it's out of date instead of showing the last road, and after an unnamed slip road it no longer shows the exit sign's text as the road name.
+- Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
 
 ### New
 - Donate: Horizon Nav is free with no ads, and you can now support it with a donation: Settings > About > Donate, with a QR code to scan on your phone or a button to open PayPal. A one-off card also asks, a day or so after installing (never while you're driving).
