@@ -497,6 +497,38 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** Google-style destination pin: red teardrop with a white centre. */
+    /** Where you parked, shown on the map ("Your car"), or null for none. */
+    @Volatile private var parkedAt: LL? = null
+    fun setParked(p: LL?) {
+        if (p == parkedAt || (p != null && parkedAt != null && Geo.dist(p, parkedAt!!) < 1.0)) return
+        parkedAt = p
+        main0.post {
+            try { src("dl-parked")?.featureCollection(FeatureCollection.fromFeatures(p?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())) } catch (e: Throwable) { }
+        }
+    }
+
+    /** A blue round badge with a white car, for where you parked. */
+    private fun parkedBitmap(): Bitmap {
+        val n = 112
+        val bmp = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        p.color = android.graphics.Color.argb(70, 0, 0, 0); c.drawCircle(n / 2f, n / 2f + 3f, n / 2f - 4f, p)
+        p.color = android.graphics.Color.WHITE; c.drawCircle(n / 2f, n / 2f, n / 2f - 6f, p)
+        p.color = android.graphics.Color.parseColor("#2F6BDF"); c.drawCircle(n / 2f, n / 2f, n / 2f - 13f, p)
+        // a simple side-on car: body, cabin and two wheels
+        p.color = android.graphics.Color.WHITE
+        c.drawRoundRect(android.graphics.RectF(28f, 52f, 84f, 70f), 7f, 7f, p)
+        c.drawRoundRect(android.graphics.RectF(38f, 39f, 72f, 58f), 8f, 8f, p)
+        p.color = android.graphics.Color.parseColor("#2F6BDF")
+        c.drawRoundRect(android.graphics.RectF(43f, 44f, 54f, 53f), 3f, 3f, p); c.drawRoundRect(android.graphics.RectF(57f, 44f, 67f, 53f), 3f, 3f, p)
+        p.color = android.graphics.Color.WHITE
+        c.drawCircle(40f, 72f, 7f, p); c.drawCircle(72f, 72f, 7f, p)
+        p.color = android.graphics.Color.parseColor("#2F6BDF")
+        c.drawCircle(40f, 72f, 3f, p); c.drawCircle(72f, 72f, 3f, p)
+        return bmp
+    }
+
     private fun pinBitmap(): Bitmap {
         val bmp = Bitmap.createBitmap(96, 128, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
@@ -1695,6 +1727,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-hazards", "dl-hazards")
             .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
             .iconSize(zoomed(1.0, 11 to 0.45, 15 to 0.75, 18 to 1.0)))
+        // where you parked (on the phone, after Android Auto disconnects)
+        addImg(st, "dl-car-pin", parkedBitmap())
+        addS(st, GeoJsonSource.Builder("dl-parked").featureCollection(FeatureCollection.fromFeatures(
+            parkedAt?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())).build())
+        addL(st, SymbolLayer("dl-parked-l", "dl-parked").iconImage("dl-car-pin").iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(zoomed(1.0, 10 to 0.4, 15 to 0.55, 18 to 0.7)))
         if (im) {
             addImg(st, "dl-pin", pinBitmap())
             addL(st, SymbolLayer("dl-dest-dot", "dl-dest")

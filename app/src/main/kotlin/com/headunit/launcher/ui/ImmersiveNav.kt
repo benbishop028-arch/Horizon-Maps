@@ -62,6 +62,8 @@ import androidx.compose.material.icons.rounded.DoNotDisturbOn
 import androidx.compose.material.icons.rounded.EvStation
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.LocalGasStation
@@ -120,6 +122,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.headunit.launcher.Geo
+import com.headunit.launcher.LL
 import com.headunit.launcher.NavEngine
 import kotlinx.coroutines.delay
 import com.headunit.launcher.PreferenceKeys
@@ -287,6 +290,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             AnimatedVisibility(!routing && !previewing, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
+                engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
                 val showResults = engine.results.isNotEmpty()
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine) { q = "" }
@@ -441,7 +445,22 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         AnimatedVisibility(
             !previewing && (!engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01) && engine.arrival == null, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = if (narrow && tripPx > 0) tripH + 10.dp else 18.dp),
             enter = fadeIn(tween(200)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.85f), exit = fadeOut(tween(150)) + androidx.compose.animation.scaleOut(tween(150), targetScale = 0.9f),
-        ) { ImmPill("Re-centre", { engine.recenter() }, Icons.Rounded.MyLocation, filled = true) }
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                ImmPill("Re-centre", { engine.recenter() }, Icons.Rounded.MyLocation, filled = true)
+                // zoomed with + and - while following you, with no route: keep this as your normal zoom
+                if (!routing && engine.following && kotlin.math.abs(engine.zoomOffset) > 0.01) ImmPill("Make this my default", { engine.saveZoomAsDefault() }, Icons.Rounded.ZoomIn)
+            }
+        }
+
+        // ---- top centre: the traffic view while you're stopped (it goes back by itself when you move off)
+        AnimatedVisibility(engine.stoppedOverview && !previewing, modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
+            enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
+            Row(Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
+                Text("Traffic round you · back when you move", color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+            }
+        }
 
         if (previewing) RoutePreview(engine)
         // the arrival moment: the summary slides up from the bottom while the camera swoops down to the destination
@@ -1130,6 +1149,62 @@ private fun FindButton(icon: ImageVector, tint: Color, desc: String, onClick: ()
     }
 }
 
+/** A place sent from your phone: starts by itself after 8 seconds unless you tap "Not now". */
+@Composable
+private fun PhoneDestCard(engine: NavEngine, p: com.headunit.launcher.Place) {
+    val c = LocalVw.current
+    var left by remember(p) { mutableStateOf(8) }
+    LaunchedEffect(p) { while (left > 0) { delay(1000); left-- }; engine.takePhoneDest(true) }
+    Row(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(start = 14.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.size(38.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.PhoneAndroid, null, tint = c.accent, modifier = Modifier.size(21.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text("From your phone: ${p.name}", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Starting in $left s", color = c.sub, fontSize = 13.sp)
+        }
+        ImmPill("Go", { engine.takePhoneDest(true) }, filled = true)
+        ImmPill("Not now", { engine.takePhoneDest(false) })
+    }
+}
+
+/** Where you parked (saved on the phone when Android Auto disconnects): walk there, or clear it. Shown for 2 days. */
+@Composable
+private fun ParkedCard(engine: NavEngine) {
+    val c = LocalVw.current
+    val raw = engine.prefs.s(PreferenceKeys.PARKED_SPOT, "")
+    val parts = raw.split(',')
+    val spot = parts.getOrNull(0)?.toDoubleOrNull()?.let { la -> parts.getOrNull(1)?.toDoubleOrNull()?.let { lo -> LL(la, lo) } } ?: return
+    val at = parts.getOrNull(2)?.toLongOrNull() ?: return
+    val ageMin = ((System.currentTimeMillis() - at) / 60_000L).coerceAtLeast(0L)
+    if (ageMin > 48 * 60) return
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val here = engine.fix?.pos
+    val ago = when { ageMin < 1 -> "just now"; ageMin < 60 -> "$ageMin min ago"; ageMin < 24 * 60 -> "${ageMin / 60} h ago"; else -> "yesterday" }
+    Row(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(start = 14.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.size(38.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.DirectionsCar, null, tint = c.accent, modifier = Modifier.size(21.dp))
+        }
+        Column(Modifier.weight(1f)) {
+            Text("Your car", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("Parked $ago" + (if (here != null) " · " + Geo.fmtDist(Geo.dist(here, spot), engine.imperial) else ""), color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        // walking directions in the phone's maps app (Horizon Nav plans driving routes); just the spot if there's none
+        ImmPill("Walk", {
+            val walk = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(String.format(java.util.Locale.US, "google.navigation:q=%.6f,%.6f&mode=w", spot.lat, spot.lon)))
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            val geo = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(String.format(java.util.Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(Your car)", spot.lat, spot.lon, spot.lat, spot.lon)))
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            try { ctx.startActivity(walk) } catch (e: Exception) { try { ctx.startActivity(geo) } catch (x: Exception) { engine.toast("No walking maps app on this phone", 3000) } }
+        }, filled = true)
+        Box(Modifier.size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.PARKED_SPOT, "") }, contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.Close, "Forget where you parked", tint = c.sub, modifier = Modifier.size(22.dp))
+        }
+    }
+}
+
 /** Resume a trip, a suggested trip, and saved & recent places. */
 @Composable
 private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
@@ -1149,6 +1224,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val here = engine.fix?.pos
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        ParkedCard(engine)
         engine.resume?.let { rp ->
             Row(
                 Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(22.dp)).clip(RoundedCornerShape(22.dp)).background(TealDeep).clickable { engine.startRoute(rp) }.padding(horizontal = 16.dp, vertical = 13.dp),

@@ -224,7 +224,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         4 -> GuidanceSection(prefs)
                         5 -> AlertsSection(prefs, engine)
                         6 -> SoundSection(prefs, engine)
-                        7 -> { PlacesSection(engine); SharingGroups(prefs) }
+                        7 -> { PlacesSection(engine); PhoneLinkGroup(prefs); SharingGroups(prefs) }
                         8 -> FuelSection(prefs)
                         9 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
                         10 -> ScreenSection(prefs, engine)
@@ -260,6 +260,7 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
                 "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
             MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
         }
+        DefaultZoomRow(prefs)
         SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
         SToggle(prefs, "Glass panels", "glass", true, "See-through cards tinted by the map. Off gives solid cards")
         SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
@@ -285,6 +286,7 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
 private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Traffic") {
         SToggle(prefs, "Live traffic", "traffic", true)
+        SToggle(prefs, "Traffic overview when stopped", PreferenceKeys.STOPPED_OVERVIEW, true, "After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off")
         SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
         SToggle(prefs, "Light traffic in green", PreferenceKeys.TRAFFIC_GREEN, false, "Free-flowing main roads shown green, as well as slow traffic in amber and red")
     }
@@ -618,6 +620,66 @@ private fun TripsGroup(engine: NavEngine) {
 
 
 /** Share your ETA and places sent from other apps (part of Places & trips). */
+/** Your own normal zoom when not on a route: a slider from further out to closer, and Reset. */
+@Composable
+private fun DefaultZoomRow(prefs: Prefs) {
+    val c = LocalVw.current
+    val saved = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toFloatOrNull() ?: 0f).coerceIn(-2f, 2f)
+    var v by remember(saved) { mutableStateOf(saved) }
+    fun save(x: Float) = prefs.put(PreferenceKeys.DEFAULT_ZOOM, String.format(java.util.Locale.US, "%.2f", x))
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        SItem("Default zoom", "When you're not on a route. Auto zoom still pulls out at speed and moves in at junctions, round your setting. Or zoom with + and − on the map and tap \"Make this my default\"") {
+            if (kotlin.math.abs(v) > 0.01f) SButton("Reset") { v = 0f; save(0f) }
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Further out", color = c.sub, fontSize = 13.sp)
+            androidx.compose.material3.Slider(value = v, onValueChange = { v = (Math.round(it * 4f) / 4f) }, onValueChangeFinished = { save(v) },
+                valueRange = -2f..2f, modifier = Modifier.weight(1f).padding(horizontal = 10.dp))
+            Text("Closer", color = c.sub, fontSize = 13.sp)
+        }
+    }
+}
+
+/**
+ * Sending places from the phone to the head unit (through a free relay, encrypted with the pairing code). The head unit makes the
+ * code; you type it on the phone.
+ */
+@Composable
+private fun PhoneLinkGroup(prefs: Prefs) {
+    val code = prefs.s(PreferenceKeys.LINK_CODE, "")
+    val role = prefs.s(PreferenceKeys.LINK_ROLE, "")
+    var typing by remember { mutableStateOf(false) }
+    SGroup("Send places from your phone", footer = "Pair once: on the head unit, tap Pair a phone and type its code into Horizon Nav on your phone (in this same place). Then \"Send to car\" on the phone's route screen sends the place to the head unit, which starts it the next time it's on (within 12 hours). Places go through ntfy.sh, a free message relay, scrambled with your code so only your phone and car can read them.") {
+        when {
+            code.isNotBlank() && role == "car" -> {
+                SItem("This is the car", "Paired. Code ${com.headunit.launcher.CarLink.pretty(code)}: type it on another phone to add it too") {
+                    SButton("Unpair", danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, ""); prefs.put(PreferenceKeys.LINK_LAST, "") }
+                }
+                val qr = remember(code) { donateQr(com.headunit.launcher.CarLink.pretty(code), 300) }
+                if (qr != null) Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Box(Modifier.size(110.dp).clip(RoundedCornerShape(12.dp)).background(Color.White).padding(6.dp)) {
+                        androidx.compose.foundation.Image(qr, "The pairing code as a QR code", Modifier.size(98.dp), filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
+                    }
+                    Text(com.headunit.launcher.CarLink.pretty(code), color = LocalVw.current.text, fontSize = 26.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+                }
+            }
+            code.isNotBlank() && role == "phone" -> SItem("This is your phone", "Paired with your car (${com.headunit.launcher.CarLink.pretty(code)}). \"Send to car\" is on the route screen, next to Save") {
+                SButton("Unpair", danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, "") }
+            }
+            else -> {
+                SItem("On the head unit", "Makes a code to type on your phone") {
+                    SButton("Pair a phone", primary = true) { prefs.put(PreferenceKeys.LINK_CODE, com.headunit.launcher.CarLink.newCode()); prefs.put(PreferenceKeys.LINK_ROLE, "car"); prefs.put(PreferenceKeys.LINK_LAST, "") }
+                }
+                SItem("On your phone", "Type the code the head unit shows") { SButton("Enter code") { typing = true } }
+                if (typing) SFieldItem("Car's code", "", "Like K7P-4QX-M2D", placeholder = "K7P-4QX-M2D") { t ->
+                    val ok = com.headunit.launcher.CarLink.clean(t)
+                    if (ok != null) { prefs.put(PreferenceKeys.LINK_CODE, ok); prefs.put(PreferenceKeys.LINK_ROLE, "phone"); typing = false }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun SharingGroups(prefs: Prefs) {
     val ctx = LocalContext.current

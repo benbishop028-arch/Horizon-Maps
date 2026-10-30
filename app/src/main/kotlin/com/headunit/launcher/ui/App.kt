@@ -168,6 +168,13 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(lampGap) { delay(1200); map.applyLampGap(lampGap) }
     val treesOn = prefs.b(PreferenceKeys.TREES, true)
     LaunchedEffect(treesOn) { map.treesEnabled(treesOn) }
+    // where you parked, on the map (for 2 days)
+    val parkedRaw = prefs.s(PreferenceKeys.PARKED_SPOT, "")
+    LaunchedEffect(parkedRaw) {
+        val ps = parkedRaw.split(',')
+        val la = ps.getOrNull(0)?.toDoubleOrNull(); val lo = ps.getOrNull(1)?.toDoubleOrNull(); val at = ps.getOrNull(2)?.toLongOrNull() ?: 0L
+        map.setParked(if (la != null && lo != null && System.currentTimeMillis() - at < 48 * 3600_000L) com.headunit.launcher.LL(la, lo) else null)
+    }
     // the extra 3D features (Settings > On the map)
     val xFacades = prefs.b(PreferenceKeys.FACADES, true); val xLand = prefs.b(PreferenceKeys.LANDMARKS3D, true); val xPaths = prefs.b(PreferenceKeys.PATHS, true)
     val xTerrain = prefs.b(PreferenceKeys.TERRAIN, false); val xTap = prefs.b(PreferenceKeys.TAPSELECT, true); val xFurn = prefs.b(PreferenceKeys.FURNITURE3D, true); val xClear = prefs.b(PreferenceKeys.CLEARVIEW, true)

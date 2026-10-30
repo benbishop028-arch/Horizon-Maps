@@ -55,6 +55,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var alternatives by mutableStateOf(false)
     var weather by mutableStateOf<Weather.Now?>(null)
     var zoomOffset by mutableDoubleStateOf(0.0)
+    /** Your own normal zoom when not on a route (Settings > Map look), in levels from the standard one. */
+    val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
+    /** The flat traffic view after being stopped a while is showing. */
+    var stoppedOverview by mutableStateOf(false)
+    private var stoppedSince = 0L
+    /** A place sent from your phone, waiting to be started (head unit). */
+    var phoneDest by mutableStateOf<Place?>(null)
     /** Additional auto-zoom adjustment for Android Auto's usable viewport. Negative values zoom out
      * on compact or narrow displays, where the same camera zoom shows too little road ahead. */
     @Volatile private var carViewportZoomOffset = 0.0
@@ -412,12 +419,30 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         Overpass.localWays = { p -> OfflineLimits.waysNear(ctx, p) }
         // the phone and car screens share the trip (joined a moment after start, once this engine is fully set up)
         scope.launch { delay(1500); RouteSync.register(this@NavEngine) }
+        // a place sent from your phone (Settings > Places & trips): looked for shortly after starting, then every minute
+        scope.launch {
+            delay(6000)
+            while (true) {
+                try {
+                    val code = prefs.s(PreferenceKeys.LINK_CODE, "")
+                    if (!isCar && code.isNotBlank() && prefs.s(PreferenceKeys.LINK_ROLE, "") == "car" && appVisible && route == null && phoneDest == null && online()) {
+                        val last = prefs.s(PreferenceKeys.LINK_LAST, "")
+                        val got = withContext(Dispatchers.IO) { try { CarLink.latest(code, last) } catch (e: Exception) { null } }
+                        if (got != null && got.id != last) { prefs.put(PreferenceKeys.LINK_LAST, got.id); if (route == null) phoneDest = got.place }
+                    }
+                } catch (e: Exception) { }
+                delay(60_000)
+            }
+        }
         // the performance meter (Settings > Smoothness), once a second while it's on
         scope.launch {
             while (true) {
                 delay(1000)
                 PerfStats.on = prefs.b(PreferenceKeys.PERFORMANCE_METER, false)
                 if (PerfStats.on) perfSample() else if (perfLine.isNotEmpty()) perfLine = ""
+                // (the traffic view when stopped shouldn't depend on the GPS still sending positions while you're stationary)
+                if (stoppedSince > 0L && !stoppedOverview && following && android.os.SystemClock.elapsedRealtime() - stoppedSince > 30_500L &&
+                    prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true)) fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
             }
         }
         // look for a newer app and newer map data straight after starting (the checks are a few small requests)
@@ -2137,13 +2162,42 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return out
     }
 
+    /** The zoom you've set with + and - becomes your normal zoom when not on a route (Settings > Map look to change or reset). */
+    fun saveZoomAsDefault() {
+        val v = (defaultZoom + zoomOffset).coerceIn(-2.0, 2.0)
+        prefs.put(PreferenceKeys.DEFAULT_ZOOM, String.format(java.util.Locale.US, "%.2f", v))
+        zoomOffset = 0.0
+        fix?.let { onPosition(it, true) }
+        toast("This is now your default zoom. Change or reset it in Settings > Map look", 4500)
+    }
+
+    /** Phone: sends [p] to the paired head unit, which offers to start it (next time it's on, within 12 hours). */
+    fun sendToCar(p: Place) {
+        val code = prefs.s(PreferenceKeys.LINK_CODE, "")
+        if (code.isBlank()) { toast("Pair with your car first: Settings > Places & trips", 4000); return }
+        scope.launch {
+            try {
+                withContext(Dispatchers.IO) { CarLink.send(code, p) }
+                toast("Sent to your car: ${p.name}", 3500)
+                if (previewing) endRoute()
+            } catch (e: Exception) { toast("Couldn't send it: " + (e.message ?: "no signal"), 4500) }
+        }
+    }
+
+    /** Head unit: the place sent from the phone has been started or turned down. */
+    fun takePhoneDest(go: Boolean) {
+        val p = phoneDest ?: return
+        phoneDest = null
+        if (go) startRoute(p)
+    }
+
     /** A search failure in plain words (it used to show the servers' own errors, like "HTTP 429" or "HTTP 502"). */
     private fun searchFailText(e: Exception): String {
         val m = (e.message ?: "").lowercase()
         return when {
             m.contains("no signal") || m.contains("unable to resolve") || m.contains("failed to connect") -> "No signal, so the search couldn't run. Try again in a moment."
             m.contains("429") || m.contains("502") || m.contains("503") || m.contains("504") || m.contains("busy") || m.contains("timeout") || m.contains("timed out") ->
-                "The free map servers are busy right now. Try again in a minute."
+                "The free map servers are busy right now. Try again in a minute." + (if (!hasMapbox) " Add a Mapbox key in Settings > Keys & accounts for more reliable searches." else "")
             m.contains("mapbox") -> e.message ?: "Search failed"
             else -> "Search failed. Try again in a moment."
         }
@@ -2638,8 +2692,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // portrait: keep the locator clear of the trip card (its centre sits at (1 + pad) / 2 of the height)
         if (bottomCover > 0.0) pad = minOf(pad, 2.0 * (1.0 - bottomCover - 0.09) - 1.0).coerceAtLeast(0.0)
         tBMode = if (northUp) 0 else if (navigating || sp > 2.0) 1 else 2
+        // stopped for 30 s (lights, a queue): a flat top-down view of the traffic round you, back to normal as soon as you move.
+        // Not when you've moved the map yourself, nor in the last 400 m of a route
+        run {
+            val nowMs = android.os.SystemClock.elapsedRealtime()
+            if (sp < 0.8) { if (stoppedSince == 0L) stoppedSince = nowMs } else if (sp > 2.5) stoppedSince = 0L
+            val nearEnd = navigating && (eta?.dist ?: Double.MAX_VALUE) < 400.0
+            val ov = prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true) && stoppedSince > 0L && nowMs - stoppedSince > 30_000L &&
+                !nearEnd && arrival == null && abs(zoomOffset) < 0.01
+            if (ov != stoppedOverview) stoppedOverview = ov
+            if (ov) { tilt = 0.0; pad = 0.0 }
+        }
         tTilt = tilt; tPad = pad
-        val requestedZoom = autoZoom(sp, navigating) + zoomOffset + if (isCar) carViewportZoomOffset else 0.0
+        val requestedZoom = autoZoom(sp, navigating) + zoomOffset + (if (isCar) carViewportZoomOffset else 0.0) + (if (!navigating) defaultZoom else 0.0)
         // Road-level lane ribbons are only useful when their lane boundaries and the route are
         // distinguishable. Keep a firm camera zoom floor for the entire time they are drawn;
         // user/viewport zoom offsets must not silently pull the map back until the ribbons look
@@ -2657,6 +2722,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // movement is detected, this offset is zero and the existing zoom policy is unchanged.
         val initialOverviewOffset = if (hasDetectedMovement) 0.0 else 0.8
         tZoom = max(requestedZoom, laneZoomFloor) - initialOverviewOffset
+        // (the traffic view pulls back about two zoom levels)
+        if (stoppedOverview) tZoom = (tZoom - 1.8).coerceAtLeast(12.5)
         // landscape: your arrow moves sideways just enough to clear whatever card is beside it at its height (the search panel
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.

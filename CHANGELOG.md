@@ -57,6 +57,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
 
 ### New
+- Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map look, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
+- Traffic overview when stopped: after 30 seconds stopped at lights or in a queue, the map pulls back to a top-down view of the traffic round you, and goes back as soon as you move off. On by default; switch it off in Settings > On the map.
+- Where you parked: when Android Auto disconnects, the phone remembers where the car was. A "Your car" card shows how long ago and how far, with a Walk button and a car pin on the map, for 2 days or until you're back in the car.
+- Send places from your phone: pair the phone with the head unit once (Settings > Places & trips), then "Send to car" on the phone's route screen. The head unit offers it the next time it's on (within 12 hours) and starts it after a few seconds. Places go through a free message relay, scrambled with your pairing code.
 - Donate: Horizon Nav is free with no ads, and you can now support it with a donation: Settings > About > Donate, with a QR code to scan on your phone or a button to open PayPal. A one-off card also asks, a day or so after installing (never while you're driving).
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 

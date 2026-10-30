@@ -230,6 +230,9 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                 var saving by remember { mutableStateOf(false) }
                 val mine = engine.places.customAt(d) != null
                 Icon(Icons.Rounded.BookmarkAdd, "Save with a name", tint = if (mine) c.accent else c.sub, modifier = Modifier.size(26.dp).clickable { saving = true })
+                // paired with your car (Settings > Places & trips): send it there instead of driving it from here
+                if (engine.prefs.s(PreferenceKeys.LINK_ROLE, "") == "phone" && engine.prefs.s(PreferenceKeys.LINK_CODE, "").isNotBlank())
+                    Icon(Icons.Rounded.DirectionsCar, "Send to car", tint = c.accent, modifier = Modifier.size(26.dp).clickable { engine.sendToCar(d) })
                 if (saving) AddPlaceDialog(engine, d) { saving = false }
             }
         }

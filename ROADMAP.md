@@ -10,11 +10,7 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 
 ## Features requested
 
-1. **Custom default zoom.** Set how close the map sits when you're not on a route, and have auto zoom treat that as its normal level. It would still zoom in for junctions and out at speed, but around your setting. Plus a way to reset it to the standard zoom. Possible approach: "Use the current zoom as default" (zoom where you like it, then tap) and a slider in Settings > Map look. One driver also found it a bit too zoomed in on their commute.
 2. **Change the app's language.** Asked on r/Androidheadunits. Parked for now.
-3. **Remember where you parked.** Mainly for the phone / Android Auto version: save the spot when Android Auto disconnects and show it on the phone. It was removed from the head-unit app, which lives in the car.
-4. **Send a destination from your phone so the head unit starts navigating when it turns on.** Today this person does it through Google Maps history syncing.
-5. **Zoom out to a top-down view when you've been stopped a while** (at long lights or in a queue), so you can see the traffic round you, as TomTom does.
 6. **Import saved places from Google Maps** (from a Google Takeout file).
 7. **Copy offline map packs from another device.** For example, download on a phone or PC at home and copy them across by USB, for when the car can't reach home Wi-Fi.
 8. **Smaller offline packs**, such as Singapore on its own instead of Singapore, Malaysia and Brunei together, and town names for every country in a shared pack.
@@ -23,7 +19,6 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 11. **Radarbot integration** for speed cameras on the route. Radarbot doesn't offer a public way in, so this may not be possible. The app's own camera data is used instead.
 12. **Map options on Android Auto.** Layers such as traffic and satellite, and reports. Android Auto only allows a few buttons of its own, so this needs a different approach there.
 13. **Android Auto voice search.** Pressing Android Auto's own mic and asking for a place says "Sorry, I didn't understand". "Navigate to …" with the app named may already work. Needs testing.
-14. **Clearer search message with no keys.** When the free map servers are busy and there's no Mapbox key, the message could add "Add a Mapbox key in Settings > Keys & accounts for more reliable searches".
 
 ## Can't be fixed in the app
 
@@ -33,6 +28,11 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 
 ## Done (from these requests)
 
+- Custom default zoom, with reset.
+- Traffic overview when stopped (with a setting).
+- Remember where you parked (phone, after Android Auto).
+- Send a destination from your phone to the head unit.
+- Search tip to add a Mapbox key when the free servers are busy.
 - Trees missing on Android Auto (GitHub #19): the car map is now drawn at close to the phone's zoom.
 - Wrong road name under the arrow (GitHub #20).
 - AAEnabler not finding the update file (GitHub #19): updates are now saved to Downloads for AAEnabler installs.

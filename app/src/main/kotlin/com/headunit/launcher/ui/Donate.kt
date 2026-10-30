@@ -55,6 +55,9 @@ internal fun openDonate(ctx: Context) {
 }
 
 /** A QR code of [text], black on white, [px] pixels square (null if it couldn't be made). */
+/** A QR code of [text] for other screens (the phone pairing code). */
+internal fun donateQr(text: String, px: Int): ImageBitmap? = qrBitmap(text, px)
+
 private fun qrBitmap(text: String, px: Int): ImageBitmap? = try {
     val m = com.google.zxing.qrcode.QRCodeWriter().encode(text, com.google.zxing.BarcodeFormat.QR_CODE, px, px,
         mapOf(com.google.zxing.EncodeHintType.MARGIN to 1))

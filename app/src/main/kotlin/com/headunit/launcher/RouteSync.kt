@@ -33,7 +33,13 @@ object RouteSync {
         if (cur != null && e.route == null) apply { e.followRoute(cur.first, cur.second) }
     }
 
-    fun unregister(e: NavEngine) { synchronized(engines) { engines.remove(e) }; noteCar() }
+    fun unregister(e: NavEngine) {
+        // Android Auto has disconnected: where the car was is kept as "Your car" on the phone (cleared next time you connect)
+        if (e.isCar) e.fix?.pos?.let { p ->
+            try { e.prefs.put(PreferenceKeys.PARKED_SPOT, String.format(java.util.Locale.US, "%.6f,%.6f,%d", p.lat, p.lon, System.currentTimeMillis())) } catch (x: Exception) { }
+        }
+        synchronized(engines) { engines.remove(e) }; noteCar()
+    }
 
     /**
      * A place shared to the phone (from Messages, WhatsApp, a calendar...) while the car is connected: the car screen shows the same

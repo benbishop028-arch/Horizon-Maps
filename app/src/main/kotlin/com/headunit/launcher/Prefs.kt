@@ -161,6 +161,16 @@ internal object PreferenceKeys {
     const val VIEW_3D = "view3d"
     /** The donate card has been shown (it's shown once, a day or more after install). */
     const val DONATE_SHOWN = "donateshown"
+    /** Your own normal zoom when not on a route, in zoom levels from the standard one (-2 to +2; 0 = standard). */
+    const val DEFAULT_ZOOM = "defzoom"
+    /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
+    const val STOPPED_OVERVIEW = "stopview"
+    /** Where you left the car, "lat,lon,time" (saved on the phone when Android Auto disconnects). */
+    const val PARKED_SPOT = "parkedspot"
+    /** Phone-to-car link: the pairing code, this device's part ("car" receives, "phone" sends), and the last message taken. */
+    const val LINK_CODE = "linkcode"
+    const val LINK_ROLE = "linkrole"
+    const val LINK_LAST = "linklast"
     const val RAILFORD = "railford"
     const val REPORTS = "reports"
     const val RESUME = "resume"

@@ -203,6 +203,8 @@ class CarNavSession : Session() {
         val engine = NavEngine(app, prefs, map)
         // the car screen does the talking while it's connected, and shares the trip with the phone
         engine.isCar = true
+        // back in the car: the "Your car" spot on the phone isn't needed any more
+        try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine
         surface.engine = engine
         CarTicks.tick = { surface.tick() }
