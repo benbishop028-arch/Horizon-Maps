@@ -94,4 +94,38 @@ internal object MapRouteGeometry {
         }
         return if (bestIndex >= 0 && bestPoint != null) bestIndex to bestPoint else null
     }
+
+    /**
+     * Where each line in [lines] (lane middles from the map) crosses the road at [p], going the way [heading] points: metres sideways
+     * from [p] (+ to the right), left to right, one per lane. Lines not running along the road (within 25 degrees, either way) or
+     * more than 25 m off to the side are left out; the same lane cut into two map tiles counts once.
+     */
+    fun laneOffsets(lines: List<List<LL>>, p: LL, heading: Double): List<Double> {
+        val kx = cos(Math.toRadians(p.lat)) * 111320.0
+        val ky = 110574.0
+        val h = Math.toRadians(heading)
+        val fx = Math.sin(h); val fy = Math.cos(h)        // along the road
+        val rx = Math.cos(h); val ry = -Math.sin(h)       // to the right
+        val found = ArrayList<Double>()
+        for (line in lines) {
+            for (i in 0 until line.size - 1) {
+                val ax = (line[i].lon - p.lon) * kx; val ay = (line[i].lat - p.lat) * ky
+                val bx = (line[i + 1].lon - p.lon) * kx; val by = (line[i + 1].lat - p.lat) * ky
+                val dx = bx - ax; val dy = by - ay
+                val len = Math.hypot(dx, dy)
+                if (len < 0.5) continue
+                if (Math.abs((dx * fx + dy * fy) / len) < 0.906) continue   // not along the road (cos 25 degrees)
+                val sa = ax * fx + ay * fy; val sb = bx * fx + by * fy
+                if ((sa > 0 && sb > 0) || (sa < 0 && sb < 0)) continue     // doesn't reach across the line through p
+                val t = if (sa == sb) 0.0 else sa / (sa - sb)
+                val cx = ax + dx * t; val cy = ay + dy * t
+                val side = cx * rx + cy * ry
+                if (Math.abs(side) <= 25.0) { found += side; break }
+            }
+        }
+        found.sort()
+        val out = ArrayList<Double>()
+        for (v in found) if (out.isEmpty() || v - out.last() > 1.0) out += v
+        return out
+    }
 }

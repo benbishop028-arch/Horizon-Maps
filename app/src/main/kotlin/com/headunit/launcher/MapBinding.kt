@@ -954,6 +954,37 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, LineLayer("dl-roadq", "dl-streets").sourceLayer("road").inSlot("bottom")
             .filter(Expression.fromRaw("[\"match\",[\"get\",\"class\"],[\"motorway\",\"motorway_link\",\"trunk\",\"trunk_link\",\"primary\",\"secondary\",\"tertiary\",\"street\",\"street_limited\",\"primary_link\",\"secondary_link\",\"tertiary_link\",\"service\"],true,false]"))
             .lineColor("#808080").lineOpacity(0.01).lineWidth(1.0).lineEmissiveStrength(1.0).minZoom(15.0))
+        // Mapbox's HD roads (the lanes it paints on motorways, where it has them): the middle line of every lane, for lining the lane
+        // guidance up with the painted lanes. Drawn almost invisibly, close in only, so the map can be asked where they are
+        try {
+            addS(st, VectorSource.Builder("dl-hd").url("mapbox://mapbox.hd-road-v1").build())
+            addL(st, LineLayer("dl-hdq", "dl-hd").sourceLayer("hd_road_centerlines").inSlot("bottom")
+                .lineColor("#808080").lineOpacity(0.01).lineWidth(1.0).lineEmissiveStrength(1.0).minZoom(15.5))
+        } catch (e: Throwable) { }
+    }
+
+    /**
+     * The real lanes across the road at [p] (going the way [heading] points), from Mapbox's HD roads: each lane's middle, as metres
+     * sideways from [p] (+ to the right), left to right. [done] gets null when it isn't on screen, there's no HD road there, or the
+     * map didn't answer. On the main thread.
+     */
+    fun laneCentresAt(p: LL, heading: Double, done: (List<Double>?) -> Unit) {
+        main0.post {
+            val st = style
+            if (st == null || !canQuery() || !st.styleLayerExists("dl-hdq")) { done(null); return@post }
+            val sc = try { mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat)) } catch (e: Throwable) { null }
+            if (sc == null || sc.x < 0 || sc.y < 0 || sc.x > mapView.width || sc.y > mapView.height) { done(null); return@post }
+            val r = 110f * mapView.resources.displayMetrics.density
+            query(RectF((sc.x - r).toFloat(), (sc.y - r).toFloat(), (sc.x + r).toFloat(), (sc.y + r).toFloat()), listOf("dl-hdq"), 2500L) { feats ->
+                val lines = ArrayList<List<LL>>()
+                for (f in feats ?: emptyList()) when (val g = f.geometry()) {
+                    is LineString -> lines += g.coordinates().map { LL(it.latitude(), it.longitude()) }
+                    is MultiLineString -> for (c in g.coordinates()) lines += c.map { LL(it.latitude(), it.longitude()) }
+                    else -> { }
+                }
+                done(if (feats == null) null else MapRouteGeometry.laneOffsets(lines, p, heading).takeIf { it.size >= 2 })
+            }
+        }
     }
 
     private var roadsAt = 0L

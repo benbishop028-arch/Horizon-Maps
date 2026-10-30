@@ -4356,6 +4356,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the route line stays in its lane until you're past the end of its ease back after the junction (clearing it as soon as
         // the lane guidance ended made the line just ahead of you jump sideways)
         if (laneShiftEnd > 0.0 && key == null && curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0; turnArrowKey = -2 }
+        // where Mapbox has HD roads (the lanes it paints on motorways), the real lanes are read off the map just before the junction,
+        // so the lanes drawn and the route line sit exactly on the painted ones (asked every 3 s until found, up to 8 times)
+        if (key != null && hdLanesFor != cur.off) {
+            if (hdTriesFor != cur.off) { hdTriesFor = cur.off; hdTries = 0 }
+            val now = android.os.SystemClock.uptimeMillis()
+            if (hdTries < 8 && now - hdAskAt > 3000L && d < 700.0) {
+                hdAskAt = now; hdTries++
+                val askOff = cur.off
+                val (q, qb) = pointAt(r, max(0.0, cur.off - 30.0))
+                map.laneCentresAt(q, qb) { offs ->
+                    if (offs != null && offs.size >= 2 && hdTriesFor == askOff) { hdLanes = offs; hdLanesFor = askOff; laneKey = null }
+                }
+            }
+        }
         if (key == laneKey) return
         laneKey = key
         if (key == null || sec == null) {
@@ -4390,7 +4404,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val centre = if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average())
             else if (throughIdx.isNotEmpty() && throughIdx.size < n && isContiguous(throughIdx)) throughIdx.average()
             else (n - 1) / 2.0
-        fun latOf(i: Int) = (i - centre) * laneW
+        // each lane's middle and edges, sideways from the route line (metres, + to the right): the real ones read off the map when
+        // they match the lane list, else laid out at standard widths as described above
+        val hd = if (hdLanesFor == cur.off) pickLaneWindow(hdLanes, n) else null
+        val lat = DoubleArray(n) { i -> hd?.get(i) ?: (i - centre) * laneW }
+        val leftE = DoubleArray(n) { i -> if (hd == null) lat[i] - laneW / 2 else if (i > 0) (lat[i - 1] + lat[i]) / 2 else lat[0] - (lat[1] - lat[0]) / 2 }
+        val rightE = DoubleArray(n) { i -> if (hd == null) lat[i] + laneW / 2 else if (i < n - 1) (lat[i] + lat[i + 1]) / 2 else lat[n - 1] + (lat[n - 1] - lat[n - 2]) / 2 }
+        val lined = aligned || hd != null
         fun shifted(p: LL, brg: Double, lateral: Double): LL {
             val rad = Math.toRadians(brg + 90.0)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
@@ -4401,7 +4421,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
             sec.lanes.forEachIndexed { i, lane ->
-                val at = shifted(p, brg, latOf(i))
+                val at = shifted(p, brg, lat[i])
                 val active = i in activeIdx
                 lane.dirs.forEach { dir ->
                     val hit = active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))
@@ -4413,7 +4433,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // TomTom's lane section can be short, but the lanes carry on back along the approach, so the strips do not stop where the section starts
         // (only the last stretch before the junction, where the lanes really are: about 110 m on motorways, 60 m elsewhere,
         // so lanes aren't painted far back along a road that only widens at the junction)
-        val from = max(0.0, cur.off - (if (aligned) 110.0 else 60.0))
+        val from = max(0.0, cur.off - (if (lined) 110.0 else 60.0))
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
@@ -4427,14 +4447,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // cut into short pieces so the ribbon can fade in softly at its start
                 for (k in 0 until last) {
                     val l = ArrayList<LL>(); val rt = ArrayList<LL>()
-                    for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, latOf(i) - laneW / 2); rt += shifted(p, brg, latOf(i) + laneW / 2) }
+                    for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, leftE[i]); rt += shifted(p, brg, rightE[i]) }
                     val a = 0.5 + 0.5 * min(1.0, k / 3.0)
                     bands += MapBinding.LaneBand(l + rt.asReversed(), i in activeIdx, a)
                 }
-                val edge = ArrayList<LL>(); for ((p, brg) in samples) edge += shifted(p, brg, latOf(i) + laneW / 2)
+                val edge = ArrayList<LL>(); for ((p, brg) in samples) edge += shifted(p, brg, rightE[i])
                 divs += MapBinding.LaneEdge(edge, i == n - 1)
             }
-            val outer = ArrayList<LL>(); for ((p, brg) in samples) outer += shifted(p, brg, latOf(0) - laneW / 2)
+            val outer = ArrayList<LL>(); for ((p, brg) in samples) outer += shifted(p, brg, leftE[0])
             divs += MapBinding.LaneEdge(outer, true)
         }
         map.setLaneBands(bands, divs)
@@ -4445,17 +4465,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // last 8 m while the turn arrow, drawn on the road's own line from 38 m out, left a gap and a step where they met.
         val shift = ArrayList<LL>()
         laneLatAt = null; laneShiftEnd = 0.0
-        if (aligned && activeIdx.isNotEmpty()) {
-            val lat = (activeIdx.average() - centre) * laneW
+        if (lined && activeIdx.isNotEmpty()) {
+            val mid = activeIdx.map { lat[it] }.average()
             val s0 = max(0.0, max(sec.off, cur.off - 250.0))
             val s1 = min(r.len, cur.off + 25.0)
-            val ramp = min(60.0, (cur.off - s0) * 0.5)
-            if (Math.abs(lat) > 0.3 && cur.off - s0 > 30.0) {
+            // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
+            val stripStart = cur.off - 110.0
+            val ramp = if (stripStart - s0 >= 20.0) min(60.0, stripStart - s0) else max(10.0, (cur.off - s0) * 0.5)
+            if (Math.abs(mid) > 0.3 && cur.off - s0 > 30.0) {
                 val fn: (Double) -> Double = { o ->
                     val inF = ((o - s0) / ramp).coerceIn(0.0, 1.0)
                     val outF = ((s1 - o) / 35.0).coerceIn(0.0, 1.0)     // from 10 m before the junction to 25 m after it
                     val f = minOf(inF, outF)
-                    lat * f * f * (3 - 2 * f)
+                    mid * f * f * (3 - 2 * f)
                 }
                 laneLatAt = fn; laneShiftEnd = s1
                 var o = s0
@@ -4473,6 +4495,31 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** The sideways offset (metres, + to the right) of the route line in the lane you need, by distance along the route; null when none. */
     private var laneLatAt: ((Double) -> Double)? = null
+    /** The real lanes' middles (sideways from the route line, left to right) read off the map for the junction at [hdLanesFor]. */
+    private var hdLanes: List<Double> = emptyList()
+    private var hdLanesFor = -1.0
+    private var hdTriesFor = -1.0
+    private var hdTries = 0
+    private var hdAskAt = 0L
+
+    /**
+     * The [n] real lanes that make up your carriageway, out of [offs] (all the lanes found across the road there, left to right):
+     * the block of [n] side by side (no gap wider than a lane and a half between them) nearest the route line. Null when they
+     * don't match the lane list, so the standard layout is used instead.
+     */
+    private fun pickLaneWindow(offs: List<Double>, n: Int): List<Double>? {
+        if (n < 2 || offs.size < n) return null
+        var best: List<Double>? = null; var bestD = Double.MAX_VALUE
+        for (s in 0..offs.size - n) {
+            val w = offs.subList(s, s + n)
+            if ((1 until n).any { w[it] - w[it - 1] !in 2.4..5.5 }) continue
+            val mid = w.average()
+            if (Math.abs(mid) < bestD) { bestD = Math.abs(mid); best = w }
+        }
+        // the route line has to be somewhere on that carriageway, or it's another road
+        return best?.takeIf { it.first() - 3.0 < 0.0 && it.last() + 3.0 > 0.0 }
+    }
+
     /** Where along the route that offset has eased back to nothing (0 when there's none). */
     private var laneShiftEnd = 0.0
 
