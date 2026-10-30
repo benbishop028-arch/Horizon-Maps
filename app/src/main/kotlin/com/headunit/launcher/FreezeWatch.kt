@@ -14,6 +14,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 object FreezeWatch {
     @Volatile private var started = false
+    /** When the screen thread stopped answering (0 when it's fine): SessionWatch notes it every 10 seconds. */
+    @Volatile var stuckSince = 0L
 
     fun file(ctx: Context) = File(ctx.filesDir, "lastfreeze.txt")
 
@@ -30,6 +32,7 @@ object FreezeWatch {
                 main.post { answered.set(true) }
                 try { Thread.sleep(5000) } catch (e: InterruptedException) { return@Thread }
                 if (!answered.get()) {
+                    if (stuckSince == 0L) stuckSince = System.currentTimeMillis() - 5000L
                     if (!reported) {
                         reported = true
                         try {
@@ -37,7 +40,7 @@ object FreezeWatch {
                             file(app).writeText("Freeze: the screen thread was stuck for 5+ s (${java.util.Date()})\n$st")
                         } catch (e: Throwable) { }
                     }
-                } else reported = false
+                } else { reported = false; stuckSince = 0L }
             }
         }, "freeze-watch").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }.start()
     }

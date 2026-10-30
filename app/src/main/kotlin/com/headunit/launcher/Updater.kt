@@ -253,7 +253,7 @@ object Updater {
      * Downloads the new APK with Android's download service (it carries on in the background and copes with signal drops),
      * waiting here until it's done, then opens the installer. [progress] gets short status lines. Throws when it can't.
      */
-    fun downloadAndInstall(ctx: Context, u: Update, progress: (String) -> Unit) {
+    fun downloadAndInstall(ctx: Context, u: Update, toDownloads: Boolean = false, progress: (String) -> Unit) {
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: throw IllegalStateException("No download service")
         val dir = ctx.getExternalFilesDir(null) ?: throw IllegalStateException("No storage")
         require(UpdaterPolicy.isHttpsUrl(u.url)) { "Update URL must use HTTPS" }
@@ -303,6 +303,13 @@ object Updater {
                         }
                         // Keep the previous APK until this download has passed verification.
                         dir.listFiles()?.filter { it.name.startsWith("HorizonNav-") && it.name.endsWith(".apk") && it.name != name }?.forEach { it.delete() }
+                        // installed with AAEnabler: the checked file goes to Downloads for AAEnabler to install, so the app stays in
+                        // Android Auto (installing it here would take it out)
+                        if (toDownloads && android.os.Build.VERSION.SDK_INT >= 29) {
+                            progress("Saving to Downloads…")
+                            saveToDownloads(ctx, uri, name)
+                            return
+                        }
                         progress("Opening the installer…")
                         val i = Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
                             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -331,6 +338,37 @@ object Updater {
         } catch (e: Exception) {
             // Avoid leaving partial/failed downloads behind when querying or verification fails.
             dm.remove(id)
+            throw e
+        }
+    }
+
+    /**
+     * Horizon Nav isn't on Google Play, so "installed by Google Play" means a tool like AAEnabler installed it, to get it into
+     * Android Auto. Android Auto drops an app that then updates itself.
+     */
+    fun installedViaAaTool(ctx: Context): Boolean = try {
+        val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
+            else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
+        inst == "com.android.vending"
+    } catch (e: Exception) { false }
+
+    /** Copies the checked update into the phone's Downloads folder (Android 10 and newer: no permission needed). */
+    @androidx.annotation.RequiresApi(29)
+    private fun saveToDownloads(ctx: Context, src: Uri, name: String) {
+        val res = ctx.contentResolver
+        val cv = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
+            put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val out = res.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv) ?: throw IllegalStateException("Couldn't save to Downloads")
+        try {
+            val o = res.openOutputStream(out) ?: throw IllegalStateException("Couldn't save to Downloads")
+            o.use { os -> (res.openInputStream(src) ?: throw IllegalStateException("Could not read downloaded APK")).use { it.copyTo(os) } }
+            res.update(out, android.content.ContentValues().apply { put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
+        } catch (e: Exception) {
+            try { res.delete(out, null, null) } catch (x: Exception) { }
             throw e
         }
     }

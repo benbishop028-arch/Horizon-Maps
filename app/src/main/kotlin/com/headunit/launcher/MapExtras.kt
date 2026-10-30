@@ -150,7 +150,7 @@ internal object Sky {
     }
 }
 
-/** The "clear view" area: a circle round your arrow and a strip along the next ~180 m of the route, as polygons. */
+/** The "clear view" area: a circle round your arrow and, on a route, a narrow strip along the next ~180 m of it, as polygons. */
 internal object ClearView {
     fun shapes(me: LL?, heading: Double, route: List<LL>): FeatureCollection {
         val feats = ArrayList<Feature>()
@@ -171,9 +171,11 @@ internal object ClearView {
                 while (i + 1 < route.size && run < 180.0) { run += Geo.dist(route[i], route[i + 1]); ahead += route[i + 1]; i++ }
             }
         }
-        if (ahead.size < 2) { ahead.clear(); ahead += p; ahead += Furniture.offset(p, heading, 120.0) }
-        // the road itself only (about a carriageway wide), not the pavements and buildings beside it
-        val half = 5.0
+        // with no route there's only the circle: a straight line ahead used to cut through the buildings on a bend, and Mapbox
+        // takes away the whole of any 3D model it touches, so whole landmark buildings went missing
+        if (ahead.size < 2) return FeatureCollection.fromFeatures(feats)
+        // the middle of the road only: 10 m across reached the building fronts in narrow streets (Paris), so it's now 5 m
+        val half = 2.5
         for (i in 0 until ahead.size - 1) {
             val a = ahead[i]; val b = ahead[i + 1]
             val br = Geo.bearing(a, b)

@@ -32,7 +32,7 @@ private fun MapboxOfflineGroup(prefs: Prefs, engine: NavEngine) {
     val off = com.headunit.launcher.MapboxOffline
     var confirm by remember { mutableStateOf<String?>(null) }
     SGroup("Mapbox map with no signal", footer = "Mapbox lets each device keep only limited offline areas: a radius round home and several routes fit, a whole country doesn't. Areas you've driven recently are also kept automatically.") {
-        if (!engine.hasMapbox) SNote("Add your Mapbox access token in Search & keys first.")
+        if (!engine.hasMapbox) SNote("Add your Mapbox access token in Settings > Keys & accounts first.")
         val km = prefs.s(PreferenceKeys.MBHOMEKM, "30").toIntOrNull() ?: 30
         val home = engine.places.slot("home")
         SItem("Around home", if (home == null) "Set Home first (Search, then save a place as Home)" else "The 3D map within $km km of Home · about ${off.homeMb(km)} MB")

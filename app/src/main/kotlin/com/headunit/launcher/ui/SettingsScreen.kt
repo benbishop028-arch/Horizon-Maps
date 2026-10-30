@@ -274,7 +274,7 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Fog and sky", "skyweather", true, "Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog")
         SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
         SToggle(prefs, "Trees in parks", "trees", true, "Mapbox's 3D trees in parks and along streets")
-        SToggle(prefs, "Keep the road ahead clear", "clearview", true, "Mapbox's 3D trees and landmarks are left out round your arrow and along the road just ahead, so they never hide it")
+        SToggle(prefs, "Keep the road ahead clear", "clearview", true, "Mapbox's 3D trees and landmarks are left out round your arrow and, on a route, along the middle of the road just ahead, so they never hide it")
         SToggle(prefs, "Tap to highlight", "tapselect", true, "Tap a building to light it up; tap a shop or place, then hold on it to go there")
     }
 }

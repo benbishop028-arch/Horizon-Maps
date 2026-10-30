@@ -1007,6 +1007,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Offline area: ${installedPackId() ?: "none"}")
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · driving side: ${if (mirrored) "left-hand" else "right-hand"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
+            try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -1243,10 +1244,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return
         }
         updateBusy = true; updateStatus = "Starting the download…"
+        // installed with AAEnabler: the update is saved to Downloads for AAEnabler to install, so it stays in Android Auto
+        val forAaTool = Updater.installedViaAaTool(ctx) && android.os.Build.VERSION.SDK_INT >= 29
         scope.launch {
             try {
-                withContext(Dispatchers.IO) { Updater.downloadAndInstall(ctx, u) { updateStatus = it } }
-                updateStatus = "Follow the installer to finish"
+                withContext(Dispatchers.IO) { Updater.downloadAndInstall(ctx, u, toDownloads = forAaTool) { updateStatus = it } }
+                updateStatus = if (forAaTool) "Saved to Downloads as HorizonNav-${u.version}.apk. Install it with AAEnabler to keep it in Android Auto"
+                    else "Follow the installer to finish"
             } catch (e: Exception) {
                 // Never bypass checksum verification by opening the APK URL after a failed download.
                 // Browser fallback is reserved for devices that genuinely lack DownloadManager.
@@ -3429,7 +3433,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 withContext(Dispatchers.IO) {
                     try {
                         if (hasOnline && online()) { live = true; netRoutes(here, pl.pos, false, 0L, emptyList(), -1.0, true).firstOrNull() }
-                        else if (OfflineRouter.installed(ctx)) OfflineRouter.routes(ctx, here, pl.pos).firstOrNull() else null
+                        // (no offline routing for this: it loads large files into memory, too heavy for a suggestion in the background)
+                        else null
                     } catch (e: Exception) { null }
                 }
             }

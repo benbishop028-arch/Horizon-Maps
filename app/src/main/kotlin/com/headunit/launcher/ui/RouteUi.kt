@@ -710,14 +710,10 @@ fun AppUpdateCard(engine: NavEngine) {
             // Horizon Nav isn't on Google Play, so "installed by Google Play" means a tool like AAEnabler installed it to get it into
             // Android Auto. Android Auto drops apps that update themselves, so say so before they find it missing in the car.
             val ctx = androidx.compose.ui.platform.LocalContext.current
-            val viaAaTool = remember {
-                try {
-                    val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
-                        else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
-                    inst == "com.android.vending"
-                } catch (e: Exception) { false }
-            }
-            if (viaAaTool && !engine.updateBusy) Text("Installed with AAEnabler (or similar)? Updating here takes it out of Android Auto: install the new version with AAEnabler again afterwards.",
+            val viaAaTool = remember { com.headunit.launcher.Updater.installedViaAaTool(ctx) }
+            if (viaAaTool && !engine.updateBusy && engine.updateStatus.isBlank()) Text(
+                if (android.os.Build.VERSION.SDK_INT >= 29) "Installed with AAEnabler: Update saves the new version to your Downloads, so you can install it with AAEnabler and keep it in Android Auto."
+                else "Installed with AAEnabler (or similar)? Updating here takes it out of Android Auto: install the new version with AAEnabler again afterwards.",
                 color = Warn, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
         }
         if (!engine.updateBusy) Pill("Update", true, { engine.installAppUpdate() })

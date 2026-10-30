@@ -81,6 +81,8 @@ class MainActivity : ComponentActivity() {
         // went wrong. After three in a row the heavy map features are turned down (a fourth turns the map down to Lightest), and
         // the app says so once, so it can be turned back up in Settings.
         val safeLevel = try { safeStart(boot, prefs) } catch (e: Throwable) { 0 }
+        // the whole head unit restarting while the app was open (which nothing above can see): after two, safer drawing
+        val sessionStep = try { SessionWatch.onStartup(applicationContext, prefs) } catch (e: Throwable) { 0 }
         // the Mapbox token from Settings, before the map is made
         val tok = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
         try { prefs.migrateToMapbox() } catch (e: Throwable) { }
@@ -94,6 +96,10 @@ class MainActivity : ComponentActivity() {
             if (la != null && lo != null) map.startAt(LL(la, lo), br?.takeIf { it >= 0 })
         } catch (e: Throwable) { }
         engine = NavEngine(applicationContext, prefs, map)
+        SessionWatch.speed = { try { engine.fix?.speed ?: 0.0 } catch (e: Throwable) { 0.0 } }
+        SessionWatch.perf = { try { engine.perfLine } catch (e: Throwable) { "" } }
+        SessionWatch.resumed(applicationContext)
+        if (sessionStep > 0) window.decorView.postDelayed({ try { engine.toast(SessionWatch.message(sessionStep), 12_000) } catch (e: Throwable) { } }, 5000L)
         if (safeLevel > 0) window.decorView.postDelayed({
             try { engine.toast(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map look" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Map look and On the map", 10_000) } catch (e: Throwable) { }
         }, 4000L)
@@ -176,12 +182,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (::engine.isInitialized) engine.appVisible = true
+        if (::engine.isInitialized) { engine.appVisible = true; SessionWatch.resumed(applicationContext) }
     }
 
     override fun onStop() {
         super.onStop()
         // closed or put away normally: not a failed start
+        try { SessionWatch.stopped(applicationContext) } catch (e: Throwable) { }
         try { getSharedPreferences(CrashGuardPrefs.FILE, android.content.Context.MODE_PRIVATE).edit().putBoolean(CrashGuardPrefs.STARTING, false).apply() } catch (e: Throwable) { }
         if (!::engine.isInitialized) return
         engine.appVisible = false
