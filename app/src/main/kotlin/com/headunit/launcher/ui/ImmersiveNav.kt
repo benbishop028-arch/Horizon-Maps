@@ -183,46 +183,11 @@ internal fun ImmStat(value: String, label: String, color: Color, compact: Boolea
     }
 }
 
-/** A square-ish button with an icon over a label, used in the options sheet. */
-@Composable
-private fun Tile(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit, active: Boolean = false) {
-    val c = LocalVw.current
-    Column(
-        Modifier.width(82.dp).clip(RoundedCornerShape(18.dp)).background(if (active) c.accent.copy(alpha = 0.22f) else c.tile).pressClick(onClick).padding(vertical = 12.dp, horizontal = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(Modifier.size(38.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
-            Icon(icon, null, tint = tint, modifier = Modifier.size(22.dp))
-        }
-        Text(label, color = c.text, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-    }
-}
-
 private class TileSpec(val icon: ImageVector, val label: String, val tint: Color, val onClick: () -> Unit)
-
-/** Tiles in rows of four. */
-@Composable
-private fun TileGrid(tiles: List<TileSpec>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        for (row in tiles.chunked(4)) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            for (t in row) Tile(t.icon, t.label, t.tint, t.onClick)
-        }
-    }
-}
 
 @Composable
 private fun SheetHeading(text: String) {
     Text(text.uppercase(), color = LocalVw.current.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.padding(top = 10.dp, bottom = 2.dp))
-}
-
-@Composable
-private fun SheetToggle(icon: ImageVector, label: String, on: Boolean, onChange: (Boolean) -> Unit) {
-    val c = LocalVw.current
-    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { onChange(!on) }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = if (on) c.accent else c.sub, modifier = Modifier.size(22.dp))
-        Text(label, color = c.text, fontSize = 15.sp, modifier = Modifier.weight(1f).padding(start = 12.dp))
-        Switch(on, onChange)
-    }
 }
 
 // ------------------------------------------------------------------ the screen

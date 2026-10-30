@@ -35,7 +35,8 @@ object RouteSync {
 
     fun unregister(e: NavEngine) {
         // Android Auto has disconnected: where the car was is kept as "Your car" on the phone (cleared next time you connect)
-        if (e.isCar) e.fix?.pos?.let { p ->
+        // (only when the car is stopped: switching to another app on the car screen mid-drive also closes it)
+        if (e.isCar) e.fix?.takeIf { it.speed < 2.5 }?.pos?.let { p ->
             try { e.prefs.put(PreferenceKeys.PARKED_SPOT, String.format(java.util.Locale.US, "%.6f,%.6f,%d", p.lat, p.lon, System.currentTimeMillis())) } catch (x: Exception) { }
         }
         synchronized(engines) { engines.remove(e) }; noteCar()

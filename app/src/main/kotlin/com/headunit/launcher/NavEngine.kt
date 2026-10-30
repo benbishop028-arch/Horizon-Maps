@@ -1688,7 +1688,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         sessionAvoid.clear(); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
-        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList())
+        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
         tts?.stop()
@@ -2697,7 +2697,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         run {
             val nowMs = android.os.SystemClock.elapsedRealtime()
             if (sp < 0.8) { if (stoppedSince == 0L) stoppedSince = nowMs } else if (sp > 2.5) stoppedSince = 0L
-            val nearEnd = navigating && (eta?.dist ?: Double.MAX_VALUE) < 400.0
+            // (nor waiting at a turn: the close-up of the junction matters more then)
+            val nearEnd = navigating && ((eta?.dist ?: Double.MAX_VALUE) < 400.0 || (turn?.dist ?: Double.MAX_VALUE) < 200.0)
             val ov = prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true) && stoppedSince > 0L && nowMs - stoppedSince > 30_000L &&
                 !nearEnd && arrival == null && abs(zoomOffset) < 0.01
             if (ov != stoppedOverview) stoppedOverview = ov
@@ -3562,7 +3563,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val m = cur.maneuver.uppercase()
         val wanted = prefs.b(PreferenceKeys.TURNARROWS, true) && !previewing && !arriving && d < 700.0 &&
             !(m == "STRAIGHT" || m == "FOLLOW" || m.startsWith("DEPART") || m == "ROUNDABOUT_STRAIGHT" || m == "ROUNDABOUT_CROSS")
-        val key = if (wanted) System.identityHashCode(r) * 31 + k else -1
+        // (redrawn when the lane offset changes, so the arrow always carries on from the route line in your lane)
+        val key = if (wanted) (System.identityHashCode(r) * 31 + k) * 31 + System.identityHashCode(laneLatAt) else -1
         if (key == turnArrowKey) return
         turnArrowKey = key
         if (!wanted) { map.setTurnArrow(emptyList()); return }
@@ -3572,8 +3574,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val pts = ArrayList<LL>()
         var o = max(0.0, cur.off - back)
         val end = min(r.len, cur.off + fwd)
-        while (o < end) { pts += pointAt(r, o).first; o += 4.0 }
-        pts += pointAt(r, end).first
+        val lat = laneLatAt
+        fun at(off: Double): LL {
+            val (p, brg) = pointAt(r, off)
+            val l = lat?.invoke(off) ?: 0.0
+            if (Math.abs(l) < 0.01) return p
+            val rad = Math.toRadians(brg + 90.0)
+            return LL(p.lat + l * Math.cos(rad) / 111320.0, p.lon + l * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
+        }
+        while (o < end) { pts += at(o); o += 4.0 }
+        pts += at(end)
         map.setTurnArrow(pts)
     }
 
@@ -4343,9 +4353,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun updateLaneMarks(r: Route, cur: Step, sec: LaneSec?, d: Double) {
         val key = if (sec != null && d < (if (laneFast) 1300.0 else 400.0) && prefs.b(PreferenceKeys.LANEMAP, true)) Pair(cur.off, sec) else null
+        // the route line stays in its lane until you're past the end of its ease back after the junction (clearing it as soon as
+        // the lane guidance ended made the line just ahead of you jump sideways)
+        if (laneShiftEnd > 0.0 && key == null && curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0; turnArrowKey = -2 }
         if (key == laneKey) return
         laneKey = key
-        if (key == null || sec == null) { map.setLanes(emptyList()); map.setRouteShift(emptyList()); return }
+        if (key == null || sec == null) {
+            map.setLanes(emptyList())
+            if (laneShiftEnd <= 0.0 || curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0 }
+            return
+        }
         val n = sec.lanes.size
         val anyFollow = sec.lanes.any { it.follow != null }
         val activeIdx = sec.lanes.indices.filter { i -> val ln = sec.lanes[i]; if (anyFollow) ln.follow != null else ln.dirs.any { laneHit(it, cur.maneuver) } }
@@ -4365,7 +4382,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val big = road?.cls?.let { (it == "motorway" || it == "trunk") } == true
         val aligned = road != null && road.oneway == true && big
         val laneW = if (!aligned) 3.6 else if (big) 3.65 else 3.5
-        val centre = if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average()) else (n - 1) / 2.0
+        // Lined up: before a junction the mapped line runs down the middle of the main carriageway, which is the lanes that carry
+        // straight on. The lanes peeling off to an exit are extra lanes beside it (at the junction Mapbox lists them all together),
+        // so the straight-on lanes are centred on the line and the exit lanes sit off to their side. Centring all of them on the
+        // line put every lane a lane or two out towards the exit, over the verge. A true split (no straight-on lane) stays centred.
+        val throughIdx = sec.lanes.indices.filter { i -> sec.lanes[i].dirs.any { it == "STRAIGHT" } }
+        val centre = if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average())
+            else if (throughIdx.isNotEmpty() && throughIdx.size < n && isContiguous(throughIdx)) throughIdx.average()
+            else (n - 1) / 2.0
         fun latOf(i: Int) = (i - centre) * laneW
         fun shifted(p: LL, brg: Double, lateral: Double): LL {
             val rad = Math.toRadians(brg + 90.0)
@@ -4414,32 +4438,46 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             divs += MapBinding.LaneEdge(outer, true)
         }
         map.setLaneBands(bands, divs)
-        // the route line moved into the lane you need (when the lanes are lined up with the road): it eases across over about 60 m,
-        // runs down the middle of your lane, and eases back onto the road's line just before the junction
+        // the route line moved into the lane you need (when the lanes are lined up with the road). One sideways offset along the
+        // route, used for both the route line and the turn arrow so they always meet with no step: it eases across (over up to
+        // 60 m), stays in the middle of the lit-up lanes right up to the junction, then eases back onto the road's line over the first
+        // 25 m after it (where the route carries on along the slip road or the main road). Before, the line only came back in the
+        // last 8 m while the turn arrow, drawn on the road's own line from 38 m out, left a gap and a step where they met.
         val shift = ArrayList<LL>()
+        laneLatAt = null; laneShiftEnd = 0.0
         if (aligned && activeIdx.isNotEmpty()) {
             val lat = (activeIdx.average() - centre) * laneW
-            val s0 = max(0.0, max(sec.off, cur.off - 250.0)); val s1 = cur.off
-            if (Math.abs(lat) > 0.6 && s1 - s0 > 80.0) {
+            val s0 = max(0.0, max(sec.off, cur.off - 250.0))
+            val s1 = min(r.len, cur.off + 25.0)
+            val ramp = min(60.0, (cur.off - s0) * 0.5)
+            if (Math.abs(lat) > 0.3 && cur.off - s0 > 30.0) {
+                val fn: (Double) -> Double = { o ->
+                    val inF = ((o - s0) / ramp).coerceIn(0.0, 1.0)
+                    val outF = ((s1 - o) / 35.0).coerceIn(0.0, 1.0)     // from 10 m before the junction to 25 m after it
+                    val f = minOf(inF, outF)
+                    lat * f * f * (3 - 2 * f)
+                }
+                laneLatAt = fn; laneShiftEnd = s1
                 var o = s0
                 while (true) {
                     val (p, brg) = pointAt(r, o)
-                    // Ease into the selected lane over 60 m, but keep the route line in that lane
-                    // almost all the way to the manoeuvre. Fading back over 25 m made it visibly
-                    // leave the highlighted lane just before the junction. Only merge back over
-                    // the final 8 m, where the route itself turns onto the next road segment.
-                    val inF = ((o - s0) / 60.0).coerceIn(0.0, 1.0)
-                    val outF = ((s1 - o) / 8.0).coerceIn(0.0, 1.0)
-                    val f = minOf(inF, outF).let { it * it * (3 - 2 * it) }
-                    shift += shifted(p, brg, lat * f)
+                    shift += shifted(p, brg, fn(o))
                     if (o >= s1) break
-                    o = minOf(s1, o + 8.0)
+                    o = minOf(s1, o + 5.0)
                 }
             }
         }
         map.setRouteShift(shift)
         map.setLanes(marks)
     }
+
+    /** The sideways offset (metres, + to the right) of the route line in the lane you need, by distance along the route; null when none. */
+    private var laneLatAt: ((Double) -> Double)? = null
+    /** Where along the route that offset has eased back to nothing (0 when there's none). */
+    private var laneShiftEnd = 0.0
+
+    /** True when the lane numbers follow on from each other (2, 3, 4), so they form one block of lanes. */
+    private fun isContiguous(idx: List<Int>): Boolean = idx.isNotEmpty() && idx.last() - idx.first() == idx.size - 1
 
     /** Index of the last route point at or before [d] metres along the route. */
     private fun idxAt(r: Route, d: Double): Int {

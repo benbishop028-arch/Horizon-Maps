@@ -55,6 +55,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - The offline maps page now points to Settings > Keys & accounts for the Mapbox token (it still said "Search & keys").
 - Road name under your arrow: it no longer jumps to a side road for a moment at junctions (a new name now has to be confirmed, unless you've clearly turned), it clears in car parks and when it's out of date instead of showing the last road, and after an unnamed slip road it no longer shows the exit sign's text as the road name.
 - Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
+- The traffic view when stopped no longer kicks in while you wait at a turn, and "Your car" is only saved when the car has stopped (switching apps on the car screen mid-drive could save it).
+- Lane guidance on motorways: the lanes drawn on the road now line up with the real ones at exits. The lanes that carry straight on sit on the main carriageway and the exit lanes beside them (all the lanes used to be centred on the road's line, which put them a lane or two out, over the verge).
+- The route line now runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
 - Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map look, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
