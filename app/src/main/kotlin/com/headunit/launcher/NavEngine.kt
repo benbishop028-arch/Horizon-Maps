@@ -330,7 +330,57 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun noteMbRefused(e: Exception) {
         val m = e.message ?: ""
-        if (m.contains("(401)")) { refusedMb = mbToken; scope.launch { toast("Mapbox didn't accept your access token, so it isn't being used. Check it in Settings > Keys & accounts.", 8000) } }
+        if (m.contains("(401)")) scope.launch { onMbUnauthorised(false) }
+    }
+
+    /** Why Mapbox turned your token down, in plain words (from Mapbox's own check of it), for the key box and the feedback report. */
+    var mbRefusedWhy by mutableStateOf("")
+        private set
+    /** The last answer from Mapbox's token check, for the feedback report. */
+    private var mbCheckNote = ""
+    private var mbChecking: String? = null
+    private var mbRetryFor: String? = null
+    private var mbRetries = 0
+
+    /**
+     * Mapbox answered 401. Before giving up on the token (which turns the map off until it's changed), Mapbox is asked what's
+     * wrong with it. A 401 used to be taken as "wrong token" straight away, so one refusal (even one left over from before the
+     * token was pasted) shut the map off for the rest of the drive, and people made new tokens that "didn't work" either.
+     */
+    private fun onMbUnauthorised(fromMap: Boolean) {
+        val t = mbToken
+        if (t.isBlank() || mbChecking == t || refusedMb == t) return
+        mbChecking = t
+        scope.launch {
+            val r = try { withContext(Dispatchers.IO) { MapboxRest.checkToken(t) } } catch (e: Exception) { null }
+            mbChecking = null
+            if (t != mbToken) return@launch
+            val code = r?.first
+            val user = r?.second.orEmpty()
+            mbCheckNote = "Mapbox token check: ${code ?: "no answer"}" + (if (user.isNotBlank()) " (account $user)" else "")
+            if (code == "TokenValid") {
+                // the token is fine: don't lock it out. Load the map again (a few times, further apart each time)
+                mbRefusedWhy = ""
+                if (!fromMap) return@launch
+                if (mbRetryFor != t) { mbRetryFor = t; mbRetries = 0 }
+                if (mbRetries < 3) {
+                    mbRetries++
+                    toast("Mapbox refused the map for a moment, but your token is fine" + (if (user.isNotBlank()) " (account $user)" else "") + ". Trying again…", 5000)
+                    delay(4000L * mbRetries)
+                    if (t == mbToken) try { applyStyle(lastDark) } catch (e: Exception) { }
+                } else toast("Mapbox accepts your token but keeps refusing the map. Sign in at account.mapbox.com and look for a notice about your account.", 10_000)
+                return@launch
+            }
+            refusedMb = t
+            mbRefusedWhy = when (code) {
+                "TokenMalformed" -> "Mapbox says that isn't a whole token: part of it is missing or mistyped. Copy it again with the copy button at account.mapbox.com › Tokens (typing it in by hand rarely works)."
+                "TokenInvalid" -> "Mapbox says that token has a mistake in it. Copy it again with the copy button at account.mapbox.com › Tokens rather than typing it."
+                "TokenRevoked" -> "Mapbox says that token has been deleted or replaced. Copy one that's still listed at account.mapbox.com › Tokens" + (if (user.isNotBlank()) " (account $user)." else ".")
+                "TokenExpired" -> "That's a temporary token and it has run out. Copy your Default public token (it starts pk.) at account.mapbox.com › Tokens."
+                else -> "Mapbox didn't accept your access token (401). Copy it again with the copy button at account.mapbox.com › Tokens."
+            }
+            toast(mbRefusedWhy, 9000)
+        }
     }
 
     /** Routes from whichever service is set up (see [provider]). */
@@ -713,8 +763,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val m = msg.lowercase()
         // Mapbox turned the token away: say so (the map can't show without a working token)
         if (m.contains("401") || m.contains("403") || m.contains("unauthor") || m.contains("forbidden") || m.contains("access token")) {
-            if (m.contains("401")) refusedMb = mbToken
-            toast("Mapbox turned down your access token (${if (m.contains("403")) "403" else "401"}), so the map can't load. Check the token in Settings > Keys & accounts and at account.mapbox.com.", 9000)
+            if (m.contains("403") || m.contains("forbidden"))
+                toast("Mapbox won't let this token show the map (403). At account.mapbox.com › Tokens, edit it: tick all the public scopes and remove any URL restrictions.", 9000)
+            // 401: Mapbox is asked what's wrong with the token first (it says so itself if it's mistyped, deleted or out of date)
+            else onMbUnauthorised(true)
             return
         }
         val network = m.contains("resolve") || m.contains("host") || m.contains("timeout") || m.contains("timed out") || m.contains("connect") || m.contains("network") || m.contains("unreachable")
@@ -1034,6 +1086,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
+            run {
+                val t = mbToken
+                val shape = when { t.isBlank() -> "none"; !MapboxRest.looksValid(t) -> "not a token"; !MapboxRest.looksWhole(t) -> "looks incomplete"; else -> "looks whole" }
+                appendLine("Mapbox token: ${t.take(3)}… $shape" + (if (mbCheckNote.isNotBlank()) " · $mbCheckNote" else "") + (if (mbKeyRefused) " · refused" else ""))
+            }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }

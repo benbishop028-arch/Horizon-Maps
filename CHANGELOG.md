@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Mapbox key "401" errors: a refusal no longer switches the map off straight away. Horizon Nav now asks Mapbox what's wrong with the token and says so plainly (mistyped or cut short, deleted or replaced, or out of date), and if Mapbox says the token is fine the map just loads again. A token that looks cut short or mistyped is flagged as you paste it, and the feedback report says what Mapbox made of the token.
 - Map shaking when stopped: standing still at lights or parked, the map no longer drifts and turns with the GPS's small wobbles (it was worst on Android Auto, where it shook all the time). It now stays put until you actually move off.
 - Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
 - Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.

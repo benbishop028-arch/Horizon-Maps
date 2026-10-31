@@ -26,6 +26,41 @@ object MapboxRest {
 
     fun looksValid(t: String) = t.length > 30 && (t.startsWith("pk.") || t.startsWith("sk.") || t.startsWith("tk."))
 
+    /**
+     * Checked without a connection: a whole token is three parts, and its middle part is readable data naming the Mapbox account.
+     * A token typed in by hand, or cut short when copying, usually fails this. (Only used for a warning, never to refuse a token.)
+     */
+    fun looksWhole(t: String): Boolean = try {
+        val p = t.split('.')
+        if (p.size != 3 || p[1].length < 8 || p[2].length < 10) false
+        else {
+            val json = String(android.util.Base64.decode(p[1], android.util.Base64.URL_SAFE or android.util.Base64.NO_WRAP or android.util.Base64.NO_PADDING), Charsets.UTF_8).trim()
+            json.startsWith("{") && json.endsWith("}") && json.contains("\"u\"")
+        }
+    } catch (e: Exception) { false }
+
+    /**
+     * Mapbox's own verdict on a token (its Tokens API, which works for any token): "TokenValid", "TokenMalformed", "TokenInvalid",
+     * "TokenExpired" or "TokenRevoked", with the account it belongs to. Null when Mapbox couldn't be asked (no signal).
+     */
+    fun checkToken(t: String): Pair<String, String>? = try {
+        val c = URL("$API/tokens/v2?access_token=" + enc(t)).openConnection() as HttpURLConnection
+        c.connectTimeout = 8000
+        c.readTimeout = 10000
+        c.setRequestProperty("User-Agent", "HorizonNav/1.0")
+        try {
+            val code = c.responseCode
+            val body = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.use { it.readText() } ?: ""
+            val o = try { JSONObject(body) } catch (e: Exception) { null }
+            val v = o?.optString("code").orEmpty()
+            when {
+                v.startsWith("Token") -> v to (o?.optJSONObject("token")?.optString("user").orEmpty())
+                code == 401 -> "TokenInvalid" to ""
+                else -> null
+            }
+        } finally { try { c.disconnect() } catch (e: Exception) { } }
+    } catch (e: Exception) { null }
+
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
 
     private fun httpError(code: Int, body: String): IOException = IOException(when (code) {

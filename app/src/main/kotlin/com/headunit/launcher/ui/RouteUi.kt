@@ -783,15 +783,15 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, slot: String? = null, onCl
  * (filled in already if one was saved before). Skipping it is fine: it can be added later in Settings › Keys & accounts.
  */
 @Composable
-fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false, onClose: () -> Unit) {
+fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false, why: String = "", onClose: () -> Unit) {
     val c = LocalVw.current
     var k by remember { mutableStateOf(prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")) }
     Dialog(onDismissRequest = {}) {
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp)
             .verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(if (refused) "Mapbox turned down your key" else "Add your Mapbox key", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            if (refused) Text("Mapbox answered \"401\" for the key you saved, so the map can't load. Make a fresh one at account.mapbox.com › Tokens › " +
-                "Create a token: name it Horizon Nav, leave the public scopes ticked and the secret ones unticked, then paste it below.", color = Warn, fontSize = 14.sp)
+            if (refused) Text(why.ifBlank { "Mapbox answered \"401\" for the key you saved, so the map can't load. Make a fresh one at account.mapbox.com › Tokens › " +
+                "Create a token: name it Horizon Nav, leave the public scopes ticked and the secret ones unticked, then paste it below." }, color = Warn, fontSize = 14.sp)
             Text("Horizon Nav now draws its map with Mapbox. Your free Mapbox key adds the 3D map with buildings, trees and lane markings, " +
                 "live traffic on your route, and better search and speed limits.", color = c.text, fontSize = 15.sp)
             Text("Get it at account.mapbox.com › Tokens: copy the Default public token (it starts pk.).", color = c.sub, fontSize = 13.sp)
@@ -800,6 +800,7 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
             when {
                 t.startsWith("sk.") -> Text("That's a secret token: use the public one (pk.) here.", color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                 t.isNotEmpty() && !com.headunit.launcher.MapboxRest.looksValid(t) -> Text("That doesn't look like a whole token yet: it's a long code starting pk.", color = Warn, fontSize = 13.sp)
+                t.isNotEmpty() && !com.headunit.launcher.MapboxRest.looksWhole(t) -> Text("Part of that token looks missing or mistyped. Copy it again with the copy button at account.mapbox.com › Tokens.", color = Warn, fontSize = 13.sp)
                 t.isEmpty() -> Text("Without it the map stays blank, but routes and search still work from your offline pack.", color = c.sub, fontSize = 13.sp)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

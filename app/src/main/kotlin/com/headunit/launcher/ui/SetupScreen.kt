@@ -172,6 +172,7 @@ private fun KeyStep(prefs: Prefs, engine: NavEngine) {
         t.isEmpty() -> Text("Without a token the map stays blank; routes can still come from the offline pack.", color = c.sub, fontSize = 13.sp)
         t.startsWith("sk.") -> Text("That's a secret token: use the public one (pk.) here.", color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
         !com.headunit.launcher.MapboxRest.looksValid(t) -> Text("That doesn't look like a whole token yet: it's a long code starting pk.", color = Warn, fontSize = 13.sp)
+        !com.headunit.launcher.MapboxRest.looksWhole(com.headunit.launcher.MapboxRest.clean(t)) -> Text("Part of that token looks missing or mistyped. Copy it again with the copy button at account.mapbox.com › Tokens.", color = Warn, fontSize = 13.sp)
         else -> SetupPoint("Token added: the map shows as soon as you finish setup")
     }
     Spacer(Modifier.height(10.dp))

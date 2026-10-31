@@ -280,7 +280,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                 var mbLater by remember { mutableStateOf(false) }
                 val noMapKey = !engine.hasMapbox && !mbLater && !engine.useOfflineMap() && !(carOn && !phoneMap)
                 if (setupDone && !settings && (prefs.b(PreferenceKeys.MAPBOX_PROMPT, false) || noMapKey))
-                    MapboxKeyDialog(prefs, refused = engine.mbKeyRefused) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false); mbLater = true }
+                    MapboxKeyDialog(prefs, refused = engine.mbKeyRefused, why = engine.mbRefusedWhy) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false); mbLater = true }
                 // short messages (saved, sent, no signal...) show over everything
                 val curMsg = engine.message
                 val lastMsg = remember { mutableStateOf(curMsg) }
