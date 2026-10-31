@@ -383,13 +383,70 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    /** Routes from whichever service is set up (see [provider]). */
-    private fun netRoutes(from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(), headingDeg: Double = -1.0, quick: Boolean = false): List<Route> =
-        withBackup { p ->
-            lastRouteProvider = p
-            if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
-            else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
+    /** Routes from one service ("mapbox" or "tomtom"). */
+    private fun routesFrom(p: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean): List<Route> =
+        if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
+        else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
+
+    /**
+     * Routes from whichever service is set up (see [provider]). With both a TomTom key and a Mapbox token (and Settings leaving the
+     * choice on Auto), a new route is asked of both at once: the two often pick different roads, and one alone sometimes missed a
+     * clearly quicker way. The quicker one comes first; a different route from the other service is kept as an alternative.
+     * Only when planning a new route ([askBoth]): not when rerouting, which has to be quick, nor in the faster-route checks while
+     * driving (the two services time the same road differently, which would offer "faster" routes that aren't), nor when one of
+     * them isn't working.
+     */
+    private fun netRoutes(from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(), headingDeg: Double = -1.0, quick: Boolean = false,
+                          askBoth: Boolean = false): List<Route> {
+        val now = System.currentTimeMillis()
+        val both = askBoth && !quick && hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" &&
+            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && now >= ttDownUntil && now >= mbDownUntil
+        if (!both) return withBackup { p -> lastRouteProvider = p; routesFrom(p, from, to, alternatives, departAtMs, via, headingDeg, quick) }
+        val mainP = provider
+        val otherP = if (mainP == "mapbox") "tomtom" else "mapbox"
+        // the other service on a thread of its own, so the two are asked at the same time
+        val other = java.util.concurrent.FutureTask<List<Route>>(java.util.concurrent.Callable {
+            try { routesFrom(otherP, from, to, false, departAtMs, via, headingDeg, false) } catch (e: Exception) { emptyList<Route>() }
+        })
+        Thread(other, "routes-$otherP").apply { isDaemon = true }.start()
+        val mine = try {
+            withBackup { p -> lastRouteProvider = p; routesFrom(p, from, to, alternatives, departAtMs, via, headingDeg, quick) }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) { other.cancel(true); throw e }
+            val theirs = try { other.get(20, java.util.concurrent.TimeUnit.SECONDS) } catch (x: Exception) { emptyList() }
+            if (theirs.isEmpty()) throw e
+            lastRouteProvider = otherP
+            return theirs
         }
+        // the main service has answered: the other gets a few more seconds at most, so nobody waits long for a route
+        val theirs = try { other.get(6, java.util.concurrent.TimeUnit.SECONDS) } catch (x: Exception) { other.cancel(true); emptyList() }
+        val best = theirs.firstOrNull() ?: return mine
+        val top = mine.firstOrNull() ?: run { lastRouteProvider = otherP; return theirs }
+        if (mine.any { sameRoad(it, best) }) return mine
+        // clearly quicker (2 minutes, or 5% on longer trips): it goes first. Otherwise it's offered as another choice
+        return if (best.time < top.time - max(120.0, top.time * 0.05)) {
+            lastRouteProvider = otherP
+            (listOf(best) + mine).take(3)
+        } else mine.take(2) + best
+    }
+
+    /** True when [b] runs along [a] almost all the way (two services' versions of the same route). */
+    private fun sameRoad(a: Route, b: Route): Boolean {
+        if (a.pts.size < 2 || b.pts.size < 2) return false
+        if (abs(a.len - b.len) > 0.06 * max(a.len, b.len)) return false
+        val n = 24
+        var near = 0
+        for (i in 1 until n) {
+            val q = b.pts[(i.toLong() * (b.pts.size - 1) / n).toInt()]
+            // every few points of the other line is plenty: route lines have points a few metres to a few tens of metres apart
+            var d = Double.MAX_VALUE
+            var j = 0
+            val step = max(1, a.pts.size / 4000)
+            while (j < a.pts.size) { val dd = Geo.dist(a.pts[j], q); if (dd < d) d = dd; j += step }
+            if (d < 60.0) near++
+        }
+        return near >= (n - 1) * 0.9
+    }
     @Volatile private var lastRouteProvider = ""
 
     /** The departure time was used for the last route (it isn't with every service or route). */
@@ -463,6 +520,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var tripDest = ""
 
     init {
+        // 12 or 24-hour clock times: the device's own setting unless Settings picks one
+        try { Clock.init(ctx, prefs) } catch (e: Exception) { }
         // an older pack on the unit goes into its own area folder (it's the area that was chosen then)
         try { migratePack() } catch (e: Exception) { }
         // speed limits and the wrong-way warning read the roads from a downloaded area when one covers you (no network needed)
@@ -1138,7 +1197,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val prog = curProgress
         val left = max(1.0, r.len - prog)
         val secs = eta?.secs ?: (r.time * left / max(1.0, r.len))
-        val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val fmt = Clock.format()
         val now = System.currentTimeMillis()
         val out = ArrayList<ItinRow>()
         r.steps.forEachIndexed { i, s ->
@@ -1574,7 +1633,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     if (haveOffline && (!hasOnline || !online())) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, via.map { it.pos }) }
-                    else try { netRoutes(from, to.pos, true, departMs, via.map { it.pos }) }
+                    else try { netRoutes(from, to.pos, true, departMs, via.map { it.pos }, askBoth = true) }
                     catch (e: Exception) {
                         if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, via.map { it.pos }) } else throw e
                     }
@@ -3457,7 +3516,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val secs = r.freeFlow * frac + ahead
             val delayMin = Math.round(ahead / 60.0).toInt()
-            val arrive = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(System.currentTimeMillis() + (secs * 1000).toLong()))
+            val arrive = Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
             routeFrac = (1.0 - frac).toFloat().coerceIn(0f, 1f)
             pruneLiveAlts(progress)
@@ -3831,7 +3890,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             savePlanned()
             // back to the map, where the planned card shows the leave time
             if (previewing) endRoute()
-            val f = SimpleDateFormat("HH:mm", Locale.UK)
+            val f = Clock.format()
             toast(if (leave <= System.currentTimeMillis()) "Leave now to arrive by ${f.format(Date(arriveMs))}" else "Leave by ${f.format(Date(leave))} to arrive by ${f.format(Date(arriveMs))}. I'll remind you.", 5000)
             watchPlanned()
         }
@@ -4020,7 +4079,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun handleVoice(raw: String): String? {
         val t = raw.lowercase(Locale.UK).trim().removePrefix("hey horizon").trim(' ', ',', '.')
         fun has(vararg w: String) = w.any { t.contains(it) }
-        val f = SimpleDateFormat("HH:mm", Locale.UK)
+        val f = Clock.format()
         fun say(s: String) { toast(s, 3500); speak(s, true) }
         // places you have saved
         if (Regex("^(go|take me|navigate|drive|directions|head)( back)?( to)? ?home$").matches(t) || t == "home") {

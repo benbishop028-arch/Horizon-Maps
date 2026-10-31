@@ -72,6 +72,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Better routes with TomTom and Mapbox together: with a TomTom key and a Mapbox token (and routes left on Auto), a new route is now asked of both at once. The quicker one comes first, and a different road from the other is offered as another choice.
+- Clock times follow your device: arrival and leave-by times now use the phone's or head unit's own 12 or 24-hour setting (for example 4:52 pm instead of 16:52).
 - Fold away everything on Android Auto: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent.
 - Your side of divided roads: on dual carriageways and other divided roads, your arrow now sits on the side you're driving on, not whichever side the GPS happened to be nearer.
 - The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.

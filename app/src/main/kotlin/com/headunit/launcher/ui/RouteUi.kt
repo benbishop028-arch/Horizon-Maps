@@ -460,7 +460,7 @@ fun ArriveByDialog(engine: NavEngine, onClose: () -> Unit) {
         }
     }
     var ms by remember { mutableStateOf(cal.timeInMillis) }
-    val f = java.text.SimpleDateFormat("EEE HH:mm", java.util.Locale.UK)
+    val f = com.headunit.launcher.Clock.format("EEE ")
     Dialog(onDismissRequest = onClose) {
         Column(Modifier.widthIn(max = 460.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text("Arrive by", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -491,7 +491,7 @@ fun ArriveByDialog(engine: NavEngine, onClose: () -> Unit) {
 fun PlannedCard(engine: NavEngine) {
     val p = engine.planned ?: return
     val c = LocalVw.current
-    val f = java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK)
+    val f = com.headunit.launcher.Clock.format()
     var now by remember { mutableStateOf(System.currentTimeMillis()) }
     LaunchedEffect(p) { while (true) { now = System.currentTimeMillis(); delay(30_000) } }
     val mins = ((p.leaveBy - now) / 60_000L).toInt()

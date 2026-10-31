@@ -486,7 +486,7 @@ private fun CarRoutePreview(engine: NavEngine) {
         progress.animateTo(1f, tween(countdownSeconds * 1000, easing = LinearEasing))
         if (engine.previewing) engine.beginNavigation()
     }
-    val fmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+    val fmt = com.headunit.launcher.Clock.format()
     val baseMs = if (engine.departAtMs > 0) engine.departAtMs else System.currentTimeMillis()
     val dest: @Composable (Modifier) -> Unit = { m ->
         Column(m) {

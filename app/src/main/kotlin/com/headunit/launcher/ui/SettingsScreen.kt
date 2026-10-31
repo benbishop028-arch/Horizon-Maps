@@ -602,7 +602,7 @@ private fun PlacesSection(engine: NavEngine) {
 @Composable
 private fun TripsGroup(engine: NavEngine) {
     var shown by remember { mutableStateOf(engine.trips.all()) }
-    val fmt = java.text.SimpleDateFormat("EEE d MMM, HH:mm", java.util.Locale.UK)
+    val fmt = com.headunit.launcher.Clock.format("EEE d MMM, ")
     val k = if (engine.imperial) 2.23694 else 3.6
     val unit = if (engine.imperial) "mph" else "km/h"
     SGroup("Trip log") {

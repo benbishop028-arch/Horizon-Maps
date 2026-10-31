@@ -163,6 +163,8 @@ internal object PreferenceKeys {
     const val DONATE_SHOWN = "donateshown"
     /** Your own normal zoom when not on a route, in zoom levels from the standard one (-2 to +2; 0 = standard). */
     const val DEFAULT_ZOOM = "defzoom"
+    /** Clock times: "auto" (the device's own 12 / 24-hour setting), "12" or "24". */
+    const val CLOCK = "clock"
     /** The + / - zoom last used when not on a route, kept for next time: on the phone / head unit, and on Android Auto. */
     const val FREE_ZOOM = "freezoom"
     const val FREE_ZOOM_CAR = "freezoomcar"

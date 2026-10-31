@@ -142,7 +142,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         if (!engine.stopMode) engine.beginNavigation()
     }
     if (arriveBy) ArriveByDialog(engine) { arriveBy = false }
-    val fmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+    val fmt = com.headunit.launcher.Clock.format()
     val baseMs = if (engine.departAtMs > 0) engine.departAtMs else System.currentTimeMillis()
     Column(Modifier.align(Alignment.BottomCenter).padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
     val selRoute = rs.getOrNull(engine.active)

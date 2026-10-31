@@ -161,7 +161,7 @@ object FuelFinder {
                 for ((id, m) in cur) for ((t, p) in m) sb.append(id).append('\t').append(t).append('\t').append(p.pence).append('\t').append(clean(p.updated)).append('\n')
                 if (cur.isNotEmpty()) { pf.writeText(sb.toString()); priceCache = null }
             }
-            status = "Prices updated " + java.text.SimpleDateFormat("HH:mm", java.util.Locale.UK).format(java.util.Date(pricesFile(ctx).lastModified())) +
+            status = "Prices updated " + Clock.format().format(java.util.Date(pricesFile(ctx).lastModified())) +
                 " · ${stations(ctx).size} stations"
         } catch (e: Exception) {
             status = "Fuel prices failed: " + (e.message ?: e.javaClass.simpleName).take(160)
