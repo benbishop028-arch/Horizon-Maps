@@ -536,18 +536,46 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
-    /** The sign itself: a panel with a white edge, one cell per lane (the ones to use lit), on two posts. */
-    private fun laneSignBitmap(lanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>): Bitmap {
-        val cw = 64; val ch = 80; val pad = 10; val gap = 4; val post = 44
+    // ---- the lane bubble: a small strip of the lanes riding on the road just ahead of your arrow (when the lanes are painted on the road) ----
+    @Volatile private var bubbleAt: LL? = null
+    @Volatile private var bubbleBmp: Bitmap? = null
+    private var bubbleLanesKey = ""
+    private var bubbleKey = ""
+
+    /** Shows the lane bubble at [at] (null hides it). Same lane description as [setLaneSign]. */
+    fun setLaneBubble(at: LL?, lanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>) {
+        val lk = lanes.joinToString(";") { (d, on) -> d.joinToString(",") { "${it.first}${if (it.second) 1 else 0}" } + (if (on) "*" else "") }
+        val key = if (at == null) "" else String.format(java.util.Locale.US, "%.5f,%.5f|%s", at.lat, at.lon, lk)
+        if (key == bubbleKey) return
+        bubbleKey = key
+        main0.post {
+            val st = style ?: return@post
+            try {
+                if (at != null && lanes.isNotEmpty()) {
+                    if (lk != bubbleLanesKey || bubbleBmp == null) { bubbleLanesKey = lk; bubbleBmp = laneSignBitmap(lanes, false); addImg(st, "dl-lanebubble", bubbleBmp!!) }
+                    bubbleAt = at
+                    src("dl-lanebubble")?.featureCollection(FeatureCollection.fromFeatures(listOf(Feature.fromGeometry(Point.fromLngLat(at.lon, at.lat)))))
+                } else {
+                    bubbleAt = null
+                    src("dl-lanebubble")?.featureCollection(FeatureCollection.fromFeatures(emptyList()))
+                }
+            } catch (e: Throwable) { }
+        }
+    }
+
+    /** The sign itself: a panel with a white edge, one cell per lane (the ones to use lit), on two posts ([posts] false: just the panel, for the bubble). */
+    private fun laneSignBitmap(lanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>, posts: Boolean = true): Bitmap {
+        val cw = 64; val ch = 80; val pad = 10; val gap = 4; val post = if (posts) 44 else 0
         val w = pad * 2 + cw * lanes.size + gap * (lanes.size - 1)
         val ph = ch + pad * 2
         val bmp = Bitmap.createBitmap(w, ph + post, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
         val p = Paint(Paint.ANTI_ALIAS_FLAG)
-        // posts
-        p.color = 0xFF8A949C.toInt()
-        c.drawRect(pad + 6f, ph - 4f, pad + 14f, (ph + post).toFloat(), p)
-        c.drawRect(w - pad - 14f, ph - 4f, w - pad - 6f, (ph + post).toFloat(), p)
+        if (posts) {
+            p.color = 0xFF8A949C.toInt()
+            c.drawRect(pad + 6f, ph - 4f, pad + 14f, (ph + post).toFloat(), p)
+            c.drawRect(w - pad - 14f, ph - 4f, w - pad - 6f, (ph + post).toFloat(), p)
+        }
         // panel: dark teal (the turn card's colour) with a white edge
         val panel = android.graphics.RectF(1.5f, 1.5f, w - 1.5f, ph - 1.5f)
         p.color = 0xFF1F5E52.toInt(); c.drawRoundRect(panel, 14f, 14f, p)
@@ -1840,6 +1868,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-lanesign-l", "dl-lanesign").iconImage("dl-lanesign").iconAnchor(IconAnchor.BOTTOM)
             .iconAllowOverlap(true).iconIgnorePlacement(true).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
             .iconSize(zoomed(1.0, 13 to 0.45, 16 to 0.7, 18 to 0.9)))
+        bubbleBmp?.let { addImg(st, "dl-lanebubble", it) }
+        addS(st, GeoJsonSource.Builder("dl-lanebubble").featureCollection(FeatureCollection.fromFeatures(
+            bubbleAt?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())).build())
+        addL(st, SymbolLayer("dl-lanebubble-l", "dl-lanebubble").iconImage("dl-lanebubble").iconAnchor(IconAnchor.BOTTOM)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconSize(zoomed(1.0, 13 to 0.3, 16 to 0.46, 18 to 0.6)))
         addL(st, SymbolLayer("dl-parked-l", "dl-parked").iconImage("dl-car-pin").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(zoomed(1.0, 10 to 0.4, 15 to 0.55, 18 to 0.7)))
         if (im) {

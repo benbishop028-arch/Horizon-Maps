@@ -1731,7 +1731,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         sessionAvoid.clear(); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
-        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
+        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; bubbleLanes = null; map.setLaneBubble(null, emptyList()); map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
         tts?.stop()
@@ -4430,10 +4430,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // the lane sign goes once you're up to it
         if (laneSignFor >= 0.0 && curProgress > laneSignFor - 15.0) { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
+        // the lane bubble rides just ahead of the arrow until you reach the junction
+        bubbleLanes?.let { bl ->
+            if (key != null && curProgress < cur.off - 20.0) map.setLaneBubble(pointAt(r, min(r.len, curProgress + 24.0)).first, bl) else map.setLaneBubble(null, emptyList())
+        }
         if (key == laneKey) return
         laneKey = key
         if (key == null || sec == null) {
             map.setLaneSign(null, emptyList()); laneSignFor = -1.0
+            bubbleLanes = null; map.setLaneBubble(null, emptyList())
             map.setLanes(emptyList())
             if (laneShiftEnd <= 0.0 || curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0 }
             return
@@ -4478,7 +4483,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
             })
             laneSignFor = cur.off
-        } else { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
+            bubbleLanes = null
+        } else {
+            map.setLaneSign(null, emptyList()); laneSignFor = -1.0
+            bubbleLanes = if (lined) sec.lanes.mapIndexed { i, lane ->
+                val active = i in activeIdx
+                lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
+            } else null
+        }
         // each lane's middle at [o] metres along the route: from the real lanes (in between the places they were read, and held
         // at the first / last beyond them), else the standard layout
         fun mids(o: Double): DoubleArray {
@@ -4497,7 +4509,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
         }
         val marks = ArrayList<MapBinding.LaneMark>()
-        for (back in if (lined) listOf(28.0, 65.0) else emptyList()) {
+        for (back in if (lined) listOf(28.0, 65.0, 105.0) else emptyList()) {
             val off = cur.off - back
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
@@ -4515,7 +4527,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // TomTom's lane section can be short, but the lanes carry on back along the approach, so the strips do not stop where the section starts
         // (only the last stretch before the junction, where the lanes really are: about 110 m on motorways, 60 m elsewhere,
         // so lanes aren't painted far back along a road that only widens at the junction)
-        val from = max(0.0, cur.off - (if (lined) 110.0 else 60.0))
+        val from = max(0.0, cur.off - (if (lined) 150.0 else 60.0))
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
@@ -4555,7 +4567,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val s0 = max(0.0, max(sec.off, cur.off - 250.0))
             val s1 = min(r.len, cur.off + 25.0)
             // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
-            val stripStart = cur.off - 110.0
+            val stripStart = cur.off - 150.0
             val ramp = if (stripStart - s0 >= 20.0) min(60.0, stripStart - s0) else max(10.0, (cur.off - s0) * 0.5)
             if (maxOf(Math.abs(mid), Math.abs(midAt(cur.off - 100.0)), Math.abs(midAt(cur.off - 10.0))) > 0.3 && cur.off - s0 > 30.0) {
                 val fn: (Double) -> Double = { o ->
@@ -4589,6 +4601,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var hdProfileFor = -1.0
     /** The junction the lane sign is standing at (−1 for none). */
     private var laneSignFor = -1.0
+    /** The lanes shown in the bubble just ahead of the arrow (null when none). */
+    private var bubbleLanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>? = null
     private var hdLanesFor = -1.0
     private var hdTriesFor = -1.0
     private var hdTries = 0
