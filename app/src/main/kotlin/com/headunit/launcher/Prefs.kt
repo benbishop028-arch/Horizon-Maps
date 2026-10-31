@@ -136,7 +136,6 @@ internal object PreferenceKeys {
     const val LAMPGAP = "lampgap"
     const val LANDMARKS3D = "landmarks3d"
     const val LANEMAP = "lanemap"
-    const val LANES_MAPBOX = "lanesmb"
     const val LASTLAT = "lastlat"
     const val LASTLON = "lastlon"
     const val LIMITCHANGE = "limitchange"
@@ -164,6 +163,9 @@ internal object PreferenceKeys {
     const val DONATE_SHOWN = "donateshown"
     /** Your own normal zoom when not on a route, in zoom levels from the standard one (-2 to +2; 0 = standard). */
     const val DEFAULT_ZOOM = "defzoom"
+    /** The + / - zoom last used when not on a route, kept for next time: on the phone / head unit, and on Android Auto. */
+    const val FREE_ZOOM = "freezoom"
+    const val FREE_ZOOM_CAR = "freezoomcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"
     /** Where you left the car, "lat,lon,time" (saved on the phone when Android Auto disconnects). */

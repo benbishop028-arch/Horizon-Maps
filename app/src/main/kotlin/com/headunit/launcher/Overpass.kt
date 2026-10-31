@@ -290,6 +290,11 @@ object Overpass {
         for (w in ways) {
             val b = w.box
             if (p.lat < b[0] - 0.0005 || p.lat > b[2] + 0.0005 || p.lon < b[1] - 0.0008 || p.lon > b[3] + 0.0008) continue
+            // a one-way road (each side of a dual carriageway is mapped as one) only counts going its own way, so the arrow goes
+            // on your side of a divided road instead of whichever side the GPS happened to be nearer
+            val ow = w.tags.optString("oneway")
+            val hw = w.tags.optString("highway")
+            val oneway = ow == "yes" || ow == "true" || ow == "1" || ow == "-1" || hw == "motorway"
             for (n in 0 until w.g.size - 1) {
                 val a = w.g[n]; val c = w.g[n + 1]
                 val ax = (a.lon - p.lon) * mLon; val ay = (a.lat - p.lat) * mLat
@@ -303,6 +308,7 @@ object Overpass {
                 var diff = Math.abs(bearingOf(a, c) - heading) % 360.0
                 if (diff > 180.0) diff = 360.0 - diff
                 if (diff > 35.0 && diff < 145.0) continue
+                if (oneway && (if (ow == "-1") diff <= 35.0 else diff >= 145.0)) continue
                 bd = d
                 best = LL(p.lat + (ay + dy * t) / mLat, p.lon + (ax + dx * t) / mLon)
             }

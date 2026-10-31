@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Map shaking when stopped: standing still at lights or parked, the map no longer drifts and turns with the GPS's small wobbles (it was worst on Android Auto, where it shook all the time). It now stays put until you actually move off.
 - Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
 - Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.
 - Android Auto trip card on wide screens: it no longer stretches right across a very wide car screen with its sound and end-route buttons hidden under Android Auto's own buttons; it's now just as wide as its figures and buttons.
@@ -56,12 +57,12 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Road name under your arrow: it no longer jumps to a side road for a moment at junctions (a new name now has to be confirmed, unless you've clearly turned), it clears in car parks and when it's out of date instead of showing the last road, and after an unnamed slip road it no longer shows the exit sign's text as the road name.
 - Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
 - The traffic view when stopped no longer kicks in while you wait at a turn, and "Your car" is only saved when the car has stopped (switching apps on the car screen mid-drive could save it).
-- Closer to 3D lane guidance: where the real painted lanes are found, the lit-up lanes now start 150 m before the junction (was 110 m), the route line sits in your lane from there and bends through the junction, and a small lane bubble rides on the road just ahead of your arrow showing the lanes to use. Where the real lanes can't be matched, the overhead lane sign is shown instead.
-- Mapbox's lane data on TomTom routes: Mapbox draws the lanes on the map, so its own lane list suits them best. With a Mapbox token, a TomTom route now gets Mapbox's lane list in the background, junction by junction, wherever Mapbox's route goes the same way (other junctions keep TomTom's). It uses one extra Mapbox request per route and can be switched off in Settings > Turn card. The feedback report says which lane list was used.
 - Lane sign over the road: coming up to a junction with lane guidance, a sign now stands over the road at the junction, like a motorway gantry, with the lanes to use lit up. It replaces the lane strips painted across the road, which often sat a lane or two out from the real lanes. Where the map has real lane data that matches the lanes you need (on many motorways), the lanes are still painted on the road, exactly over the real ones, with the route line through them. With Demo mode on, a short message says which was used (also in the feedback report).
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Report on Android Auto: a Report button (where the Search button was) opens Police, Crash, Hazard, Broken down and Mobile camera; one tap saves the report where you are, as on the phone. Search is still in the search bar on the map, or at the top of Places on cars that don't pass taps on to the map.
+- Zoom remembered: the zoom you set with + and − when you're not on a route is kept for next time, on the phone and on Android Auto separately. Tap Re-centre while the map is following you to go back to automatic zoom.
 - Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map look, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
 - Traffic overview when stopped: after 30 seconds stopped at lights or in a queue, the map pulls back to a top-down view of the traffic round you, and goes back as soon as you move off. On by default; switch it off in Settings > On the map.
 - Where you parked: when Android Auto disconnects, the phone remembers where the car was. A "Your car" card shows how long ago and how far, with a Walk button and a car pin on the map, for 2 days or until you're back in the car.
@@ -70,6 +71,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Fold away everything: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent, on the phone and on Android Auto.
+- Your side of divided roads: on dual carriageways and other divided roads, your arrow now sits on the side you're driving on, not whichever side the GPS happened to be nearer.
 - The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.
 - Android Auto map page matches the app: Home and Work tiles with the drive time, five round buttons for fuel, charging, food, coffee and parking, and Saved & recent with your first few places (as many as fit) and "All" for the rest, in place of the long scrolling row of chips. Your arrow also sits in the middle of the clear map there when you're not navigating.
 - Android Auto speed sign: it sits right up against the edge of the screen when Android Auto's buttons hide, and just beside them when they show.

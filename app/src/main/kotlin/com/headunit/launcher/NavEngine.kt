@@ -339,48 +339,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             lastRouteProvider = p
             if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
             else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
-        }.also { rs -> if (lastRouteProvider == "tomtom" && rs.isNotEmpty()) mapboxLanesFor(rs, from, to, via, headingDeg) }
-
-    /**
-     * A TomTom route's lane list isn't from the map Mapbox draws the lanes on, so it often doesn't match what's painted. Once the
-     * route is out, Mapbox's own route for the same trip is asked for in the background (one request) and its lane list is put onto
-     * the route, junction by junction, where Mapbox's route passes the same junction in the same direction. Junctions it doesn't
-     * match keep TomTom's lanes. Silent if there's no token, no signal or it's switched off.
-     */
-    private fun mapboxLanesFor(rs: List<Route>, from: LL, to: LL, via: List<LL>, headingDeg: Double) {
-        if (!hasMapbox || !prefs.b(PreferenceKeys.LANES_MAPBOX, true) || !online()) return
-        searchScope.launch {
-            try {
-                val mb = MapboxRest.routes(mbToken, from, to, false, 0L, via, headingDeg, true, !mirrored).firstOrNull() ?: return@launch
-                if (mb.lanes.isEmpty()) return@launch
-                var matched = 0
-                for (r in rs.take(3)) {
-                    val out = ArrayList<LaneSec>()
-                    for (ls in mb.lanes) {
-                        val p = pointAt(mb, ls.end).first
-                        val pr = MapRouteGeometry.projectOn(r.pts, p) ?: continue
-                        if (Geo.dist(pr.second, p) > 20.0) continue
-                        val offTT = r.cum[pr.first] + Geo.dist(r.pts[pr.first], pr.second)
-                        val st = r.steps.firstOrNull { Math.abs(it.off - offTT) < 40.0 } ?: continue
-                        // the same way through the junction: a lane Mapbox says to use must suit TomTom's turn here
-                        if (ls.lanes.none { it.follow != null && laneHit(it.follow, st.maneuver) }) continue
-                        out += LaneSec(max(0.0, offTT - (ls.end - ls.off)), offTT, ls.lanes)
-                    }
-                    if (out.isEmpty()) continue
-                    matched += out.size
-                    val keep = r.lanes.filter { t -> out.none { Math.abs(it.end - t.end) < 60.0 } }
-                    r.lanes = (keep + out).sortedBy { it.off }
-                    laneKey = null
-                }
-                laneSource = "Mapbox lane list on $matched of ${mb.lanes.size} junctions"
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-            }
         }
-    }
-    /** Where the lane list came from, for the feedback report. */
-    @Volatile var laneSource = ""
-        private set
     @Volatile private var lastRouteProvider = ""
 
     /** The departure time was used for the last route (it isn't with every service or route). */
@@ -1075,7 +1034,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
-            appendLine("Lane list: ${if (laneSource.isNotBlank()) laneSource else "TomTom's / the route's own"}")
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -1731,19 +1689,29 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         sessionAvoid.clear(); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
-        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; bubbleLanes = null; map.setLaneBubble(null, emptyList()); map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
+        map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
         tts?.stop()
         glideRoute = null; glideOnRoute = false
+        // back to the zoom you use when not on a route
+        zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 }
         refreshRoad()
         map.setTilt(if (tilt3d) 55.0 else 0.0)
     }
 
     // ---- camera controls ----
-    fun recenter() {
+    /**
+     * Back to following the car. With no route, the zoom you last set with + and - comes back (it's remembered between drives,
+     * separately for the phone / head unit and Android Auto); pressing re-centre again while already following you puts the zoom
+     * back to automatic. On a route the zoom is always automatic.
+     */
+    fun recenter(byUser: Boolean = false) {
+        val wasFollowing = following
         following = true
-        zoomOffset = 0.0
+        val resetZoom = route != null || (byUser && wasFollowing)
+        zoomOffset = if (resetZoom) 0.0 else savedFreeZoom()
+        if (route == null && resetZoom) rememberFreeZoom()
         val f = fix
         if (f != null) onPosition(f, true) else toast("No GPS fix yet")
     }
@@ -1779,8 +1747,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun zoom(delta: Double) {
-        if (following && fix != null) { zoomOffset = (zoomOffset + delta).coerceIn(-4.0, 3.0); fix?.let { onPosition(it, true) } }
+        if (following && fix != null) { zoomOffset = (zoomOffset + delta).coerceIn(-4.0, 3.0); rememberFreeZoom(); fix?.let { onPosition(it, true) } }
         else map.zoomBy(delta)
+    }
+
+    // ---- the zoom you set with + and - when not on a route, remembered for next time (phone / head unit and Android Auto apart) ----
+    private val freeZoomKey: String get() = if (isCar) PreferenceKeys.FREE_ZOOM_CAR else PreferenceKeys.FREE_ZOOM
+    private var freeZoomRestored = false
+
+    private fun savedFreeZoom(): Double = (prefs.s(freeZoomKey, "0").toDoubleOrNull() ?: 0.0).coerceIn(-4.0, 3.0)
+
+    /** Keeps the current + / - zoom for next time; only off a route (a route's zoom is automatic and starts afresh). */
+    private fun rememberFreeZoom() {
+        if (route != null) return
+        try { prefs.put(freeZoomKey, String.format(Locale.US, "%.2f", zoomOffset)) } catch (e: Exception) { }
     }
 
 
@@ -2210,6 +2190,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val v = (defaultZoom + zoomOffset).coerceIn(-2.0, 2.0)
         prefs.put(PreferenceKeys.DEFAULT_ZOOM, String.format(java.util.Locale.US, "%.2f", v))
         zoomOffset = 0.0
+        rememberFreeZoom()
         fix?.let { onPosition(it, true) }
         toast("This is now your default zoom. Change or reset it in Settings > Map look", 4500)
     }
@@ -2510,13 +2491,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** In portrait: the share of the screen height covered by the trip card at the bottom (the locator is kept above it). */
     var bottomCover = 0.0
 
+    // Standing still (parked, at lights): the first position while stopped, kept until you've clearly moved off. GPS (and the
+    // car's own GPS over Android Auto) wanders a few metres and reports small made-up speeds while stopped; following that
+    // made the map shake and turn on the spot.
+    private var stillAnchor: LL? = null
+    private var isStill = false
+
+    /** True while [p] is still within GPS wander of where you stopped. Movement is taken as real once you're clearly away. */
+    private fun stillCheck(p: Fix): Boolean {
+        if (simMode != 0) { stillAnchor = null; return false }
+        val a = stillAnchor
+        if (a == null) {
+            if (p.speed < 1.0) { stillAnchor = p.pos; return true }
+            return false
+        }
+        // how far counts as having moved off: the fix's own uncertainty, kept between 8 and 20 m
+        val radius = (if (p.acc > 0.0) p.acc else 10.0).coerceIn(8.0, 20.0)
+        if (p.speed > 4.0 || Geo.dist(a, p.pos) > radius) { stillAnchor = null; return false }
+        return true
+    }
+
     private fun onPosition(p: Fix, force: Boolean) {
         fix = p
-        // start/stop moving with a little hysteresis (the full map rests its shop labels while you drive)
-        if (!movingNow && p.speed > 4.0) { movingNow = true; map.setMoving(true) }
-        else if (movingNow && p.speed < 1.5) { movingNow = false; map.setMoving(false) }
-        val tNow = android.os.SystemClock.elapsedRealtime()
         val newFix = p !== lastMeasured
+        if (newFix) isStill = try { stillCheck(p) } catch (e: Exception) { false }
+        // the speed used for the camera and the arrow: none while standing still
+        val sp = if (isStill) 0.0 else p.speed
+        // start/stop moving with a little hysteresis (the full map rests its shop labels while you drive)
+        if (!movingNow && sp > 4.0) { movingNow = true; map.setMoving(true) }
+        else if (movingNow && sp < 1.5) { movingNow = false; map.setMoving(false) }
+        val tNow = android.os.SystemClock.elapsedRealtime()
         if (newFix) {
             lastMeasured = p
             posDt = if (lastPosAt == 0L) 1000L else (tNow - lastPosAt).coerceIn(500L, 2500L)
@@ -2524,6 +2528,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try { updateRoadInfo(p); trackParking(p) } catch (e: Exception) { android.util.Log.w("NavEngine", "road info failed", e) }
             try { checkArea(p.pos) } catch (e: Exception) { }
         }
+        // the first position of this session: the zoom you left the map at last time comes back (not on a route)
+        if (!freeZoomRestored) { freeZoomRestored = true; if (route == null) zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 } }
         val r = route
         val s = if (!previewing && r != null && r.pts.size >= 2) snap(r, p.pos) else null
         // how far from the route counts as having left it: tighter than before, but widened when the GPS is less certain
@@ -2546,15 +2552,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val onR = r != null && s != null && !jump && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
         if (onR && s != null && newFix && s.dist <= offLim) { trustProg = s.progress; trustAt = nowT }
         if (newFix) {
-            mAt = tNow; mSpeed = p.speed
+            mAt = tNow; mSpeed = sp
             if (onR && r != null && s != null) {
                 if (glideRoute !== r || gPos == null) { glideRoute = r; gProg = s.progress; gPos = s.point; gHead = p.heading }
-                mProg = s.progress
+                // standing still: the arrow stays where it stopped instead of creeping along with the GPS wander
+                if (!isStill || glideRoute !== r) mProg = s.progress
                 glideOnRoute = true
             } else {
                 glideRoute = null; glideOnRoute = false
-                mPos = if (p.speed > 2.0 && prefs.b(PreferenceKeys.SNAPROAD, true)) (Overpass.snapToRoad(p.pos, p.heading) ?: map.snapToRoad(p.pos, p.heading) ?: p.pos) else p.pos
-                mHead = p.heading
+                // standing still: the arrow (and the map round it) stays where you stopped, facing the same way
+                val held = if (isStill) mPos else null
+                mPos = held ?: if (p.speed > 2.0 && prefs.b(PreferenceKeys.SNAPROAD, true)) (Overpass.snapToRoad(p.pos, p.heading) ?: map.snapToRoad(p.pos, p.heading) ?: p.pos) else p.pos
+                if (!isStill) mHead = p.heading
                 val gp = gPos
                 if (gp == null || Geo.dist(gp, p.pos) > 150.0) { gPos = p.pos; gHead = p.heading }
             }
@@ -2563,7 +2572,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // camera target for this fix; the glide loop eases the shown camera towards it every frame
         if (!previewing && following) {
             val hdg = if (onR && r != null && s != null) gHead else p.heading
-            followCamera(Fix(gPos ?: p.pos, hdg, p.speed, p.alt, p.acc), onR)
+            followCamera(Fix(gPos ?: p.pos, hdg, sp, p.alt, p.acc), onR)
         }
         if (previewing) return
         if (r == null || r.pts.size < 2 || s == null) return
@@ -4430,15 +4439,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // the lane sign goes once you're up to it
         if (laneSignFor >= 0.0 && curProgress > laneSignFor - 15.0) { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
-        // the lane bubble rides just ahead of the arrow until you reach the junction
-        bubbleLanes?.let { bl ->
-            if (key != null && curProgress < cur.off - 20.0) map.setLaneBubble(pointAt(r, min(r.len, curProgress + 24.0)).first, bl) else map.setLaneBubble(null, emptyList())
-        }
         if (key == laneKey) return
         laneKey = key
         if (key == null || sec == null) {
             map.setLaneSign(null, emptyList()); laneSignFor = -1.0
-            bubbleLanes = null; map.setLaneBubble(null, emptyList())
             map.setLanes(emptyList())
             if (laneShiftEnd <= 0.0 || curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0 }
             return
@@ -4483,14 +4487,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
             })
             laneSignFor = cur.off
-            bubbleLanes = null
-        } else {
-            map.setLaneSign(null, emptyList()); laneSignFor = -1.0
-            bubbleLanes = if (lined) sec.lanes.mapIndexed { i, lane ->
-                val active = i in activeIdx
-                lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
-            } else null
-        }
+        } else { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
         // each lane's middle at [o] metres along the route: from the real lanes (in between the places they were read, and held
         // at the first / last beyond them), else the standard layout
         fun mids(o: Double): DoubleArray {
@@ -4509,7 +4506,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
         }
         val marks = ArrayList<MapBinding.LaneMark>()
-        for (back in if (lined) listOf(28.0, 65.0, 105.0) else emptyList()) {
+        for (back in if (lined) listOf(28.0, 65.0) else emptyList()) {
             val off = cur.off - back
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
@@ -4527,7 +4524,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // TomTom's lane section can be short, but the lanes carry on back along the approach, so the strips do not stop where the section starts
         // (only the last stretch before the junction, where the lanes really are: about 110 m on motorways, 60 m elsewhere,
         // so lanes aren't painted far back along a road that only widens at the junction)
-        val from = max(0.0, cur.off - (if (lined) 150.0 else 60.0))
+        val from = max(0.0, cur.off - (if (lined) 110.0 else 60.0))
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
@@ -4567,7 +4564,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val s0 = max(0.0, max(sec.off, cur.off - 250.0))
             val s1 = min(r.len, cur.off + 25.0)
             // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
-            val stripStart = cur.off - 150.0
+            val stripStart = cur.off - 110.0
             val ramp = if (stripStart - s0 >= 20.0) min(60.0, stripStart - s0) else max(10.0, (cur.off - s0) * 0.5)
             if (maxOf(Math.abs(mid), Math.abs(midAt(cur.off - 100.0)), Math.abs(midAt(cur.off - 10.0))) > 0.3 && cur.off - s0 > 30.0) {
                 val fn: (Double) -> Double = { o ->
@@ -4601,8 +4598,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var hdProfileFor = -1.0
     /** The junction the lane sign is standing at (−1 for none). */
     private var laneSignFor = -1.0
-    /** The lanes shown in the bubble just ahead of the arrow (null when none). */
-    private var bubbleLanes: List<Pair<List<Pair<String, Boolean>>, Boolean>>? = null
     private var hdLanesFor = -1.0
     private var hdTriesFor = -1.0
     private var hdTries = 0

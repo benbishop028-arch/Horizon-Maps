@@ -237,7 +237,8 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                // the bar opens the search; the arrow folds Saved & recent away and back (as in the app), so it has a tap area of its own
+                // the bar opens the search; the arrow folds Home / Work, the round buttons and Saved & recent away and back (as in the app),
+                // so it has a tap area of its own
                 Row(Modifier.weight(1f).fillMaxHeight().carTap("search") { actions.search() }.padding(start = 18.dp), verticalAlignment = Alignment.CenterVertically) {
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Search, null, tint = c.sub)
                     Text("Where to?", color = c.sub, fontSize = 18.sp, modifier = Modifier.padding(start = 12.dp))
@@ -250,7 +251,8 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Mic, null, tint = Color.White, modifier = Modifier.size(23.dp))
                 }
             }
-            CarChips(engine, actions, savedRows)
+            // (folded away, with everything in it, by the arrow in the bar)
+            if (engine.prefs.b(PreferenceKeys.QUICKLIST, true)) CarChips(engine, actions, savedRows)
         }
 
         // alerts (cameras, limits, hazards...): beside the turn card on wide screens, under it on tall ones

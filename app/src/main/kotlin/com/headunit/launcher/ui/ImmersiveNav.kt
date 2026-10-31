@@ -262,10 +262,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 }
                 AnimatedVisibility(!showResults && q.isEmpty() && engine.nearbyKind == null, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        // your places (Home, Work...) always stay under the search bar; while you drive with no route, the suggestion and
-                        // resume cards stay too and the rest folds away
+                        // your places (Home, Work...) and the fuel, charging, food, coffee and parking buttons stay under the search bar
+                        // unless the arrow in the bar has folded them away (with Saved & recent); while you drive with no route, the
+                        // suggestion and resume cards stay too and the rest folds away
                         val cruising = engine.cruising
-                        ImmChips(engine) { try { focus.requestFocus() } catch (_: Exception) {} }
+                        AnimatedVisibility(engine.prefs.b(PreferenceKeys.QUICKLIST, true), enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+                            ImmChips(engine) { try { focus.requestFocus() } catch (_: Exception) {} }
+                        }
                         AnimatedVisibility(!cruising, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 PlannedCard(engine)
@@ -412,7 +415,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             enter = fadeIn(tween(200)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.85f), exit = fadeOut(tween(150)) + androidx.compose.animation.scaleOut(tween(150), targetScale = 0.9f),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                ImmPill("Re-centre", { engine.recenter() }, Icons.Rounded.MyLocation, filled = true)
+                ImmPill("Re-centre", { engine.recenter(byUser = true) }, Icons.Rounded.MyLocation, filled = true)
                 // zoomed with + and - while following you, with no route: keep this as your normal zoom
                 if (!routing && engine.following && kotlin.math.abs(engine.zoomOffset) > 0.01) ImmPill("Make this my default", { engine.saveZoomAsDefault() }, Icons.Rounded.ZoomIn)
             }
@@ -998,10 +1001,10 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
             trailingIcon = {
                 if (q.isNotEmpty()) Icon(Icons.Rounded.Close, "Clear", tint = c.sub, modifier = Modifier.padding(end = 8.dp).clickable { onQ(""); engine.results = emptyList() })
                 else Row(verticalAlignment = Alignment.CenterVertically) {
-                    // folds Saved & recent up under the bar, and back down again
+                    // folds Home / Work, the fuel, charging, food, coffee and parking buttons and Saved & recent up under the bar, and back down again
                     val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true)
                     Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.QUICKLIST, !open) }, contentAlignment = Alignment.Center) {
-                        Icon(if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, if (open) "Hide saved and recent" else "Show saved and recent", tint = c.sub, modifier = Modifier.size(26.dp))
+                        Icon(if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, if (open) "Hide saved places and shortcuts" else "Show saved places and shortcuts", tint = c.sub, modifier = Modifier.size(26.dp))
                     }
                     Box(Modifier.padding(end = 8.dp).size(44.dp).clip(CircleShape).background(c.accent).pressClick { voice() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Mic, "Voice search", tint = Color.White, modifier = Modifier.size(23.dp))
