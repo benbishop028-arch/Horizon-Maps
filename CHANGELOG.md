@@ -71,7 +71,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
-- Fold away everything: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent, on the phone and on Android Auto.
+- Fold away everything on Android Auto: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent.
 - Your side of divided roads: on dual carriageways and other divided roads, your arrow now sits on the side you're driving on, not whichever side the GPS happened to be nearer.
 - The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.
 - Android Auto map page matches the app: Home and Work tiles with the drive time, five round buttons for fuel, charging, food, coffee and parking, and Saved & recent with your first few places (as many as fit) and "All" for the rest, in place of the long scrolling row of chips. Your arrow also sits in the middle of the clear map there when you're not navigating.
