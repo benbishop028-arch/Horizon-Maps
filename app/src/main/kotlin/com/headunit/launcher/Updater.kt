@@ -259,6 +259,10 @@ object Updater {
         require(UpdaterPolicy.isHttpsUrl(u.url)) { "Update URL must use HTTPS" }
         require(UpdaterPolicy.parseSha256(u.sha256) != null) { "Update checksum is invalid" }
         val name = "HorizonNav-${u.version}.apk"
+        // a file left from an earlier try (of this version or another) goes first: with one already there, Android saves the new
+        // download as "HorizonNav-1.0.355-1.apk", and the tidy-up below then deleted that new file as "not the one we wanted",
+        // so every later try failed with "open failed: ENOENT (No such file or directory)"
+        try { dir.listFiles()?.filter { it.name.startsWith("HorizonNav-") && it.name.endsWith(".apk") }?.forEach { it.delete() } } catch (e: Exception) { }
         val req = DownloadManager.Request(Uri.parse(u.url))
             .setTitle("Horizon Nav ${u.version}")
             .setMimeType("application/vnd.android.package-archive")
@@ -283,6 +287,8 @@ object Updater {
                 when (status) {
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         val uri = dm.getUriForDownloadedFile(id) ?: throw IllegalStateException("Download missing")
+                        // the name Android actually saved it under (it can differ from the one asked for)
+                        val savedAs = try { cur.getString(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))?.let { Uri.parse(it).lastPathSegment } } catch (e: Exception) { null }
                         progress("Verifying download…")
                         val digest = java.security.MessageDigest.getInstance("SHA-256")
                         var bytesRead = 0L
@@ -302,7 +308,8 @@ object Updater {
                             throw IllegalStateException("APK checksum verification failed; download removed")
                         }
                         // Keep the previous APK until this download has passed verification.
-                        dir.listFiles()?.filter { it.name.startsWith("HorizonNav-") && it.name.endsWith(".apk") && it.name != name }?.forEach { it.delete() }
+                        // (never the file just downloaded, whatever name it ended up with)
+                        dir.listFiles()?.filter { it.name.startsWith("HorizonNav-") && it.name.endsWith(".apk") && it.name != name && it.name != savedAs }?.forEach { it.delete() }
                         // installed with AAEnabler: the checked file goes to Downloads for AAEnabler to install, so the app stays in
                         // Android Auto (installing it here would take it out)
                         if (toDownloads && android.os.Build.VERSION.SDK_INT >= 29) {

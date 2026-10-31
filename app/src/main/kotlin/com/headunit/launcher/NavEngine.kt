@@ -1145,6 +1145,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
+            // (the report is made on the phone: the car screen's own figures, from the last time Android Auto was on)
+            if (CarDiag.screen.isNotBlank() || CarDiag.shift.isNotBlank()) appendLine("Android Auto screen: ${CarDiag.screen} · ${CarDiag.shift}")
             run {
                 val t = mbToken
                 val shape = when { t.isBlank() -> "none"; !MapboxRest.looksValid(t) -> "not a token"; !MapboxRest.looksWhole(t) -> "looks incomplete"; else -> "looks whole" }
@@ -2909,6 +2911,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     // (0: the search panel / turn card, 1: the trip card, 2: the map buttons down the other side)
     private val panels = Array(3) { FloatArray(4) }
 
+
     fun setPanel(i: Int, l: Float, t: Float, r: Float, b: Float) {
         if (i !in panels.indices) return
         val p = panels[i]; p[0] = l; p[1] = t; p[2] = r; p[3] = b
@@ -2929,10 +2932,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         for (p in panels) {
             if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
             if (p[1] < y + band && p[3] > y - band) {
-                if (p[0] + p[2] < 1.0) coverL = max(coverL, p[2].toDouble()) else coverR = max(coverR, 1.0 - p[0])
+                // Android Auto: the app always puts its cards on the left. Working the side out from where they seemed to be could go
+                // wrong when the car reported its screen oddly (Uconnect), and then the arrow was pushed left, under the cards
+                if (isCar) coverL = max(coverL, p[2].toDouble().coerceIn(0.0, 1.0))
+                else if (p[0] + p[2] < 1.0) coverL = max(coverL, p[2].toDouble()) else coverR = max(coverR, 1.0 - p[0])
             }
         }
         val cover = max(coverL, coverR)
+        if (isCar) CarDiag.shift = String.format(Locale.US, "cards %s · arrow shift %.2f", panels.joinToString(" ") { q -> q.joinToString(",") { String.format(Locale.US, "%.2f", it) } },
+            if (cover < 0.05) 0.0 else (cover * 0.78).coerceAtMost(0.42) * (if (coverR > coverL) -1 else 1))
         if (cover < 0.05) return 0.0
         // Move farther away from the info/turn card; panel bounds are measured from the actual
         // Compose surface, so this adapts as Android Auto changes between full and split layouts.
@@ -4776,4 +4784,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val a = r.pts[lo]; val b = r.pts[hi]
         return Pair(LL(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t), Geo.bearing(a, b))
     }
+}
+
+/** What the Android Auto screen last looked like to the app (its size, the visible area it reported, where the cards were), for the
+ *  feedback report, which is made on the phone. */
+object CarDiag {
+    @Volatile var screen = ""
+    @Volatile var shift = ""
 }

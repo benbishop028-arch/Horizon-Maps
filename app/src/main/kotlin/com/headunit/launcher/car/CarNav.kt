@@ -235,6 +235,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     private val owner = CarComposeOwner()
     /** The part of the car screen Android Auto leaves free (for the cards), and whether the car wants night colours. */
     val area = androidx.compose.runtime.mutableStateOf<Rect?>(null)
+    /** The visible area exactly as Android Auto last reported it (for the feedback report). */
+    @Volatile var lastVisible: Rect? = null
     val dark = androidx.compose.runtime.mutableStateOf(true)
     var engine: NavEngine? = null
         set(v) {
@@ -339,6 +341,17 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     }
 
     override fun onVisibleAreaChanged(visibleArea: Rect) {
+        lastVisible = Rect(visibleArea)
+        try { com.headunit.launcher.CarDiag.screen = "${width}x$height, visible ${visibleArea.left},${visibleArea.top},${visibleArea.right},${visibleArea.bottom}" } catch (e: Exception) { }
+        // some head units report a visible area that can't be right (a sliver of the screen, or one off the edge): going by it put
+        // the arrow under the cards on the left. Then the whole screen is used, as when nothing is reported
+        val plausible = width <= 1 || height <= 1 || (visibleArea.width() >= width * 0.4 && visibleArea.height() >= height * 0.3 &&
+            visibleArea.left >= 0 && visibleArea.top >= 0 && visibleArea.right <= width + 2 && visibleArea.bottom <= height + 2)
+        if (!plausible) {
+            area.value = null
+            map?.let { it.viewInset = null; it.maxTopFrac = 1.0 }
+            return
+        }
         area.value = Rect(visibleArea)
         // the map's locator goes in the part Android Auto leaves visible (on tall screens its cards cover the bottom of the map),
         // and sits a little higher on tall screens so the speed and trip cards at the bottom don't cover it
