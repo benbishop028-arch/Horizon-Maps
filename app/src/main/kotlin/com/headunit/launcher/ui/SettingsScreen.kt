@@ -438,6 +438,7 @@ private fun GuidanceSection(prefs: Prefs) {
     }
     SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes painted on the map", "lanemap", true)
+        SToggle(prefs, "Use Mapbox's lane data on TomTom routes", PreferenceKeys.LANES_MAPBOX, true, "Needs a Mapbox token. Mapbox draws the lanes on the map, so its lane list suits them best. Uses one extra Mapbox request per route")
         SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
         SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m")
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)

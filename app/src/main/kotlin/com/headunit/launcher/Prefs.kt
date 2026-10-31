@@ -136,6 +136,7 @@ internal object PreferenceKeys {
     const val LAMPGAP = "lampgap"
     const val LANDMARKS3D = "landmarks3d"
     const val LANEMAP = "lanemap"
+    const val LANES_MAPBOX = "lanesmb"
     const val LASTLAT = "lastlat"
     const val LASTLON = "lastlon"
     const val LIMITCHANGE = "limitchange"

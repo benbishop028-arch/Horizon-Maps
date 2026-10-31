@@ -339,7 +339,48 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             lastRouteProvider = p
             if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
             else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
+        }.also { rs -> if (lastRouteProvider == "tomtom" && rs.isNotEmpty()) mapboxLanesFor(rs, from, to, via, headingDeg) }
+
+    /**
+     * A TomTom route's lane list isn't from the map Mapbox draws the lanes on, so it often doesn't match what's painted. Once the
+     * route is out, Mapbox's own route for the same trip is asked for in the background (one request) and its lane list is put onto
+     * the route, junction by junction, where Mapbox's route passes the same junction in the same direction. Junctions it doesn't
+     * match keep TomTom's lanes. Silent if there's no token, no signal or it's switched off.
+     */
+    private fun mapboxLanesFor(rs: List<Route>, from: LL, to: LL, via: List<LL>, headingDeg: Double) {
+        if (!hasMapbox || !prefs.b(PreferenceKeys.LANES_MAPBOX, true) || !online()) return
+        searchScope.launch {
+            try {
+                val mb = MapboxRest.routes(mbToken, from, to, false, 0L, via, headingDeg, true, !mirrored).firstOrNull() ?: return@launch
+                if (mb.lanes.isEmpty()) return@launch
+                var matched = 0
+                for (r in rs.take(3)) {
+                    val out = ArrayList<LaneSec>()
+                    for (ls in mb.lanes) {
+                        val p = pointAt(mb, ls.end).first
+                        val pr = MapRouteGeometry.projectOn(r.pts, p) ?: continue
+                        if (Geo.dist(pr.second, p) > 20.0) continue
+                        val offTT = r.cum[pr.first] + Geo.dist(r.pts[pr.first], pr.second)
+                        val st = r.steps.firstOrNull { Math.abs(it.off - offTT) < 40.0 } ?: continue
+                        // the same way through the junction: a lane Mapbox says to use must suit TomTom's turn here
+                        if (ls.lanes.none { it.follow != null && laneHit(it.follow, st.maneuver) }) continue
+                        out += LaneSec(max(0.0, offTT - (ls.end - ls.off)), offTT, ls.lanes)
+                    }
+                    if (out.isEmpty()) continue
+                    matched += out.size
+                    val keep = r.lanes.filter { t -> out.none { Math.abs(it.end - t.end) < 60.0 } }
+                    r.lanes = (keep + out).sortedBy { it.off }
+                    laneKey = null
+                }
+                laneSource = "Mapbox lane list on $matched of ${mb.lanes.size} junctions"
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+            }
         }
+    }
+    /** Where the lane list came from, for the feedback report. */
+    @Volatile var laneSource = ""
+        private set
     @Volatile private var lastRouteProvider = ""
 
     /** The departure time was used for the last route (it isn't with every service or route). */
@@ -1034,6 +1075,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
+            appendLine("Lane list: ${if (laneSource.isNotBlank()) laneSource else "TomTom's / the route's own"}")
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }

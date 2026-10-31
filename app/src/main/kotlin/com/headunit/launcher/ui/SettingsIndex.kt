@@ -69,6 +69,7 @@ internal val settingsIndex = listOf(
     SettingRef("Living turn card", "Grows and glows as the turn gets close", "Turn card", 4),
     SettingRef("Lane guidance on the turn card", "", "Turn card", 4),
     SettingRef("Lane guidance style", "", "Turn card", 4),
+    SettingRef("Use Mapbox's lane data on TomTom routes", "Lane list from the same map as the painted lanes", "Turn card", 4),
     SettingRef("Next turn on the turn card", "The turn after the next one: when close, always or off", "Turn card", 4),
     SettingRef("Shown as", "", "Turn card", 4),
     SettingRef("Lanes painted on the map", "", "Lanes and junctions", 4),
