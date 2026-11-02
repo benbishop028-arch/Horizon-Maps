@@ -784,9 +784,28 @@ object OfflineRouter {
     /** Areas the offline route must keep out of, as closed rings (clean air zones, a road you asked to avoid). */
     @Volatile var exclude: List<List<LL>> = emptyList()
 
+    /**
+     * The last route stopped short of the destination: the destination is outside every downloaded area, so the route only goes
+     * as far as the edge of the one you're in (a border, say). The engine plans the rest as soon as there's signal.
+     */
+    @Volatile var endsShort = false
+
     /** Routes on the device with no network. Blocking: call it off the main thread. */
     @Synchronized
     fun routes(ctx: Context, from: LL, to: LL, via: List<LL> = emptyList(), headingDeg: Double = -1.0): List<Route> {
+        endsShort = false
+        val rs = routesInner(ctx, from, to, via, headingDeg)
+        val r = rs.firstOrNull() ?: return rs
+        // more than 1.5 km short of the destination: the downloaded roads ran out. It mustn't say "you have arrived" there
+        if (r.pts.isNotEmpty() && Geo.dist(r.pts.last(), to) > 1500.0) {
+            endsShort = true
+            val steps = r.steps.filterNot { it.maneuver.startsWith("ARRIVE") }
+            return listOf(Route(r.pts, r.cum, steps, r.len, r.time, r.delay, r.lanes, r.sev))
+        }
+        return rs
+    }
+
+    private fun routesInner(ctx: Context, from: LL, to: LL, via: List<LL>, headingDeg: Double): List<Route> {
         // the area that covers the whole trip (the start and the end): the normal case
         val whole = areaFor(ctx, *(listOf(from, to) + via).toTypedArray())
         if (whole != null) return listOf(routeIn(packDir(ctx, whole), from, to, via, headingDeg))

@@ -55,27 +55,34 @@ object OfflinePlaces {
         }
     }
 
-    /** Downloads one country's populated places ([cc], e.g. "GB", "FR", "US") and keeps only what is needed (a few MB). Returns the number of places, or throws. */
+    /**
+     * Downloads by itself places shared by one offline pack: towns for [cc] only missed the other countries in it (Singapore and
+     * Brunei in the Malaysia pack, Qatar and the rest in the Gulf pack...).
+     */
+    private val sharedPacks = mapOf(
+        "MY" to listOf("MY", "SG", "BN"),
+        "AE" to listOf("AE", "SA", "QA", "KW", "BH", "OM"),
+        "BA" to listOf("BA"),
+        "DO" to listOf("DO", "HT"),
+        "IL" to listOf("IL", "PS"),
+        "SN" to listOf("SN", "GM"),
+        "ST" to listOf("ST"),
+        "WF" to listOf("WF"),
+        "GU" to listOf("GU", "AS", "MP"),
+    )
+
+    /** Downloads the populated places of [cc]'s country (and of the others in its offline pack, if it shares one) and keeps only what
+     *  is needed (a few MB). Returns the number of places, or throws. */
     fun download(ctx: Context, cc: String = "GB"): Int {
-        val code = cc.uppercase().ifBlank { "GB" }
-        val c = URL("https://download.geonames.org/export/dump/$code.zip").openConnection() as HttpURLConnection
-        c.connectTimeout = 20000; c.readTimeout = 60000
-        c.setRequestProperty("User-Agent", "HorizonNav/1.0")
-        if (c.responseCode !in 200..299) throw java.io.IOException("HTTP ${c.responseCode}")
+        val first = cc.uppercase().ifBlank { "GB" }
+        val codes = sharedPacks[first] ?: listOf(first)
         val tmp = File(ctx.filesDir, "offline_places.tmp")
         var n = 0
-        ZipInputStream(c.inputStream.buffered()).use { zin ->
-            var e = zin.nextEntry
-            while (e != null && e.name != "$code.txt") { e = zin.nextEntry }
-            if (e == null) throw java.io.IOException("Unexpected download contents")
-            tmp.bufferedWriter().use { w ->
-                zin.bufferedReader().forEachLine { line ->
-                    val f = line.split('\t')
-                    // columns: 1 name, 4 lat, 5 lon, 6 feature class, 7 feature code, 14 population
-                    if (f.size > 14 && f[6] == "P") {
-                        w.write(f[1].replace('\t', ' ') + "\t" + f[4] + "\t" + f[5] + "\t" + f[14] + "\t" + f[7]); w.newLine(); n++
-                    }
-                }
+        tmp.bufferedWriter().use { w ->
+            for (code in codes) {
+                try { n += downloadOne(code, w) }
+                // (one of the extra countries failing isn't a reason to lose the main one)
+                catch (e: Exception) { if (code == first) { tmp.delete(); throw e } }
             }
         }
         if (n < 50) { tmp.delete(); throw java.io.IOException("Download looked incomplete") }
@@ -83,6 +90,29 @@ object OfflinePlaces {
         dst.delete()
         tmp.renameTo(dst)
         cache = null
+        return n
+    }
+
+    private fun downloadOne(code: String, w: java.io.Writer): Int {
+        val c = URL("https://download.geonames.org/export/dump/$code.zip").openConnection() as HttpURLConnection
+        c.connectTimeout = 20000; c.readTimeout = 60000
+        c.setRequestProperty("User-Agent", "HorizonNav/1.0")
+        if (c.responseCode !in 200..299) throw java.io.IOException("HTTP ${c.responseCode}")
+        var n = 0
+        ZipInputStream(c.inputStream.buffered()).use { zin ->
+            var e = zin.nextEntry
+            while (e != null && e.name != "$code.txt") { e = zin.nextEntry }
+            if (e == null) throw java.io.IOException("Unexpected download contents")
+            val r = zin.bufferedReader()
+            while (true) {
+                val line = r.readLine() ?: break
+                val f = line.split('\t')
+                // columns: 1 name, 4 lat, 5 lon, 6 feature class, 7 feature code, 14 population
+                if (f.size > 14 && f[6] == "P") {
+                    w.write(f[1].replace('\t', ' ') + "\t" + f[4] + "\t" + f[5] + "\t" + f[14] + "\t" + f[7]); w.write("\n"); n++
+                }
+            }
+        }
         return n
     }
 

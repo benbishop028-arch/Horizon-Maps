@@ -309,7 +309,14 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 }
                 // your speed and the limit, bottom right as in the app (clear of Android Auto's zoom buttons); on a small screen where
                 // it would run into the cards on the left, it sits above them instead
-                val crowded = with(dens) { (left + 16.dp + 34.dp + rightBottom).toPx() } + leftColW + speedW > wPx
+                // (with some leeway before it moves back down: right on the edge, the cards' width changes with their text, and the
+                // speed sign kept jumping up and down between the two places)
+                val needPx = with(dens) { (left + 16.dp + 34.dp + rightBottom).toPx() } + leftColW + speedW
+                var crowdedHeld by remember { mutableStateOf(false) }
+                val crowdedNow = needPx > wPx
+                val roomy = needPx + with(dens) { 48.dp.toPx() } < wPx
+                androidx.compose.runtime.SideEffect { if (crowdedNow) crowdedHeld = true else if (roomy) crowdedHeld = false }
+                val crowded = crowdedNow || crowdedHeld
                 // Down in the bottom corner, level with the trip card and just left of Android Auto's zoom and re-centre buttons
                 // (halfway up the side it looked lost in the middle of the screen)
                 val speedBottom = if (crowded && leftColH > 0) bottom + with(dens) { leftColH.toDp() } + 10.dp else bottom

@@ -43,6 +43,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Route stopping at a border: with no signal and a destination outside your downloaded maps, the route used to end at the edge of the map as if that were the destination. It now says the map ends there, doesn't announce "you have arrived" at the border, and plans the rest of the way as soon as there's signal.
+- "No signal" with signal: when the head unit's date and time are wrong, every secure connection fails and looked like no signal. The app now spots this and tells you to check the date and time.
+- Place names for shared offline areas: the towns and villages download now covers every country in the area, for example Singapore and Brunei as well as Malaysia, and the Gulf States pack's countries.
+- Android Auto speed sign jumping: on some screens it kept jumping between beside the cards and above them as their text changed. It now stays put unless there's clearly room.
 - Update failing with "No such file or directory": trying an update again (or after an earlier try) no longer deletes the file it has just downloaded, so Update works again, including saving to Downloads for AAEnabler.
 - Android Auto arrow under the cards: on cars that report their screen oddly (seen on a Uconnect 8.4), your arrow was pushed left under the turn and trip cards. It now always moves clear of them, and the feedback report includes the car screen's layout.
 - Mapbox key "401" errors: a refusal no longer switches the map off straight away. Horizon Nav now asks Mapbox what's wrong with the token and says so plainly (mistyped or cut short, deleted or replaced, or out of date), and if Mapbox says the token is fine the map just loads again. A token that looks cut short or mistyped is flagged as you paste it, and the feedback report says what Mapbox made of the token.

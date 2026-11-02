@@ -828,10 +828,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else onMbUnauthorised(true)
             return
         }
+        // a secure connection refused: almost always the head unit's clock being wrong
+        if (m.contains("certificate") || m.contains("ssl") || m.contains("handshake") || m.contains("chain validation")) {
+            NetHealth.tlsFailAt = System.currentTimeMillis()
+            toast("The map couldn't make a secure connection. Check the head unit's date and time are right.", 9000)
+            return
+        }
         val network = m.contains("resolve") || m.contains("host") || m.contains("timeout") || m.contains("timed out") || m.contains("connect") || m.contains("network") || m.contains("unreachable")
         if (!network) { toast("Map: $msg", 5000); return }
         styleRetry++
-        if (styleRetry == 1) toast("No signal for the map: trying again…", 3000)
+        if (styleRetry == 1) toast("No signal for the map: trying again…" + NetHealth.clockHint(), if (NetHealth.clockHint().isEmpty()) 3000 else 8000)
         // still no signal: the downloaded pack's own map meanwhile
         if (styleRetry == 2 && OfflineMap.installed(ctx) && OfflineMap.hasFonts(ctx) && prefs.s(PreferenceKeys.OFF_MAP, "auto") != "never") {
             try { map.setStyleUrl(OfflineServer.styleJson(ctx, lastDark)) } catch (e: Exception) { }
@@ -873,7 +879,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         try {
             val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
             cm.registerDefaultNetworkCallback(object : android.net.ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: android.net.Network) { mapboxGaps = false; scope.launch { delay(2000); applyStyle(lastDark); checkForUpdate(); checkDataUpdates() } }
+                override fun onAvailable(network: android.net.Network) { mapboxGaps = false; scope.launch { delay(2000); applyStyle(lastDark); checkForUpdate(); checkDataUpdates(); completeShortRoute() } }
                 override fun onLost(network: android.net.Network) { scope.launch { delay(800); applyStyle(lastDark) } }
             })
         } catch (e: Exception) { }
@@ -1517,6 +1523,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val local = offlineMatches(q, near)
                 results = local
                 if (local.isEmpty()) toast(if (OfflinePlaces.installed(ctx) || OfflineRouter.hasPlaces(ctx) || OfflineRouter.hasAddresses(ctx)) "No signal, and nothing saved or downloaded matches" else "No signal. Download the offline pack or place names in Settings > Offline maps to search with no signal", 4500)
+                if (NetHealth.clockLooksWrong()) toast("The head unit's date and time look wrong. Set them right in its settings: until then, maps, search and routes can't connect even with signal.", 8000)
                 else toast("No signal: showing saved places and offline towns", 3000)
                 return@launch
             }
@@ -1641,7 +1648,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                 }
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
-                if (usedOffline) toast("Offline route: no traffic or live data", 4000)
+                shortRoute = usedOffline && OfflineRouter.endsShort
+                if (shortRoute) toast("Your downloaded map ends before ${to.name}: the route goes to the edge of it for now, and the rest is planned as soon as there's signal", 8000)
+                else if (usedOffline) toast("Offline route: no traffic or live data", 4000)
                 if (rs[0].steps.isEmpty()) toast(if (provider == "mapbox") "Mapbox returned no turn instructions for this route" else "This key returned no turn instructions. Check it has TomTom Routing API access", 6000)
                 if (departInMin > 0 && !usedOffline && !departApplied) toast("Departure time not supported here: showing live traffic", 4000)
                 departMin = departInMin
@@ -1754,6 +1763,22 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private var rerouting = false
 
+    /**
+     * The route on screen stops short of the destination (planned with no signal, and the destination is outside the downloaded
+     * maps): the rest is planned as soon as there's signal, and it doesn't say "you have arrived" at the end of what it has.
+     */
+    @Volatile private var shortRoute = false
+    private var shortRetryAt = 0L
+
+    /** With a route that stops short: once there's signal (checked every 30 seconds at most), plan the whole route again. */
+    private fun completeShortRoute() {
+        if (!shortRoute || route == null || previewing || rerouting) return
+        val now = System.currentTimeMillis()
+        if (now - shortRetryAt < 30_000L || !hasOnline || !online()) return
+        shortRetryAt = now
+        reroute()
+    }
+
     private fun reroute() {
         val d = dest ?: return
         if (rerouting || fix == null) return
@@ -1769,14 +1794,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val f = fix ?: break
                     try {
                         val hd = if (f.speed > 2.0) f.heading else -1.0
+                        var offlineNow = false
                         val rs = withContext(Dispatchers.IO) {
                             val haveOffline = OfflineRouter.installed(ctx)
-                            if (haveOffline && (!hasOnline || !online())) OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd)
+                            if (haveOffline && (!hasOnline || !online())) { offlineNow = true; OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd) }
                             else try { netRoutes(f.pos, d.pos, false, 0L, via.map { it.pos }, hd, true) }
                             catch (e: Exception) {
-                                if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd) else throw e
+                                if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { offlineNow = true; OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd) } else throw e
                             }
                         }
+                        if (rs.isNotEmpty()) shortRoute = offlineNow && OfflineRouter.endsShort
                         if (rs.isNotEmpty()) { routes = rs; active = 0; said.clear(); offCount = 0; lastIdx = 0; trustProg = -1.0; clearLiveAlts(); drawRoutes(); cardsForStartAlts(); err = null; break }
                         err = "no route found"
                     } catch (e: Exception) { err = e.message ?: "unknown error" }
@@ -1784,11 +1811,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             } finally { rerouting = false; lastReroute = System.currentTimeMillis() }
             // it keeps trying on its own while you are still off the route, so this is only a heads-up
-            if (err != null) toast(if (err.contains("signal")) "Rerouting: weak signal, still trying…" else "Reroute failed ($err), trying again…", 3500)
+            if (err != null) toast(if (err.contains("signal")) "Rerouting: weak signal, still trying…" + NetHealth.clockHint() else "Reroute failed ($err), trying again…", 3500)
         }
     }
 
     fun endRoute() {
+        shortRoute = false
         // (only a trip under way: cancelling a route choice leaves the other screen's trip alone)
         if (route != null && !previewing) try { RouteSync.ended(this) } catch (e: Exception) { }
         itineraryOpen = false
@@ -2335,9 +2363,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** A search failure in plain words (it used to show the servers' own errors, like "HTTP 429" or "HTTP 502"). */
     private fun searchFailText(e: Exception): String {
+        NetHealth.note(e)
         val m = (e.message ?: "").lowercase()
         return when {
-            m.contains("no signal") || m.contains("unable to resolve") || m.contains("failed to connect") -> "No signal, so the search couldn't run. Try again in a moment."
+            m.contains("no signal") || m.contains("unable to resolve") || m.contains("failed to connect") -> "No signal, so the search couldn't run. Try again in a moment." + NetHealth.clockHint()
+            m.contains("certificate") || m.contains("ssl") || m.contains("handshake") || m.contains("chain validation") ->
+                "Couldn't make a secure connection. Check the head unit's date and time are right, then try again."
             m.contains("429") || m.contains("502") || m.contains("503") || m.contains("504") || m.contains("busy") || m.contains("timeout") || m.contains("timed out") ->
                 "The free map servers are busy right now. Try again in a minute." + (if (!hasMapbox) " Add a Mapbox key in Settings > Keys & accounts for more reliable searches." else "")
             m.contains("mapbox") -> e.message ?: "Search failed"
@@ -2645,6 +2676,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             lastPosAt = tNow
             try { updateRoadInfo(p); trackParking(p) } catch (e: Exception) { android.util.Log.w("NavEngine", "road info failed", e) }
             try { checkArea(p.pos) } catch (e: Exception) { }
+            if (shortRoute) try { completeShortRoute() } catch (e: Exception) { }
         }
         // the first position of this session: the zoom you left the map at last time comes back (not on a route)
         if (!freeZoomRestored) { freeZoomRestored = true; if (route == null) zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 } }
@@ -3596,6 +3628,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 speak(if (arriving) "In ${Geo.spoken(d, imperial)}, you will arrive" + (if (side.isNotEmpty()) ". Your destination is on the $side" else "") else "In ${Geo.spoken(d, imperial)}, $phrase$lane")
             if (d <= 120 && said.add("${k}n"))
                 speak(if (arriving) (if (side.isNotEmpty()) "Your destination is on the $side" else "You have arrived") else phrase.replaceFirstChar { it.uppercase() })
+        }
+        // a route that stops short of the destination (the downloaded map ran out): at its end, plan on from here instead
+        if (shortRoute && rem < 200) {
+            val f = fix
+            if (f != null && Geo.dist(f.pos, dest?.pos ?: f.pos) > 1000.0) {
+                // (every 30 seconds at most: with still no signal it would only find the same short route again)
+                val now = System.currentTimeMillis()
+                if (rem < 25 && now - shortRetryAt > 30_000L) { shortRetryAt = now; reroute() }
+                return
+            }
         }
         // arrived: at the end of the route and really there (not just level with the end of the route on another road)
         val atEnd = rem < 25 && fix.let { f -> f == null || Geo.dist(f.pos, dest?.pos ?: r.pts.last()) < 120.0 || Geo.dist(f.pos, r.pts.last()) < 120.0 }
