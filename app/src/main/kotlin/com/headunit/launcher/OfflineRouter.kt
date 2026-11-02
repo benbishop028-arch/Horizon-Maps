@@ -882,6 +882,16 @@ object OfflineRouter {
         return Route(pts, cum, steps, cum.last(), time, 0.0)
     }
 
+    /** The longest outline (in metres) the offline router takes for an area to keep out of (its own limit is 10 km). */
+    private const val MAX_RING_M = 9_500.0
+
+    private fun perimeter(ring: List<LL>): Double {
+        var d = 0.0
+        for (i in 1 until ring.size) d += Geo.dist(ring[i - 1], ring[i])
+        if (ring.size > 2 && Geo.dist(ring.first(), ring.last()) > 1.0) d += Geo.dist(ring.last(), ring.first())
+        return d
+    }
+
     /** A route inside one downloaded area (the folder [pd]). */
     private fun routeIn(pd: File, from: LL, to: LL, via: List<LL>, headingDeg: Double): Route {
         if (!installedIn(pd)) throw IllegalStateException("No offline pack installed")
@@ -894,16 +904,25 @@ object OfflineRouter {
         val ex = exclude
         if (ex.isNotEmpty()) {
             val polys = org.json.JSONArray()
-            for (ring in ex) { val r = org.json.JSONArray(); for (p in ring) r.put(org.json.JSONArray().put(p.lon).put(p.lat)); polys.put(r) }
-            req.put("exclude_polygons", polys)
+            // the offline router refuses any area whose outline is over 10 km round (a big clean air zone like London's ULEZ, say),
+            // and the whole route failed with "Exceeded maximum circumference for exclude_polygons". Those are left out offline
+            for (ring in ex) {
+                if (perimeter(ring) > MAX_RING_M) continue
+                val r = org.json.JSONArray(); for (p in ring) r.put(org.json.JSONArray().put(p.lon).put(p.lat)); polys.put(r)
+            }
+            if (polys.length() > 0) req.put("exclude_polygons", polys)
         }
-        var raw = engine(pd).routeRaw(req.toString())
-        var o = JSONObject(raw)
-        if (ex.isNotEmpty() && o.has("error") && !o.has("trip")) {
+        var res: JSONObject? = try { JSONObject(engine(pd).routeRaw(req.toString())) } catch (e: Exception) {
+            // the router turned the areas down (or couldn't get round them): plan the route without them rather than fail
+            if (!req.has("exclude_polygons")) throw e
+            null
+        }
+        if (req.has("exclude_polygons") && (res == null || (res.has("error") && !res.has("trip")))) {
             // no way round the areas: route normally instead
             req.remove("exclude_polygons")
-            raw = engine(pd).routeRaw(req.toString()); o = JSONObject(raw)
+            res = JSONObject(engine(pd).routeRaw(req.toString()))
         }
+        val o: JSONObject = res ?: throw IllegalStateException("No offline route")
         if (o.has("error") && !o.has("trip")) throw IllegalStateException("No offline route here (${o.optString("error")}). Is it inside the downloaded area?")
         val trip = o.getJSONObject("trip")
         val legs = trip.getJSONArray("legs")

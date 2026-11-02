@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Offline routes failing with "Exceeded maximum circumference for exclude_polygons": with areas to avoid switched on (such as clean air zones), offline routes failed when an area was too big for the offline router. Big areas are now left out of offline routes, and if the router still refuses, the route is planned without them instead of failing.
 - Route stopping at a border: with no signal and a destination outside your downloaded maps, the route used to end at the edge of the map as if that were the destination. It now says the map ends there, doesn't announce "you have arrived" at the border, and plans the rest of the way as soon as there's signal.
 - "No signal" with signal: when the head unit's date and time are wrong, every secure connection fails and looked like no signal. The app now spots this and tells you to check the date and time.
 - Place names for shared offline areas: the towns and villages download now covers every country in the area, for example Singapore and Brunei as well as Malaysia, and the Gulf States pack's countries.
