@@ -8,7 +8,6 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 
 - **A notice when installing an offline map** on a 2 GB head unit (Head-Whole5462, r/Androidheadunits). Screenshot not seen yet: ask for it again.
 - **"Well, what now?"** (Opposite-Working727, r/Androidheadunits). Screenshot not seen yet: ask what it shows.
-- **Map won't load on the driver's display** (schlicks124): only the app icon shows on the dashboard screen behind the wheel. The app doesn't support that screen yet, so this is really a missing feature.
 
 ## Features requested
 
@@ -91,3 +90,6 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 - Flock and other number-plate (ALPR) cameras on the map.
 - Clock setting (12 / 24-hour), North Up remembered (GitHub #27), zoom out further (GitHub #33).
 - Android Auto cards white on a dark map at dusk; arrow lag after stopping and battery / heat (GitHub #34).
+- Map on the driver's display (Android Auto instrument cluster, on cars that offer it). Untested on a real car yet.
+- Clock row in Android Auto's settings; Search tile on the Android Auto Report screen.
+- Speed position: bottom, middle or top (Nubber99).

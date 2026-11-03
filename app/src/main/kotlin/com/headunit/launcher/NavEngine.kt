@@ -3259,6 +3259,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun reportPolice() = report("police")
 
+    /** What the driver's display shows (Android Auto's instrument cluster): where your arrow is, the way the map faces, the route. */
+    fun clusterState(): Triple<LL, Double, List<LL>>? {
+        val p = gPos ?: fix?.pos ?: return null
+        val r = if (!previewing) route?.pts ?: emptyList() else emptyList()
+        return Triple(p, if (northUp) 0.0 else gHead, r)
+    }
+
     // ---- number-plate (ALPR) cameras, such as Flock's: shown on the map only (Settings > Map), no alerts ----
     private var alprAt = 0L
     private var alprPos: LL? = null

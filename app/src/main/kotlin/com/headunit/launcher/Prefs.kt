@@ -172,6 +172,10 @@ internal object PreferenceKeys {
     const val NORTH_UP = "northup"
     /** Number-plate (ALPR) cameras such as Flock's shown on the map (Settings > Map). */
     const val ALPR_CAMS = "alprcams"
+    /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
+    const val CLUSTER_MAP = "clustermap"
+    /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
+    const val SPEED_POS = "speedpos"
     const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"

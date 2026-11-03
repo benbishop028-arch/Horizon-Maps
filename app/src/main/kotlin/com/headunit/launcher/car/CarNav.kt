@@ -76,6 +76,9 @@ class CarNavService : CarAppService() {
     // any Android Auto host may connect: the app isn't distributed through Play, where Google would vouch for the host
     override fun createHostValidator(): HostValidator = HostValidator.ALLOW_ALL_HOSTS_VALIDATOR
     override fun onCreateSession(): Session = CarNavSession()
+    // (Android Auto 6 and newer say which screen the session is for: the driver's display gets just the map)
+    override fun onCreateSession(sessionInfo: androidx.car.app.SessionInfo): Session =
+        if (sessionInfo.displayType == androidx.car.app.SessionInfo.DISPLAY_TYPE_CLUSTER) ClusterSession() else CarNavSession()
 }
 
 /** The engine and map for one connection to the car. */
@@ -170,6 +173,7 @@ class CarNavSession : Session() {
                 pendingNavWait?.interrupt()
                 pendingNavWait = null
                 // unplugged: the car's engine stops, but a trip the phone is also following carries on there (with its voice back)
+                if (ClusterLink.engine === holder.engine) ClusterLink.engine = null
                 try { holder.engine?.shutdown() } catch (e: Exception) { }
                 try { if (!com.headunit.launcher.RouteSync.anyGuiding()) NavService.stop(carContext.applicationContext) } catch (e: Exception) { }
                 CarTicks.tick = null
@@ -205,6 +209,7 @@ class CarNavSession : Session() {
         val engine = NavEngine(app, prefs, map)
         // the car screen does the talking while it's connected, and shares the trip with the phone
         engine.isCar = true
+        ClusterLink.engine = engine
         // (the app's own short messages don't show on the car screen: a tapped number-plate camera says what it is with Android Auto's)
         map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, "Number-plate camera" + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }
         // back in the car: the "Your car" spot on the phone isn't needed any more
@@ -825,6 +830,9 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             GridItem.Builder().setTitle(label).setImage(rowIcon(carContext, ic.first, ic.second), GridItem.IMAGE_TYPE_LARGE)
                 .setOnClickListener { send(kind) }.build()
         )
+        // Search here too: Report has the Search button's place, and this is the way to search while navigating (a stop on the way)
+        list.addItem(GridItem.Builder().setTitle("Search").setImage(rowIcon(carContext, R.drawable.ic_car_search, 0xFFE8EAED.toInt()), GridItem.IMAGE_TYPE_LARGE)
+            .setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
         return GridTemplate.Builder().setTitle("Report here").setHeaderAction(Action.BACK).setSingleList(list.build()).build()
     }
 
@@ -1007,6 +1015,17 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         rows += toggleRow("Speed cameras", "cameras", true, "Show and warn")
         rows += toggleRow("Traffic lights", "signals", true, "On your route") { on -> try { holder.map?.signalsEnabled(on) } catch (x: Exception) { } }
         rows += toggleRow("Avoid ferries", "avoid_ferry", false, null, reroute)
+        // (at the end: some cars only show the first few rows while driving, and these are the least needed on the move)
+        // 12 or 24-hour times (the same setting as the app's Settings > Units)
+        val clock = prefs.s(PreferenceKeys.CLOCK, "auto")
+        rows += Row.Builder().setTitle("Clock")
+            .addText(when (clock) { "24" -> "24-hour"; "12" -> "12-hour"; else -> "Automatic (as the phone)" } + " · tap to change")
+            .setOnClickListener { prefs.put(PreferenceKeys.CLOCK, when (clock) { "auto" -> "24"; "24" -> "12"; else -> "auto" }); invalidate() }.build()
+        // the map on the screen behind the steering wheel, on cars that offer it (a second map for the phone to draw)
+        val cluster = prefs.b(PreferenceKeys.CLUSTER_MAP, true)
+        rows += Row.Builder().setTitle("Map on the driver's display")
+            .addText(if (cluster) "On (on cars that offer it) · tap to turn off" else "Off · tap to turn on")
+            .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_MAP, !cluster); invalidate() }.build()
         val list = ItemList.Builder()
         for (r in rows.take(limit.coerceIn(1, 12))) list.addItem(r)
         return ListTemplate.Builder().setTitle("Settings").setHeaderAction(Action.BACK).setSingleList(list.build()).build()

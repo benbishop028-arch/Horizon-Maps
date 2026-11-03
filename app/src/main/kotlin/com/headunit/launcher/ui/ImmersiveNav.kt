@@ -227,6 +227,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var tripPx by remember { mutableStateOf(0) }
         // where the speedometer starts (in pixels), so zoom only moves beside the panel when it would really touch it
         var speedTopPx by remember { mutableStateOf(-1) }
+        // the map buttons' width down the speed's side (for the speed display set to Middle or Top, which sits just inside them)
+        var buttonsWPx by remember { mutableStateOf(0) }
+        // Settings > Screen & sizes > Speed position: bottom (as it always was), middle or top of the side away from the cards.
+        // Top falls back to middle on narrow screens, where the turn card spans the top
+        val speedPos = engine.prefs.s(PreferenceKeys.SPEED_POS, "bottom").let { if (it == "top" && narrow) "middle" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
         LaunchedEffect(narrow, tripPx, screenH) { engine.bottomCover = if (narrow && tripPx > 0) (tripH / screenH).coerceIn(0f, 0.5f).toDouble() else 0.0 }
@@ -327,7 +332,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val showSettings = !routing
             val unit = 52.dp * mainButtonScale
             // the top of the speedometer (measured; a fair guess until it has been laid out)
-            val speedTop = if (speedTopPx >= 0) with(dens) { speedTopPx.toDp() } else maxHeight - 190.dp
+            // (only in the way at the bottom: in the middle or at the top it sits beside the buttons instead)
+            val speedTop = if (speedPos != "bottom") maxHeight else if (speedTopPx >= 0) with(dens) { speedTopPx.toDp() } else maxHeight - 190.dp
             // landscape: Settings sits to the left of the panel (to the right when mirrored) so the panel starts at the very top, with
             // zoom straight under it. Portrait: Settings above the panel, as there's no room beside it next to the search bar.
             val settingsAbove = narrow && showSettings
@@ -371,20 +377,24 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                     }
                 }
                 // (its outline goes to the camera too, so with no route your arrow sits in the middle of the clear map)
-                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()) }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
+                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
                 }
-                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()) }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
                 }
             }
-        } else androidx.compose.runtime.SideEffect { engine.setPanel(2, 0f, 0f, 0f, 0f) }
+        } else androidx.compose.runtime.SideEffect { engine.setPanel(2, 0f, 0f, 0f, 0f); if (buttonsWPx != 0) buttonsWPx = 0 }
 
         // ---- speed limit and speedometer: bottom right, or bottom left when mirrored for left-hand drive (the cards are on the
         // right then; keeping the speed on the right too put it under the turn card on shorter screens)
+        val besideButtons = with(dens) { buttonsWPx.toDp() } + 26.dp
         if (!previewing) Box(
-            Modifier.align(side(Alignment.BottomEnd))
-                .sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
+            when (speedPos) {
+                "top" -> Modifier.align(side(Alignment.TopEnd)).sides(end = besideButtons, top = 16.dp)
+                "middle" -> Modifier.align(side(Alignment.CenterEnd)).sides(end = besideButtons)
+                else -> Modifier.align(side(Alignment.BottomEnd)).sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
+            }
                 .onGloballyPositioned { val t = it.boundsInParent().top.toInt(); if (it.size.height > 0 && t != speedTopPx) speedTopPx = t }
         ) {
             val baseSpeedDensity = LocalDensity.current

@@ -815,6 +815,8 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
         SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
         SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On the phone and the car screen", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
+        SChoice("Speed position", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"),
+            "On the side away from the cards, so it never covers them. Move it up if your hand covers it") { prefs.put(PreferenceKeys.SPEED_POS, it) }
         SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
         SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
         SToggle(prefs, "Dim the map in tunnels", "tunneldim", true)

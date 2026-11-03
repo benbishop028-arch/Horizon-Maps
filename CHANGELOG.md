@@ -71,6 +71,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Speed position: Settings > Screen & sizes > Speed position moves the speed limit and speedometer to the middle or top of its side (away from the cards), for when your hand covers it at the bottom.
+- Map on the driver's display: on cars whose Android Auto offers it, the screen behind the steering wheel now shows the map following you, with your route (it used to show only the app's icon). Switch it off in Android Auto's Settings > Map on the driver's display.
 - Number-plate cameras on the map: Flock and other automatic number-plate (ALPR) cameras mapped on OpenStreetMap now show as a purple eye badge, within about 10 km of you as you drive. Tap one to see what it is. Shown only, no alerts; switch them off in Settings > Map.
 - Smaller offline downloads: big countries now open up to show their regions in Choose an area (Germany's states, France's regions, England's counties, and regions of Italy, Spain, Poland, the Netherlands, Russia, India, Japan, Indonesia and Brazil), each a much smaller download than the whole country.
 - Near you: Choose an area now starts with the area you're in (your region or state, or all of the country).
@@ -86,6 +88,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Android Auto settings: the 12 / 24-hour clock can be set from the car too.
+- Search while navigating on Android Auto: the Report screen now has a Search tile, for finding a stop on the way.
 - Cooler, longer-lasting phone: when the phone gets warm or battery saver is on, the map draws fewer frames a second (30, or 20 when hot), whatever frame rate is chosen. The feedback report now says how warm the phone was.
 - Zoom out further: − now goes two steps further out than before, for an overview of the traffic around you, and that zoom is remembered too.
 - North up remembered: if you leave the map north up, it opens that way next time, on the phone and on Android Auto separately.

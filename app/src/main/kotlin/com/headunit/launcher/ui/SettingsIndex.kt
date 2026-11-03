@@ -138,6 +138,7 @@ internal val settingsIndex = listOf(
     SettingRef("Your speed next to the limit", "", "While driving", 10),
     SettingRef("Speedometer ring", "Fills towards the limit, turning amber then red", "While driving", 10),
     SettingRef("Speed limit and speedometer size", "", "While driving", 10),
+    SettingRef("Speed position", "Bottom, middle or top", "While driving", 10),
     SettingRef("Road and heading when driving without a route", "", "While driving", 10),
     SettingRef("Keep the arrow on the road with no route", "", "While driving", 10),
     SettingRef("Dim the map in tunnels", "", "While driving", 10),
