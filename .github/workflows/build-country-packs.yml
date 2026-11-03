@@ -197,6 +197,28 @@ jobs:
               sleep $(( 30 * try ))
             done
           done
+          # the coastline and sea file still missing (its server has been refusing GitHub at times): the map is built without the
+          # sea rather than not at all (a pack only shows as ready with its map). Inland it looks the same; on the coast the sea
+          # shows in the land colour until the map is rebuilt ("map only") once the file can be fetched again
+          W=data/sources/water-polygons-split-3857.zip
+          if [ ! -s "$W" ]; then
+            curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
+            echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
+            python3 - "$W" <<'PY'
+          # an empty shapefile (no shapes) in the same layout as the real file, so the map build carries on without the sea
+          import struct, sys, zipfile, io
+          def header(words):
+              return struct.pack(">7i", 9994, 0, 0, 0, 0, 0, words) + struct.pack("<2i", 1000, 5) + struct.pack("<8d", 0, 0, 0, 0, 0, 0, 0, 0)
+          shp = header(50); shx = header(50)
+          dbf = struct.pack("<4BIHH20x", 3, 126, 1, 1, 0, 32 + 32 + 1, 11) + b"x".ljust(11, b"\0") + b"N" + b"\0" * 4 + bytes([10, 0]) + b"\0" * 14 + b"\r" + b"\x1a"
+          prj = b'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1]]'
+          with zipfile.ZipFile(sys.argv[1], "w") as z:
+              for ext, data in (("shp", shp), ("shx", shx), ("dbf", dbf), ("prj", prj)):
+                  z.writestr("water-polygons-split-3857/water_polygons." + ext, data)
+          PY
+          fi
           ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
@@ -611,6 +633,28 @@ jobs:
               sleep $(( 30 * try ))
             done
           done
+          # the coastline and sea file still missing (its server has been refusing GitHub at times): the map is built without the
+          # sea rather than not at all (a pack only shows as ready with its map). Inland it looks the same; on the coast the sea
+          # shows in the land colour until the map is rebuilt ("map only") once the file can be fetched again
+          W=data/sources/water-polygons-split-3857.zip
+          if [ ! -s "$W" ]; then
+            curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
+            echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
+            python3 - "$W" <<'PY'
+          # an empty shapefile (no shapes) in the same layout as the real file, so the map build carries on without the sea
+          import struct, sys, zipfile, io
+          def header(words):
+              return struct.pack(">7i", 9994, 0, 0, 0, 0, 0, words) + struct.pack("<2i", 1000, 5) + struct.pack("<8d", 0, 0, 0, 0, 0, 0, 0, 0)
+          shp = header(50); shx = header(50)
+          dbf = struct.pack("<4BIHH20x", 3, 126, 1, 1, 0, 32 + 32 + 1, 11) + b"x".ljust(11, b"\0") + b"N" + b"\0" * 4 + bytes([10, 0]) + b"\0" * 14 + b"\r" + b"\x1a"
+          prj = b'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1]]'
+          with zipfile.ZipFile(sys.argv[1], "w") as z:
+              for ext, data in (("shp", shp), ("shx", shx), ("dbf", dbf), ("prj", prj)):
+                  z.writestr("water-polygons-split-3857/water_polygons." + ext, data)
+          PY
+          fi
           ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
@@ -1025,6 +1069,28 @@ jobs:
               sleep $(( 30 * try ))
             done
           done
+          # the coastline and sea file still missing (its server has been refusing GitHub at times): the map is built without the
+          # sea rather than not at all (a pack only shows as ready with its map). Inland it looks the same; on the coast the sea
+          # shows in the land colour until the map is rebuilt ("map only") once the file can be fetched again
+          W=data/sources/water-polygons-split-3857.zip
+          if [ ! -s "$W" ]; then
+            curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
+            echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
+            python3 - "$W" <<'PY'
+          # an empty shapefile (no shapes) in the same layout as the real file, so the map build carries on without the sea
+          import struct, sys, zipfile, io
+          def header(words):
+              return struct.pack(">7i", 9994, 0, 0, 0, 0, 0, words) + struct.pack("<2i", 1000, 5) + struct.pack("<8d", 0, 0, 0, 0, 0, 0, 0, 0)
+          shp = header(50); shx = header(50)
+          dbf = struct.pack("<4BIHH20x", 3, 126, 1, 1, 0, 32 + 32 + 1, 11) + b"x".ljust(11, b"\0") + b"N" + b"\0" * 4 + bytes([10, 0]) + b"\0" * 14 + b"\r" + b"\x1a"
+          prj = b'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1]]'
+          with zipfile.ZipFile(sys.argv[1], "w") as z:
+              for ext, data in (("shp", shp), ("shx", shx), ("dbf", dbf), ("prj", prj)):
+                  z.writestr("water-polygons-split-3857/water_polygons." + ext, data)
+          PY
+          fi
           ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
@@ -1439,6 +1505,28 @@ jobs:
               sleep $(( 30 * try ))
             done
           done
+          # the coastline and sea file still missing (its server has been refusing GitHub at times): the map is built without the
+          # sea rather than not at all (a pack only shows as ready with its map). Inland it looks the same; on the coast the sea
+          # shows in the land colour until the map is rebuilt ("map only") once the file can be fetched again
+          W=data/sources/water-polygons-split-3857.zip
+          if [ ! -s "$W" ]; then
+            curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
+            echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
+            python3 - "$W" <<'PY'
+          # an empty shapefile (no shapes) in the same layout as the real file, so the map build carries on without the sea
+          import struct, sys, zipfile, io
+          def header(words):
+              return struct.pack(">7i", 9994, 0, 0, 0, 0, 0, words) + struct.pack("<2i", 1000, 5) + struct.pack("<8d", 0, 0, 0, 0, 0, 0, 0, 0)
+          shp = header(50); shx = header(50)
+          dbf = struct.pack("<4BIHH20x", 3, 126, 1, 1, 0, 32 + 32 + 1, 11) + b"x".ljust(11, b"\0") + b"N" + b"\0" * 4 + bytes([10, 0]) + b"\0" * 14 + b"\r" + b"\x1a"
+          prj = b'PROJCS["WGS 84 / Pseudo-Mercator",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["metre",1]]'
+          with zipfile.ZipFile(sys.argv[1], "w") as z:
+              for ext, data in (("shp", shp), ("shx", shx), ("dbf", dbf), ("prj", prj)):
+                  z.writestr("water-polygons-split-3857/water_polygons." + ext, data)
+          PY
+          fi
           ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
