@@ -10,6 +10,8 @@
 # Mode "extras only" just adds the speed limit and speed camera files to areas that are already built (minutes per area instead
 # of hours): use it to give older packs offline speed limits. The UK packs (built in HeadUnitOrbis) get theirs here too: type
 # "ew" (England & Wales) or "gb" (Great Britain) as the area, and their extras go in this repo's releases pack-ew and pack-gb.
+# Smaller areas cut out of a bigger extract (Geofabrik has none of their own) are typed as cut/<name>: cut/singapore, cut/brunei.
+# They become pack-singapore and pack-brunei. To add another, add a line for it in each "Download the OpenStreetMap extract" step.
 # Up to 320 areas can go in one run. Every area is built as three jobs side by side (routing, map, search lists), so even big countries stay under GitHub's 6-hour limit.
 name: Build country packs
 on:
@@ -105,6 +107,13 @@ jobs:
           sleep $(( RANDOM % 90 ))
           sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
           P="${{ matrix.area.path }}"
+          # smaller areas that Geofabrik has no extract of their own for ("cut/<name>"): the bigger extract they're in is
+          # downloaded and the area is cut out of it by its box (the pack then reaches a little over the border, which is fine)
+          BBOX=""
+          case "$P" in
+            cut/singapore) P="asia/malaysia-singapore-brunei"; BBOX="103.55,1.13,104.13,1.50" ;;
+            cut/brunei)    P="asia/malaysia-singapore-brunei"; BBOX="113.95,3.95,115.40,5.10" ;;
+          esac
           ok=""
           for U in "https://download.geofabrik.de/$P-latest.osm.pbf" "https://download.openstreetmap.fr/extracts/$P.osm.pbf"; do
             for try in 1 2 3 4 5 6; do
@@ -117,6 +126,11 @@ jobs:
             [ -n "$ok" ] && break
           done
           [ -n "$ok" ] || { echo "Couldn't download $P from Geofabrik or the mirror - check the path on download.geofabrik.de"; exit 1; }
+          if [ -n "$BBOX" ]; then
+            echo "Cutting out $BBOX"
+            osmium extract -b "$BBOX" --strategy=complete_ways data/region.osm.pbf -o data/cut.osm.pbf --overwrite
+            mv data/cut.osm.pbf data/region.osm.pbf
+          fi
           ls -l data
 
       # ---------------- routing ----------------
@@ -493,6 +507,13 @@ jobs:
           sleep $(( RANDOM % 90 ))
           sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
           P="${{ matrix.area.path }}"
+          # smaller areas that Geofabrik has no extract of their own for ("cut/<name>"): the bigger extract they're in is
+          # downloaded and the area is cut out of it by its box (the pack then reaches a little over the border, which is fine)
+          BBOX=""
+          case "$P" in
+            cut/singapore) P="asia/malaysia-singapore-brunei"; BBOX="103.55,1.13,104.13,1.50" ;;
+            cut/brunei)    P="asia/malaysia-singapore-brunei"; BBOX="113.95,3.95,115.40,5.10" ;;
+          esac
           ok=""
           for U in "https://download.geofabrik.de/$P-latest.osm.pbf" "https://download.openstreetmap.fr/extracts/$P.osm.pbf"; do
             for try in 1 2 3 4 5 6; do
@@ -505,6 +526,11 @@ jobs:
             [ -n "$ok" ] && break
           done
           [ -n "$ok" ] || { echo "Couldn't download $P from Geofabrik or the mirror - check the path on download.geofabrik.de"; exit 1; }
+          if [ -n "$BBOX" ]; then
+            echo "Cutting out $BBOX"
+            osmium extract -b "$BBOX" --strategy=complete_ways data/region.osm.pbf -o data/cut.osm.pbf --overwrite
+            mv data/cut.osm.pbf data/region.osm.pbf
+          fi
           ls -l data
 
       # ---------------- routing ----------------
@@ -881,6 +907,13 @@ jobs:
           sleep $(( RANDOM % 90 ))
           sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
           P="${{ matrix.area.path }}"
+          # smaller areas that Geofabrik has no extract of their own for ("cut/<name>"): the bigger extract they're in is
+          # downloaded and the area is cut out of it by its box (the pack then reaches a little over the border, which is fine)
+          BBOX=""
+          case "$P" in
+            cut/singapore) P="asia/malaysia-singapore-brunei"; BBOX="103.55,1.13,104.13,1.50" ;;
+            cut/brunei)    P="asia/malaysia-singapore-brunei"; BBOX="113.95,3.95,115.40,5.10" ;;
+          esac
           ok=""
           for U in "https://download.geofabrik.de/$P-latest.osm.pbf" "https://download.openstreetmap.fr/extracts/$P.osm.pbf"; do
             for try in 1 2 3 4 5 6; do
@@ -893,6 +926,11 @@ jobs:
             [ -n "$ok" ] && break
           done
           [ -n "$ok" ] || { echo "Couldn't download $P from Geofabrik or the mirror - check the path on download.geofabrik.de"; exit 1; }
+          if [ -n "$BBOX" ]; then
+            echo "Cutting out $BBOX"
+            osmium extract -b "$BBOX" --strategy=complete_ways data/region.osm.pbf -o data/cut.osm.pbf --overwrite
+            mv data/cut.osm.pbf data/region.osm.pbf
+          fi
           ls -l data
 
       # ---------------- routing ----------------
@@ -1269,6 +1307,13 @@ jobs:
           sleep $(( RANDOM % 90 ))
           sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
           P="${{ matrix.area.path }}"
+          # smaller areas that Geofabrik has no extract of their own for ("cut/<name>"): the bigger extract they're in is
+          # downloaded and the area is cut out of it by its box (the pack then reaches a little over the border, which is fine)
+          BBOX=""
+          case "$P" in
+            cut/singapore) P="asia/malaysia-singapore-brunei"; BBOX="103.55,1.13,104.13,1.50" ;;
+            cut/brunei)    P="asia/malaysia-singapore-brunei"; BBOX="113.95,3.95,115.40,5.10" ;;
+          esac
           ok=""
           for U in "https://download.geofabrik.de/$P-latest.osm.pbf" "https://download.openstreetmap.fr/extracts/$P.osm.pbf"; do
             for try in 1 2 3 4 5 6; do
@@ -1281,6 +1326,11 @@ jobs:
             [ -n "$ok" ] && break
           done
           [ -n "$ok" ] || { echo "Couldn't download $P from Geofabrik or the mirror - check the path on download.geofabrik.de"; exit 1; }
+          if [ -n "$BBOX" ]; then
+            echo "Cutting out $BBOX"
+            osmium extract -b "$BBOX" --strategy=complete_ways data/region.osm.pbf -o data/cut.osm.pbf --overwrite
+            mv data/cut.osm.pbf data/region.osm.pbf
+          fi
           ls -l data
 
       # ---------------- routing ----------------
