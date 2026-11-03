@@ -15,15 +15,16 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 - Your locator: a 3D car (saloon, hatchback, estate, SUV, pickup, van or sports) in any colour, an arrow, or your own picture
 - 2D / 3D view, remembered between drives
 - Day, night, auto and headlight-linked themes, plus satellite view
-- Your zoom is remembered, and you can set your own default
+- Your zoom and North Up are remembered, and you can set your own default zoom
 - Traffic overview when you're stopped (can be switched off)
 - Junction close-ups at exits and slip roads
 
 ### 🧭 Navigation
 - Routes with live traffic. With both keys added, new routes are asked of TomTom and Mapbox, and the quicker one is offered first
-- Offline maps and offline routing for every country, several areas at once
+- Offline maps and offline routing for every country, several areas at once. Big countries can be downloaded a region at a time (a German state, an English county...), and the app suggests the area you're in
 - Lane guidance on the turn card, plus a lane sign over the road at junctions
 - Speed limits, speed cameras, average-speed zones and stop signs, with spoken warnings
+- Flock and other number-plate (ALPR) cameras shown on the map (can be switched off)
 - Faster-route suggestions while you drive
 - Avoid tolls, motorways or ferries, or tolls only in chosen countries
 - Electric car planning: battery level, charge at arrival and charging stops
@@ -46,7 +47,7 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 1. Download the APK from the [download page](https://github.com/benbishop028-arch/Horizon-Maps/releases/tag/app) and open it.
 2. Allow installing from unknown sources if it asks.
 3. Open Horizon Nav and follow the setup: location permission, units, and your keys (see below).
-4. For no-signal driving, download your area in **Settings › Offline maps**.
+4. For no-signal driving, download your area in **Settings › Offline maps**. "Near you" at the top of Choose an area suggests your region, which is a much smaller download than the whole country.
 
 ### On Android Auto
 Android Auto only lists apps from outside the Play Store once you allow it:
@@ -94,7 +95,7 @@ No account, no ads, no tracking, and no Horizon Nav server. The app talks direct
 |---|---|---|
 | Mapbox | Your position and destination | The map, routes, search, traffic, speed limits |
 | TomTom (with your key) | Your position and destination | Routes, search, traffic, speed limits |
-| OpenStreetMap services (Overpass, Nominatim, Photon) | The area around you | Speed cameras, speed limits, traffic lights, search |
+| OpenStreetMap services (Overpass, Nominatim, Photon) | The area around you | Speed cameras, number-plate cameras, speed limits, traffic lights, search, and the "Near you" area suggestion |
 | Open-Meteo, RainViewer | Your rough position | Weather and the rain radar (only when switched on) |
 | Fuel price services (UK, France, Austria, Germany) | The area you're searching | Fuel prices |
 | GitHub | Nothing about you | Checking for and downloading updates |
@@ -115,6 +116,8 @@ No account, no ads, no tracking, and no Horizon Nav server. The app talks direct
 - **Mapbox "401":** the token isn't being accepted. Copy it again with the copy button. The app tells you what Mapbox says is wrong with it.
 - **"No signal" all the time, even though there is signal:** check the head unit's **date and time**. When they're wrong, every secure connection fails and looks like no signal.
 - **Laggy on a slower head unit:** in Settings, set Map detail to Lite or Lightest and lower the frame rate.
+- **Phone getting hot or the battery draining on Android Auto:** set the frame rate to Auto (60 uses a lot of battery). The app also draws fewer frames by itself when the phone gets warm.
+- **An area says it "hasn't been built yet":** that region's pack isn't ready. Pick the whole country for now, or try again later.
 - **Spoken directions missing:** check your device's text-to-speech voice is installed. If you hear the beeps but not the voice, try Settings › Sound › Voice channel › Media.
 
 ---
