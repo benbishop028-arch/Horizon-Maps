@@ -73,6 +73,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Next turn in the notification: while you navigate, Horizon Nav's notification now shows the turn arrow, distance, road and arrival time, marked as a navigation notification. Car launchers, smartwatches and other screens that show navigation notifications can pick it up. Switch it off in Settings > Guidance > Turn card.
 - Speed position: Settings > Screen & sizes > Speed position moves the speed limit and speedometer to the middle or top of its side (away from the cards), for when your hand covers it at the bottom.
 - Map on the driver's display: on cars whose Android Auto offers it, the screen behind the steering wheel now shows the map following you, with your route (it used to show only the app's icon). Switch it off in Android Auto's Settings > Map on the driver's display.
 - Number-plate cameras on the map: Flock and other automatic number-plate (ALPR) cameras mapped on OpenStreetMap now show as a purple eye badge, within about 10 km of you as you drive. Tap one to see what it is. Shown only, no alerts; switch them off in Settings > Map.

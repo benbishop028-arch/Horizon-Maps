@@ -499,6 +499,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         if (guiding && t != null && eta != null && tsig != lastTrip) {
             lastTrip = tsig
             try { nav?.updateTrip(trip(e, t, eta)) } catch (x: Exception) { }
+            try { NavService.update(carContext.applicationContext, t, eta, e.imperial, !e.mirrored, e.prefs.b(PreferenceKeys.TURN_NOTIF, true)) } catch (x: Exception) { }
         }
         CarTicks.tick?.invoke()
     }

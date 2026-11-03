@@ -437,6 +437,7 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Next turn on the turn card", listOf("close" to "When close", "always" to "Always", "off" to "Off"), prefs.s(PreferenceKeys.THEN_MODE, "close"),
             when (prefs.s(PreferenceKeys.THEN_MODE, "close")) { "close" -> "Only when the turn after comes straight after (within about 15 seconds)"; "always" -> "The turn after the next one, all the time"; else -> null }) { prefs.put(PreferenceKeys.THEN_MODE, it) }
         if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
+        SToggle(prefs, "Next turn in the notification", PreferenceKeys.TURN_NOTIF, true, "The arrow, distance and road in Horizon Nav's notification while you navigate, for car launchers, watches and other screens that show navigation notifications")
     }
     SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes painted on the map", "lanemap", true)

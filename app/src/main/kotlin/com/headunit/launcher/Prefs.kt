@@ -178,6 +178,8 @@ internal object PreferenceKeys {
     const val SPEED_POS = "speedpos"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
+    /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */
+    const val TURN_NOTIF = "turnnotif"
     const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"

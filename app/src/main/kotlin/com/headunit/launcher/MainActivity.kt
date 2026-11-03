@@ -120,6 +120,18 @@ class MainActivity : ComponentActivity() {
                 }
         }
 
+        // the next turn in the navigation notification (for car launchers, watches and other screens that read it);
+        // NavService only posts when what's shown changes, at most about once a second
+        lifecycleScope.launch {
+            snapshotFlow { if (guiding()) Pair(engine.turn, engine.eta) else null }
+                .collect { te ->
+                    if (te != null) try {
+                        NavService.update(applicationContext, te.first, te.second, engine.imperial, !engine.mirrored,
+                            prefs.b(PreferenceKeys.TURN_NOTIF, true))
+                    } catch (e: Throwable) { }
+                }
+        }
+
         if (savedInstanceState == null) handleShared(intent)
 
         val wanted = arrayListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
