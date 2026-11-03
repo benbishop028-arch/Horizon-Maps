@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Android Auto cards white on a dark map: around sunset the map's light dims to dusk before the car switches to night, and the cards stayed white. They now go dark with the map (unless "Always day" is picked).
+- Arrow lagging behind in stop-start traffic: after stopping, the arrow now moves off again as soon as you do. It used to wait until you were going about 9 mph, or had moved up to 20 m.
 - Offline routes failing with "Exceeded maximum circumference for exclude_polygons": with areas to avoid switched on (such as clean air zones), offline routes failed when an area was too big for the offline router. Big areas are now left out of offline routes, and if the router still refuses, the route is planned without them instead of failing.
 - Route stopping at a border: with no signal and a destination outside your downloaded maps, the route used to end at the edge of the map as if that were the destination. It now says the map ends there, doesn't announce "you have arrived" at the border, and plans the rest of the way as soon as there's signal.
 - "No signal" with signal: when the head unit's date and time are wrong, every secure connection fails and looked like no signal. The app now spots this and tells you to check the date and time.
@@ -69,6 +71,11 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Number-plate cameras on the map: Flock and other automatic number-plate (ALPR) cameras mapped on OpenStreetMap now show as a purple eye badge, within about 10 km of you as you drive. Tap one to see what it is. Shown only, no alerts; switch them off in Settings > Map.
+- Smaller offline downloads: big countries now open up to show their regions in Choose an area (Germany's states, France's regions, England's counties, and regions of Italy, Spain, Poland, the Netherlands, Russia, India, Japan, Indonesia and Brazil), each a much smaller download than the whole country.
+- Near you: Choose an area now starts with the area you're in (your region or state, or all of the country).
+- Clock setting: Settings > Screen & sizes > Units can now set 12 or 24-hour times by hand, as well as following the device.
+- Smaller offline areas: Singapore and Brunei can now be downloaded on their own, instead of together with Malaysia.
 - Report on Android Auto: a Report button (where the Search button was) opens Police, Crash, Hazard, Broken down and Mobile camera; one tap saves the report where you are, as on the phone. Search is still in the search bar on the map, or at the top of Places on cars that don't pass taps on to the map.
 - Zoom remembered: the zoom you set with + and − when you're not on a route is kept for next time, on the phone and on Android Auto separately. Tap Re-centre while the map is following you to go back to automatic zoom.
 - Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map look, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
@@ -79,6 +86,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Cooler, longer-lasting phone: when the phone gets warm or battery saver is on, the map draws fewer frames a second (30, or 20 when hot), whatever frame rate is chosen. The feedback report now says how warm the phone was.
+- Zoom out further: − now goes two steps further out than before, for an overview of the traffic around you, and that zoom is remembered too.
+- North up remembered: if you leave the map north up, it opens that way next time, on the phone and on Android Auto separately.
 - Better routes with TomTom and Mapbox together: with a TomTom key and a Mapbox token (and routes left on Auto), a new route is now asked of both at once. The quicker one comes first, and a different road from the other is offered as another choice.
 - Clock times follow your device: arrival and leave-by times now use the phone's or head unit's own 12 or 24-hour setting (for example 4:52 pm instead of 16:52).
 - Fold away everything on Android Auto: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent.

@@ -244,7 +244,7 @@ private fun PackStep(prefs: Prefs, engine: NavEngine) {
         Text(region.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         SButton("Change area") { picking = true }
     }
-    if (picking) PackPickerDialog(region, { prefs.put(PreferenceKeys.PACK_REGION, it.id) }) { picking = false }
+    if (picking) PackPickerDialog(region, { prefs.put(PreferenceKeys.PACK_REGION, it.id) }, engine.fix?.pos ?: engine.map.center()) { picking = false }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         if (installed && !engine.packBusy) SetupPoint("Offline pack installed")
         else SButton(if (engine.packBusy) "Downloading…" else "Download now", primary = true) {

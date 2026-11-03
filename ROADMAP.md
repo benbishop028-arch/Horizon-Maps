@@ -1,19 +1,20 @@
 # Horizon Nav: to-do list
 
-Rebuilt on 29 October 2026 from the Reddit threads (r/Androidheadunits and r/AndroidAuto), GitHub issues and messages passed on directly, and checked against the code. The numbers are new; they don't match the older list.
+Rebuilt on 29 October 2026 (bugs updated 2 November 2026) from the Reddit threads (r/Androidheadunits and r/AndroidAuto), GitHub issues and messages passed on directly, and checked against the code. The numbers are new; they don't match the older list.
 
 Move items to **Done** as they ship, and add new requests at the bottom of the right list.
 
 ## Bugs still open
 
-1. **The whole head unit freezes and restarts on a built-in Android 9 unit (Snapdragon 8155).** *Pending.* The app now spots the unit restarting and steps down to safer drawing. The first step draws the map in the app's own window instead of straight onto the screen. The next feedback report from that unit will show memory and what happened just before the restart. The user has also been asked to try turning off Fast map drawing.
+- **A notice when installing an offline map** on a 2 GB head unit (Head-Whole5462, r/Androidheadunits). Screenshot not seen yet: ask for it again.
+- **"Well, what now?"** (Opposite-Working727, r/Androidheadunits). Screenshot not seen yet: ask what it shows.
+- **Map won't load on the driver's display** (schlicks124): only the app icon shows on the dashboard screen behind the wheel. The app doesn't support that screen yet, so this is really a missing feature.
 
 ## Features requested
 
 2. **Change the app's language.** Asked on r/Androidheadunits. Parked for now.
 6. **Import saved places from Google Maps** (from a Google Takeout file).
 7. **Copy offline map packs from another device.** For example, download on a phone or PC at home and copy them across by USB, for when the car can't reach home Wi-Fi.
-8. **Smaller offline packs**, such as Singapore on its own instead of Singapore, Malaysia and Brunei together, and town names for every country in a shared pack.
 9. **Swap the search bar for a search icon**, for people who want even more of the map on show.
 10. **Choose where your arrow sits on screen.** Requested on Android Auto, for one car where the centre felt too far left. The automatic centring added since may cover this. Check before building.
 11. **Radarbot integration** for speed cameras on the route. Radarbot doesn't offer a public way in, so this may not be possible. The app's own camera data is used instead.
@@ -69,3 +70,24 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 - The fuel and parking search errors (HTTP 429 / 502) fixed.
 - Adding a stop no longer hangs.
 - A donate link.
+- The whole head unit restarting on a built-in Android 9 unit (Snapdragon 8155).
+- Crashes on a Teyes CC3 (Android 10), and freezes on a Pixel 10 Pro XL.
+- Black screens on Android Auto and in the app.
+- In-app update failing with "No such file or directory" (GitHub #29).
+- Android Auto only working when parked.
+- Lane guidance: the lane sign over the road, tested on the M27.
+- Android Auto: the arrow under the cards (GitHub #28), the map shaking when stopped, the speed sign jumping, and a Report button.
+- Zoom remembered between drives (GitHub #24), on the phone and Android Auto separately.
+- Your arrow on your side of divided roads.
+- Mapbox 401 errors: Mapbox is asked what's wrong with the token, and the map isn't switched off when it's fine.
+- Routes from TomTom and Mapbox compared, quicker one first.
+- Clock times follow the device's 12 / 24-hour setting.
+- Routes stopping at a border with no signal.
+- "No signal" when the head unit's date and time are wrong.
+- Town names for every country in a shared offline pack (Singapore and Brunei with Malaysia).
+- Offline routes failing with "Exceeded maximum circumference for exclude_polygons".
+- README: Android Auto install guide (KingInstaller), keys, privacy and troubleshooting.
+- Smaller offline packs: Singapore and Brunei on their own, regions inside big countries, and "Near you" in Choose an area (GitHub #31). Region packs still need building with the Build country packs workflow.
+- Flock and other number-plate (ALPR) cameras on the map.
+- Clock setting (12 / 24-hour), North Up remembered (GitHub #27), zoom out further (GitHub #33).
+- Android Auto cards white on a dark map at dusk; arrow lag after stopping and battery / heat (GitHub #34).

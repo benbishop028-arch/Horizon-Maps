@@ -138,5 +138,5 @@ internal fun OfflineMapsContent(prefs: Prefs, engine: NavEngine) {
         SChoice("Which map to draw", listOf("auto" to "Auto", "always" to "Downloaded", "never" to "Online"), prefs.s(PreferenceKeys.OFF_MAP, "auto"),
             "Auto: with no signal Mapbox's map carries on with the areas it has stored (where you've been recently, and saved Mapbox areas); the downloaded pack's map takes over only where Mapbox has nothing, and the online map comes back with signal") { prefs.put(PreferenceKeys.OFF_MAP, it); engine.restyle() }
     }
-    if (picking) PackPickerDialog(region, { prefs.put(PreferenceKeys.PACK_REGION, it.id) }) { picking = false }
+    if (picking) PackPickerDialog(region, { prefs.put(PreferenceKeys.PACK_REGION, it.id) }, engine.fix?.pos ?: engine.map.center()) { picking = false }
 }

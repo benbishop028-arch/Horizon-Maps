@@ -295,6 +295,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true)
         SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
         SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
+        SToggle(prefs, "Number-plate cameras", PreferenceKeys.ALPR_CAMS, true, "Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts")
     }
     SGroup("3D street furniture") {
         SToggle(prefs, "3D street lamps, traffic lights and cameras", "furniture3d", true, "Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks")
@@ -822,6 +823,8 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("Units") {
         SChoice("Distance and speed", listOf("mi" to "Miles", "km" to "Kilometres"), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
+        SChoice("Clock", listOf("auto" to "Automatic", "24" to "24-hour", "12" to "12-hour"), prefs.s(PreferenceKeys.CLOCK, "auto"),
+            "Automatic follows the phone's or head unit's own 12 / 24-hour setting") { prefs.put(PreferenceKeys.CLOCK, it) }
         SChoice("Temperature", listOf("C" to "°C", "F" to "°F"), if (isImperial(prefs)) "F" else "C") { prefs.put(PreferenceKeys.TEMPERATURE_UNIT, it) }
         SChoice("Driving side", listOf("" to "Automatic", "rhd" to "Right-hand drive", "lhd" to "Left-hand drive"), prefs.s(PreferenceKeys.DRIVE, ""),
             when (prefs.s(PreferenceKeys.DRIVE, "")) {

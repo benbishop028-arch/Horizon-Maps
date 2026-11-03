@@ -412,6 +412,21 @@ object Overpass {
         }
     } catch (e: Exception) { null }
 
+    /**
+     * Number-plate (ALPR) cameras within [radius] m of [p], such as Flock's, as mapped on OpenStreetMap (man_made=surveillance with
+     * surveillance:type=ALPR), each with what it is ("Flock Safety"). Null when the lookup failed.
+     */
+    fun alpr(p: LL, radius: Int): List<Pair<LL, String>>? = try {
+        val els = run("[out:json][timeout:15];node(around:$radius,${p.lat},${p.lon})[\"surveillance:type\"=\"ALPR\"];out;", 10000, 20000)
+        (0 until els.length()).mapNotNull {
+            val e = els.getJSONObject(it)
+            if (!e.has("lat") || !e.has("lon")) return@mapNotNull null
+            val t = e.optJSONObject("tags")
+            val who = listOf("manufacturer", "brand", "operator").firstNotNullOfOrNull { k -> t?.optString(k)?.takeIf { v -> v.isNotBlank() } }.orEmpty()
+            LL(e.getDouble("lat"), e.getDouble("lon")) to who
+        }
+    } catch (e: Exception) { null }
+
     /** Speed cameras inside a bounding box (used to find the ones along a route). */
     fun camerasIn(minLat: Double, minLon: Double, maxLat: Double, maxLon: Double): List<LL> = try {
         val els = run("[out:json][timeout:15];node($minLat,$minLon,$maxLat,$maxLon)[\"highway\"=\"speed_camera\"];out;")

@@ -1822,6 +1822,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // speed cameras, roadworks and closures on the route
         for ((kind, nm) in hazardNames.withIndex()) addImg(st, nm, hazardBitmap(kind))
         // every speed camera around you, route or not: a small camera badge on the road (the route's own ones sit on top, bigger)
+        // number-plate (ALPR) cameras such as Flock's, when switched on: a purple eye badge, so it's never taken for a speed camera
+        addImg(st, "dl-alpr", alprBitmap())
+        addS(st, GeoJsonSource.Builder("dl-alpr").featureCollection(empty()).build())
+        addL(st, SymbolLayer("dl-alpr", "dl-alpr")
+            .iconImage("dl-alpr").iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconSize(zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8)))
+        pushAlpr()
         addS(st, GeoJsonSource.Builder("dl-cams").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-cams", "dl-cams")
             .iconImage("dl-hz-cam").iconAllowOverlap(true).iconIgnorePlacement(true)
@@ -2104,6 +2112,59 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var cams: List<LL> = emptyList()
 
     /** The speed cameras around you, shown on the map whether or not you're on a route. */
+    // ---- number-plate (ALPR) cameras: where they are and what they are ("Flock Safety"), from OpenStreetMap ----
+    @Volatile private var alprs: List<Pair<LL, String>> = emptyList()
+    /** A number-plate camera on the map was tapped: what it is. */
+    var onAlprTap: ((String) -> Unit)? = null
+
+    fun setAlpr(list: List<Pair<LL, String>>) {
+        main0.post { if (list != alprs) { alprs = list; pushAlpr() } }
+    }
+
+    private fun pushAlpr() {
+        val s = src("dl-alpr") ?: return
+        try { s.featureCollection(FeatureCollection.fromFeatures(alprs.map { Feature.fromGeometry(Point.fromLngLat(it.first.lon, it.first.lat)) })) } catch (e: Exception) { }
+    }
+
+    /** The number-plate camera drawn under screen point [sp] (within a finger's width), or null. */
+    private fun alprAt(sp: android.graphics.PointF): Pair<LL, String>? {
+        val list = alprs
+        if (list.isEmpty()) return null
+        val reach = 28f * mapView.resources.displayMetrics.density
+        var best: Pair<LL, String>? = null
+        var bd = reach * reach
+        for (a in list) {
+            val px = try { mbMap.pixelForCoordinate(Point.fromLngLat(a.first.lon, a.first.lat)) } catch (e: Throwable) { continue }
+            val dx = px.x.toFloat() - sp.x
+            val dy = px.y.toFloat() - sp.y
+            val d = dx * dx + dy * dy
+            if (d < bd) { bd = d; best = a }
+        }
+        return best
+    }
+
+    /** The purple eye badge for a number-plate camera. */
+    private fun alprBitmap(): Bitmap {
+        val n = 96
+        val bmp = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val cx = n / 2f
+        fun p(col: Int, st: Paint.Style = Paint.Style.FILL, w: Float = 0f) = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col; style = st; strokeWidth = w; strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND }
+        c.drawCircle(cx, cx + 2f, 38f, p(0x55000000))
+        c.drawCircle(cx, cx, 38f, p(0xFFFFFFFF.toInt()))
+        c.drawCircle(cx, cx, 32f, p(0xFF6A3FD1.toInt()))
+        // an eye: the almond outline and the pupil
+        val eye = android.graphics.Path().apply {
+            moveTo(cx - 22f, cx)
+            quadTo(cx, cx - 22f, cx + 22f, cx)
+            quadTo(cx, cx + 22f, cx - 22f, cx)
+            close()
+        }
+        c.drawPath(eye, p(0xFFFFFFFF.toInt(), Paint.Style.STROKE, 5f))
+        c.drawCircle(cx, cx, 7f, p(0xFFFFFFFF.toInt()))
+        return bmp
+    }
+
     fun setCameras(list: List<LL>) {
         main0.post { if (list != cams) { cams = list; pushCams() } }
     }
@@ -3714,6 +3775,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun tapAt(sp: android.graphics.PointF): Boolean {
         // a tap during the route fly-through skips straight to the overview
         flyDone?.let { d -> flyDone = null; flyToken++; try { mapView.camera.cancelAllAnimators() } catch (e: Throwable) { }; d(); return true }
+        // a number-plate camera: say what it is
+        alprAt(sp)?.let { a -> onAlprTap?.invoke(a.second); return true }
         if (liveLines.isEmpty()) return false
         return try {
             val dp = mapView.resources.displayMetrics.density

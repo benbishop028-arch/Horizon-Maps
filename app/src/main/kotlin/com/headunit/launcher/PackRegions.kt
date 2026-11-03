@@ -10,7 +10,11 @@ import java.net.URL
  * The id comes from the Geofabrik path with the continent dropped: europe/france → "france", north-america/us/georgia → "us-georgia".
  * The "Build country packs" workflow uses exactly the same rule, so the app always knows where a pack will be.
  */
-data class PackRegion(val id: String, val name: String, val group: String, val path: String, val country: String) {
+data class PackRegion(val id: String, val name: String, val group: String, val path: String, val country: String,
+                      /** For a region inside a country (Bavaria in Germany): the country's pack id. Blank for a whole area. */
+                      val parent: String = "",
+                      /** Other names it goes by (Bayern for Bavaria), for working out which region you're in. */
+                      val also: List<String> = emptyList()) {
     // the original UK packs live in the HeadUnitOrbis repo; every other area is built in the Horizon-Maps repo
     val url: String get() = if (id == "ew" || id == "gb") "$RELEASES/pack-$id" else "$COUNTRY_RELEASES/pack-$id"
     /** Where the speed limit and camera files are: the same release, except the UK packs, whose extras are built in Horizon-Maps. */
@@ -98,6 +102,9 @@ object PackRegions {
             "turkmenistan" to ("Turkmenistan" to "TM"), "uzbekistan" to ("Uzbekistan" to "UZ"), "vietnam" to ("Vietnam" to "VN"), "yemen" to ("Yemen" to "YE"),
         )
         for ((p, nc) in asia) add(r("Asia", "asia/$p", nc.first, nc.second))
+        // smaller areas cut out of a bigger one (Geofabrik has none of their own): the pack workflow knows them as cut/<name>
+        add(r("Asia", "cut/singapore", "Singapore", "SG"))
+        add(r("Asia", "cut/brunei", "Brunei", "BN"))
         val africa = listOf(
             "algeria" to ("Algeria" to "DZ"), "angola" to ("Angola" to "AO"), "benin" to ("Benin" to "BJ"), "botswana" to ("Botswana" to "BW"),
             "burkina-faso" to ("Burkina Faso" to "BF"), "burundi" to ("Burundi" to "BI"), "cameroon" to ("Cameroon" to "CM"), "canary-islands" to ("Canary Islands" to "ES"),
@@ -125,6 +132,124 @@ object PackRegions {
             "vanuatu" to ("Vanuatu" to "VU"), "wallis-et-futuna" to ("Wallis & Futuna" to "WF"),
         )
         for ((p, nc) in oceania) add(r("Oceania", "australia-oceania/$p", nc.first, nc.second))
+
+        // ---- regions inside big countries (Geofabrik's own smaller extracts): a much smaller download than the whole country ----
+        fun sub(parentId: String, base: String, cc: String, list: List<Triple<String, String, List<String>>>) {
+            val par = firstOrNull { it.id == parentId } ?: return
+            for ((slug, name, also) in list) add(PackRegion(idOf("$base/$slug"), name, par.group, "$base/$slug", cc, parentId, also))
+        }
+        fun t(slug: String, name: String, vararg also: String) = Triple(slug, name, also.toList())
+        sub("germany", "europe/germany", "DE", listOf(
+            t("baden-wuerttemberg", "Baden-Württemberg"), t("bayern", "Bavaria", "Bayern"), t("berlin", "Berlin"), t("brandenburg", "Brandenburg"),
+            t("bremen", "Bremen"), t("hamburg", "Hamburg"), t("hessen", "Hesse", "Hessen"), t("mecklenburg-vorpommern", "Mecklenburg-Vorpommern", "Mecklenburg-Western Pomerania"),
+            t("niedersachsen", "Lower Saxony", "Niedersachsen"), t("nordrhein-westfalen", "North Rhine-Westphalia", "Nordrhein-Westfalen"),
+            t("rheinland-pfalz", "Rhineland-Palatinate", "Rheinland-Pfalz"), t("saarland", "Saarland"), t("sachsen", "Saxony", "Sachsen"),
+            t("sachsen-anhalt", "Saxony-Anhalt", "Sachsen-Anhalt"), t("schleswig-holstein", "Schleswig-Holstein"), t("thueringen", "Thuringia", "Thüringen"),
+        ))
+        sub("france", "europe/france", "FR", listOf(
+            t("alsace", "Alsace"), t("aquitaine", "Aquitaine"), t("auvergne", "Auvergne"), t("basse-normandie", "Lower Normandy"), t("bourgogne", "Burgundy", "Bourgogne"),
+            t("bretagne", "Brittany", "Bretagne"), t("centre", "Centre-Val de Loire", "Centre"), t("champagne-ardenne", "Champagne-Ardenne"), t("corse", "Corsica", "Corse"),
+            t("franche-comte", "Franche-Comté"), t("haute-normandie", "Upper Normandy"), t("ile-de-france", "Île-de-France"), t("languedoc-roussillon", "Languedoc-Roussillon"),
+            t("limousin", "Limousin"), t("lorraine", "Lorraine"), t("midi-pyrenees", "Midi-Pyrénées"), t("nord-pas-de-calais", "Nord-Pas-de-Calais"),
+            t("pays-de-la-loire", "Pays de la Loire"), t("picardie", "Picardy", "Picardie"), t("poitou-charentes", "Poitou-Charentes"),
+            t("provence-alpes-cote-d-azur", "Provence-Alpes-Côte d'Azur"), t("rhone-alpes", "Rhône-Alpes"),
+            t("guadeloupe", "Guadeloupe"), t("guyane", "French Guiana", "Guyane"), t("martinique", "Martinique"), t("mayotte", "Mayotte"), t("reunion", "Réunion"),
+        ))
+        sub("italy", "europe/italy", "IT", listOf(
+            t("nord-ovest", "North-West Italy", "Piedmont", "Piemonte", "Aosta Valley", "Valle d'Aosta", "Liguria", "Lombardy", "Lombardia"),
+            t("nord-est", "North-East Italy", "Trentino-Alto Adige", "Trentino-South Tyrol", "Veneto", "Friuli-Venezia Giulia", "Friuli Venezia Giulia", "Emilia-Romagna"),
+            t("centro", "Central Italy", "Tuscany", "Toscana", "Umbria", "Marche", "Lazio"),
+            t("sud", "Southern Italy", "Abruzzo", "Molise", "Campania", "Apulia", "Puglia", "Basilicata", "Calabria"),
+            t("isole", "Sicily & Sardinia", "Sicily", "Sicilia", "Sardinia", "Sardegna"),
+        ))
+        sub("spain", "europe/spain", "ES", listOf(
+            t("andalucia", "Andalusia", "Andalucía"), t("aragon", "Aragon", "Aragón"), t("asturias", "Asturias"), t("cantabria", "Cantabria"),
+            t("castilla-la-mancha", "Castilla-La Mancha"), t("castilla-y-leon", "Castile and León", "Castilla y León"), t("cataluna", "Catalonia", "Cataluña", "Catalunya"),
+            t("ceuta", "Ceuta"), t("extremadura", "Extremadura"), t("galicia", "Galicia"), t("islas-baleares", "Balearic Islands", "Illes Balears"),
+            t("la-rioja", "La Rioja"), t("madrid", "Madrid", "Community of Madrid"), t("melilla", "Melilla"), t("murcia", "Murcia", "Region of Murcia"),
+            t("navarra", "Navarre", "Navarra"), t("pais-vasco", "Basque Country", "País Vasco", "Euskadi"), t("valencia", "Valencia", "Valencian Community"),
+        ))
+        sub("poland", "europe/poland", "PL", listOf(
+            t("dolnoslaskie", "Lower Silesia", "Lower Silesian"), t("kujawsko-pomorskie", "Kuyavia-Pomerania", "Kuyavian-Pomeranian"), t("lodzkie", "Łódź", "Lodz"),
+            t("lubelskie", "Lublin"), t("lubuskie", "Lubusz"), t("malopolskie", "Lesser Poland"), t("mazowieckie", "Masovia", "Masovian"), t("opolskie", "Opole"),
+            t("podkarpackie", "Subcarpathia", "Subcarpathian"), t("podlaskie", "Podlaskie", "Podlachia"), t("pomorskie", "Pomerania", "Pomeranian"),
+            t("slaskie", "Silesia", "Silesian"), t("swietokrzyskie", "Holy Cross", "Świętokrzyskie"), t("warminsko-mazurskie", "Warmia-Masuria", "Warmian-Masurian"),
+            t("wielkopolskie", "Greater Poland"), t("zachodniopomorskie", "West Pomerania", "West Pomeranian"),
+        ))
+        sub("netherlands", "europe/netherlands", "NL", listOf(
+            t("drenthe", "Drenthe"), t("flevoland", "Flevoland"), t("friesland", "Friesland", "Fryslân"), t("gelderland", "Gelderland"), t("groningen", "Groningen"),
+            t("limburg", "Limburg"), t("noord-brabant", "North Brabant", "Noord-Brabant"), t("noord-holland", "North Holland", "Noord-Holland"),
+            t("overijssel", "Overijssel"), t("utrecht", "Utrecht"), t("zeeland", "Zeeland"), t("zuid-holland", "South Holland", "Zuid-Holland"),
+        ))
+        sub("united-kingdom-england", "europe/united-kingdom/england", "GB", listOf(
+            "bedfordshire", "berkshire", "bristol", "buckinghamshire", "cambridgeshire", "cheshire", "cornwall", "cumbria", "derbyshire", "devon", "dorset",
+            "durham", "east-sussex", "east-yorkshire-with-hull", "essex", "gloucestershire", "greater-london", "greater-manchester", "hampshire",
+            "herefordshire", "hertfordshire", "isle-of-wight", "kent", "lancashire", "leicestershire", "lincolnshire", "merseyside", "norfolk",
+            "north-yorkshire", "northamptonshire", "northumberland", "nottinghamshire", "oxfordshire", "rutland", "shropshire", "somerset",
+            "south-yorkshire", "staffordshire", "suffolk", "surrey", "tyne-and-wear", "west-midlands", "west-sussex", "west-yorkshire", "wiltshire", "worcestershire",
+        ).map { slug -> when (slug) {
+            "durham" -> t(slug, "County Durham", "Durham")
+            "bristol" -> t(slug, "Bristol", "City of Bristol")
+            "east-yorkshire-with-hull" -> t(slug, "East Yorkshire & Hull", "East Riding of Yorkshire", "Kingston upon Hull")
+            "greater-london" -> t(slug, "Greater London", "London")
+            else -> t(slug, title(slug))
+        } })
+        sub("russia", "russia", "RU", listOf(
+            t("central-fed-district", "Central Russia (Moscow)", "Moscow"), t("northwestern-fed-district", "North-West Russia (St Petersburg)", "Saint Petersburg"),
+            t("south-fed-district", "Southern Russia"), t("north-caucasus-fed-district", "North Caucasus"), t("volga-fed-district", "Volga"),
+            t("ural-fed-district", "Ural"), t("siberian-fed-district", "Siberia"), t("far-eastern-fed-district", "Far East Russia"),
+            t("kaliningrad", "Kaliningrad", "Kaliningrad Oblast"), t("crimean-fed-district", "Crimea"),
+        ))
+        sub("india", "asia/india", "IN", listOf(
+            t("northern-zone", "Northern India"), t("north-eastern-zone", "North-East India"), t("eastern-zone", "Eastern India"),
+            t("central-zone", "Central India"), t("western-zone", "Western India"), t("southern-zone", "Southern India"),
+        ))
+        sub("japan", "asia/japan", "JP", listOf(
+            t("hokkaido", "Hokkaido"), t("tohoku", "Tohoku"), t("kanto", "Kanto (Tokyo)", "Tokyo"), t("chubu", "Chubu"), t("kansai", "Kansai (Osaka)", "Osaka", "Kyoto"),
+            t("chugoku", "Chugoku"), t("shikoku", "Shikoku"), t("kyushu", "Kyushu"),
+        ))
+        sub("indonesia", "asia/indonesia", "ID", listOf(
+            t("java", "Java", "Jawa", "Jakarta"), t("sumatra", "Sumatra"), t("kalimantan", "Kalimantan"), t("sulawesi", "Sulawesi"),
+            t("nusa-tenggara", "Bali & Nusa Tenggara", "Bali"), t("maluku", "Maluku"), t("papua", "Papua"),
+        ))
+        sub("brazil", "south-america/brazil", "BR", listOf(
+            t("sudeste", "South-East Brazil", "São Paulo", "Rio de Janeiro", "Minas Gerais", "Espírito Santo"), t("sul", "South Brazil", "Paraná", "Santa Catarina", "Rio Grande do Sul"),
+            t("nordeste", "North-East Brazil", "Bahia", "Pernambuco", "Ceará"), t("norte", "North Brazil", "Amazonas", "Pará"),
+            t("centro-oeste", "Central-West Brazil", "Federal District", "Goiás", "Mato Grosso"),
+        ))
+    }
+
+    /** The regions inside the area [id] (Germany's states...), or none. */
+    fun regionsOf(id: String): List<PackRegion> = all.filter { it.parent == id }
+
+    private fun norm(s: String): String = java.text.Normalizer.normalize(s.lowercase(java.util.Locale.ROOT), java.text.Normalizer.Form.NFD)
+        .replace(Regex("\\p{M}+"), "").replace(Regex("[^a-z0-9]+"), " ")
+        .replace(Regex("\\b(county|voivodeship|province|oblast|region|state of|autonomous community|prefecture)\\b"), " ").trim().replace(Regex(" +"), " ")
+
+    /**
+     * The area to suggest for where you are, and the bigger area it's part of (Bavaria, and all of Germany; Kent, and England). Works it
+     * out from your position with OpenStreetMap's place lookup (one request, made when the picker opens). Null: not known (no signal).
+     */
+    fun nearYou(p: LL): Pair<PackRegion, PackRegion?>? {
+        val c = URL("https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&addressdetails=1&accept-language=en&lat=${p.lat}&lon=${p.lon}")
+            .openConnection() as HttpURLConnection
+        c.connectTimeout = 10000; c.readTimeout = 15000
+        c.setRequestProperty("User-Agent", "HorizonNav/1.0")
+        val body = try { if (c.responseCode in 200..299) c.inputStream.bufferedReader().use { it.readText() } else return null } finally { c.disconnect() }
+        val a = org.json.JSONObject(body).optJSONObject("address") ?: return null
+        val cc = a.optString("country_code").uppercase()
+        if (cc.isBlank()) return null
+        // the names of where you are, most local first
+        val names = listOf("county", "state_district", "city", "state", "region", "province", "country").mapNotNull { k -> a.optString(k).takeIf { it.isNotBlank() }?.let(::norm) }
+        fun matches(r: PackRegion): Boolean = (listOf(r.name) + r.also).map(::norm).any { n -> n.length >= 4 && names.any { it == n || it.contains(n) } }
+        val inCountry = all.filter { it.country.equals(cc, true) && it.id != "ew" && it.id != "great-britain" }
+        // a region inside a country first (Bavaria), then a smaller whole area (a US state, Scotland), then the country
+        val region = inCountry.filter { it.parent.isNotBlank() && matches(it) }.maxByOrNull { (listOf(it.name) + it.also).maxOf { n -> norm(n).length } }
+        if (region != null) return region to byId(region.parent)
+        val area = inCountry.filter { it.parent.isBlank() && matches(it) }.minByOrNull { if (all.any { r -> r.parent == it.id }) 1 else 0 }
+        if (area != null) return area to (if (cc == "US" || cc == "CA") null else suggestFor(cc)?.takeIf { it.id != area.id })
+        val whole = suggestFor(cc) ?: return null
+        return whole to null
     }
 
     private fun title(s: String) = s.split('-').joinToString(" ") { w -> if (w == "of" || w == "and") w else w.replaceFirstChar { it.uppercase() } }

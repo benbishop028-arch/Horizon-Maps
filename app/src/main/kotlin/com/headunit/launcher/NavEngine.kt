@@ -612,6 +612,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 else Place("Dropped pin", "", p)
             if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
+        map.onAlprTap = { who -> toast("Number-plate camera" + (if (who.isNotBlank()) " · $who" else ""), 3500) }
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(if (route != null && !previewing) "$name: hold on it to add it as a stop" else "$name: hold on it to go there", 3000) }
         map.onUserGesture = { if (following) { following = false }; scheduleRecentre(12_000) }
         map.onAltTap = { i -> switchToAlt(i) }
@@ -892,6 +893,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * Standard's light for now: dawn and dusk around sunrise and sunset, otherwise day or night (the app's own day / night choice).
      * "Day" or "Night" picked in Settings is kept as it is.
      */
+    /**
+     * The map's light is dim (dusk, dawn or night). Around sunset the light follows the sun while the car may still say it's day,
+     * and Android Auto's cards stayed white on a dark map; they go by this as well.
+     */
+    var mapLooksDark by mutableStateOf(false)
+        private set
+
+    private fun setLight(preset: String) {
+        map.setLightPreset(preset)
+        val dim = preset != "day"
+        if (dim != mapLooksDark) mapLooksDark = dim
+    }
+
     private fun lightPreset(dark: Boolean): String {
         val theme = prefs.s(PreferenceKeys.THEME, "auto")
         if (theme == "day") return "day"
@@ -919,9 +933,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         watchNetwork()
         styleJob?.cancel()
         map.setTraffic(prefs.b(PreferenceKeys.TRAFFIC, true))
-        map.setLightPreset(lightPreset(dark))
+        setLight(lightPreset(dark))
         // the light follows the sun (dawn, day, dusk, night) without waiting for the day / night switch
-        if (lightJob == null) lightJob = scope.launch { while (true) { delay(60_000L); try { map.setLightPreset(lightPreset(lastDark)) } catch (e: Throwable) { } } }
+        if (lightJob == null) lightJob = scope.launch { while (true) { delay(60_000L); try { setLight(lightPreset(lastDark)) } catch (e: Throwable) { } } }
         if (!hasMapbox) {
             map.setToken("")
             val now = System.currentTimeMillis()
@@ -1149,6 +1163,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Offline area: ${installedPackId() ?: "none"}")
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · driving side: ${if (mirrored) "left-hand" else "right-hand"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
+            if (heatLevel >= 0) appendLine("Heat: ${listOf("cool", "light", "moderate", "severe", "critical", "emergency", "shutdown").getOrElse(heatLevel) { "$heatLevel" }}")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
             // (the report is made on the phone: the car screen's own figures, from the last time Android Auto was on)
@@ -1882,6 +1897,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun toggleNorthUp() {
         northUp = !northUp
+        // remembered for next time, on the phone / head unit and Android Auto separately (GitHub #27)
+        try { prefs.put(if (isCar) PreferenceKeys.NORTH_UP_CAR else PreferenceKeys.NORTH_UP, northUp) } catch (e: Exception) { }
         if (northUp) map.resetNorth() else fix?.let { onPosition(it, true) }
     }
 
@@ -1893,7 +1910,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun zoom(delta: Double) {
-        if (following && fix != null) { zoomOffset = (zoomOffset + delta).coerceIn(-4.0, 3.0); rememberFreeZoom(); fix?.let { onPosition(it, true) } }
+        if (following && fix != null) { zoomOffset = (zoomOffset + delta).coerceIn(MIN_ZOOM_OFFSET, 3.0); rememberFreeZoom(); fix?.let { onPosition(it, true) } }
         else map.zoomBy(delta)
     }
 
@@ -1901,7 +1918,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val freeZoomKey: String get() = if (isCar) PreferenceKeys.FREE_ZOOM_CAR else PreferenceKeys.FREE_ZOOM
     private var freeZoomRestored = false
 
-    private fun savedFreeZoom(): Double = (prefs.s(freeZoomKey, "0").toDoubleOrNull() ?: 0.0).coerceIn(-4.0, 3.0)
+    private fun savedFreeZoom(): Double = (prefs.s(freeZoomKey, "0").toDoubleOrNull() ?: 0.0).coerceIn(MIN_ZOOM_OFFSET, 3.0)
+    /** How far out − can take the map from its normal view: six steps (about a county), for a traffic overview (GitHub #33). */
+    private val MIN_ZOOM_OFFSET = -6.0
 
     /** Keeps the current + / - zoom for next time; only off a route (a route's zoom is automatic and starts afresh). */
     private fun rememberFreeZoom() {
@@ -2075,6 +2094,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         try { checkPolice(p) } catch (e: Exception) { }
         try { checkWrongWay(p) } catch (e: Exception) { }
+        try { checkAlpr(p) } catch (e: Exception) { }
         noteCameraBan()
         if (!camerasOn()) { cameraDist = null; if (cameras.isNotEmpty()) { cameras = emptyList(); map.setCameras(emptyList()) }; camPos = null; return }
         val cp = camPos
@@ -2519,6 +2539,29 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     private var fpsReadNs = 0L
+    private var heatAt = 0L
+    private var heatCapNow = 60
+    /** How warm the device says it is (0 cool to 6 shutting down; -1 not known), for the feedback report. */
+    @Volatile var heatLevel = -1
+        private set
+
+    /** The most frames a second the device should draw now: 30 when it's warm or in battery saver, 20 when it's hot. Read every 10 s. */
+    private fun heatCap(): Int {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - heatAt < 10_000L && heatAt != 0L) return heatCapNow
+        heatAt = now
+        heatCapNow = try {
+            val pm = ctx.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+            val t = if (android.os.Build.VERSION.SDK_INT >= 29) pm.currentThermalStatus else -1
+            heatLevel = t
+            when {
+                t >= android.os.PowerManager.THERMAL_STATUS_SEVERE -> 20
+                t >= android.os.PowerManager.THERMAL_STATUS_MODERATE || pm.isPowerSaveMode -> 30
+                else -> 60
+            }
+        } catch (e: Throwable) { 60 }
+        return heatCapNow
+    }
     private var vsyncLastNs = 0L
     private var vsyncNs = 16_666_667.0
     private var frameCount = 0L
@@ -2526,7 +2569,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun glideTick(frameNs: Long) {
         // never do more work than the map can actually draw: on a slow head unit this frees the CPU for rendering
-        if (frameNs - fpsReadNs > 1_000_000_000L) { fpsReadNs = frameNs; val p = prefs.s(PreferenceKeys.MAP_FPS, "auto"); glideFps = if (p == "auto") autoFps else (p.toIntOrNull() ?: 30).coerceIn(15, 60) }
+        if (frameNs - fpsReadNs > 1_000_000_000L) {
+            fpsReadNs = frameNs
+            val p = prefs.s(PreferenceKeys.MAP_FPS, "auto")
+            val want = if (p == "auto") autoFps else (p.toIntOrNull() ?: 30).coerceIn(15, 60)
+            // a hot phone or battery saver: fewer frames, whatever is chosen (60 a second on a phone running Android Auto drained
+            // the battery and made it hot, and a hot phone slows itself down, which made the arrow lag)
+            glideFps = minOf(want, heatCap())
+        }
         // with another app in front (guidance carrying on in the background) a few updates a second is plenty: nobody sees the map
         val fps = if (appVisible) glideFps else 5
         // update on a steady beat of whole screen frames (every frame at 60, every 2nd at 30, ...), so the map draws at perfectly even
@@ -2651,14 +2701,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (simMode != 0) { stillAnchor = null; return false }
         val a = stillAnchor
         if (a == null) {
-            if (p.speed < 1.0) { stillAnchor = p.pos; return true }
+            if (p.speed < 1.0) { stillAnchor = p.pos; stillFast = 0; return true }
             return false
         }
-        // how far counts as having moved off: the fix's own uncertainty, kept between 8 and 20 m
-        val radius = (if (p.acc > 0.0) p.acc else 10.0).coerceIn(8.0, 20.0)
-        if (p.speed > 4.0 || Geo.dist(a, p.pos) > radius) { stillAnchor = null; return false }
+        // moving off is noticed quickly (stop-start town traffic): about 6 mph at once, a walking pace on two fixes in a row, or
+        // 6 to 12 m from where you stopped (the fix's own uncertainty). It used to wait for 9 mph or up to 20 m, and the arrow lagged
+        // behind in queues
+        stillFast = if (p.speed > 1.2) stillFast + 1 else 0
+        val radius = (if (p.acc > 0.0) p.acc else 8.0).coerceIn(6.0, 12.0)
+        if (p.speed > 2.7 || stillFast >= 2 || Geo.dist(a, p.pos) > radius) { stillAnchor = null; stillFast = 0; return false }
         return true
     }
+    private var stillFast = 0
 
     private fun onPosition(p: Fix, force: Boolean) {
         fix = p
@@ -2679,7 +2733,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (shortRoute) try { completeShortRoute() } catch (e: Exception) { }
         }
         // the first position of this session: the zoom you left the map at last time comes back (not on a route)
-        if (!freeZoomRestored) { freeZoomRestored = true; if (route == null) zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 } }
+        if (!freeZoomRestored) {
+            freeZoomRestored = true
+            if (route == null) zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 }
+            // and north up, if you left it that way
+            try { if (prefs.b(if (isCar) PreferenceKeys.NORTH_UP_CAR else PreferenceKeys.NORTH_UP, false)) northUp = true } catch (e: Exception) { }
+        }
         val r = route
         val s = if (!previewing && r != null && r.pts.size >= 2) snap(r, p.pos) else null
         // how far from the route counts as having left it: tighter than before, but widened when the GPS is less certain
@@ -3199,6 +3258,31 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun reportPolice() = report("police")
+
+    // ---- number-plate (ALPR) cameras, such as Flock's: shown on the map only (Settings > Map), no alerts ----
+    private var alprAt = 0L
+    private var alprPos: LL? = null
+    private var alprShown = false
+
+    /** Every few km (or half an hour), the number-plate cameras within 10 km are looked up again, so the ones ahead are always there. */
+    private fun checkAlpr(p: Fix) {
+        if (!prefs.b(PreferenceKeys.ALPR_CAMS, true)) {
+            if (alprShown) { alprShown = false; map.setAlpr(emptyList()) }
+            alprPos = null
+            return
+        }
+        val now = System.currentTimeMillis()
+        val ap = alprPos
+        if (ap != null && Geo.dist(ap, p.pos) < 4000.0 && now - alprAt < 30 * 60_000L) return
+        if (now - alprAt < 20_000L || !online()) return
+        alprAt = now; alprPos = p.pos
+        scope.launch {
+            val found = withContext(Dispatchers.IO) { Overpass.alpr(p.pos, 10_000) }
+            // a failed lookup keeps the ones shown and tries again in a little while
+            if (found == null) { alprPos = null; return@launch }
+            if (prefs.b(PreferenceKeys.ALPR_CAMS, true)) { map.setAlpr(found); alprShown = true }
+        }
+    }
 
     fun clearReports() { prefs.put(PreferenceKeys.REPORTS, ""); prefs.put(PreferenceKeys.POLICEREP, ""); pushHazards(hzProgress); toast("Reports cleared", 2000) }
 

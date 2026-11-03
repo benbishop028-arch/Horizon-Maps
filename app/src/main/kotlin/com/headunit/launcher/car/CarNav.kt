@@ -205,6 +205,8 @@ class CarNavSession : Session() {
         val engine = NavEngine(app, prefs, map)
         // the car screen does the talking while it's connected, and shares the trip with the phone
         engine.isCar = true
+        // (the app's own short messages don't show on the car screen: a tapped number-plate camera says what it is with Android Auto's)
+        map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, "Number-plate camera" + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }
         // back in the car: the "Your car" spot on the phone isn't needed any more
         try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine

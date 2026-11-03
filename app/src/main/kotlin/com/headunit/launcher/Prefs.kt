@@ -168,6 +168,11 @@ internal object PreferenceKeys {
     /** The + / - zoom last used when not on a route, kept for next time: on the phone / head unit, and on Android Auto. */
     const val FREE_ZOOM = "freezoom"
     const val FREE_ZOOM_CAR = "freezoomcar"
+    /** North up (instead of the way you're heading) chosen last time: on the phone / head unit, and on Android Auto. */
+    const val NORTH_UP = "northup"
+    /** Number-plate (ALPR) cameras such as Flock's shown on the map (Settings > Map). */
+    const val ALPR_CAMS = "alprcams"
+    const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"
     /** Where you left the car, "lat,lon,time" (saved on the phone when Android Auto disconnects). */
