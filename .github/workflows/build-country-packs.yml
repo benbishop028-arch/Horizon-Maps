@@ -22,9 +22,9 @@ on:
         required: true
         default: "europe/france"
       mode:
-        description: "full = build everything; extras only = just add speed limits and cameras to packs already built"
+        description: "full = build everything; extras only = just add speed limits and cameras to packs already built; map only = just redo the map (e.g. after map builds failed)"
         type: choice
-        options: ["full", "extras only"]
+        options: ["full", "extras only", "map only"]
         default: "full"
 permissions:
   contents: write
@@ -73,12 +73,45 @@ jobs:
           for i in range(4):
               print("a%d=%s" % (i + 1, json.dumps(a[i * 80:(i + 1) * 80])))
           import os
-          print("parts=%s" % json.dumps(["extras"] if os.environ.get("MODE") == "extras only" else ["routing", "map", "lists"]))
+          m = os.environ.get("MODE")
+          print("parts=%s" % json.dumps(["extras"] if m == "extras only" else ["map"] if m == "map only" else ["routing", "map", "lists"]))
           PY
 
-  build1:
+  # The map builds all need the same big files (the world's coastline and sea outlines, about 900 MB, and Natural Earth). Fetched
+  # from their own servers by every job at once, those servers stopped answering and the map builds failed ("HTTP connect timed
+  # out"). So they're fetched once here, kept in this repo's "planetiler-sources" release, and every map build takes them from there.
+  sources:
     needs: plan
-    if: needs.plan.outputs.a1 != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Keep a copy of the map's shared source files in this repo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REL=planetiler-sources
+          gh release create "$REL" --repo "${{ github.repository }}" --title "$REL" --notes "Shared files for building offline maps (kept here so the map builds don't all download them from their own servers at once)" 2>/dev/null || true
+          have=$(gh release view "$REL" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)
+          fetch() {   # name, url: download with patient retries, then keep it in the release
+            n="$1"; u="$2"
+            if echo "$have" | grep -qx "$n"; then echo "$n is already kept"; return 0; fi
+            for try in 1 2 3 4 5 6 7 8; do
+              echo "Downloading $u (try $try)"
+              if curl -fL --retry 3 --retry-all-errors --retry-delay 30 --connect-timeout 60 -A "HorizonNav-pack-builder" -o "$n" "$u" \
+                 && [ "$(stat -c%s "$n")" -gt 1000000 ]; then
+                gh release upload "$REL" "$n" --repo "${{ github.repository }}" --clobber && return 0
+              fi
+              rm -f "$n"; sleep $(( 120 * try ))
+            done
+            echo "Couldn't fetch $n: the map builds will try to download it themselves"
+          }
+          fetch water-polygons-split-3857.zip https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip
+          fetch natural_earth_vector.sqlite.zip https://naciscdn.org/naturalearth/packages/natural_earth_vector.sqlite.zip
+          fetch lake_centerline.shp.zip https://github.com/acalcutt/osm-lakelines/releases/download/v12/lake_centerline.shp.zip
+
+  build1:
+    needs: [plan, sources]
+    if: ${{ !cancelled() && needs.plan.outputs.a1 != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     strategy:
@@ -151,6 +184,20 @@ jobs:
           ls -l data
 
       # ---------------- map ----------------
+      - name: Fetch the map's shared source files from this repo
+        if: matrix.part == 'map'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # (kept by the "sources" job; anything missing is downloaded by planetiler itself as before)
+          mkdir -p data/sources
+          for n in water-polygons-split-3857.zip natural_earth_vector.sqlite.zip lake_centerline.shp.zip; do
+            for try in 1 2 3; do
+              gh release download planetiler-sources --repo "${{ github.repository }}" -p "$n" -D data/sources --clobber && break
+              sleep $(( 30 * try ))
+            done
+          done
+          ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
         run: |
@@ -477,8 +524,8 @@ jobs:
           echo "Download address: https://github.com/${{ github.repository }}/releases/download/${{ matrix.area.tag }}"
 
   build2:
-    needs: plan
-    if: needs.plan.outputs.a2 != '[]'
+    needs: [plan, sources]
+    if: ${{ !cancelled() && needs.plan.outputs.a2 != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     strategy:
@@ -551,6 +598,20 @@ jobs:
           ls -l data
 
       # ---------------- map ----------------
+      - name: Fetch the map's shared source files from this repo
+        if: matrix.part == 'map'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # (kept by the "sources" job; anything missing is downloaded by planetiler itself as before)
+          mkdir -p data/sources
+          for n in water-polygons-split-3857.zip natural_earth_vector.sqlite.zip lake_centerline.shp.zip; do
+            for try in 1 2 3; do
+              gh release download planetiler-sources --repo "${{ github.repository }}" -p "$n" -D data/sources --clobber && break
+              sleep $(( 30 * try ))
+            done
+          done
+          ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
         run: |
@@ -877,8 +938,8 @@ jobs:
           echo "Download address: https://github.com/${{ github.repository }}/releases/download/${{ matrix.area.tag }}"
 
   build3:
-    needs: plan
-    if: needs.plan.outputs.a3 != '[]'
+    needs: [plan, sources]
+    if: ${{ !cancelled() && needs.plan.outputs.a3 != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     strategy:
@@ -951,6 +1012,20 @@ jobs:
           ls -l data
 
       # ---------------- map ----------------
+      - name: Fetch the map's shared source files from this repo
+        if: matrix.part == 'map'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # (kept by the "sources" job; anything missing is downloaded by planetiler itself as before)
+          mkdir -p data/sources
+          for n in water-polygons-split-3857.zip natural_earth_vector.sqlite.zip lake_centerline.shp.zip; do
+            for try in 1 2 3; do
+              gh release download planetiler-sources --repo "${{ github.repository }}" -p "$n" -D data/sources --clobber && break
+              sleep $(( 30 * try ))
+            done
+          done
+          ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
         run: |
@@ -1277,8 +1352,8 @@ jobs:
           echo "Download address: https://github.com/${{ github.repository }}/releases/download/${{ matrix.area.tag }}"
 
   build4:
-    needs: plan
-    if: needs.plan.outputs.a4 != '[]'
+    needs: [plan, sources]
+    if: ${{ !cancelled() && needs.plan.outputs.a4 != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 355
     strategy:
@@ -1351,6 +1426,20 @@ jobs:
           ls -l data
 
       # ---------------- map ----------------
+      - name: Fetch the map's shared source files from this repo
+        if: matrix.part == 'map'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # (kept by the "sources" job; anything missing is downloaded by planetiler itself as before)
+          mkdir -p data/sources
+          for n in water-polygons-split-3857.zip natural_earth_vector.sqlite.zip lake_centerline.shp.zip; do
+            for try in 1 2 3; do
+              gh release download planetiler-sources --repo "${{ github.repository }}" -p "$n" -D data/sources --clobber && break
+              sleep $(( 30 * try ))
+            done
+          done
+          ls -l data/sources || true
       - name: Build the offline map (planetiler)
         if: matrix.part == 'map'
         run: |
