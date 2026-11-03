@@ -78,6 +78,8 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 - Android Auto: the arrow under the cards (GitHub #28), the map shaking when stopped, the speed sign jumping, and a Report button.
 - Zoom remembered between drives (GitHub #24), on the phone and Android Auto separately.
 - Your arrow on your side of divided roads.
+- Lorry (HGV) routes with the lorry's height, width, length, weight and hazardous goods, and warnings for low bridges and weight limits ahead (luk34dd0, r/coolgithubprojects).
+- The next turn in the notification, for car launchers and watches that read navigation notifications (Nubber99, Agama launcher). Agama's own list of supported apps is up to its developer.
 - Mapbox 401 errors: Mapbox is asked what's wrong with the token, and the map isn't switched off when it's fine.
 - Routes from TomTom and Mapbox compared, quicker one first.
 - Clock times follow the device's 12 / 24-hour setting.

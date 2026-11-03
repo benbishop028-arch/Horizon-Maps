@@ -93,6 +93,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Settings easier to scan: long lists are split under more headings (3D, Sky and satellite; Speed, Cameras, Hazards, Zones and reminders; Directions, Voice and volume; Brightness, Sizes, Speed display; and on Android Auto, Sizes on the car screen and Setting it up). Nothing has moved section, and the settings search finds everything, now including "Show petrol stations too".
 - Electric cars: with Electric chosen as your fuel, the map page shows Charging first and Toilets instead of the petrol Fuel button (on the phone and Android Auto). Settings > Fuel > Show petrol stations too brings it back.
 - Android Auto settings: the 12 / 24-hour clock can be set from the car too.
 - Search while navigating on Android Auto: the Report screen now has a Search tile, for finding a stop on the way.

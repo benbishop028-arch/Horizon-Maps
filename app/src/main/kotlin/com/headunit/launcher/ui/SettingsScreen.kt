@@ -267,17 +267,19 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
             "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
-    SGroup("3D and satellite") {
-        SToggle(prefs, "Satellite", "satellite", false)
+    SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")
-        SToggle(prefs, "Fog and sky", "skyweather", true, "Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog")
-        SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
         SToggle(prefs, "Trees in parks", "trees", true, "Mapbox's 3D trees in parks and along streets")
         SToggle(prefs, "Keep the road ahead clear", "clearview", true, "Mapbox's 3D trees and landmarks are left out round your arrow and, on a route, along the middle of the road just ahead, so they never hide it")
         SToggle(prefs, "Tap to highlight", "tapselect", true, "Tap a building to light it up; tap a shop or place, then hold on it to go there")
+    }
+    SGroup("Sky and satellite") {
+        SToggle(prefs, "Satellite", "satellite", false)
+        SToggle(prefs, "Fog and sky", "skyweather", true, "Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog")
+        SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
     }
 }
 
@@ -471,7 +473,6 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Next turn on the turn card", listOf("close" to "When close", "always" to "Always", "off" to "Off"), prefs.s(PreferenceKeys.THEN_MODE, "close"),
             when (prefs.s(PreferenceKeys.THEN_MODE, "close")) { "close" -> "Only when the turn after comes straight after (within about 15 seconds)"; "always" -> "The turn after the next one, all the time"; else -> null }) { prefs.put(PreferenceKeys.THEN_MODE, it) }
         if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
-        SToggle(prefs, "Next turn in the notification", PreferenceKeys.TURN_NOTIF, true, "The arrow, distance and road in Horizon Nav's notification while you navigate, for car launchers, watches and other screens that show navigation notifications")
     }
     SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes painted on the map", "lanemap", true)
@@ -489,6 +490,9 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
         SToggle(prefs, "Parking near your destination", "parkprompt", true, (if (mi) "About a mile" else "About 1.5 km") + " before you arrive, car parks close by with the walk from each")
         SToggle(prefs, "Route back", "routeback", true, "On the arrival card: one tap for the way back to where you started")
+    }
+    SGroup("Other screens") {
+        SToggle(prefs, "Next turn in the notification", PreferenceKeys.TURN_NOTIF, true, "The arrow, distance and road in Horizon Nav's notification while you navigate, for car launchers, watches and other screens that show navigation notifications")
     }
 }
 
@@ -516,18 +520,22 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice("Warn when over by", listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
         SToggle(prefs, "Say when the limit changes", "limitchange", true)
         SToggle(prefs, "Show estimated limits", "limitest", false, "Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess")
+    }
+    SGroup("Cameras") {
         SToggle(prefs, "Speed cameras", "cameras", true)
         if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, "Off where they're banned", "cambanobey", true, "France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves")
         SToggle(prefs, "Average speed checks", "avgzones", true, "Shows your average against the limit")
     }
-    SGroup("On the road", footer = "Average speed checks, speed bumps, schools and clean air zones come from OpenStreetMap, so some may be missing.") {
+    SGroup("Hazards", footer = "Speed bumps, schools, level crossings and fords come from OpenStreetMap, so some may be missing.") {
         SToggle(prefs, "Roadworks and incidents", "incidents", true)
         SToggle(prefs, "Wrong-way warning", "wrongway", true, "If you turn the wrong way into a one-way street")
         SToggle(prefs, "Speed bumps", "bumps", true)
         SToggle(prefs, "Schools at school-run times", "schools", true)
+        SToggle(prefs, "Level crossings and fords", "railford", true, "A warning sign and a spoken warning for level crossings and fords on your route")
+    }
+    SGroup("Zones and reminders") {
         SToggle(prefs, "Clean Air Zones and ULEZ", "zonewarn", true)
         SToggle(prefs, "Break reminder after 2 hours", "breakremind", true)
-        SToggle(prefs, "Level crossings and fords", "railford", true, "A warning sign and a spoken warning for level crossings and fords on your route")
         SToggle(prefs, "Weather advice", "wxadvice", true, "A quiet note in heavy rain, snow, fog or ice when you're near the limit")
     }
     SGroup("Your reports", footer = "Make a report from the map options button. Reports stay on this unit and fade after a few hours.") {
@@ -541,11 +549,13 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
 @Composable
 private fun SoundSection(prefs: Prefs, engine: NavEngine) {
     val ctx = LocalContext.current
-    SGroup("Sound") {
+    SGroup("Directions") {
         SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
             "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
         SToggle(prefs, "Say road names", PreferenceKeys.VOICE_ROADS, true, "Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs")
         SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
+    }
+    SGroup("Voice and volume") {
         SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
             "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
         SItem("Voice and language", "Uses the system text-to-speech voice") { SButton("Open") { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
@@ -822,10 +832,12 @@ private fun OfflinePlacesGroup(engine: NavEngine) {
 
 @Composable
 private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Screen") {
+    SGroup("Brightness") {
         SSlider("Brightness", prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = "100% leaves it to the system", live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, "Dim the screen at night", "dimnight", false)
         SToggle(prefs, "Keep the screen on", "keepon", true)
+    }
+    SGroup("Sizes") {
         val screenConfig = androidx.compose.ui.platform.LocalConfiguration.current
         val autoPercent = recommendedMainUiScale(screenConfig.screenWidthDp, screenConfig.screenHeightDp)
         val autoScale = prefs.b(PreferenceKeys.UI_AUTO_SCALE, prefs.s(PreferenceKeys.UI_SCALE, "").isBlank())
@@ -859,12 +871,14 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         }
 
     }
-    SGroup("While driving") {
+    SGroup("Speed display") {
         SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
         SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
         SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On the phone and the car screen", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
         SChoice("Speed position", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"),
             "On the side away from the cards, so it never covers them. Move it up if your hand covers it") { prefs.put(PreferenceKeys.SPEED_POS, it) }
+    }
+    SGroup("While driving") {
         SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
         SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
         SToggle(prefs, "Dim the map in tunnels", "tunneldim", true)
@@ -892,22 +906,22 @@ private fun AndroidAutoSection(prefs: Prefs) {
     val ctx = LocalContext.current
     // Android Auto only lists apps that weren't installed from Play when its own "Unknown sources" is on, and some phones hide them
     // anyway: the steps that get it showing, with shortcuts
-    SGroup("Car screen", footer = "If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).") {
-        val gh = "com.google.android.projection.gearhead"
-        val ghUri = android.net.Uri.parse("package:$gh")
-        val hasAa = remember { try { ctx.packageManager.getPackageInfo(gh, 0); true } catch (e: Exception) { false } }
-        val source = remember {
-            try {
-                val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
-                    else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
-                when (inst) {
-                    "com.android.vending" -> "Google Play (Android Auto lists it without any extra steps)"
-                    null -> "Unknown (installed from a file): needs Unknown sources in Android Auto"
-                    ctx.packageName -> "Horizon Nav's own updater: needs Unknown sources in Android Auto"
-                    else -> "$inst: needs Unknown sources in Android Auto"
-                }
-            } catch (e: Exception) { "Unknown" }
-        }
+    val gh = "com.google.android.projection.gearhead"
+    val ghUri = android.net.Uri.parse("package:$gh")
+    val hasAa = remember { try { ctx.packageManager.getPackageInfo(gh, 0); true } catch (e: Exception) { false } }
+    val source = remember {
+        try {
+            val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
+                else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
+            when (inst) {
+                "com.android.vending" -> "Google Play (Android Auto lists it without any extra steps)"
+                null -> "Unknown (installed from a file): needs Unknown sources in Android Auto"
+                ctx.packageName -> "Horizon Nav's own updater: needs Unknown sources in Android Auto"
+                else -> "$inst: needs Unknown sources in Android Auto"
+            }
+        } catch (e: Exception) { "Unknown" }
+    }
+    SGroup("Sizes on the car screen") {
         SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = "Base scale for the whole overlay", steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider("Speedometer and speed-limit sign size", prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = "Automatically shrinks further if the available screen area is too small", reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
@@ -921,6 +935,8 @@ private fun AndroidAutoSection(prefs: Prefs) {
             SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
             SSlider("Road name size", prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
         }
+    }
+    SGroup("Setting it up", footer = "If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).") {
         SItem("Installed by", source)
         SItem("Android Auto settings", if (hasAa) null else "Android Auto isn't installed on this phone") {
             if (hasAa) SButton("Open") {
