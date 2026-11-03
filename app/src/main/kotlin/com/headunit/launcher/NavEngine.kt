@@ -3259,6 +3259,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun reportPolice() = report("police")
 
+    /** Electric car with "Show petrol stations too" off: the Fuel button gives way to Charging (and Toilets fills the gap). */
+    val hideFuel: Boolean get() = prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV" && !prefs.b(PreferenceKeys.EV_SHOW_FUEL, false)
+
     /** What the driver's display shows (Android Auto's instrument cluster): where your arrow is, the way the map faces, the route. */
     fun clusterState(): Triple<LL, Double, List<LL>>? {
         val p = gPos ?: fix?.pos ?: return null

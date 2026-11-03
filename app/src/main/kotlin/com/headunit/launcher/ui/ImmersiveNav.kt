@@ -570,7 +570,7 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
                 // with no route the map page already has fuel, charging, food, coffee and parking, so only the rest are here
                 fun find(kind: String): () -> Unit = { engine.loadNearby(kind, false); close() }
                 val finds = listOfNotNull(
-                    if (engine.route != null) TileSpec(Icons.Rounded.LocalGasStation, "Fuel", Color(0xFFEA4335), find("fuel")) else null,
+                    if (engine.route != null && !engine.hideFuel) TileSpec(Icons.Rounded.LocalGasStation, "Fuel", Color(0xFFEA4335), find("fuel")) else null,
                     if (engine.route != null) TileSpec(Icons.Rounded.EvStation, "Charging", Color(0xFF34A853), find("charging")) else null,
                     if (engine.route != null) TileSpec(Icons.Rounded.Restaurant, "Food", Color(0xFFF29900), find("food")) else null,
                     if (engine.route != null) TileSpec(Icons.Rounded.LocalCafe, "Coffee", Color(0xFFA56BFF), find("coffee")) else null,
@@ -726,25 +726,38 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                 ) {
                     stats()
                     Row(Modifier.padding(start = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) { buttons() }
-                } else Row(
-                    // portrait: one compact line (figures, then the buttons), so the card stays low and clear of your arrow
-                    Modifier.fillMaxWidth().padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "time left", dc, compact = true)
-                        ImmStat(e.arrive, "arrival", c.text, compact = true)
-                        ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text, compact = true)
-                        if (evPct != null) ImmStat("$evPct%", "battery", evCol, compact = true)
-                    }
-                    Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 36.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(19.dp)) }
-                        ImmCircle({ voice() }, 36.dp) { Icon(Icons.Rounded.Mic, "Voice", tint = c.text, modifier = Modifier.size(19.dp)) }
-                        ImmCircle({ engine.cycleSound() }, 36.dp) { Icon(soundIcon(engine.soundMode), "Sound", tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(19.dp)) }
-                        ImmCircle({ engine.stopsEditor = true }, 36.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(20.dp)) }
-                        Box(Modifier.size(36.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
-                            Icon(Icons.Rounded.Close, "End route", tint = Color.White, modifier = Modifier.size(20.dp))
+                } else androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    // portrait: one compact line (figures, then the buttons), so the card stays low and clear of your arrow. When it can't
+                    // all fit (an electric car adds a fourth figure and a fifth button), the buttons go on a line under the figures:
+                    // squeezed onto one line the figures ran into each other ("21 min14:1216 km75")
+                    val nStats = if (evPct != null) 4 else 3
+                    val nButtons = if (evPct != null) 5 else 4
+                    val oneLine = maxWidth >= (nStats * 74 + nButtons * 42 + 30).dp
+                    val figures: @Composable (Modifier) -> Unit = { m ->
+                        Row(m, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "time left", dc, compact = true)
+                            ImmStat(e.arrive, "arrival", c.text, compact = true)
+                            ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text, compact = true)
+                            if (evPct != null) ImmStat("$evPct%", "battery", evCol, compact = true)
                         }
+                    }
+                    val smallButtons: @Composable (Modifier) -> Unit = { m ->
+                        Row(m, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 36.dp) { Icon(Icons.Rounded.EvStation, "Chargers ahead", tint = Good, modifier = Modifier.size(19.dp)) }
+                            ImmCircle({ voice() }, 36.dp) { Icon(Icons.Rounded.Mic, "Voice", tint = c.text, modifier = Modifier.size(19.dp)) }
+                            ImmCircle({ engine.cycleSound() }, 36.dp) { Icon(soundIcon(engine.soundMode), "Sound", tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(19.dp)) }
+                            ImmCircle({ engine.stopsEditor = true }, 36.dp) { Icon(Icons.Rounded.Add, "Stops", tint = c.text, modifier = Modifier.size(20.dp)) }
+                            Box(Modifier.size(36.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.Close, "End route", tint = Color.White, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    }
+                    if (oneLine) Row(Modifier.fillMaxWidth().padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 7.dp), verticalAlignment = Alignment.CenterVertically) {
+                        figures(Modifier.weight(1f))
+                        smallButtons(Modifier.padding(start = 12.dp))
+                    } else Column(Modifier.fillMaxWidth().padding(start = 14.dp, end = 10.dp, top = 6.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        figures(Modifier.fillMaxWidth().padding(end = 4.dp))
+                        smallButtons(Modifier.align(Alignment.End))
                     }
                 }
             }
@@ -1086,11 +1099,14 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
         }
         // things to find nearby: always all five on show, no scrolling sideways to find them
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            FindButton(Icons.Rounded.LocalGasStation, Color(0xFFEA4335), "Fuel nearby") { engine.loadNearby("fuel", false) }
+            // (an electric car: Charging first, and Toilets where Fuel was, unless petrol stations are wanted too)
+            val noFuel = engine.hideFuel
+            if (!noFuel) FindButton(Icons.Rounded.LocalGasStation, Color(0xFFEA4335), "Fuel nearby") { engine.loadNearby("fuel", false) }
             FindButton(Icons.Rounded.EvStation, Color(0xFF34A853), "Charging nearby") { engine.loadNearby("charging", false) }
             FindButton(Icons.Rounded.Restaurant, Color(0xFFF29900), "Food nearby") { engine.loadNearby("food", false) }
             FindButton(Icons.Rounded.LocalCafe, Color(0xFFA56BFF), "Coffee nearby") { engine.loadNearby("coffee", false) }
             FindButton(Icons.Rounded.LocalParking, Color(0xFF4C8DFF), "Parking nearby") { engine.loadNearby("parking", false) }
+            if (noFuel) FindButton(Icons.Rounded.Wc, Color(0xFF4C8DFF), "Toilets nearby") { engine.loadNearby("toilets", false) }
         }
     }
 }

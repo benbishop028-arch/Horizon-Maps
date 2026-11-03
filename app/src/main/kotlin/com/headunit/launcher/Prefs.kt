@@ -176,6 +176,8 @@ internal object PreferenceKeys {
     const val CLUSTER_MAP = "clustermap"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
+    /** Electric car: still show the Fuel (petrol station) button on the map page. */
+    const val EV_SHOW_FUEL = "evshowfuel"
     const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"

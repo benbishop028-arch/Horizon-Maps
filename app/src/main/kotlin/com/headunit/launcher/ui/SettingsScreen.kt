@@ -221,11 +221,11 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         1 -> OnTheMapSection(prefs, engine)
                         2 -> ArrowSection(prefs, engine)
                         3 -> RoutesSection(prefs)
-                        4 -> GuidanceSection(prefs)
+                        4 -> GuidanceSection(prefs, engine)
                         5 -> AlertsSection(prefs, engine)
                         6 -> SoundSection(prefs, engine)
                         7 -> { PlacesSection(engine); PhoneLinkGroup(prefs); SharingGroups(prefs) }
-                        8 -> FuelSection(prefs)
+                        8 -> FuelSection(prefs, engine)
                         9 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
                         10 -> ScreenSection(prefs, engine)
                         11 -> AndroidAutoSection(prefs)
@@ -426,7 +426,8 @@ private fun RoutesSection(prefs: Prefs) {
 // ------------------------------------------------------------------ Turn card & lanes
 
 @Composable
-private fun GuidanceSection(prefs: Prefs) {
+private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
+    val mi = engine.imperial
     SGroup("Turn card") {
         SToggle(prefs, "UK road signs on the turn card", "uksigns", true)
         SToggle(prefs, "Living turn card", "livecard", true, "Grows and glows as the turn gets close")
@@ -447,11 +448,11 @@ private fun GuidanceSection(prefs: Prefs) {
     SGroup("Trip card") {
         SToggle(prefs, "Route bar on the trip card", "routebar", true, "Traffic, cameras, services and stops, with your progress")
         SToggle(prefs, "Next services card", "servicescard", true)
-        SToggle(prefs, "Hazard radar", "hazardradar", false, "The next 2 miles: bends, crossings, schools, bumps, cameras and checks")
+        SToggle(prefs, "Hazard radar", "hazardradar", false, (if (mi) "The next 2 miles" else "The next 3 km") + ": bends, crossings, schools, bumps, cameras and checks")
     }
     SGroup("Arriving") {
         SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
-        SToggle(prefs, "Parking near your destination", "parkprompt", true, "About a mile before you arrive, car parks close by with the walk from each")
+        SToggle(prefs, "Parking near your destination", "parkprompt", true, (if (mi) "About a mile" else "About 1.5 km") + " before you arrive, car parks close by with the walk from each")
         SToggle(prefs, "Route back", "routeback", true, "On the arrival card: one tap for the way back to where you started")
     }
 }
@@ -705,12 +706,16 @@ private fun SharingGroups(prefs: Prefs) {
 // ------------------------------------------------------------------ Fuel & charging
 
 @Composable
-private fun FuelSection(prefs: Prefs) {
+private fun FuelSection(prefs: Prefs, engine: NavEngine) {
+    // (kept in the same units inside whichever are shown, miles per kWh and UK miles per gallon, so saved figures don't change)
+    val mi = engine.imperial
+    fun num(t: String) = t.filter { it.isDigit() || it == '.' }
+    fun fmt1(v: Double) = if (v == Math.floor(v)) v.toLong().toString() else String.format(java.util.Locale.US, "%.1f", v)
     val ctx = LocalContext.current
     val sc = rememberCoroutineScope()
     SGroup("Fuel prices", footer = "Live prices come from the government's Fuel Finder scheme. It's free: on gov.uk search \"Fuel Finder\", register as an information recipient with a GOV.UK One Login, then paste the client ID and secret here. Without them the fuel list still works, just without prices.") {
         SChoice("Your fuel", listOf("E10" to "Unleaded", "E5" to "Super", "B7" to "Diesel", "E85" to "Bioethanol (E85)", "EV" to "Electric"), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
-        SToggle(prefs, "Suggest a fuel stop on long trips", "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") "Over about 95 miles, a charging point along the way with the shortest detour" else "Over about 95 miles, the best-value station along the way")
+        SToggle(prefs, "Suggest a fuel stop on long trips", "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") (if (mi) "Over about 95 miles" else "Over about 150 km") + ", a charging point along the way with the shortest detour" else (if (mi) "Over about 95 miles" else "Over about 150 km") + ", the best-value station along the way")
         SFieldItem("Client ID", prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
         SFieldItem("Client secret", prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
         var st by remember { mutableStateOf(FuelFinder.status) }
@@ -732,12 +737,20 @@ private fun FuelSection(prefs: Prefs) {
         SFieldItem("Tankerkönig key (Germany)", prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = "Paste the key", password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
     }
     if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Your electric car", footer = "With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).") {
-        SFieldItem("Efficiency (miles per kWh)", prefs.s(PreferenceKeys.EVMPK, ""), placeholder = "e.g. 3.5", number = true) { s -> prefs.put(PreferenceKeys.EVMPK, s.filter { it.isDigit() || it == '.' }.take(5)) }
+        SToggle(prefs, "Show petrol stations too", PreferenceKeys.EV_SHOW_FUEL, false, "The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place")
+        if (mi) SFieldItem("Efficiency (miles per kWh)", prefs.s(PreferenceKeys.EVMPK, ""), placeholder = "e.g. 3.5", number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
+        else SFieldItem("Efficiency (km per kWh)", prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = "e.g. 5.6", number = true) { s ->
+            prefs.put(PreferenceKeys.EVMPK, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.3f", it / 1.609344) } ?: "")
+        }
         SFieldItem("Usable battery (kWh)", prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), "For the battery estimate and charging stops (60 if left blank)", placeholder = "e.g. 64", number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
-        SFieldItem("Electricity price (pence per kWh)", prefs.s(PreferenceKeys.EVPPK, ""), placeholder = "e.g. 28", number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
+        SFieldItem(if (mi) "Electricity price (pence per kWh)" else "Electricity price (cents per kWh)", prefs.s(PreferenceKeys.EVPPK, ""), placeholder = "e.g. 28", number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
     } else SGroup("Fuel cost on the route options", footer = "With both filled in, each route shows roughly what it will cost in fuel.") {
-        SFieldItem("Fuel economy (miles per gallon)", prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = "e.g. 45", number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, s.filter { it.isDigit() || it == '.' }.take(5)) }
-        SFieldItem("Fuel price (pence per litre)", prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = "e.g. 139.9", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
+        if (mi) SFieldItem("Fuel economy (miles per gallon)", prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = "e.g. 45", number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, num(s).take(5)) }
+        // litres per 100 km: 282.48 / UK miles per gallon
+        else SFieldItem("Fuel use (litres per 100 km)", prefs.s(PreferenceKeys.FUELMPG, "").toDoubleOrNull()?.takeIf { it > 0 }?.let { fmt1(282.481 / it) } ?: "", placeholder = "e.g. 6.3", number = true) { s ->
+            prefs.put(PreferenceKeys.FUELMPG, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.2f", 282.481 / it) } ?: "")
+        }
+        SFieldItem(if (mi) "Fuel price (pence per litre)" else "Fuel price (cents per litre)", prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = "e.g. 139.9", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
     }
 }
 

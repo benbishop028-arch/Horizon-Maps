@@ -596,11 +596,14 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), "Work", work, engine.slotMins["work"], Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            find("fuel", androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335))
+            // (an electric car: Charging first, and Toilets where Fuel was, unless petrol stations are wanted too)
+            val noFuel = engine.hideFuel
+            if (!noFuel) find("fuel", androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335))
             find("charging", androidx.compose.material.icons.Icons.Rounded.EvStation, Color(0xFF34A853))
             find("food", androidx.compose.material.icons.Icons.Rounded.Restaurant, Color(0xFFF29900))
             find("coffee", androidx.compose.material.icons.Icons.Rounded.LocalCafe, Color(0xFFA56BFF))
             find("parking", androidx.compose.material.icons.Icons.Rounded.LocalParking, Color(0xFF4C8DFF))
+            if (noFuel) find("toilets", androidx.compose.material.icons.Icons.Rounded.Wc, Color(0xFF4C8DFF))
         }
         // your own places first, then favourites, then recent ones (as in the app)
         val rawC = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, ""); val rawF = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""); val rawR = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")

@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Trip card figures running together in portrait: with an electric car (a fourth figure and a fifth button), or any time they don't fit on one line, the buttons now go on a line under the figures.
+- Miles in metric settings: with kilometres chosen, settings now say km, km per kWh, litres per 100 km and cents, and the route's fuel or charging cost shows in your own currency. Saved figures stay the same.
 - Android Auto cards white on a dark map: around sunset the map's light dims to dusk before the car switches to night, and the cards stayed white. They now go dark with the map (unless "Always day" is picked).
 - Arrow lagging behind in stop-start traffic: after stopping, the arrow now moves off again as soon as you do. It used to wait until you were going about 9 mph, or had moved up to 20 m.
 - Offline routes failing with "Exceeded maximum circumference for exclude_polygons": with areas to avoid switched on (such as clean air zones), offline routes failed when an area was too big for the offline router. Big areas are now left out of offline routes, and if the router still refuses, the route is planned without them instead of failing.
@@ -88,6 +90,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Electric cars: with Electric chosen as your fuel, the map page shows Charging first and Toilets instead of the petrol Fuel button (on the phone and Android Auto). Settings > Fuel > Show petrol stations too brings it back.
 - Android Auto settings: the 12 / 24-hour clock can be set from the car too.
 - Search while navigating on Android Auto: the Report screen now has a Search tile, for finding a stop on the way.
 - Cooler, longer-lasting phone: when the phone gets warm or battery saver is on, the map draws fewer frames a second (30, or 20 when hot), whatever frame rate is chosen. The feedback report now says how warm the phone was.

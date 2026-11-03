@@ -151,7 +151,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
     val mpg = engine.prefs.s(if (ev) "evmpk" else "fuelmpg", "").toDoubleOrNull()?.takeIf { it > 0 }
     val ppl = engine.prefs.s(if (ev) "evppk" else "fuelppl", "").toDoubleOrNull()?.takeIf { it > 0 }
     val costText = if (mpg != null && ppl != null && selRoute != null)
-        (if (ev) "Charging about " else "Fuel about ") + java.text.NumberFormat.getCurrencyInstance(java.util.Locale.UK).format(
+        (if (ev) "Charging about " else "Fuel about ") + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
             if (ev) selRoute.len / 1609.344 / mpg * ppl / 100.0 else selRoute.len / 1609.344 / mpg * 4.54609 * ppl / 100.0) else null
     ZonesRow(engine)
     if (engine.routeWx.isNotEmpty()) {

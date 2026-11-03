@@ -93,3 +93,4 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 - Map on the driver's display (Android Auto instrument cluster, on cars that offer it). Untested on a real car yet.
 - Clock row in Android Auto's settings; Search tile on the Android Auto Report screen.
 - Speed position: bottom, middle or top (Nubber99).
+- Electric cars: petrol Fuel button hidden unless wanted; trip card fits in portrait; metric units in settings (vastila).
