@@ -105,7 +105,30 @@ jobs:
             done
             echo "Couldn't fetch $n: the map builds will try to download it themselves"
           }
-          fetch water-polygons-split-3857.zip https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip
+          # the coastline and sea file: its own server first, then the University of Erlangen (FAU) mirror's newest dated copy
+          # (the main server has gone down for days at a time; the mirror keeps dated copies in folders like 2026-10-18/)
+          W=water-polygons-split-3857.zip
+          if echo "$have" | grep -qx "$W"; then echo "$W is already kept"; else
+            ok=""
+            for u in https://osmdata.openstreetmap.de/download/$W; do
+              for try in 1 2 3; do
+                echo "Downloading $u (try $try)"
+                if curl -fL --connect-timeout 30 --max-time 2400 -A "HorizonNav-pack-builder" -o "$W" "$u" && [ "$(stat -c%s "$W")" -gt 100000000 ]; then ok=1; break; fi
+                rm -f "$W"; sleep $(( 60 * try ))
+              done
+              [ -n "$ok" ] && break
+            done
+            if [ -z "$ok" ]; then
+              M=https://ftp.fau.de/mirrors/openstreetmapdata.com-archive
+              for d in $(curl -fsL --connect-timeout 30 "$M/" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | sort -u -r | head -5); do
+                echo "Trying the mirror's copy from $d"
+                if curl -fL --connect-timeout 30 --max-time 2400 -A "HorizonNav-pack-builder" -o "$W" "$M/$d/$W" && [ "$(stat -c%s "$W")" -gt 100000000 ]; then ok=1; break; fi
+                rm -f "$W"
+              done
+            fi
+            if [ -n "$ok" ]; then gh release upload "$REL" "$W" --repo "${{ github.repository }}" --clobber
+            else echo "::warning::Couldn't fetch the coastline and sea file from its server or the mirror: maps will be built without the sea"; fi
+          fi
           fetch natural_earth_vector.sqlite.zip https://naciscdn.org/naturalearth/packages/natural_earth_vector.sqlite.zip
           fetch lake_centerline.shp.zip https://github.com/acalcutt/osm-lakelines/releases/download/v12/lake_centerline.shp.zip
 
@@ -203,6 +226,12 @@ jobs:
           W=data/sources/water-polygons-split-3857.zip
           if [ ! -s "$W" ]; then
             curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 100000000 ]; then
+            rm -f "$W"
+            M=https://ftp.fau.de/mirrors/openstreetmapdata.com-archive
+            d=$(curl -fsL --connect-timeout 20 "$M/" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | sort -u -r | head -1)
+            [ -n "$d" ] && { curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" "$M/$d/water-polygons-split-3857.zip" || rm -f "$W"; }
           fi
           if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
             echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
@@ -640,6 +669,12 @@ jobs:
           if [ ! -s "$W" ]; then
             curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
           fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 100000000 ]; then
+            rm -f "$W"
+            M=https://ftp.fau.de/mirrors/openstreetmapdata.com-archive
+            d=$(curl -fsL --connect-timeout 20 "$M/" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | sort -u -r | head -1)
+            [ -n "$d" ] && { curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" "$M/$d/water-polygons-split-3857.zip" || rm -f "$W"; }
+          fi
           if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
             echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
             python3 - "$W" <<'PY'
@@ -1076,6 +1111,12 @@ jobs:
           if [ ! -s "$W" ]; then
             curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
           fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 100000000 ]; then
+            rm -f "$W"
+            M=https://ftp.fau.de/mirrors/openstreetmapdata.com-archive
+            d=$(curl -fsL --connect-timeout 20 "$M/" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | sort -u -r | head -1)
+            [ -n "$d" ] && { curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" "$M/$d/water-polygons-split-3857.zip" || rm -f "$W"; }
+          fi
           if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
             echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
             python3 - "$W" <<'PY'
@@ -1511,6 +1552,12 @@ jobs:
           W=data/sources/water-polygons-split-3857.zip
           if [ ! -s "$W" ]; then
             curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" https://osmdata.openstreetmap.de/download/water-polygons-split-3857.zip || rm -f "$W"
+          fi
+          if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 100000000 ]; then
+            rm -f "$W"
+            M=https://ftp.fau.de/mirrors/openstreetmapdata.com-archive
+            d=$(curl -fsL --connect-timeout 20 "$M/" | grep -oE '20[0-9]{2}-[0-9]{2}-[0-9]{2}' | sort -u -r | head -1)
+            [ -n "$d" ] && { curl -fL --connect-timeout 20 --max-time 1800 -A "HorizonNav-pack-builder" -o "$W" "$M/$d/water-polygons-split-3857.zip" || rm -f "$W"; }
           fi
           if [ ! -s "$W" ] || [ "$(stat -c%s "$W")" -lt 1000000 ]; then
             echo "::warning::No coastline and sea file: building this map without the sea. Run it again with mode 'map only' once the file is in the planetiler-sources release."
