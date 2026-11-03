@@ -27,6 +27,7 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 - Flock and other number-plate (ALPR) cameras shown on the map (can be switched off)
 - Faster-route suggestions while you drive
 - Avoid tolls, motorways or ferries, or tolls only in chosen countries
+- Lorry (HGV) routes: enter your lorry's height, width, length and weight, and routes avoid low bridges, weight limits and lorry bans, with warnings for limits ahead
 - Electric car planning: battery level, charge at arrival and charging stops, with Charging in place of the petrol button on the map page
 - Live fuel prices in the UK, France, Austria and Germany, plus E85
 - One-tap stops along the route: fuel, charging, coffee, food, services and toilets
@@ -37,6 +38,7 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 ### 📱 Phone and car
 - Full Android Auto support, with the same map page as the app, and search and reports from the car screen
 - The map on your driver's display (the screen behind the steering wheel), on cars whose Android Auto offers it
+- The next turn in the notification, for car launchers and smartwatches that show navigation notifications
 - Send a destination from your phone to the head unit
 - Remembers where you parked when Android Auto disconnects
 - Resumes your trip if the head unit restarts mid-journey
@@ -86,6 +88,7 @@ The app has no keys built in, so nothing goes through a server of mine. You add 
 - **Put both in.** Search is best with both, and new routes are compared between them.
 - **Cost:** both have free allowances that one person's driving won't use up. Mapbox may ask for card details when you sign up, but you're only charged if you go over the free allowance.
 - **One key on several devices** (phone and head unit) is fine.
+- **Lorry drivers:** add the TomTom key. It's the only online service that checks every measurement (length, axle weight and hazardous goods as well as height and weight).
 
 ---
 
@@ -97,7 +100,7 @@ No account, no ads, no tracking, and no Horizon Nav server. The app talks direct
 |---|---|---|
 | Mapbox | Your position and destination | The map, routes, search, traffic, speed limits |
 | TomTom (with your key) | Your position and destination | Routes, search, traffic, speed limits |
-| OpenStreetMap services (Overpass, Nominatim, Photon) | The area around you | Speed cameras, number-plate cameras, speed limits, traffic lights, search, and the "Near you" area suggestion |
+| OpenStreetMap services (Overpass, Nominatim, Photon) | The area around you | Speed cameras, number-plate cameras, speed limits, lorry height and weight limits, traffic lights, search, and the "Near you" area suggestion |
 | Open-Meteo, RainViewer | Your rough position | Weather and the rain radar (only when switched on) |
 | Fuel price services (UK, France, Austria, Germany) | The area you're searching | Fuel prices |
 | GitHub | Nothing about you | Checking for and downloading updates |
@@ -122,6 +125,7 @@ No account, no ads, no tracking, and no Horizon Nav server. The app talks direct
 - **Driver's display shows only the app icon:** your car's Android Auto may not offer that screen to navigation apps. If it does but causes trouble, turn it off in Android Auto's Settings › Map on the driver's display.
 - **An area says it "hasn't been built yet":** that region's pack isn't ready. Pick the whole country for now, or try again later.
 - **Spoken directions missing:** check your device's text-to-speech voice is installed. If you hear the beeps but not the voice, try Settings › Sound › Voice channel › Media.
+- **Lorry: "No route found":** no route could be found that your lorry fits. Check the measurements in Settings › Routes › Vehicle. Lorry routes are only as good as the limits on the map, so always follow the road signs.
 
 ---
 
