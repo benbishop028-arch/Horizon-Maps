@@ -229,6 +229,8 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                         })
                 }
                 if (!compact) engine.advice?.let { AdvicePill(it) }
+                // a low bridge or weight limit the lorry is over: shown even on a small car screen
+                LorryWarnCard(engine)
             }
         }
 
@@ -516,6 +518,7 @@ private fun CarRoutePreview(engine: NavEngine) {
                 val delayMin = Math.round(r.delay / 60.0).toInt()
                 Text(if (delayMin >= 1) "+$delayMin min traffic" else if (via.isNotEmpty()) "via $via" else "No delays",
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                LorryBadge(r)
             }
         }
     }

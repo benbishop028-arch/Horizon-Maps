@@ -39,6 +39,9 @@ class Route(
     @Volatile var limits: List<LimitSec> = emptyList()
     /** Incidents on the route that came with it (Mapbox routes carry them; TomTom's are looked up separately). */
     @Volatile var incidents: List<Incident> = emptyList()
+    /** Planned for a lorry: "full" (every measurement used: TomTom or offline), "partial" (Mapbox: height, width and weight only),
+     *  or "" (a car). Shown as a badge on the route choice. */
+    @Volatile var lorry: String = ""
 }
 
 /** The posted limit [ms] (m/s) from [off] to [end] metres along a route. */
@@ -334,7 +337,7 @@ object TomTomRest {
         val prefs = avoid.joinToString("") { "&avoid=$it" } + (if (routeType != "fastest") "&routeType=$routeType" else "")
         // the direction you are travelling stops the route sending you the wrong way down the road you are on (used when rerouting)
         val hd = if (headingDeg >= 0) "&vehicleHeading=${headingDeg.toInt() % 360}" else ""
-        val classic = "$CLASSIC/$loc/json?key=$k&maxAlternatives=$n&traffic=true&routeRepresentation=polyline&instructionsType=text$prefs$hd"
+        val classic = "$CLASSIC/$loc/json?key=$k&maxAlternatives=$n&traffic=true&routeRepresentation=polyline&instructionsType=text$prefs$hd${Vehicle.tomtom()}"
         val attempts = ArrayList<String>()
         if (quick) {
             // rerouting: only two quick tries, so a weak signal does not leave you waiting through ten slow requests
@@ -352,7 +355,8 @@ object TomTomRest {
         attempts += "$classic&sectionType=traffic"
         attempts += classic
         // the Orbis fallback cannot take areas to avoid, so it is only used for ordinary requests
-        if (avoidJson == null) {
+        // (nor a lorry's size: a lorry gets no route rather than a car's one under a low bridge)
+        if (avoidJson == null && !Vehicle.lorry) {
             if (dep.isNotEmpty()) attempts += "$base$dep&sectionType=traffic"
             attempts += "$base&traffic=live&sectionType=traffic"
             attempts += base

@@ -306,6 +306,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                         }
                     }
                     engine.advice?.let { AdvicePill(it) }
+                    LorryWarnCard(engine)
                     AvgSpeedCard(engine)
                     ServicesCard(engine)
                     ParkingCard(engine)

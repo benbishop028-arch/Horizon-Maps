@@ -79,6 +79,7 @@ import com.headunit.launcher.mapSource
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.setApiKey
 import com.headunit.launcher.Zones
+import com.headunit.launcher.Vehicle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -220,7 +221,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         0 -> MapLookSection(prefs, engine)
                         1 -> OnTheMapSection(prefs, engine)
                         2 -> ArrowSection(prefs, engine)
-                        3 -> RoutesSection(prefs)
+                        3 -> RoutesSection(prefs, engine)
                         4 -> GuidanceSection(prefs, engine)
                         5 -> AlertsSection(prefs, engine)
                         6 -> SoundSection(prefs, engine)
@@ -387,7 +388,8 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
 // ------------------------------------------------------------------ Routes
 
 @Composable
-private fun RoutesSection(prefs: Prefs) {
+private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
+    VehicleGroup(prefs, engine.imperial)
     SGroup("Avoid", footer = "Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.") {
         SToggle(prefs, "Avoid toll roads", "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "Everywhere" else null)
         // ...or only in some countries: a route that would use a toll road in one of them is planned without toll roads
@@ -420,6 +422,38 @@ private fun RoutesSection(prefs: Prefs) {
         SSlider("Auto-start countdown", prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = "How long before navigation starts", steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
         SToggle(prefs, "Fly along a new route", "cinematic", true, "A 3-second 3D fly-through before the overview. Tap the map to skip")
         SToggle(prefs, "Fly over route button", "flyover", true, "On the route options: a 3D flight along the whole drive before you set off")
+    }
+}
+
+/** Car or lorry; for a lorry its size and weight, which every route is then planned for (see Vehicle). */
+@Composable
+private fun VehicleGroup(prefs: Prefs, imperial: Boolean) {
+    val lorry = prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry"
+    SGroup("Vehicle", footer = if (lorry) "Used by TomTom and offline routes, and by Mapbox for height, width and weight. Limits come from the map data, so some may be missing: always follow the road signs." else null) {
+        SChoice("Vehicle", listOf("car" to "Car", "lorry" to "Lorry"), if (lorry) "lorry" else "car",
+            if (lorry) "Routes avoid low bridges, weight limits and lorry bans for your size" else null) { prefs.put(PreferenceKeys.VEHICLE, it) }
+        if (lorry) {
+            SStep("Height", "Including the load. Low bridges are checked against this", prefs, PreferenceKeys.LORRY_HEIGHT, 400, 200, 500, 5) { Vehicle.heightText(it, imperial) }
+            SStep("Width", "Without mirrors", prefs, PreferenceKeys.LORRY_WIDTH, 255, 180, 300, 5) { String.format(java.util.Locale.US, "%.2f m", it / 100.0) }
+            SStep("Length", "Tractor and trailer", prefs, PreferenceKeys.LORRY_LENGTH, 1650, 500, 2500, 50) { String.format(java.util.Locale.US, "%.1f m", it / 100.0) }
+            SStep("Weight", "Fully loaded", prefs, PreferenceKeys.LORRY_WEIGHT, 440, 35, 600, 5) { tonnes(it) }
+            SStep("Axle weight", "Heaviest axle", prefs, PreferenceKeys.LORRY_AXLE, 115, 50, 200, 5) { tonnes(it) }
+            SToggle(prefs, "Hazardous goods", PreferenceKeys.LORRY_HAZMAT, false, "Avoids tunnels and roads closed to hazardous loads")
+        }
+    }
+}
+
+private fun tonnes(t10: Int): String = if (t10 % 10 == 0) "${t10 / 10} t" else String.format(java.util.Locale.US, "%.1f t", t10 / 10.0)
+
+/** A number set with − and + (a lorry's measurements): [show] turns the stored value into what's shown. */
+@Composable
+private fun SStep(title: String, sub: String, prefs: Prefs, key: String, def: Int, min: Int, max: Int, by: Int, show: (Int) -> String) {
+    val c = LocalVw.current
+    val v = prefs.i(key, def).coerceIn(min, max)
+    SItem(title, sub) {
+        SButton("−") { prefs.put(key, (v - by).coerceAtLeast(min)) }
+        Text(show(v), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.widthIn(min = 92.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        SButton("+") { prefs.put(key, (v + by).coerceAtMost(max)) }
     }
 }
 

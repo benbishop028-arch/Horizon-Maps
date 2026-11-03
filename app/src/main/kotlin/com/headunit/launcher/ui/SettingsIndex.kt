@@ -51,6 +51,8 @@ internal val settingsIndex = listOf(
     SettingRef("Route ribbon", "Route shadow and see-through over buildings", "Route line", 2),
     SettingRef("Flowing light along the route", "", "Route line", 2),
     SettingRef("Alternative route line colour", "", "Route line", 2),
+    SettingRef("Vehicle", "Car or lorry: routes for a lorry's height, width, length and weight", "Vehicle", 3),
+    SettingRef("Hazardous goods", "Lorry routes that avoid roads closed to hazardous loads", "Vehicle", 3),
     SettingRef("Avoid toll roads", "", "Avoid", 3),
     SettingRef("Avoid tolls only in", "Pick countries where toll roads are avoided", "Avoid", 3),
     SettingRef("Avoid motorways", "", "Avoid", 3),

@@ -1830,6 +1830,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
             .iconSize(zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8)))
         pushAlpr()
+        // a lorry's height, weight and width limits ahead: a road sign with the limit, red when the lorry doesn't fit
+        limImgs.clear()
+        addS(st, GeoJsonSource.Builder("dl-lim").featureCollection(empty()).build())
+        addL(st, SymbolLayer("dl-lim", "dl-lim")
+            .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconSize(zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8)))
+        pushLimits()
         addS(st, GeoJsonSource.Builder("dl-cams").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-cams", "dl-cams")
             .iconImage("dl-hz-cam").iconAllowOverlap(true).iconIgnorePlacement(true)
@@ -2141,6 +2149,47 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             if (d < bd) { bd = d; best = a }
         }
         return best
+    }
+
+    /** A lorry's limits on the map: where, the sign's text ("4.1m", "7.5t"), and whether the lorry is over it (red). */
+    @Volatile private var limits: List<Triple<LL, String, Boolean>> = emptyList()
+    /** The sign pictures already added to the current map style (they go when the style changes). */
+    private val limImgs = HashSet<String>()
+
+    fun setLimits(list: List<Triple<LL, String, Boolean>>) {
+        main0.post { if (list != limits) { limits = list; pushLimits() } }
+    }
+
+    private fun pushLimits() {
+        val st = style ?: return
+        val s = src("dl-lim") ?: return
+        try {
+            val feats = ArrayList<Feature>()
+            for ((p, text, over) in limits.take(60)) {
+                val id = "dl-lim-" + (if (over) "r-" else "w-") + text
+                if (limImgs.add(id)) addImg(st, id, limitBitmap(text, over))
+                feats += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", id) }
+            }
+            s.featureCollection(FeatureCollection.fromFeatures(feats))
+        } catch (e: Throwable) { }
+    }
+
+    /** A round limit sign: white with a red ring and the limit in black, or filled red when the lorry is over the limit. */
+    private fun limitBitmap(text: String, over: Boolean): Bitmap {
+        val n = 104
+        val bmp = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val cx = n / 2f
+        fun p(col: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col }
+        c.drawCircle(cx, cx + 2f, 46f, p(0x55000000))
+        c.drawCircle(cx, cx, 46f, p(0xFFD93025.toInt()))
+        c.drawCircle(cx, cx, 36f, p(if (over) 0xFFFFE3E0.toInt() else 0xFFFFFFFF.toInt()))
+        val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFF202124.toInt(); textAlign = Paint.Align.CENTER; typeface = android.graphics.Typeface.DEFAULT_BOLD
+            textSize = if (text.length <= 4) 24f else if (text.length <= 5) 20f else 17f
+        }
+        c.drawText(text, cx, cx + tp.textSize * 0.36f, tp)
+        return bmp
     }
 
     /** The purple eye badge for a number-plate camera. */

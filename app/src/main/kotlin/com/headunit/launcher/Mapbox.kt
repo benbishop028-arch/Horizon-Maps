@@ -270,7 +270,7 @@ object MapboxRest {
         val ex = excludes(TomTomRest.avoid)
         val lang = java.util.Locale.getDefault().language.ifBlank { "en" }
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
-            "&annotations=maxspeed,congestion,duration,distance&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}"
+            "&annotations=maxspeed,congestion,duration,distance&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
         if (headingDeg >= 0) base += "&bearings=" + enc((listOf("${headingDeg.toInt() % 360},45") + List(pts.size - 1) { "" }).joinToString(";"))
         val dep = if (departAtMs > 0) "&depart_at=" + enc(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).format(java.util.Date(departAtMs))) else ""

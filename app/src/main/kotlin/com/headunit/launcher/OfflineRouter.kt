@@ -792,7 +792,10 @@ object OfflineRouter {
 
     /** Routes on the device with no network. Blocking: call it off the main thread. */
     @Synchronized
-    fun routes(ctx: Context, from: LL, to: LL, via: List<LL> = emptyList(), headingDeg: Double = -1.0): List<Route> {
+    fun routes(ctx: Context, from: LL, to: LL, via: List<LL> = emptyList(), headingDeg: Double = -1.0): List<Route> =
+        routesTagged(ctx, from, to, via, headingDeg).also { rs -> if (Vehicle.lorry) for (r in rs) r.lorry = "full" }
+
+    private fun routesTagged(ctx: Context, from: LL, to: LL, via: List<LL>, headingDeg: Double): List<Route> {
         endsShort = false
         val rs = routesInner(ctx, from, to, via, headingDeg)
         val r = rs.firstOrNull() ?: return rs
@@ -899,8 +902,10 @@ object OfflineRouter {
         locs.put(JSONObject().put("lat", from.lat).put("lon", from.lon).apply { if (headingDeg >= 0) { put("heading", headingDeg.toInt()); put("heading_tolerance", 60) } })
         for (v in via) locs.put(JSONObject().put("lat", v.lat).put("lon", v.lon).put("type", "through"))
         locs.put(JSONObject().put("lat", to.lat).put("lon", to.lon))
-        val req = JSONObject().put("locations", locs).put("costing", "auto")
+        val req = JSONObject().put("locations", locs)
             .put("directions_options", JSONObject().put("units", "kilometers").put("language", "en-GB"))
+        // a car, or a lorry with its size and weight (Valhalla's truck mode)
+        Vehicle.valhalla(req)
         val ex = exclude
         if (ex.isNotEmpty()) {
             val polys = org.json.JSONArray()

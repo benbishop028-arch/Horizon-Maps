@@ -180,6 +180,15 @@ internal object PreferenceKeys {
     const val EV_SHOW_FUEL = "evshowfuel"
     /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */
     const val TURN_NOTIF = "turnnotif"
+    /** What routes are planned for: "car" or "lorry" (Settings > Routes > Vehicle), and the lorry's measurements:
+     *  height, width and length in cm, weight and axle weight in tonnes x 10, and whether it carries hazardous goods. */
+    const val VEHICLE = "vehicle"
+    const val LORRY_HEIGHT = "lorryh"
+    const val LORRY_WIDTH = "lorryw"
+    const val LORRY_LENGTH = "lorryl"
+    const val LORRY_WEIGHT = "lorryt"
+    const val LORRY_AXLE = "lorryaxle"
+    const val LORRY_HAZMAT = "lorryhaz"
     const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"

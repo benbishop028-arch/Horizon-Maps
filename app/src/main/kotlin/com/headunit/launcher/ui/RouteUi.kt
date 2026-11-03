@@ -901,3 +901,27 @@ fun AdvicePill(text: String, modifier: Modifier = Modifier) {
         Text(text, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+/**
+ * A lorry's limit ahead that it's over (a low bridge, a weight limit): red, under the turn card, with the limit's sign,
+ * how far it is and the lorry's own size (see NavEngine.checkLorry).
+ */
+@Composable
+internal fun LorryWarnCard(engine: NavEngine, modifier: Modifier = Modifier) {
+    val w = engine.lorryWarn ?: return
+    val red = Color(0xFFD93025)
+    val shape = RoundedCornerShape(16.dp)
+    Row(
+        modifier.widthIn(max = 420.dp).fillMaxWidth().shadow(8.dp, shape).clip(shape).background(Color(0xF23A2224))
+            .border(2.dp, red, shape).padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(54.dp).clip(CircleShape).background(red).padding(5.dp).clip(CircleShape).background(Color.White), contentAlignment = Alignment.Center) {
+            Text(w.sign, color = Color(0xFF202124), fontSize = if (w.sign.length <= 4) 14.sp else 12.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+        }
+        Column(Modifier.padding(start = 12.dp)) {
+            Text("${w.title} · ${Geo.fmtDist(w.dist, engine.imperial)}", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(w.detail, color = Color(0xFFF2C2BF), fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}

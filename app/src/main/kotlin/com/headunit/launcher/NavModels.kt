@@ -34,6 +34,9 @@ val CAMERA_BANNED = mapOf("FR" to "France", "DE" to "Germany", "CH" to "Switzerl
 val KEEP_LEFT = setOf("GB", "IE", "IM", "GG", "JE", "MT", "CY", "AU", "NZ", "JP", "IN", "ZA", "HK", "MO", "SG", "MY", "TH", "ID", "KE", "TZ", "UG",
     "ZM", "ZW", "BW", "NA", "MZ", "MW", "LS", "SZ", "PK", "BD", "LK", "NP", "BT", "JM", "TT", "BB", "BS", "GY", "SR", "FJ", "PG", "MU", "SC", "BN", "TL", "KY", "BM", "VG", "AG", "DM", "GD", "KN", "LC", "VC", "FK", "SH", "MV", "KI", "SB", "TO", "TV", "WS", "NR")
 class AlertInfo(val kind: String, val text: String, val ms: Long = 5000)
+
+/** A lorry's limit ahead that it's over: [title] "Low bridge", the [sign] text ("4.1m"), how far, and the line under it. */
+class LorryWarn(val kind: String, val title: String, val sign: String, val dist: Double, val detail: String)
 /** Shown after you arrive: how the trip went. */
 class ArrivalInfo(val place: Place?, val name: String, val dist: Double, val secs: Double, val avgMs: Double, val side: String = "")
 /** Another way to the destination, drawn grey on the map while you drive, with how it compares (minutes, negative = quicker). */

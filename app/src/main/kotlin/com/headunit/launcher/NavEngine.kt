@@ -385,6 +385,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Routes from one service ("mapbox" or "tomtom"). */
     private fun routesFrom(p: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean): List<Route> =
+        routesFromInner(p, from, to, alternatives, departAtMs, via, headingDeg, quick).also { rs ->
+            if (Vehicle.lorry) for (r in rs) r.lorry = if (p == "mapbox") "partial" else "full"
+        }
+
+    private fun routesFromInner(p: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean): List<Route> =
         if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
         else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
 
@@ -1621,6 +1626,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         TomTomRest.avoidRects = rects.take(10)
+        // a lorry: every route source plans for its size and weight (Vehicle)
+        Vehicle.load(prefs)
         OfflineRouter.exclude = rings
         TomTomRest.avoid = listOfNotNull(
             if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "tollRoads" else null,
@@ -2095,6 +2102,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         try { checkPolice(p) } catch (e: Exception) { }
         try { checkWrongWay(p) } catch (e: Exception) { }
         try { checkAlpr(p) } catch (e: Exception) { }
+        try { checkLorry() } catch (e: Exception) { }
         noteCameraBan()
         if (!camerasOn()) { cameraDist = null; if (cameras.isNotEmpty()) { cameras = emptyList(); map.setCameras(emptyList()) }; camPos = null; return }
         val cp = camPos
@@ -3292,6 +3300,71 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (found == null) { alprPos = null; return@launch }
             if (prefs.b(PreferenceKeys.ALPR_CAMS, true)) { map.setAlpr(found); alprShown = true }
         }
+    }
+
+    /** A lorry's limit ahead that it's over (a low bridge, a weight limit...): the red card under the turn card. */
+    var lorryWarn by mutableStateOf<LorryWarn?>(null)
+    private var lorryLims: List<LorryLimits.Lim> = emptyList()
+    private var lorryRoute: Route? = null
+    private var lorryUpTo = 0.0
+    private var lorryAt = 0L
+    @Volatile private var lorryBusy = false
+    private var lorryShown = false
+    private val lorrySpoken = HashSet<String>()
+
+    /**
+     * For a lorry on a route: the height, weight, width and length limits on the next 15 km (looked up again as you get near
+     * the end of that, or for a new route), drawn on the map, with a warning card and a spoken warning (at about 1 km and
+     * again at 300 m) for one the lorry is over. Nothing at all for a car.
+     */
+    private fun checkLorry() {
+        Vehicle.load(prefs)
+        val rt = route
+        if (!Vehicle.lorry || rt == null || previewing) {
+            if (lorryShown) { lorryShown = false; map.setLimits(emptyList()) }
+            lorryWarn = null; lorryLims = emptyList(); lorryRoute = null
+            return
+        }
+        val prog = curProgress
+        val now = System.currentTimeMillis()
+        if ((rt !== lorryRoute || prog > lorryUpTo - 4000.0) && !lorryBusy && now - lorryAt > 15_000L && online()) {
+            lorryBusy = true; lorryAt = now
+            val from = maxOf(0.0, prog - 100.0)
+            scope.launch {
+                try {
+                    val found = withContext(Dispatchers.IO) { LorryLimits.along(rt, from, 15_000.0) }
+                    if (found != null && route === rt) {
+                        lorryLims = found; lorryRoute = rt; lorryUpTo = from + 15_000.0
+                        map.setLimits(found.map { Triple(it.pos, LorryLimits.signText(it, imperial), it.over) })
+                        lorryShown = true
+                    }
+                } finally { lorryBusy = false }
+            }
+        }
+        if (lorryRoute !== rt) { lorryWarn = null; return }
+        // the nearest one ahead (within 1.5 km) that the lorry is over
+        val l = lorryLims.firstOrNull { it.over && it.off - prog > -30.0 && it.off - prog < 1500.0 }
+        if (l == null) { lorryWarn = null; return }
+        val d = maxOf(0.0, l.off - prog)
+        val mine = when (l.kind) {
+            "height" -> Vehicle.heightText(Vehicle.heightCm, false)
+            "width" -> String.format(java.util.Locale.US, "%.2f m", Vehicle.widthCm / 100.0)
+            "length" -> String.format(java.util.Locale.US, "%.1f m", Vehicle.lengthCm / 100.0)
+            else -> (Vehicle.weightT10 / 10.0).let { if (it % 1.0 == 0.0) "${it.toInt()} t" else String.format(java.util.Locale.US, "%.1f t", it) }
+        }
+        val limTxt = LorryLimits.signText(l, false).replace("m", " m").replace("t", " t")
+        lorryWarn = LorryWarn(l.kind, LorryLimits.title(l.kind), LorryLimits.signText(l, imperial), d, "$limTxt. Your lorry is $mine")
+        val key = "${l.kind}@${Math.round(l.off)}"
+        val unit = if (l.kind == "weight") "tonnes" else "metres"
+        val said = LorryLimits.signText(l, false).dropLast(1)
+        if (d <= 1100.0 && lorrySpoken.add("$key/1")) {
+            if (d <= 320.0) lorrySpoken.add("$key/2")
+            chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
+            speak("${LorryLimits.title(l.kind)} ahead, $said $unit", true)
+        } else if (d <= 320.0 && lorrySpoken.add("$key/2")) {
+            speak("${LorryLimits.title(l.kind)}, $said $unit", true)
+        }
+        if (lorrySpoken.size > 200) lorrySpoken.clear()
     }
 
     fun clearReports() { prefs.put(PreferenceKeys.REPORTS, ""); prefs.put(PreferenceKeys.POLICEREP, ""); pushHazards(hzProgress); toast("Reports cleared", 2000) }

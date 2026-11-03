@@ -58,6 +58,7 @@ import androidx.compose.material.icons.rounded.LocalParking
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material.icons.rounded.Work
+import androidx.compose.material.icons.rounded.LocalShipping
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.Wc
@@ -255,6 +256,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     if (delayMin >= 1) "+$delayMin min traffic" else if (via.isNotEmpty()) "via $via" else "No delays",
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                LorryBadge(r)
             }
         }
     }
@@ -291,6 +293,27 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
             startBtn(Modifier.weight(1f))
         }
     }
+    }
+}
+
+/**
+ * Planned for a lorry: a blue "Lorry · 4.2 m · 44 t" when every measurement was used (TomTom or offline), or an amber
+ * "Height & weight only" when Mapbox planned it (it can't check length or hazardous goods). Nothing for a car.
+ */
+@Composable
+internal fun LorryBadge(r: com.headunit.launcher.Route) {
+    val kind = r.lorry
+    if (kind.isEmpty()) return
+    val full = kind == "full"
+    val fg = if (full) Color(0xFFAECBFA) else Color(0xFFFBD38D)
+    val bg = if (full) Color(0xFF1E3A5C) else Color(0xFF3A3020)
+    val text = if (full) "Lorry · " + String.format(java.util.Locale.US, "%.1f m", com.headunit.launcher.Vehicle.heightCm / 100.0) + " · " +
+        (com.headunit.launcher.Vehicle.weightT10 / 10.0).let { if (it % 1.0 == 0.0) "${it.toInt()} t" else String.format(java.util.Locale.US, "%.1f t", it) }
+        else "Height & weight only"
+    Row(Modifier.padding(top = 4.dp).clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 7.dp, vertical = 3.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Rounded.LocalShipping, null, tint = fg, modifier = Modifier.size(14.dp))
+        Text(text, color = fg, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
     }
 }
 
