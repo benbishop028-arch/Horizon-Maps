@@ -3775,7 +3775,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // on motorways and dual carriageways the lanes are looked at (and shown, and spoken) much earlier, as there's further to move over
             val fastRoad = cur.exitNo.isNotBlank() || (fix?.let { f -> try { map.roadAt(f.pos, f.heading)?.cls } catch (e: Throwable) { null } }?.let { it.startsWith("motorway") || it.startsWith("trunk") } == true)
             laneFast = fastRoad
-            val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter { progress < it.end + 5 && abs(it.end - cur.off) < 200 }.sortedWith(compareByDescending<LaneSec> { it.lanes.size }.thenBy { abs(it.end - cur.off) }).firstOrNull() else null
+            // Only lanes that end at this junction: up to 200 m either side used to be taken, with the most lanes winning, so where two
+            // junctions are close together the next one's lanes could show (a right turn with the left-turn lane lit, because the turn
+            // after it was a left). Now within 60 m before to 30 m after this junction, and nearer to it than to the next one.
+            val nextOff = nxt?.off ?: Double.MAX_VALUE
+            val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter {
+                progress < it.end + 5 && it.end - cur.off in -60.0..30.0 && abs(it.end - cur.off) < abs(it.end - nextOff)
+            }.sortedWith(compareByDescending<LaneSec> { it.lanes.size }.thenBy { abs(it.end - cur.off) }).firstOrNull() else null
             val laneSec = realSec
             val laneAdv = laneSec?.let { Geo.laneAdvice(it, cur.maneuver) }
             // the early lane call on fast roads, about a mile out (once per junction): "In about a mile, move into the left two lanes"
@@ -4985,7 +4991,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             fun midAt(o: Double): Double { val m = mids(o); return activeIdx.map { m[it] }.average() }
             val mid = midAt(cur.off - 40.0)
             // (on ordinary roads the move across starts only 100 m out, just before the lanes appear)
-            val s0 = max(0.0, max(sec.off, cur.off - (if (lined || aligned) 250.0 else 100.0)))
+            // (from where the lanes are known when they've been read off the map; otherwise from just before the lanes appear: the
+            // lane list often only starts at the junction itself, which left too little room and the line didn't move over at all)
+            val s0 = max(0.0, if (lined) max(sec.off, cur.off - 250.0) else cur.off - (if (aligned) 250.0 else 100.0))
             val s1 = min(r.len, cur.off + 25.0)
             // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
             val stripStart = from
