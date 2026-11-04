@@ -1786,19 +1786,21 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // lane ribbons: the lane you need is a solid teal ribbon that fades away into the distance, the others are quiet road-coloured strips
         val night = nightStyle
         val onCol = if (night) "#2FC9B8" else "#1FB5A8"
-        val offCol = if (night) "#4A5062" else "#FBFAF7"
+        // the lanes not to use: a darker road-surface strip with clear white lines, so they stand out from the map's road under them
+        // (they used to be close to the road's own colour and faded into it)
+        val offCol = if (night) "#262C38" else "#AEB6C4"
         val isOn = Expression.eq(Expression.get("on"), lit(1))
         addL(st, FillLayer("dl-lane-fill", "dl-lane-bands").inSlot(MID)
             .fillColor(Expression.switchCase(isOn, col(onCol), col(offCol)))
-            .fillOpacity(Expression.product(Expression.toNumber(Expression.get("a")), Expression.switchCase(isOn, lit(0.95), lit(if (night) 0.75 else 0.85))))
+            .fillOpacity(Expression.product(Expression.toNumber(Expression.get("a")), Expression.switchCase(isOn, lit(0.95), lit(0.9))))
             .fillEmissiveStrength(1.0).minZoom(15.5))
-        val lineCol = if (night) "#FFFFFF" else "#6A7080"
+        val lineCol = "#FFFFFF"
         addL(st, LineLayer("dl-lane-edge", "dl-lane-divs").inSlot(MID).filter(Expression.eq(Expression.get("s"), lit(1)))
-            .lineColor(lineCol).lineOpacity(0.7).lineEmissiveStrength(1.0)
-            .lineWidth(zoomed(2.0, 15 to 0.15, 20 to 2.5)).minZoom(15.5))
+            .lineColor(lineCol).lineOpacity(0.95).lineEmissiveStrength(1.0)
+            .lineWidth(zoomed(2.0, 15 to 0.25, 20 to 3.5)).minZoom(15.5))
         addL(st, LineLayer("dl-lane-div", "dl-lane-divs").inSlot(MID).filter(Expression.eq(Expression.get("s"), lit(0)))
-            .lineColor(lineCol).lineOpacity(0.75).lineEmissiveStrength(1.0).lineDasharray(listOf(3.0, 4.0))
-            .lineWidth(zoomed(2.0, 15 to 0.15, 20 to 2.0)).minZoom(15.5))
+            .lineColor(lineCol).lineOpacity(0.9).lineEmissiveStrength(1.0).lineDasharray(listOf(3.0, 4.0))
+            .lineWidth(zoomed(2.0, 15 to 0.2, 20 to 2.8)).minZoom(15.5))
         for ((id, on) in listOf("dl-lanes-off" to 0, "dl-lanes-on" to 1)) {
             val l = SymbolLayer(id, "dl-lanes").inSlot(MID).filter(Expression.eq(Expression.get("on"), lit(on)))
                 .iconImage(Expression.get("img")).iconRotate(Expression.get("rot"))
@@ -2438,11 +2440,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             c.drawLine(32f, 18f, 42f, 28f, p)
             c.restore()
         }
-        val out = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeWidth = 12f; color = 0x66000000.toInt() }
+        val out = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeWidth = 12f; color = if (on) 0x66000000 else 0x99000000.toInt() }
         draw(out)
         val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; strokeWidth = 8f
-            color = if (on) 0xFFFFFFFF.toInt() else 0x99FFFFFF.toInt()
+            color = if (on) 0xFFFFFFFF.toInt() else 0xDDFFFFFF.toInt()
         }
         draw(fill)
         return bmp

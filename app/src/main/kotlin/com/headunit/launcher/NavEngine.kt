@@ -4942,8 +4942,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val last = samples.size - 1
             for (i in 0 until n) {
                 // cut into short pieces so the ribbon can fade in softly at its start
-                // (lit lane: only the lanes to use are filled; the other lanes keep just their dividers and faint arrows)
-                if (style == "lit" && i !in activeIdx) { } else for (k in 0 until last) {
+                for (k in 0 until last) {
                     val l = ArrayList<LL>(); val rt = ArrayList<LL>()
                     for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, leftE(sampleMids[m], i)); rt += shifted(p, brg, rightE(sampleMids[m], i)) }
                     val a = 0.5 + 0.5 * min(1.0, k / 3.0)
