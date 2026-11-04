@@ -4974,14 +4974,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // last 8 m while the turn arrow, drawn on the road's own line from 38 m out, left a gap and a step where they met.
         val shift = ArrayList<LL>()
         laneLatAt = null; laneShiftEnd = 0.0
-        if (lined && activeIdx.isNotEmpty()) {
+        // (wherever the lanes are painted, so the lit lane and the route line always line up: on ordinary roads the lanes sit on
+        // your side of the road's middle line, and the route line, which follows that middle line, used to stay beside them)
+        if (paint && activeIdx.isNotEmpty()) {
             // the middle of the lit-up lanes, wherever they are along the approach
             fun midAt(o: Double): Double { val m = mids(o); return activeIdx.map { m[it] }.average() }
             val mid = midAt(cur.off - 40.0)
-            val s0 = max(0.0, max(sec.off, cur.off - 250.0))
+            // (on ordinary roads the move across starts only 100 m out, just before the lanes appear)
+            val s0 = max(0.0, max(sec.off, cur.off - (if (lined || aligned) 250.0 else 100.0)))
             val s1 = min(r.len, cur.off + 25.0)
             // (fully in the lane by the time the lane strips start, 110 m out, when there's room; else over the first half)
-            val stripStart = cur.off - 110.0
+            val stripStart = from
             val ramp = if (stripStart - s0 >= 20.0) min(60.0, stripStart - s0) else max(10.0, (cur.off - s0) * 0.5)
             if (maxOf(Math.abs(mid), Math.abs(midAt(cur.off - 100.0)), Math.abs(midAt(cur.off - 10.0))) > 0.3 && cur.off - s0 > 30.0) {
                 val fn: (Double) -> Double = { o ->
