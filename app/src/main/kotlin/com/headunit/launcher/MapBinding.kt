@@ -377,7 +377,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * The Horizon theme at night and dusk: buildings a soft lavender-blue, a step lighter than the ground, rather than the same dark
      * shade as it (walls and roofs still take the map's light and shadow). Day keeps Mapbox's own building colours.
      */
-    private val NIGHT_BUILDINGS = "#4C5478"
+    // (the night light darkens whatever colour is given to about a third, so it's given almost white to show as a soft lavender-blue:
+    // "#4C5478" came out nearly black)
+    private val NIGHT_BUILDINGS = "#E8ECFF"
     private var buildingsTinted = false
     private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
