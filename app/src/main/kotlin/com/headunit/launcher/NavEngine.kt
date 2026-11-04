@@ -3209,8 +3209,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // warned about, so a camera the route search missed (a busy server, a stretch not searched yet) used to be left out
         // altogether even though the search round you had it
         val cams = knownCams + aroundCams
-        if (camsRoute === r && camsCount == cams.size) return
-        camsRoute = r; camsCount = cams.size
+        // (redone when either list is replaced, not just when the count changes: a fresh search round you can have as many
+        // cameras as the last one but different ones)
+        val sig = System.identityHashCode(knownCams) * 31 + System.identityHashCode(aroundCams)
+        if (camsRoute === r && camsCount == sig) return
+        camsRoute = r; camsCount = sig
         if (cams.isEmpty()) { routeCams = emptyList(); return }
         scope.launch {
             val found = withContext(Dispatchers.Default) {
@@ -4832,7 +4835,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // the lane sign goes once you're up to it
         if (laneSignFor >= 0.0 && curProgress > laneSignFor - 15.0) { map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
-        if (key == laneKey) return
+        if (key == laneKey) {
+            // lanes drawn without the junction's road (the map hadn't shown it yet): look again, cheaply, and redraw only once it's
+            // there (redrawing on every update restarted the lane blink and resent the lanes to the map each second)
+            if (key == null || laneRoadFor != cur.off || d <= 80.0) return
+            val (ap, ab) = pointAt(r, max(0.0, cur.off - 45.0))
+            if (map.roadAt(ap, ab, maxDistance = 10.0, headingTolerance = 25.0) == null) return
+            laneRoadFor = -1.0
+        }
         laneKey = key
         if (key == null || sec == null) {
             map.setLaneSign(null, emptyList()); laneSignFor = -1.0
@@ -5024,7 +5034,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // yet, and the lanes fell back to just your lane, with the route line left where it was, for that whole junction ("sometimes
         // the route line moves over and sometimes it doesn't"). Until the road is found, the lanes are worked out again on the next
         // update, until 80 m out.
-        if (road == null && !lined && !aligned && style == "lit" && d > 80.0) laneKey = null
+        laneRoadFor = if (road == null && !lined && !aligned && style == "lit" && d > 80.0) cur.off else -1.0
     }
 
     /** The sideways offset (metres, + to the right) of the route line in the lane you need, by distance along the route; null when none. */
@@ -5039,6 +5049,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         private set
     private var laneDiagFor = -1.0
     private var hdProfileFor = -1.0
+    /** The junction whose lanes were drawn before its road was found on the map (looked for again as you get closer); −1 for none. */
+    private var laneRoadFor = -1.0
     /** The lane style last drawn with ("lit", "closeup" or "sign"): a change redraws the junction's lanes. */
     private var laneStyleSeen = ""
     /** The junction the lane sign is standing at (−1 for none). */

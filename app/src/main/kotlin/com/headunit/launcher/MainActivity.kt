@@ -44,7 +44,11 @@ class MainActivity : ComponentActivity() {
         val boot = getSharedPreferences(CrashGuardPrefs.FILE, android.content.Context.MODE_PRIVATE)
         val startedAt = System.currentTimeMillis()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->
-            try { crashFile.writeText("Thread ${t.name}\n" + android.util.Log.getStackTraceString(e).take(3000)) } catch (x: Throwable) { }
+            // (with the version and time, so a report left over from an older version can be told apart)
+            try {
+                val stamp = java.text.SimpleDateFormat("d MMM HH:mm", java.util.Locale.UK).format(java.util.Date())
+                crashFile.writeText("Horizon Nav ${BuildConfig.VERSION_NAME} · $stamp\nThread ${t.name}\n" + android.util.Log.getStackTraceString(e).take(3000))
+            } catch (x: Throwable) { }
             // a crash in the first 25 seconds counts as "crashed while starting"
             try { if (System.currentTimeMillis() - startedAt < 25_000L) boot.edit().putInt(CrashGuardPrefs.START_FAILURES, boot.getInt(CrashGuardPrefs.START_FAILURES, 0) + 1).commit() } catch (x: Throwable) { }
             prev?.uncaughtException(t, e)
@@ -130,7 +134,9 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             snapshotFlow { if (guiding()) Pair(engine.turn, engine.eta) else null }
                 .collect { te ->
-                    if (te != null) try {
+                    // (with Android Auto on, the car screen's guidance keeps the notification up to date: one source, so it can't
+                    // flick between two slightly different distances)
+                    if (te != null && !RouteSync.carConnected()) try {
                         NavService.update(applicationContext, te.first, te.second, engine.imperial, !engine.mirrored,
                             prefs.b(PreferenceKeys.TURN_NOTIF, true))
                     } catch (e: Throwable) { }

@@ -301,7 +301,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("On your route") {
         SToggle(prefs, "Traffic lights", "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) "Only the ones on your route. Now: " + engine.map.signalInfo() else null)
-        SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true)
+        SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true, "Their icons on the map. The warnings are in Settings > Alerts")
         SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
         SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
         SToggle(prefs, "Number-plate cameras", PreferenceKeys.ALPR_CAMS, true, "Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts")
@@ -554,7 +554,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Show estimated limits", "limitest", false, "Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess")
     }
     SGroup("Cameras") {
-        SToggle(prefs, "Speed cameras", "cameras", true)
+        SToggle(prefs, "Speed cameras", "cameras", true, "Spoken and on-screen warnings as you come up to one")
         if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, "Off where they're banned", "cambanobey", true, "France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves")
         SToggle(prefs, "Average speed checks", "avgzones", true, "Shows your average against the limit")
     }
@@ -909,7 +909,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Speed display") {
         SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
         SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
-        SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On the phone and the car screen", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
+        SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On this screen (Android Auto has its own size, under Android Auto)", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
         SChoice("Speed position", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"),
             "On the side away from the cards, so it never covers them. Move it up if your hand covers it") { prefs.put(PreferenceKeys.SPEED_POS, it) }
     }
@@ -1093,7 +1093,9 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     }
     val cf = java.io.File(ctx.filesDir, "lastcrash.txt")
     var rep by remember { mutableStateOf(if (cf.exists()) cf.readText() else "") }
-    if (rep.isNotBlank()) SGroup("Problem report", footer = "The app closed unexpectedly last time. Send a photo of this so it can be fixed.") {
+    // a report from before the last update (older reports have no version line, or another version's): it may well be fixed already
+    val oldRep = rep.isNotBlank() && !rep.startsWith("Horizon Nav ${BuildConfig.VERSION_NAME} ")
+    if (rep.isNotBlank()) SGroup("Problem report", footer = if (oldRep) "This is from an older version of the app, before your last update, so it may already be fixed. Clear it, and send a photo if it comes back." else "The app closed unexpectedly last time. Send a photo of this so it can be fixed.") {
         Text(rep.take(900), color = LocalVw.current.text, fontSize = 10.sp, modifier = Modifier.padding(vertical = 6.dp))
         SItem("Clear the report") { SButton("Clear") { cf.delete(); rep = "" } }
     }

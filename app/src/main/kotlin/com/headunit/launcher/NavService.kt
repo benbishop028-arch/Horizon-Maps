@@ -102,7 +102,7 @@ class NavService : Service() {
         }
 
         /** The arrow picture for each kind of turn (the same arrows Android Auto's turn card uses). */
-        private fun arrowRes(maneuver: String, exit: Int, left: Boolean): Int {
+        private fun arrowRes(maneuver: String, left: Boolean): Int {
             val m = maneuver.uppercase()
             return when {
                 m.startsWith("ROUNDABOUT") -> if (left) R.drawable.ic_man_roundabout_cw else R.drawable.ic_man_roundabout_ccw
@@ -174,7 +174,7 @@ class NavService : Service() {
                 val doing = what(t)
                 val road = t.street.ifBlank { t.sign }
                 val arrive = eta?.arrive.orEmpty()
-                val res = arrowRes(t.maneuver, t.exit, left)
+                val res = arrowRes(t.maneuver, left)
                 val sig = "$dist|$doing|$road|$arrive|$res"
                 if (sig == lastSig) return
                 val now = SystemClock.elapsedRealtime()
