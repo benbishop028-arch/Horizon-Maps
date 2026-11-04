@@ -1172,6 +1172,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (heatLevel >= 0) appendLine("Heat: ${listOf("cool", "light", "moderate", "severe", "critical", "emergency", "shutdown").getOrElse(heatLevel) { "$heatLevel" }}")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
+            if (laneNote.isNotBlank()) appendLine(laneNote)
             // (the report is made on the phone: the car screen's own figures, from the last time Android Auto was on)
             if (CarDiag.screen.isNotBlank() || CarDiag.shift.isNotBlank()) appendLine("Android Auto screen: ${CarDiag.screen} · ${CarDiag.shift}")
             run {
@@ -3775,13 +3776,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // on motorways and dual carriageways the lanes are looked at (and shown, and spoken) much earlier, as there's further to move over
             val fastRoad = cur.exitNo.isNotBlank() || (fix?.let { f -> try { map.roadAt(f.pos, f.heading)?.cls } catch (e: Throwable) { null } }?.let { it.startsWith("motorway") || it.startsWith("trunk") } == true)
             laneFast = fastRoad
-            // Only lanes that end at this junction: up to 200 m either side used to be taken, with the most lanes winning, so where two
-            // junctions are close together the next one's lanes could show (a right turn with the left-turn lane lit, because the turn
-            // after it was a left). Now within 60 m before to 30 m after this junction, and nearer to it than to the next one.
-            val nextOff = nxt?.off ?: Double.MAX_VALUE
             val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter {
-                progress < it.end + 5 && it.end - cur.off in -60.0..30.0 && abs(it.end - cur.off) < abs(it.end - nextOff)
+                progress < it.end + 5 && abs(it.end - cur.off) < 200
             }.sortedWith(compareByDescending<LaneSec> { it.lanes.size }.thenBy { abs(it.end - cur.off) }).firstOrNull() else null
+            // for the feedback report: the lane list in use, as the route data gives it (so a junction with the wrong arrows can be
+            // traced to the data or the app)
+            laneNote = realSec?.let { s0 ->
+                "Lanes for the next turn (${provider.ifBlank { "offline" }}, ${Math.round(s0.off - cur.off)} to ${Math.round(s0.end - cur.off)} m from it): " +
+                    s0.lanes.joinToString(" | ") { ln -> ln.dirs.joinToString("+") { it.lowercase() } + (ln.follow?.let { f -> " (use: ${f.lowercase()})" } ?: "") }
+            } ?: laneNote
             val laneSec = realSec
             val laneAdv = laneSec?.let { Geo.laneAdvice(it, cur.maneuver) }
             // the early lane call on fast roads, about a mile out (once per junction): "In about a mile, move into the left two lanes"
@@ -5028,6 +5031,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var laneLatAt: ((Double) -> Double)? = null
     /** The real lanes' middles (sideways from the route line, left to right) read off the map for the junction at [hdLanesFor]. */
     private var hdProfile: List<Pair<Double, List<Double>>> = emptyList()
+    /** The last lane list shown, as the route data gave it (for the feedback report). */
+    var laneNote = ""
+        private set
     /** What the last look for the real lanes found (for Demo mode and the feedback report). */
     var laneDiag = ""
         private set
