@@ -4848,14 +4848,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // that the mapped line doesn't follow, which put the lanes (and the route line moved into them) off the road; there the
         // lanes are laid out with the lane to be in under the route line, and the route line stays where it is.
         val big = road?.cls?.let { (it == "motorway" || it == "trunk") } == true
-        val aligned = road != null && road.oneway == true && big
-        val laneW = if (!aligned) 3.6 else if (big) 3.65 else 3.5
+        // (the map's roads are only read close in: on a motorway, zoomed further out, they often aren't there. A motorway junction
+        // is then taken as a one-way carriageway too, so its lanes are still laid out on the road)
+        val aligned = (road != null && road.oneway == true && big) || (road == null && laneFast)
+        // Lit lane on a road the map has: the lanes are laid out on the road itself (centred on a one-way road's line; on a two-way
+        // road all on your side of its middle line) at a slimmer 3 m, rather than around the route line, which is what pushed
+        // them over the verge before. Only where the map has no road there is just your lane drawn, under the route line.
+        val roadLaid = style == "lit" && road != null && !aligned
+        val laneW = if (!aligned) (if (roadLaid) 3.0 else 3.6) else if (big) 3.65 else 3.5
         // Lined up: before a junction the mapped line runs down the middle of the main carriageway, which is the lanes that carry
         // straight on. The lanes peeling off to an exit are extra lanes beside it (at the junction Mapbox lists them all together),
         // so the straight-on lanes are centred on the line and the exit lanes sit off to their side. Centring all of them on the
         // line put every lane a lane or two out towards the exit, over the verge. A true split (no straight-on lane) stays centred.
         val throughIdx = sec.lanes.indices.filter { i -> sec.lanes[i].dirs.any { it == "STRAIGHT" } }
-        val centre = if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average())
+        val centre = if (roadLaid) (if (road?.oneway == true) (n - 1) / 2.0 else if (mirrored) -0.5 else n - 0.5)
+            else if (!aligned) (if (activeIdx.isEmpty()) (n - 1) / 2.0 else activeIdx.average())
             else if (throughIdx.isNotEmpty() && throughIdx.size < n && isContiguous(throughIdx)) throughIdx.average()
             else (n - 1) / 2.0
         // each lane's middle and edges, sideways from the route line (metres, + to the right): the real ones read off the map when
@@ -4892,7 +4899,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val marks = ArrayList<MapBinding.LaneMark>()
         // Lit lane, where the real lanes aren't known: only the lane to use is drawn, as a lit strip under the route line itself
         // (which is on the road), with its arrows. No other lanes, so nothing can end up over the verge.
-        val litOnly = style == "lit" && !lined && activeIdx.isNotEmpty()
+        // every lane painted: where the real lanes are known (any style but the sign), or laid out on the road (lit lane)
+        val paint = lined || (style == "lit" && (road != null || aligned) && activeIdx.isNotEmpty())
+        val litOnly = style == "lit" && !paint && activeIdx.isNotEmpty()
         if (litOnly) {
             val lane = sec.lanes[activeIdx.first()]
             for (back in listOf(28.0, 65.0)) {
@@ -4902,7 +4911,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 lane.dirs.forEach { dir -> marks += MapBinding.LaneMark(p, brg, dir, if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver)) }
             }
         }
-        for (back in if (lined) listOf(28.0, 65.0) else emptyList()) {
+        for (back in if (paint) listOf(28.0, 65.0) else emptyList()) {
             val off = cur.off - back
             if (off < 0) continue
             val (p, brg) = pointAt(r, off)
@@ -4920,11 +4929,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // TomTom's lane section can be short, but the lanes carry on back along the approach, so the strips do not stop where the section starts
         // (only the last stretch before the junction, where the lanes really are: about 110 m on motorways, 60 m elsewhere,
         // so lanes aren't painted far back along a road that only widens at the junction)
-        val from = max(0.0, cur.off - (if (lined) 110.0 else 60.0))
+        val from = max(0.0, cur.off - (if (lined || aligned) 110.0 else 60.0))
         val to = cur.off - 6.0
         val bands = ArrayList<MapBinding.LaneBand>()
         val divs = ArrayList<MapBinding.LaneEdge>()
-        if (lined && to - from > 20.0) {
+        if (paint && to - from > 20.0) {
             val samples = ArrayList<Pair<LL, Double>>()
             val sampleMids = ArrayList<DoubleArray>()
             var o = from
