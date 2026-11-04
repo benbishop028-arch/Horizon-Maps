@@ -27,8 +27,8 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 - Flock and other number-plate (ALPR) cameras shown on the map (can be switched off)
 - Faster-route suggestions while you drive
 - Avoid tolls, motorways or ferries, or tolls only in chosen countries
-- Lorry (HGV) routes: enter your lorry's height, width, length and weight, and routes avoid low bridges, weight limits and lorry bans, with warnings for limits ahead
-- Electric car planning: battery level, charge at arrival and charging stops, with Charging in place of the petrol button on the map page
+- Lorry (HGV) routes: enter your lorry's height, width, length and weight, and routes avoid low bridges, weight limits and lorry bans, with a lorry check on each route, warnings for limits ahead, and lorry parks along the way
+- Electric car planning: battery level, charge at arrival and charging stops, live charger availability, and Charging in place of the petrol button on the map page
 - Live fuel prices in the UK, France, Austria and Germany, plus E85
 - One-tap stops along the route: fuel, charging, coffee, food, services and toilets
 - Report police, crashes, hazards, broken-down cars and mobile cameras, on the head unit, phone or Android Auto
@@ -40,7 +40,7 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 - The map on your driver's display (the screen behind the steering wheel), on cars whose Android Auto offers it
 - The next turn in the notification, for car launchers and smartwatches that show navigation notifications
 - Send a destination from your phone to the head unit
-- Remembers where you parked when Android Auto disconnects
+- Remembers where you parked (on the phone), with prices and opening hours for car parks at your destination
 - Resumes your trip if the head unit restarts mid-journey
 
 ---
@@ -140,3 +140,4 @@ The best way to report a problem: **Settings › About & backup › Feedback or 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed in each version.
 
 Thanks for all the testing! 🙏
+
