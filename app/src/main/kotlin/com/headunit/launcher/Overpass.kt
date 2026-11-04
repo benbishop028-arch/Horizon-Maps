@@ -9,7 +9,11 @@ import java.net.URLEncoder
 
 /** A place found nearby or along the route. [price] is pence per litre (fuel), [detourMin] the rough extra time to call there (-1 when not known). */
 /** [price] is in pence or cents a litre; [unit] says which ("p" or "€"), so it can be shown the local way (139.9p, €1.789). */
-data class Nearby(val place: Place, val dist: Double, val extra: String, val price: Double? = null, val detourMin: Int = -1, val ahead: Boolean = false, val unit: String = "p")
+data class Nearby(val place: Place, val dist: Double, val extra: String, val price: Double? = null, val detourMin: Int = -1, val ahead: Boolean = false, val unit: String = "p",
+                  /** A charger's id for TomTom's live availability (empty when not known). */
+                  val chargeId: String = "",
+                  /** Live availability for a charger: "8 of 12 free", "No live info", or empty while not asked. */
+                  val free: String = "")
 
 /** A fuel price the local way: "139.9p" in the UK, "€1.789" in the euro countries. [price] is in pence or cents a litre. */
 fun fmtFuelPrice(price: Double, unit: String): String = when (unit) {
@@ -440,7 +444,16 @@ object Overpass {
     } catch (e: Exception) { emptyList() }
 
     /** OpenStreetMap filter for each kind of place that can be searched for nearby or along the route. */
-    private fun filterOf(kind: String): String = when (kind) {
+    private fun filterOf(kind: String): String = filtersOf(kind).first()
+
+    /** A kind can need more than one filter (lorry parks: car parks for lorries, and services that take them). */
+    private fun filtersOf(kind: String): List<String> = when (kind) {
+        "lorrypark" -> listOf("[\"amenity\"=\"parking\"][\"hgv\"~\"^(designated|yes)$\"]", "[\"highway\"=\"services\"][\"hgv\"~\"^(designated|yes)$\"]",
+            "[\"amenity\"=\"parking\"][\"parking\"=\"truck\"]")
+        else -> listOf(oneFilter(kind))
+    }
+
+    private fun oneFilter(kind: String): String = when (kind) {
         "fuel" -> "[\"amenity\"=\"fuel\"]"
         // stations mapped as selling bioethanol (E85)
         "fuel_e85" -> "[\"amenity\"=\"fuel\"][\"fuel:e85\"=\"yes\"]"
@@ -454,23 +467,42 @@ object Overpass {
 
     fun kindLabel(kind: String): String = when (kind) {
         "fuel" -> "Fuel station"; "fuel_e85" -> "E85 station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
-        "toilets" -> "Toilets"; "services" -> "Services"; else -> "Car park"
+        "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry park"; else -> "Car park"
     }
 
     /** kind: "fuel", "charging", "parking", "food", "coffee", "toilets" or "services". */
     fun nearby(kind: String, c: LL, radius: Int): List<Nearby> {
-        val f = filterOf(kind)
-        val q = "[out:json][timeout:20];(node(around:$radius,${c.lat},${c.lon})$f;way(around:$radius,${c.lat},${c.lon})$f;);out center tags 80;"
+        val parts = filtersOf(kind).joinToString("") { f -> "node(around:$radius,${c.lat},${c.lon})$f;way(around:$radius,${c.lat},${c.lon})$f;" }
+        val q = "[out:json][timeout:20];($parts);out center tags 80;"
         return parseNearby(run(q, 6000, 12000, 2), kind, c).sortedBy { it.dist }.take(40)
     }
 
     /** Places within [radius] metres of a line (the route ahead), in no particular order. */
     fun nearbyAlong(kind: String, line: List<LL>, radius: Int): List<Nearby> {
         if (line.size < 2) return emptyList()
-        val f = filterOf(kind)
         val poly = line.joinToString(",") { String.format(java.util.Locale.US, "%.5f,%.5f", it.lat, it.lon) }
-        val q = "[out:json][timeout:25];(node(around:$radius,$poly)$f;way(around:$radius,$poly)$f;);out center tags 150;"
+        val parts = filtersOf(kind).joinToString("") { f -> "node(around:$radius,$poly)$f;way(around:$radius,$poly)$f;" }
+        val q = "[out:json][timeout:25];($parts);out center tags 150;"
         return parseNearby(run(q, 6000, 15000, 2), kind, line.first())
+    }
+
+    /** A car park's price from OpenStreetMap's charge tag ("1.80 GBP/hour", "£1.80/hour"...) as "£1.80/hr"; null when it can't be read. */
+    fun priceText(raw: String?): String? {
+        val v = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val first = v.split(';').first().trim()
+        val m = Regex("""^([£€$]?)\s*(\d+(?:\.\d+)?)\s*([A-Z]{3})?\s*(?:/|per)\s*(hour|hr|h|day|d|night)$""", RegexOption.IGNORE_CASE).find(first) ?: return null
+        val sym = m.groupValues[1].ifBlank { when (m.groupValues[3].uppercase()) { "GBP" -> "£"; "EUR" -> "€"; "USD", "AUD", "CAD", "NZD" -> "$"; else -> "" } }
+        val per = when (m.groupValues[4].lowercase()) { "day", "d" -> "day"; "night" -> "night"; else -> "hr" }
+        val num = m.groupValues[2].toDoubleOrNull() ?: return null
+        val amount = if (num % 1.0 == 0.0) num.toInt().toString() else String.format(java.util.Locale.UK, "%.2f", num)
+        return if (sym.isNotEmpty()) "$sym$amount/$per" else "$amount ${m.groupValues[3]}/$per".trim()
+    }
+
+    /** Opening hours made short: "open 24 h", or the hours as mapped when they're short enough to read at a glance. */
+    fun hoursText(raw: String?): String? {
+        val v = raw?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        if (v == "24/7" || v.equals("Mo-Su 00:00-24:00", true)) return "open 24 h"
+        return if (v.length <= 22) v else null
     }
 
     private fun parseNearby(els: JSONArray, kind: String, c: LL): List<Nearby> {
@@ -504,9 +536,19 @@ object Overpass {
                     tags.optString("operator").takeIf { it.isNotBlank() && it != name }?.let { extra += it }
                 }
                 "parking" -> {
-                    when (tags.optString("fee")) { "yes" -> extra += "Paid"; "no" -> extra += "Free" }
+                    // the price where it's mapped ("£1.80/hr"), else just paid or free; then opening hours and spaces
+                    val charge = priceText(tags.optString("charge"))
+                    if (charge != null) extra += charge else when (tags.optString("fee")) { "yes" -> extra += "Paid"; "no" -> extra += "Free" }
+                    hoursText(tags.optString("opening_hours"))?.let { extra += it }
                     tags.optString("capacity").takeIf { it.isNotBlank() }?.let { extra += "$it spaces" }
                     when (tags.optString("parking")) { "multi-storey" -> extra += "Multi-storey"; "underground" -> extra += "Underground" }
+                }
+                "lorrypark" -> {
+                    if (tags.optString("highway") == "services") extra += "Services"
+                    hoursText(tags.optString("opening_hours"))?.let { extra += it }
+                    (tags.optString("capacity:hgv").ifBlank { tags.optString("capacity") }).takeIf { it.isNotBlank() }?.let { extra += "$it spaces" }
+                    if (tags.optString("shower") == "yes" || tags.optString("amenity:shower") == "yes") extra += "Showers"
+                    priceText(tags.optString("charge"))?.let { extra += it }
                 }
                 "food", "coffee" -> {
                     tags.optString("cuisine").takeIf { it.isNotBlank() }?.let { extra += it.replace("_", " ").replace(";", ", ") }

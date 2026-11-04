@@ -275,8 +275,11 @@ fun ParkingCard(engine: NavEngine, modifier: Modifier = Modifier) {
                 Box(Modifier.size(26.dp).clip(RoundedCornerShape(7.dp)).background(Color(0xFF2E6FD8)), contentAlignment = Alignment.Center) {
                     Text("P", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Black)
                 }
-                Text(n.place.name, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f).padding(start = 10.dp))
+                // the price, opening hours and spaces under the name, where they're known
+                Column(Modifier.weight(1f).padding(start = 10.dp)) {
+                    Text(n.place.name, color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (n.extra.isNotBlank()) Text(n.extra, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
                 // a walk at about 80 m a minute
                 Text("${maxOf(1, Math.round(n.dist / 80.0).toInt())} min walk", color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(start = 8.dp, end = 8.dp))
             }

@@ -412,8 +412,53 @@ object TomTomRest {
         poi?.optJSONArray("categories")?.optString(0)?.takeIf { it.isNotBlank() && kind in setOf("food", "coffee") }?.let { extra += it.replaceFirstChar { c -> c.uppercase() } }
         val street = addr?.optString("streetName").orEmpty().ifBlank { addr?.optString("municipality").orEmpty() }
         val d = if (x.has("dist")) x.optDouble("dist", 0.0) else Geo.dist(from, p)
-        return Nearby(Place(name, street, p), d, extra.joinToString(" · "))
+        // chargers: the fastest power and the plug types ("350 kW · CCS, Type 2"), and the id for live availability
+        var chargeId = ""
+        if (kind == "charging") {
+            chargeId = x.optJSONObject("dataSources")?.optJSONObject("chargingAvailability")?.optString("id").orEmpty()
+            val cons = x.optJSONObject("chargingPark")?.optJSONArray("connectors")
+            if (cons != null && cons.length() > 0) {
+                var kw = 0.0
+                val types = LinkedHashSet<String>()
+                for (i in 0 until cons.length()) {
+                    val cn = cons.optJSONObject(i) ?: continue
+                    kw = max(kw, cn.optDouble("ratedPowerKW", 0.0))
+                    plugName(cn.optString("connectorType"))?.let { types += it }
+                }
+                extra.clear()
+                if (kw > 0) extra += "${Math.round(kw)} kW"
+                if (types.isNotEmpty()) extra += types.take(3).joinToString(", ")
+            }
+        }
+        return Nearby(Place(name, street, p), d, extra.joinToString(" · "), chargeId = chargeId)
     }
+
+    private fun plugName(t: String): String? = when {
+        t.contains("Combo", true) || t.contains("CCS", true) -> "CCS"
+        t.contains("Chademo", true) -> "CHAdeMO"
+        t.contains("Type2", true) || t.contains("Type 2", true) -> "Type 2"
+        t.contains("Tesla", true) -> "Tesla"
+        t.contains("Type1", true) -> "Type 1"
+        t.isBlank() -> null
+        else -> null
+    }
+
+    /**
+     * Live availability at a charger (TomTom's EV charging availability, with your key): how many connectors are free and how many
+     * there are, or null when the operator doesn't share it (or the lookup failed).
+     */
+    fun chargingFree(key: String, id: String): Pair<Int, Int>? = try {
+        val k = URLEncoder.encode(key, "UTF-8")
+        val body = get("https://api.tomtom.com/search/2/chargingAvailability.json?key=$k&chargingAvailability=" + URLEncoder.encode(id, "UTF-8"), 6000, 8000)
+        val cons = JSONObject(body).optJSONArray("connectors")
+        var free = 0; var total = 0
+        if (cons != null) for (i in 0 until cons.length()) {
+            val c = cons.optJSONObject(i) ?: continue
+            total += c.optInt("total", 0)
+            free += c.optJSONObject("availability")?.optJSONObject("current")?.optInt("available", 0) ?: 0
+        }
+        if (total > 0) free.coerceAtMost(total) to total else null
+    } catch (e: Exception) { null }
 
     /** Places of a kind around [c] from TomTom's search (fast, and works wherever there is signal). */
     fun poiNearby(key: String, kind: String, c: LL, radius: Int): List<Nearby> {

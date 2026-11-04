@@ -131,7 +131,7 @@ class CarNavSession : Session() {
                     p != null -> e.startRoute(Place(t?.name ?: "Destination", "From Google Assistant", p))
                     q.equals("home", true) && e.places.slot("home") != null -> e.startRoute(e.places.slot("home")!!)
                     q.equals("work", true) && e.places.slot("work") != null -> e.startRoute(e.places.slot("work")!!)
-                    q.isNotEmpty() -> ms.screenManager.push(SearchScreen(carContext, holder, q))
+                    q.isNotEmpty() -> ms.screenManager.push(SearchScreen(carContext, holder, q, autoGo = true))
                     else -> try { androidx.car.app.CarToast.makeText(carContext, "Couldn't read a place from that", androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
                 }
             }
@@ -855,14 +855,34 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
 }
 
 /** Search with the car's keyboard or voice: results from the same search as the app (TomTom, or offline when there's no signal). */
-class SearchScreen(carContext: CarContext, private val holder: CarHolder, initial: String = "") : Screen(carContext) {
+/**
+ * Search on the car screen. [autoGo]: a place asked for by voice ("Hey Google, navigate to …"): the top result's route starts by
+ * itself (the route choice shows where to, and Cancel), like other navigation apps, instead of a list to tap while driving.
+ * If nothing comes back within about 10 seconds the list stays, to search again.
+ */
+class SearchScreen(carContext: CarContext, private val holder: CarHolder, initial: String = "", private var autoGo: Boolean = false) : Screen(carContext) {
     private var query = initial
     private var shown: List<Place> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
+    /** The results that were there before this search (so old ones aren't taken for the answer). */
+    private val before: List<Place>? = holder.engine?.results
+    private val askedAt = android.os.SystemClock.uptimeMillis()
     private val poll = object : Runnable {
         override fun run() {
-            val r = holder.engine?.results ?: emptyList()
+            val e = holder.engine
+            val r = e?.results ?: emptyList()
             if (r !== shown) { shown = r; invalidate() }
+            if (autoGo) {
+                if (e != null && r !== before && r.isNotEmpty()) {
+                    autoGo = false
+                    val p = r.first()
+                    e.startRoute(p)
+                    try { androidx.car.app.CarToast.makeText(carContext, "Going to ${p.name}", androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
+                    try { screenManager.popToRoot() } catch (x: Exception) { }
+                    return
+                }
+                if (android.os.SystemClock.uptimeMillis() - askedAt > 10_000L) autoGo = false
+            }
             handler.postDelayed(this, 500)
         }
     }
@@ -943,7 +963,9 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
             val r = Row.Builder().setTitle(n.place.name).setImage(rowIcon(carContext, iconRes, tint))
             val bits = ArrayList<String>()
             bits += com.headunit.launcher.Geo.fmtDist(n.dist, e?.imperial ?: true)
-            n.price?.let { bits += String.format(java.util.Locale.UK, "%.1fp", it) }
+            // (the local way: 139.9p, €1.789, 189.9c; it always said "p" before, even for euro prices)
+            n.price?.let { bits += com.headunit.launcher.fmtFuelPrice(it, n.unit) }
+            if (n.free.isNotBlank()) bits += n.free
             if (n.detourMin >= 0) bits += "+${n.detourMin} min"
             if (n.extra.isNotBlank()) bits += n.extra
             r.addText(bits.joinToString(" · "))
@@ -1025,6 +1047,11 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
                 try { holder.map?.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (next / 100f)) } catch (_: Exception) { }
                 invalidate()
             }.build()
+        // where the speed sign sits on the car screen (the same setting as the app's Settings > Android Auto)
+        val spPos = prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
+        rows += Row.Builder().setTitle("Speed sign position")
+            .addText(when (spPos) { "middle" -> "Middle"; "top" -> "Top"; else -> "Bottom" } + " · tap to change")
+            .setOnClickListener { prefs.put(PreferenceKeys.SPEED_POS_CAR, when (spPos) { "bottom" -> "middle"; "middle" -> "top"; else -> "bottom" }); invalidate() }.build()
         // 12 or 24-hour times (the same setting as the app's Settings > Units)
         val clock = prefs.s(PreferenceKeys.CLOCK, "auto")
         rows += Row.Builder().setTitle("Clock")

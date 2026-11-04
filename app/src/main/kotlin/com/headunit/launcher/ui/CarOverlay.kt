@@ -330,8 +330,15 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 // which shrinks while its zoom and re-centre buttons are showing, so the sign sits just beside them then and slides
                 // into the corner when they hide (it used to keep a fixed 92dp gap as well, so it sat well in from either)
                 val speedEnd by androidx.compose.animation.core.animateDpAsState(insR + 6.dp, tween(280), label = "speedEnd")
-                BoxWithConstraints(Modifier.align(Alignment.BottomEnd).padding(end = speedEnd, bottom = speedBottom, start = 34.dp, top = 20.dp)
-                    .onSizeChanged { speedW = it.width }) {
+                // (Settings > Android Auto > Speed position on the car screen: bottom as always, or up the side, clear of the cards on
+                // the left; at the top it sits below Android Auto's own buttons in the top corner)
+                val carSpeedPos = engine.prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
+                val speedMod = when (carSpeedPos) {
+                    "top" -> Modifier.align(Alignment.TopEnd).padding(end = speedEnd, top = top + 72.dp, start = 34.dp, bottom = bottom)
+                    "middle" -> Modifier.align(Alignment.CenterEnd).padding(end = speedEnd, top = top + 20.dp, start = 34.dp, bottom = bottom)
+                    else -> Modifier.align(Alignment.BottomEnd).padding(end = speedEnd, bottom = speedBottom, start = 34.dp, top = 20.dp)
+                }
+                BoxWithConstraints(speedMod.onSizeChanged { speedW = if (carSpeedPos == "bottom") it.width else 0 }) {
                     val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
                     val fittedScale = requestedSpeedScale * availableFit
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * fittedScale, dens.fontScale)) { ImmSpeed(engine) }
@@ -520,6 +527,7 @@ private fun CarRoutePreview(engine: NavEngine) {
                 Text(if (delayMin >= 1) "+$delayMin min traffic" else if (via.isNotEmpty()) "via $via" else "No delays",
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 LorryBadge(r)
+                if (i == engine.active) LorryCheck(engine, r)
             }
         }
     }

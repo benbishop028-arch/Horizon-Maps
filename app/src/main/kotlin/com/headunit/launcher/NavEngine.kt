@@ -1200,8 +1200,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (nm.contains("parking") || nm.contains("car park") || nm.contains("multi-storey") || nm.contains("multistorey")) return
         scope.launch {
             val list = withContext(Dispatchers.IO) {
-                val tt = if (hasOnline && online()) try { netPoiNearby("parking", d.pos, 700) } catch (e: Exception) { null } else null
-                (tt?.takeIf { it.isNotEmpty() } ?: try { if (online()) Overpass.nearby("parking", d.pos, 700) else emptyList() } catch (e: Exception) { emptyList() })
+                // OpenStreetMap first: it has the prices, opening hours and spaces where they're mapped; TomTom or Mapbox if it finds none
+                val osm = try { if (online()) Overpass.nearby("parking", d.pos, 700) else emptyList() } catch (e: Exception) { emptyList() }
+                (osm.takeIf { it.isNotEmpty() } ?: (if (hasOnline && online()) try { netPoiNearby("parking", d.pos, 700) } catch (e: Exception) { null } else null) ?: emptyList())
                     .map { it.copy(dist = Geo.dist(d.pos, it.place.pos)) }.filter { it.dist < 800.0 }.sortedBy { it.dist }.take(3)
             }
             if (route === r && dest === d) parkingNear = list
@@ -2188,12 +2189,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (tripOn && tripDistance > 300) {
                     trips.add(Trip(tripT0, stillSince, tripDistance, tripMoveSec, tripTop, tripDest))
                 }
+                // on a phone (not a head unit, which stays in the car): remember where the car is, for "Your car" once you've walked
+                // off (it used to be only when Android Auto disconnected)
+                if (tripOn && tripDistance > 300 && onPhone()) try {
+                    val old = prefs.s(PreferenceKeys.PARKED_SPOT, "").split(',').getOrNull(2)?.toLongOrNull() ?: 0L
+                    if (now - old > 10 * 60_000L) prefs.put(PreferenceKeys.PARKED_SPOT, String.format(java.util.Locale.US, "%.6f,%.6f,%d", p.pos.lat, p.pos.lon, now))
+                } catch (e: Exception) { }
                 tripOn = false
                 drove = false; stillSince = 0L
             }
         }
         if (dest != null) tripDest = dest?.name.orEmpty()
     }
+
+    /** A phone rather than a head unit: it has a phone line and a phone-sized screen (and isn't drawing the car screen). */
+    private fun onPhone(): Boolean = !isCar && try {
+        ctx.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TELEPHONY) && ctx.resources.configuration.smallestScreenWidthDp < 600
+    } catch (e: Exception) { false }
 
     /** Finds [q] and starts routing there (used for calendar appointments). */
     fun routeToText(q: String, then: () -> Unit) {
@@ -2299,6 +2311,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         }
                         if (out.isNotEmpty()) return@async out
                     }
+                    // lorry parks and services that take lorries: OpenStreetMap only (TomTom's and Mapbox's place searches don't tell them apart)
+                    if (kind == "lorrypark") {
+                        return@async if (alongRoute && rt != null) {
+                            Overpass.nearbyAlong("lorrypark", RouteExtras.line(rt, progress, progress + 120_000.0, 1500.0, 60), 1500).mapNotNull { n ->
+                                val pr = RouteExtras.project(rt, n.place.pos, 2000.0, progress) ?: return@mapNotNull null
+                                if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
+                            }
+                        } else Overpass.nearby("lorrypark", centre, 25_000).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
+                    }
                     // bioethanol: only stations mapped as selling E85 (TomTom's search can't tell which do)
                     val e85 = kind == "fuel" && fuelType == "E85"
                     if (e85) {
@@ -2348,6 +2369,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     return@launch
                 }
                 nearby = sortNearby(list).take(15)
+                if (kind == "charging") fillChargerAvailability()
                 if (nearby.isEmpty()) toast(if (alongRoute) "Nothing found along the route ahead" else "Nothing found nearby", 3000)
             } catch (e: Exception) { toast(searchFailText(e), 4500) }
             finally { nearbyBusy = false }
@@ -2419,6 +2441,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun sortNearby(l: List<Nearby>): List<Nearby> =
         if (nearbySort == "cheap" && l.any { it.price != null }) l.sortedWith(compareBy<Nearby> { it.price ?: 9999.0 }.thenBy { it.dist }) else l.sortedBy { it.dist }
+
+    /**
+     * Live availability for the chargers in the list ("8 of 12 free"), asked of TomTom for the first 10 that have it, all at once in
+     * the background. The list shows straight away and the counts appear as they come; a charger without live data says so.
+     */
+    private fun fillChargerAvailability() {
+        val list = nearby
+        if (!hasKey || !online() || list.none { it.chargeId.isNotBlank() }) return
+        scope.launch {
+            val ids = list.map { it.chargeId }.filter { it.isNotBlank() }.distinct().take(10)
+            val got = withContext(Dispatchers.IO) {
+                ids.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.map { it.await() }.toMap()
+            }
+            if (nearbyKind != "charging" || nearby !== list) return@launch
+            nearby = list.map { n -> if (n.chargeId in got) n.copy(free = got[n.chargeId]?.let { (f, t) -> "$f of $t free" } ?: "No live info") else n }
+        }
+    }
 
     fun changeNearbySort(mode: String) { nearbySort = mode; nearby = sortNearby(nearby) }
 
@@ -3399,6 +3438,51 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (lorrySpoken.size > 200) lorrySpoken.clear()
     }
 
+    /**
+     * The lorry check on the route choice: the height, weight, width and length limits along the whole route (the first 400 km),
+     * looked up 25 km at a time in the background. [Route] with "" while it's checking, then the line to show.
+     */
+    var lorryCheck by mutableStateOf<Pair<Route, String>?>(null)
+    @Volatile private var lorryCheckToken = 0
+
+    fun lorryRouteCheck(r: Route?) {
+        Vehicle.load(prefs)
+        if (r == null || !Vehicle.lorry) return
+        if (lorryCheck?.first === r) return
+        val token = ++lorryCheckToken
+        lorryCheck = r to ""
+        scope.launch {
+            val over = ArrayList<LorryLimits.Lim>()
+            var failed = false
+            val end = min(r.len, 400_000.0)
+            withContext(Dispatchers.IO) {
+                var o = 0.0
+                while (o < end && token == lorryCheckToken) {
+                    val got = LorryLimits.along(r, o, 25_000.0)
+                    if (got == null) { failed = true; break }
+                    over += got.filter { it.over }
+                    o += 25_000.0
+                }
+            }
+            if (token != lorryCheckToken) return@launch
+            val text = when {
+                over.isEmpty() && failed -> "Lorry check couldn't finish (no signal, or the map server is busy)"
+                over.isEmpty() -> "Lorry check: no limits under your lorry" + (if (r.len > end) " in the first ${Geo.fmtDist(end, imperial)}" else "")
+                else -> {
+                    // each kind once, with how many and the lowest ("1 low bridge (3.9 m)")
+                    val parts = over.groupBy { it.kind }.map { (k, list) ->
+                        val n = list.size
+                        val name = when (k) { "height" -> "low bridge"; "weight" -> "weight limit"; "width" -> "width limit"; else -> "length limit" } + (if (n == 1) "" else "s")
+                        val lowest = LorryLimits.signText(list.minBy { it.value }, imperial).replace(Regex("([0-9])([mt])$"), "$1 $2")
+                        "$n $name ($lowest)"
+                    }
+                    "Lorry check: " + parts.joinToString(", ") + " on this route"
+                }
+            }
+            lorryCheck = r to text
+        }
+    }
+
     fun clearReports() { prefs.put(PreferenceKeys.REPORTS, ""); prefs.put(PreferenceKeys.POLICEREP, ""); pushHazards(hzProgress); toast("Reports cleared", 2000) }
 
     /** Refreshes the map icons when reports change or expire, and warns when one is just ahead. */
@@ -4254,7 +4338,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         out.filter { it.detourMin >= 0 }.minByOrNull { it.detourMin }?.let { n ->
                             val arr = Math.round(startPct - n.dist / 1000.0 * cons / batt * 100.0).toInt().coerceAtLeast(0)
                             val mins = Math.round((80 - arr).coerceAtLeast(10) / 100.0 * batt / 50.0 * 60.0).toInt()
-                            n.copy(extra = "arrive about $arr% · charge to 80%, about $mins min")
+                            // how many are free there now, where the operator shares it
+                            val freeNow = if (n.chargeId.isNotBlank() && hasKey) TomTomRest.chargingFree(apiKey, n.chargeId)?.let { (f, t) -> " · $f of $t free now" } ?: "" else ""
+                            n.copy(extra = "arrive about $arr% · charge to 80%, about $mins min$freeNow")
                         }
                     } catch (e: Exception) { null }
                 }

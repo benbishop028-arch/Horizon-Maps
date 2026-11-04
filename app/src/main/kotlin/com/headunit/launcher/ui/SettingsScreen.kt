@@ -959,6 +959,8 @@ private fun AndroidAutoSection(prefs: Prefs) {
     SGroup("Sizes on the car screen") {
         SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = "Base scale for the whole overlay", steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider("Speedometer and speed-limit sign size", prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = "Automatically shrinks further if the available screen area is too small", reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
+        SChoice("Speed position on the car screen", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
+            "On the side away from the cards. Separate from this screen's own setting") { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem("Advanced car-screen sizes", "Fine-tune individual elements independently") {
             SButton(if (carAdvanced) "Hide" else "Show") { carAdvanced = !carAdvanced }
@@ -1042,6 +1044,9 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     val pkg = android.net.Uri.parse("package:" + ctx.packageName)
     var donating by remember { mutableStateOf(false) }
     if (donating) DonateDialog(LocalVw.current.dark) { donating = false }
+    // (here so the crash report further down can open it too)
+    var feedback by remember { mutableStateOf(false) }
+    if (feedback) FeedbackDialog(engine) { feedback = false }
     SGroup("Support Horizon Nav") {
         SItem("Donate", "Free, no ads. Donations help keep it going (PayPal)") { SButton("Donate", primary = true) { donating = true } }
     }
@@ -1056,9 +1061,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
         }
         SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
-        var feedback by remember { mutableStateOf(false) }
         SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
-        if (feedback) FeedbackDialog(engine) { feedback = false }
     }
     SGroup("Permissions", footer = "While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.") {
         val hasLoc = ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -1097,7 +1100,11 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     val oldRep = rep.isNotBlank() && !rep.startsWith("Horizon Nav ${BuildConfig.VERSION_NAME} ")
     if (rep.isNotBlank()) SGroup("Problem report", footer = if (oldRep) "This is from an older version of the app, before your last update, so it may already be fixed. Clear it, and send a photo if it comes back." else "The app closed unexpectedly last time. Send a photo of this so it can be fixed.") {
         Text(rep.take(900), color = LocalVw.current.text, fontSize = 10.sp, modifier = Modifier.padding(vertical = 6.dp))
-        SItem("Clear the report") { SButton("Clear") { cf.delete(); rep = "" } }
+        // sent the same way as Feedback (the report includes this crash and the unit's details)
+        SItem("This crash", "Sends it with your unit's details, the same as Feedback") {
+            SButton("Send report", primary = true) { feedback = true }
+            SButton("Clear") { cf.delete(); rep = "" }
+        }
     }
 }
 

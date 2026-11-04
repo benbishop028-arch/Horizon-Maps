@@ -180,6 +180,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         Text("Stops", color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
         Pill("+ Fuel", engine.stopMode && engine.nearbyKind == "fuel", { engine.stopMode = true; engine.loadNearby("fuel", false) })
         Pill("+ Charger", engine.stopMode && engine.nearbyKind == "charging", { engine.stopMode = true; engine.loadNearby("charging", false) })
+        if (engine.prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry") Pill("+ Lorry park", engine.stopMode && engine.nearbyKind == "lorrypark", { engine.stopMode = true; engine.loadNearby("lorrypark", false) })
         Pill(if (engine.via.isEmpty()) "+ Stop" else "Edit stops", false, { engine.stopsEditor = true })
         if (engine.via.isNotEmpty()) Text(engine.via.joinToString(" › ") { it.name }, color = c.text, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))
         if (costText != null) Text(costText, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 8.dp))
@@ -257,6 +258,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 LorryBadge(r)
+                if (i == engine.active) LorryCheck(engine, r)
             }
         }
     }
@@ -315,6 +317,20 @@ internal fun LorryBadge(r: com.headunit.launcher.Route) {
         Icon(Icons.Rounded.LocalShipping, null, tint = fg, modifier = Modifier.size(14.dp))
         Text(text, color = fg, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
     }
+}
+
+/** The lorry check for the chosen route: green with no limits under your lorry, red with the ones it found, grey while checking. */
+@Composable
+internal fun LorryCheck(engine: NavEngine, r: com.headunit.launcher.Route) {
+    if (r.lorry.isEmpty()) return
+    androidx.compose.runtime.LaunchedEffect(r) { engine.lorryRouteCheck(r) }
+    val res = engine.lorryCheck?.takeIf { it.first === r }?.second ?: ""
+    val text = res.ifBlank { "Lorry check…" }
+    val ok = res.contains("no limits"); val bad = res.contains(" on this route")
+    val fg = if (ok) Color(0xFF9BE3B0) else if (bad) Color(0xFFF2C2BF) else Color(0xFFBDC1C6)
+    val bg = if (ok) Color(0xFF1E3A28) else if (bad) Color(0xFF3A2224) else Color(0xFF2C313A)
+    Text(text, color = fg, fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top = 4.dp).clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 7.dp, vertical = 3.dp))
 }
 
 /** "Fly over route": a 3D flight along the whole drive before you set off. */
@@ -393,12 +409,13 @@ private fun nearbyIcon(kind: String?): androidx.compose.ui.graphics.vector.Image
     "food" -> Icons.Rounded.Restaurant
     "coffee", "services" -> Icons.Rounded.LocalCafe
     "toilets" -> Icons.Rounded.Wc
+    "lorrypark" -> Icons.Rounded.LocalShipping
     else -> Icons.Rounded.LocalParking
 }
 
 private fun nearbyTitle(kind: String?): String = when (kind) {
     "fuel" -> "Fuel stations"; "charging" -> "Charging points"; "food" -> "Food"; "coffee" -> "Coffee"
-    "toilets" -> "Toilets"; "services" -> "Services"; else -> "Car parks"
+    "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry parks"; else -> "Car parks"
 }
 
 @Composable
@@ -432,6 +449,14 @@ internal fun NearbyCard(engine: NavEngine) {
                         if (sub.isNotBlank()) Text(sub, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (n.price != null) Text(com.headunit.launcher.fmtFuelPrice(n.price, n.unit), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+                    // a charger's live availability: green with some free, red with none, grey without live data
+                    if (n.free.isNotBlank()) {
+                        val none = n.free.startsWith("0 of"); val unknown = n.free.startsWith("No")
+                        val fg = if (unknown) c.sub else if (none) Color(0xFFF2C2BF) else Color(0xFF9BE3B0)
+                        val bg = if (unknown) c.tile else if (none) Color(0xFF3A2224) else Color(0xFF1E3A28)
+                        Text(n.free, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1,
+                            modifier = Modifier.padding(start = 8.dp).clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 8.dp, vertical = 3.dp))
+                    }
                     Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 10.dp)) {
                         Text(Geo.fmtDist(n.dist, engine.imperial), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.14f)).padding(horizontal = 10.dp, vertical = 4.dp))
                         if (n.detourMin >= 0) Text("+${n.detourMin} min", color = c.sub, fontSize = 11.sp, modifier = Modifier.padding(top = 2.dp))

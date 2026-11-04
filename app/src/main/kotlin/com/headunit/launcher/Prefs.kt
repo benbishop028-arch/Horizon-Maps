@@ -179,6 +179,8 @@ internal object PreferenceKeys {
     const val CLUSTER_MAP = "clustermap"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
+    /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */
+    const val SPEED_POS_CAR = "speedposcar"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
     /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */

@@ -51,6 +51,7 @@ internal val settingsIndex = listOf(
     SettingRef("Route ribbon", "Route shadow and see-through over buildings", "Route line", 2),
     SettingRef("Flowing light along the route", "", "Route line", 2),
     SettingRef("Alternative route line colour", "", "Route line", 2),
+    SettingRef("Speed position on the car screen", "Where the speed sign sits on Android Auto", "Sizes on the car screen", 11),
     SettingRef("Full screen", "Hide the status and navigation bars", "Screen", 10),
     SettingRef("Tilt on a wide screen", "The 3D view's tilt on landscape screens", "3D view", 0),
     SettingRef("Tilt on a tall screen", "The 3D view's tilt on portrait screens and phones", "3D view", 0),
