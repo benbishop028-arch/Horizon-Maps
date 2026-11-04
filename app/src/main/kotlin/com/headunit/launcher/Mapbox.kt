@@ -270,7 +270,7 @@ object MapboxRest {
         val ex = excludes(TomTomRest.avoid)
         val lang = java.util.Locale.getDefault().language.ifBlank { "en" }
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
-            "&annotations=maxspeed,congestion,duration,distance&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
+            "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
         if (headingDeg >= 0) base += "&bearings=" + enc((listOf("${headingDeg.toInt() % 360},45") + List(pts.size - 1) { "" }).joinToString(";"))
         val dep = if (departAtMs > 0) "&depart_at=" + enc(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).format(java.util.Date(departAtMs))) else ""
@@ -278,6 +278,8 @@ object MapboxRest {
         if (dep.isNotEmpty() && !quick) { if (ex.isNotEmpty()) attempts += "$base&exclude=$ex$dep"; attempts += "$base$dep" }
         if (ex.isNotEmpty()) attempts += "$base&exclude=$ex"
         attempts += base
+        // (the same without the free-flow speeds, should Mapbox ever refuse them: the route matters more than the delay)
+        attempts += base.replace(",freeflow_speed", "")
         var body: String? = null
         var last: IOException? = null
         departApplied = false
@@ -362,6 +364,8 @@ object MapboxRest {
         val laneSecs = ArrayList<LaneSec>()
         val sevList = ArrayList<Int>()
         val segDur = ArrayList<Double>()
+        // what each stretch would take with no traffic (from Mapbox's free-flow speed), -1 where it isn't given
+        val segFree = ArrayList<Double>()
         val limits = ArrayList<LimitSec>()
         val incidents = ArrayList<Incident>()
         val legs = r.optJSONArray("legs") ?: JSONArray()
@@ -451,10 +455,15 @@ object MapboxRest {
             val cong = ann?.optJSONArray("congestion")
             val dur = ann?.optJSONArray("duration")
             val ms = ann?.optJSONArray("maxspeed")
+            val ffs = ann?.optJSONArray("freeflow_speed")
+            val dists = ann?.optJSONArray("distance")
             val n = max(cong?.length() ?: 0, max(dur?.length() ?: 0, ms?.length() ?: 0))
             for (i in 0 until n) {
                 sevList += when (cong?.optString(i)) { "severe", "heavy" -> 2; "moderate" -> 1; else -> 0 }
                 segDur += dur?.optDouble(i, 0.0) ?: 0.0
+                val ffKmh = ffs?.optDouble(i, -1.0) ?: -1.0
+                val dm = dists?.optDouble(i, -1.0) ?: -1.0
+                segFree += if (ffKmh > 3.0 && dm >= 0.0) dm / (ffKmh / 3.6) else -1.0
                 val idx = legPtStart + i
                 val spd = ms?.optJSONObject(i)
                 if (spd != null && spd.has("speed") && idx + 1 < cum.size) {
@@ -483,10 +492,27 @@ object MapboxRest {
         val sev = IntArray(max(0, pts.size - 1)) { i -> sevList.getOrElse(i) { 0 } }
         val time = r.optDouble("duration", 0.0)
         val typical = r.optDouble("duration_typical", time)
-        val delay = max(0.0, time - typical)
+        // the traffic delay: on the stretches Mapbox shows as slow (amber or red), the time over what they take with no traffic.
+        // It used to be the time over the *usual* time for that hour, so traffic that's there every rush hour counted as none:
+        // the time left stayed green with red on the map (the total time always included the traffic; only the delay was missing)
+        val haveFree = segFree.isNotEmpty() && segFree.count { it >= 0.0 } >= segFree.size / 2
+        val extra = DoubleArray(sev.size) { i ->
+            val f = segFree.getOrElse(i) { -1.0 }
+            if (haveFree && sev[i] >= 1 && f >= 0.0) max(0.0, segDur.getOrElse(i) { 0.0 } - f) else 0.0
+        }
+        val delay = if (haveFree) min(extra.sum(), time * 0.8) else max(0.0, time - typical)
         // where the delay is: spread over the slow stretches by how slow they are, then joined into runs
         val delays = ArrayList<DelaySeg>()
-        if (delay >= 30.0) {
+        if (haveFree && delay >= 30.0) {
+            var i = 0
+            while (i < sev.size) {
+                if (extra[i] <= 0.0) { i++; continue }
+                var j = i; var d = 0.0
+                while (j < sev.size && extra[j] > 0.0) { d += extra[j]; j++ }
+                if (d >= 5.0) delays += DelaySeg(cum[i], cum[j.coerceAtMost(cum.size - 1)], d)
+                i = j
+            }
+        } else if (delay >= 30.0) {
             val w = DoubleArray(sev.size) { i -> segDur.getOrElse(i) { 0.0 } * when (sev[i]) { 2 -> 0.6; 1 -> 0.3; else -> 0.0 } }
             val sum = w.sum()
             if (sum > 0) {

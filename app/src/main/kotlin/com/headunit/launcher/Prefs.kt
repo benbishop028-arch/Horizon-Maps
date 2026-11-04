@@ -236,6 +236,15 @@ internal object PreferenceKeys {
     const val TT_MAP_FIX = "ttmapfix"
     const val VOICE_CHANNEL = "voicechan"
     const val TANKERKOENIG_KEY = "tkkey"
+    /** NSW FuelCheck (Australia: New South Wales and Tasmania): the API key and secret from api.nsw.gov.au. */
+    const val NSW_FUEL_KEY = "nswkey"
+    /** The 3D view's tilt in degrees on a wide screen, a tall screen and Android Auto (0 = Auto, as the app chooses). */
+    const val TILT_WIDE = "tiltwide"
+    const val TILT_TALL = "tilttall"
+    const val TILT_CAR = "tiltcar"
+    /** Full screen: the status and navigation bars hidden (off keeps a head unit's own bars showing). */
+    const val FULLSCREEN = "fullscreen"
+    const val NSW_FUEL_SECRET = "nswsecret"
     const val VOICE_ROADS = "voiceroads"
     const val AVOID_TOLL_COUNTRIES = "avoid_toll_cc"
     const val ROAD_NAME_SIZE = "roadnamesize"

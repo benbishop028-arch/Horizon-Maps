@@ -81,6 +81,7 @@ import com.headunit.launcher.setApiKey
 import com.headunit.launcher.Zones
 import com.headunit.launcher.Vehicle
 import kotlinx.coroutines.Dispatchers
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -267,6 +268,11 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
             "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
+    SGroup("3D view", footer = "30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.") {
+        STilt("Tilt on a wide screen", "Landscape head units. Higher shows further ahead (more for a slow unit to draw)", prefs, PreferenceKeys.TILT_WIDE)
+        STilt("Tilt on a tall screen", "Portrait screens and phones", prefs, PreferenceKeys.TILT_TALL)
+        STilt("Tilt on Android Auto", "The car screen", prefs, PreferenceKeys.TILT_CAR)
+    }
     SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
@@ -446,6 +452,26 @@ private fun VehicleGroup(prefs: Prefs, imperial: Boolean) {
 }
 
 private fun tonnes(t10: Int): String = if (t10 % 10 == 0) "${t10 / 10} t" else String.format(java.util.Locale.US, "%.1f t", t10 / 10.0)
+
+/** A tilt in degrees with a slider, or Auto (0) for the app's own choice. Saved when you let go. */
+@Composable
+private fun STilt(title: String, sub: String, prefs: Prefs, key: String) {
+    val c = LocalVw.current
+    val saved = prefs.i(key, 0)
+    var v by remember(key, saved) { mutableStateOf(if (saved in 30..65) saved.toFloat() else 54f) }
+    var moving by remember(key, saved) { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        SItem(title, sub) {
+            Text(if (saved in 30..65 || moving) "${v.roundToInt()}°" else "Auto", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            if (saved in 30..65) SButton("Auto") { prefs.put(key, 0) }
+        }
+        androidx.compose.material3.Slider(
+            value = v, onValueChange = { v = it; moving = true }, onValueChangeFinished = { prefs.put(key, v.roundToInt().coerceIn(30, 65)) },
+            valueRange = 30f..65f, steps = 34,
+            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = c.accent, inactiveTrackColor = c.tile),
+        )
+    }
+}
 
 /** A number set with − and + (a lorry's measurements): [show] turns the stored value into what's shown. */
 @Composable
@@ -778,8 +804,10 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         }
         SItem("Spotted a wrong price?") { SButton("Report it") { openSystemSettings(ctx, android.content.Intent.ACTION_VIEW, android.net.Uri.parse(FuelFinder.REPORT_URL)) } }
     }
-    SGroup("Fuel prices outside the UK", footer = "France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Elsewhere the fuel list still works, without prices.") {
+    SGroup("Fuel prices outside the UK", footer = "France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Australia (NSW and Tasmania) needs a free API key and secret from api.nsw.gov.au (Fuel API). Prices show in cents a litre, e.g. 189.9c. Elsewhere the fuel list still works, without prices.") {
         SFieldItem("Tankerkönig key (Germany)", prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = "Paste the key", password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
+        SFieldItem("FuelCheck API key (Australia)", prefs.s(PreferenceKeys.NSW_FUEL_KEY, ""), sub = "New South Wales and Tasmania", placeholder = "Paste the API key", password = true) { prefs.put(PreferenceKeys.NSW_FUEL_KEY, it.trim()) }
+        SFieldItem("FuelCheck API secret", prefs.s(PreferenceKeys.NSW_FUEL_SECRET, ""), placeholder = "Paste the API secret", password = true) { prefs.put(PreferenceKeys.NSW_FUEL_SECRET, it.trim()) }
     }
     if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Your electric car", footer = "With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).") {
         SToggle(prefs, "Show petrol stations too", PreferenceKeys.EV_SHOW_FUEL, false, "The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place")
@@ -832,7 +860,8 @@ private fun OfflinePlacesGroup(engine: NavEngine) {
 
 @Composable
 private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Brightness") {
+    SGroup("Screen") {
+        SToggle(prefs, "Full screen", PreferenceKeys.FULLSCREEN, true, "Hides the status and navigation bars. Turn off if your head unit has its own bar (climate, home button) that the map covers")
         SSlider("Brightness", prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = "100% leaves it to the system", live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, "Dim the screen at night", "dimnight", false)
         SToggle(prefs, "Keep the screen on", "keepon", true)

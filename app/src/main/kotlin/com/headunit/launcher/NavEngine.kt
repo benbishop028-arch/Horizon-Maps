@@ -1168,6 +1168,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Offline area: ${installedPackId() ?: "none"}")
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · driving side: ${if (mirrored) "left-hand" else "right-hand"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
+            try { appendLine(com.headunit.launcher.ui.NightWatch.line() + " · theme " + prefs.s(PreferenceKeys.THEME, "auto")) } catch (e: Exception) { }
             if (heatLevel >= 0) appendLine("Heat: ${listOf("cool", "light", "moderate", "severe", "critical", "emergency", "shutdown").getOrElse(heatLevel) { "$heatLevel" }}")
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
@@ -1849,6 +1850,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         routeCams = emptyList(); camsRoute = null; camsAt = 0L; camsCount = -1; hazardSig = 0; policeSig = 0; map.setHazards(emptyList())
         via = emptyList(); stopMode = false; destRain = null; routeWx = emptyList()
         routes = emptyList(); active = 0; dest = null; turn = null; eta = null; lastIdx = 0; previewing = false; routeFrac = 0f; onRoad = ""
+        try { refreshRoad() } catch (e: Exception) { }
         departMin = 0; departAtMs = 0L
         fuelSuggestion = null; parkingNear = emptyList(); parkingFor = null
         turnArrowKey = -1; map.setTurnArrow(emptyList())
@@ -2063,6 +2065,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
             }
         }
+        try { refreshRoad() } catch (e: Exception) { }
         val lp = limitPos
         val moving = p.speed > 0.5
         // a quick local check every few seconds (the roads around you are downloaded a few hundred metres at a time, so most
@@ -2136,8 +2139,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val d = Geo.dist(p.pos, c)
                 if (d > warnAt || d >= bestD) continue
                 val diff = abs(((Geo.bearing(p.pos, c) - p.heading + 540.0) % 360.0) - 180.0)
-                // nearly straight ahead; close in, a wider angle (the camera is often beside the road)
-                if (diff < (if (d < 150.0) 60.0 else 35.0) && camFacesUs(c, p.heading)) { best = c; bestD = d }
+                // ahead of you and close to the line you're driving along (how far to the side, not an angle: 35 degrees is 280 m
+                // to the side at 500 m, so cameras on other roads set off alerts). A little more room close in, where the camera
+                // is often beside the road
+                val side = d * kotlin.math.sin(Math.toRadians(diff))
+                if (diff < 80.0 && side < (if (d < 150.0) 40.0 else 30.0) && camFacesUs(c, p.heading)) { best = c; bestD = d }
             }
         }
         cameraDist = if (best != null) bestD.toInt() else null
@@ -2287,8 +2293,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             if (alongRoute && rt != null) {
                                 val pr = RouteExtras.project(rt, s0.pos, 1500.0, progress) ?: continue
                                 if (pr.first < progress - 100) continue
-                                out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first - progress, "", s0.cents, detour(pr.second), true, unit = "€")
-                            } else if (Geo.dist(centre, s0.pos) <= radius) out += Nearby(Place(s0.name, s0.sub, s0.pos), Geo.dist(origin, s0.pos), "", s0.cents, unit = "€")
+                                out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first - progress, "", s0.cents, detour(pr.second), true, unit = EuFuel.unit(cc))
+                            } else if (Geo.dist(centre, s0.pos) <= radius) out += Nearby(Place(s0.name, s0.sub, s0.pos), Geo.dist(origin, s0.pos), "", s0.cents, unit = EuFuel.unit(cc))
                         }
                         if (out.isNotEmpty()) return@async out
                     }
@@ -2926,6 +2932,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val lite = prefs.mapDetail() != "full"
         // the full map stays a touch lower than it used to (fewer distant tiles to draw), the light map lower still
         tilt = minOf(tilt, if (lite) 52.0 else 54.0)
+        // your own tilt (Settings > Map look > 3D view): for a wide screen, a tall one and Android Auto separately
+        if (tilt3d) {
+            val key = if (isCar) PreferenceKeys.TILT_CAR else if (map.isTall()) PreferenceKeys.TILT_TALL else PreferenceKeys.TILT_WIDE
+            val mine = prefs.i(key, 0)
+            if (mine in 30..65) tilt = mine.toDouble()
+        }
         // tilt with speed: a little flatter when slow (easier to read streets), lower and further-looking at speed
         // (with the lighter map it only ever flattens, so it never draws more than before)
         if (tilt3d && prefs.b(PreferenceKeys.SPEEDTILT, true)) {
@@ -3192,7 +3204,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * them to the route whenever more arrive or the route changes.
      */
     private fun updateRouteCams(r: Route, @Suppress("UNUSED_PARAMETER") progress: Double) {
-        val cams = knownCams
+        // the ones found along the route and the ones from the search round you: on a route only the matched ones are shown and
+        // warned about, so a camera the route search missed (a busy server, a stretch not searched yet) used to be left out
+        // altogether even though the search round you had it
+        val cams = knownCams + aroundCams
         if (camsRoute === r && camsCount == cams.size) return
         camsRoute = r; camsCount = cams.size
         if (cams.isEmpty()) { routeCams = emptyList(); return }
@@ -3208,18 +3223,29 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     pts += r.pts[n]; offs += r.cum[n]; last = r.cum[n]
                 }
                 val out = ArrayList<Pair<LL, Double>>()
+                val kx = 111_320.0 * cos(Math.toRadians(c0Lat(r))); val ky = 110_540.0
                 for (c in cams) {
-                    var bestD = 45.0; var off = -1.0
+                    // the distance from the camera to the route's line itself (not just its nearest point, which could be 25 m
+                    // away along the road): within 30 m it's on the route. It used to be 45 m from a point, which took in
+                    // cameras on a road alongside and gave alerts with no camera coming up
+                    var bestD = 30.0; var off = -1.0
                     val k = key(c.lat, c.lon)
                     var bi = -1
                     for (dy in -1..1) for (dx in -1..1) grid[k + dy * 1000003L + dx]?.forEach { i ->
-                        val d = Geo.dist(pts[i], c)
-                        if (d < bestD) { bestD = d; off = offs[i]; bi = i }
+                        if (i + 1 >= pts.size) return@forEach
+                        val ax = (pts[i].lon - c.lon) * kx; val ay = (pts[i].lat - c.lat) * ky
+                        val bx = (pts[i + 1].lon - c.lon) * kx; val by = (pts[i + 1].lat - c.lat) * ky
+                        val dx2 = bx - ax; val dy2 = by - ay
+                        val l2 = dx2 * dx2 + dy2 * dy2
+                        val t = if (l2 > 0.01) (-(ax * dx2 + ay * dy2) / l2).coerceIn(0.0, 1.0) else 0.0
+                        val d = Math.hypot(ax + dx2 * t, ay + dy2 * t)
+                        if (d < bestD) { bestD = d; off = offs[i] + (offs[i + 1] - offs[i]) * t; bi = i }
                     }
                     // a camera that checks the other carriageway (it's known which way it points): not on your route
                     val cd = Overpass.camDir[Overpass.camKey(c)]
                     if (off >= 0 && cd != null && bi >= 0 && bi + 1 < pts.size && abs(angDiff(cd, Geo.bearing(pts[bi], pts[bi + 1]))) > 75.0) off = -1.0
-                    if (off >= 0) out += c to off
+                    // (the same camera mapped twice, on the road and beside it, is one camera: one alert)
+                    if (off >= 0 && out.none { abs(it.second - off) < 40.0 && Geo.dist(it.first, c) < 60.0 }) out += c to off
                 }
                 out.sortBy { it.second }
                 out
@@ -3227,6 +3253,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (camsRoute === r) { routeCams = found; hazardSig = 0; mergeCams() }
         }
     }
+
+    private fun c0Lat(r: Route): Double = r.pts.firstOrNull()?.lat ?: 0.0
 
     /** A report you made from the map: what it is, where, and when. They are kept on this device only. */
     class Report(val kind: String, val pos: LL, val t: Long)
@@ -4244,7 +4272,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         for (s0 in EuFuel.along(cc, prefs, RouteExtras.line(r, a, b, 1500.0, 45), fuel, maxAsks = 5)) {
                             val pr = RouteExtras.project(r, s0.pos, 1200.0) ?: continue
                             if (pr.first !in a..b) continue
-                            out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first, "", s0.cents, detour(pr.second), true, unit = "€")
+                            out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first, "", s0.cents, detour(pr.second), true, unit = EuFuel.unit(cc))
                         }
                     }
                     if (out.isEmpty() && hasKey && online() && fuel != "E85") {
@@ -4711,11 +4739,30 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         refreshRoad()
     }
 
-    /** Name of the road you are on: from the route while navigating, otherwise from the map data around you. */
+    /** The name of the road under the arrow as the map itself draws it, once it has been the same for two checks in a row. */
+    private var drawnRoad = ""
+    private var drawnCand = ""
+
+    private fun drawnRoadNow(): String {
+        val f = fix ?: return ""
+        val here = try { map.roadAt(mPos ?: f.pos, f.heading, 12.0, 35.0)?.name } catch (e: Throwable) { null }
+        if (here == null) { drawnRoad = ""; drawnCand = ""; return "" }
+        if (here == drawnRoad) drawnCand = ""
+        else if (here == drawnCand || drawnRoad.isEmpty()) { drawnRoad = here; drawnCand = "" }
+        else drawnCand = here
+        return drawnRoad
+    }
+
+    /**
+     * Name of the road you are on. First the road the map draws under the arrow (it changes as soon as the real road does, and
+     * needs no lookup), then the route's step while navigating, then the map data round you. The route's step used to come first:
+     * where the name changed without a turn it stayed on the old road until the next turn (GitHub #35, #36).
+     */
     private fun refreshRoad() {
         // the map-data name is dropped once it's 45 seconds old (lookups that kept failing used to leave the last road up)
         val mapRoad = if (System.currentTimeMillis() - limitRoadAt < 45_000L) limitRoad else ""
-        val n = Geo.shortRoad(if (route != null && !previewing && onRoad.isNotBlank()) onRoad else mapRoad)
+        val drawn = if (fix != null && (fix?.speed ?: 0.0) > 1.0) drawnRoadNow() else drawnRoad
+        val n = Geo.shortRoad(drawn.ifBlank { if (route != null && !previewing && onRoad.isNotBlank()) onRoad else mapRoad })
         if (n != roadShown) { roadShown = n; map.setRoadName(n) }
         if (roadNow != n) roadNow = n
     }

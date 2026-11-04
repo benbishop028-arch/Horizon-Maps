@@ -12,8 +12,11 @@ import java.net.URLEncoder
 data class Nearby(val place: Place, val dist: Double, val extra: String, val price: Double? = null, val detourMin: Int = -1, val ahead: Boolean = false, val unit: String = "p")
 
 /** A fuel price the local way: "139.9p" in the UK, "€1.789" in the euro countries. [price] is in pence or cents a litre. */
-fun fmtFuelPrice(price: Double, unit: String): String =
-    if (unit == "€") String.format(java.util.Locale.UK, "€%.3f", price / 100.0) else String.format(java.util.Locale.UK, "%.1fp", price)
+fun fmtFuelPrice(price: Double, unit: String): String = when (unit) {
+    "€" -> String.format(java.util.Locale.UK, "€%.3f", price / 100.0)
+    "c" -> String.format(java.util.Locale.UK, "%.1fc", price)
+    else -> String.format(java.util.Locale.UK, "%.1fp", price)
+}
 
 /** Free OpenStreetMap queries: speed limits, speed cameras and nearby fuel / charging / parking. */
 object Overpass {

@@ -3705,7 +3705,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     @Volatile private var roadSegs: List<List<Point>> = emptyList()
 
     /** A road line from Mapbox's road data: its points, its kind ("motorway", "primary", "street"...) and whether it's one-way. */
-    class RoadPiece(val pts: List<Point>, val cls: String, val oneway: Boolean?)
+    class RoadPiece(val pts: List<Point>, val cls: String, val oneway: Boolean?, val name: String = "")
     @Volatile private var roadInfo: List<RoadPiece> = emptyList()
 
     /**
@@ -3755,9 +3755,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val cls = try { f.getStringProperty("class") } catch (e: Throwable) { null } ?: ""
             val ow = try { f.getStringProperty("oneway") } catch (e: Throwable) { null }
             val one = when (ow) { "true" -> true; "false" -> false; else -> null }
+            // the road's name as the map shows it (or its number, "M27", when it has no name)
+            val nm = try { f.getStringProperty("name") } catch (e: Throwable) { null }?.takeIf { it.isNotBlank() }
+                ?: try { f.getStringProperty("ref") } catch (e: Throwable) { null }.orEmpty()
             when (val g = f.geometry()) {
-                is LineString -> info += RoadPiece(g.coordinates(), cls, one)
-                is MultiLineString -> for (c in g.coordinates()) info += RoadPiece(c, cls, one)
+                is LineString -> info += RoadPiece(g.coordinates(), cls, one, nm)
+                is MultiLineString -> for (c in g.coordinates()) info += RoadPiece(c, cls, one, nm)
                 else -> { }
             }
         }
@@ -3877,6 +3880,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
         return doubleArrayOf(t.latitude(), t.longitude(), c.bearing, c.pitch, c.zoom, pd.top / h, (pd.left - pd.right) / w)
     }
+
+    /** A tall (portrait) screen: taller than it is wide. */
+    fun isTall(): Boolean = try { mapView.height > mapView.width } catch (e: Throwable) { false }
 
     fun setTilt(tilt: Double) {
         tiltNow = tilt

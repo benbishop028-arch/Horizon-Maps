@@ -11,6 +11,7 @@ import java.net.URLEncoder
  *  - France: the government's open price feed (data.economie.gouv.fr), no key needed.
  *  - Austria: E-Control's Spritpreisrechner, no key needed (it gives the cheapest few stations round a point).
  *  - Germany: Tankerkönig (Markttransparenzstelle data), with a free key pasted in Settings.
+ *  - Australia (New South Wales and Tasmania): the NSW government's FuelCheck, with a free API key and secret pasted in Settings.
  * Prices come back in cents a litre. Everything here is network work: call it off the main thread. Any failure gives an empty
  * list, so the app simply falls back to its normal station search without prices.
  */
@@ -21,13 +22,18 @@ object EuFuel {
     fun supported(country: String, prefs: Prefs): Boolean = when (country.uppercase()) {
         "FR", "AT" -> true
         "DE" -> prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").isNotBlank()
+        "AU" -> prefs.s(PreferenceKeys.NSW_FUEL_KEY, "").isNotBlank() && prefs.s(PreferenceKeys.NSW_FUEL_SECRET, "").isNotBlank()
         else -> false
     }
+
+    /** How the price is written: euros ("€1.789") in Europe, cents a litre ("189.9c") in Australia. */
+    fun unit(country: String): String = if (country.uppercase() == "AU") "c" else "€"
 
     /** Whether the country's service has prices for this fuel at all ("E10", "E5", "B7" or "E85"). */
     fun hasFuel(country: String, fuel: String): Boolean = when (country.uppercase()) {
         "FR" -> fuel in setOf("E10", "E5", "B7", "E85")
         "AT", "DE" -> fuel in setOf("E10", "E5", "B7")
+        "AU" -> fuel in setOf("E10", "E5", "B7", "E85")
         else -> false
     }
 
@@ -37,6 +43,7 @@ object EuFuel {
             "FR" -> france(c, radiusKm.coerceIn(1, 25), fuel)
             "AT" -> austria(c, fuel)
             "DE" -> germany(prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").trim(), c, radiusKm.coerceIn(1, 25), fuel)
+            "AU" -> nsw(prefs, c, radiusKm.coerceIn(1, 25), fuel)
             else -> emptyList()
         }
     } catch (e: Exception) { emptyList() }
@@ -122,5 +129,75 @@ object EuFuel {
             out += Station(name, s.optString("place"), LL(s.getDouble("lat"), s.getDouble("lng")), euros * 100.0)
         }
         return out
+    }
+
+    // ---- Australia: NSW FuelCheck (covers New South Wales and Tasmania) ----
+
+    @Volatile private var nswToken = ""
+    @Volatile private var nswTokenUntil = 0L
+    @Volatile private var nswTokenFor = ""
+    private var nswTx = 1
+
+    /**
+     * The NSW government's FuelCheck: a token from the API key and secret (kept until it runs out), then the stations near a
+     * point with today's price for one fuel. "Unleaded" is U91, "Super unleaded" P95, diesel DL. A refused key (401 / 403) says
+     * so in the error (it shows as no prices, and the station search carries on without them).
+     */
+    private fun nsw(prefs: Prefs, c: LL, km: Int, fuel: String): List<Station> {
+        val key = prefs.s(PreferenceKeys.NSW_FUEL_KEY, "").trim()
+        val secret = prefs.s(PreferenceKeys.NSW_FUEL_SECRET, "").trim()
+        if (key.isBlank() || secret.isBlank()) return emptyList()
+        val now = System.currentTimeMillis()
+        if (nswToken.isBlank() || now > nswTokenUntil || nswTokenFor != key) {
+            val basic = android.util.Base64.encodeToString("$key:$secret".toByteArray(), android.util.Base64.NO_WRAP)
+            val t = nswHttp("GET", "https://api.onegov.nsw.gov.au/oauth/client_credential/accesstoken?grant_type=client_credentials", null,
+                mapOf("Authorization" to "Basic $basic"))
+            val o = JSONObject(t)
+            nswToken = o.optString("access_token")
+            if (nswToken.isBlank()) throw java.io.IOException("FuelCheck didn't give a token")
+            // (tokens last about 12 hours: renewed a little early)
+            val secs = o.optString("expires_in").toLongOrNull() ?: 3600L
+            nswTokenUntil = now + (secs - 300).coerceAtLeast(300) * 1000L
+            nswTokenFor = key
+        }
+        val type = when (fuel) { "B7" -> "DL"; "E5" -> "P95"; "E85" -> "E85"; else -> "U91" }
+        val stamp = java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
+        val body = JSONObject().put("fueltype", type).put("latitude", c.lat.toString()).put("longitude", c.lon.toString())
+            .put("radius", km.toString()).put("sortby", "Price").put("sortascending", "true").toString()
+        val res = JSONObject(nswHttp("POST", "https://api.onegov.nsw.gov.au/FuelPriceCheck/v2/fuel/prices/nearby", body, mapOf(
+            "apikey" to key, "Authorization" to "Bearer $nswToken", "transactionid" to (nswTx++).toString(), "requesttimestamp" to stamp,
+            "Content-Type" to "application/json; charset=utf-8")))
+        val prices = HashMap<String, Double>()
+        res.optJSONArray("prices")?.let { arr -> for (i in 0 until arr.length()) arr.optJSONObject(i)?.let { p ->
+            if (p.optString("fueltype").equals(type, true) || p.optString("fueltype").isBlank()) {
+                val v = p.optDouble("price", Double.NaN)
+                if (!v.isNaN() && v > 0) prices[p.optString("stationcode")] = v
+            }
+        } }
+        val out = ArrayList<Station>()
+        res.optJSONArray("stations")?.let { arr -> for (i in 0 until arr.length()) {
+            val s = arr.optJSONObject(i) ?: continue
+            val cents = prices[s.optString("code")] ?: continue
+            val loc = s.optJSONObject("location") ?: continue
+            val name = s.optString("brand").ifBlank { s.optString("name") }.ifBlank { "Station" }
+            out += Station(name, s.optString("address"), LL(loc.optDouble("latitude"), loc.optDouble("longitude")), cents)
+        } }
+        return out
+    }
+
+    private fun nswHttp(method: String, url: String, body: String?, headers: Map<String, String>): String {
+        val c = URL(url).openConnection() as HttpURLConnection
+        c.connectTimeout = 8000; c.readTimeout = 15000
+        c.requestMethod = method
+        c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
+        c.setRequestProperty("Accept", "application/json")
+        for ((k, v) in headers) c.setRequestProperty(k, v)
+        try {
+            if (body != null) { c.doOutput = true; c.outputStream.use { it.write(body.toByteArray()) } }
+            val code = c.responseCode
+            if (code == 401 || code == 403) { nswToken = ""; throw java.io.IOException("FuelCheck refused the key (HTTP $code)") }
+            if (code !in 200..299) throw java.io.IOException("HTTP $code")
+            return c.inputStream.bufferedReader().use { it.readText() }
+        } finally { c.disconnect() }
     }
 }

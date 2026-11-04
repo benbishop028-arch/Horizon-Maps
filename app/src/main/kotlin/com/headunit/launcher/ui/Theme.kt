@@ -77,15 +77,51 @@ fun rememberSystemNight(): Boolean {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val fromConfig = isSystemInDarkTheme()
     var polled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(readSystemNight(ctx)) }
-    androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(4000L); polled = readSystemNight(ctx) } }
+    // checked every 1.5 s (it was every 4 s), and straight away when the system's night mode setting itself changes: some units
+    // set that first and only change the screen's mode later
+    androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1500L); polled = readSystemNight(ctx) } }
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        val cr = ctx.applicationContext.contentResolver
+        val obs = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) { polled = readSystemNight(ctx) }
+        }
+        try { cr.registerContentObserver(android.provider.Settings.Secure.getUriFor("ui_night_mode"), false, obs) } catch (e: Throwable) { }
+        onDispose { try { cr.unregisterContentObserver(obs) } catch (e: Throwable) { } }
+    }
+    NightWatch.note(fromConfig, "screen")
     return fromConfig || polled
 }
 
 fun readSystemNight(ctx: android.content.Context): Boolean = try {
     val cfg = ctx.applicationContext.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
     val um = (ctx.getSystemService(android.content.Context.UI_MODE_SERVICE) as? android.app.UiModeManager)?.nightMode
+    NightWatch.note(cfg == android.content.res.Configuration.UI_MODE_NIGHT_YES, "config")
+    NightWatch.note(um == android.app.UiModeManager.MODE_NIGHT_YES, "setting")
+    NightWatch.setting = when (um) { android.app.UiModeManager.MODE_NIGHT_YES -> "night"; android.app.UiModeManager.MODE_NIGHT_NO -> "day"; android.app.UiModeManager.MODE_NIGHT_AUTO -> "auto"; null -> "?"; else -> "custom" }
     cfg == android.content.res.Configuration.UI_MODE_NIGHT_YES || um == android.app.UiModeManager.MODE_NIGHT_YES
 } catch (e: Throwable) { false }
+
+/**
+ * For the feedback report: when each of the head unit's night signals last changed, so a slow day / night switch shows which
+ * signal was late (the screen's mode, the system setting, or both).
+ */
+object NightWatch {
+    @Volatile var setting = "?"
+    private val last = java.util.concurrent.ConcurrentHashMap<String, Pair<Boolean, Long>>()
+
+    fun note(night: Boolean, what: String) {
+        val p = last[what]
+        if (p == null || p.first != night) last[what] = night to System.currentTimeMillis()
+    }
+
+    fun line(): String {
+        val fmt = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.UK)
+        return "Night signals: system setting $setting · " + listOf("screen", "config", "setting").joinToString(" · ") { k ->
+            val p = last[k]
+            if (p == null) "$k ?" else "$k ${if (p.first) "night" else "day"} since ${fmt.format(java.util.Date(p.second))}"
+        }
+    }
+}
 
 @Composable
 fun VwTheme(dark: Boolean, content: @Composable () -> Unit) {
