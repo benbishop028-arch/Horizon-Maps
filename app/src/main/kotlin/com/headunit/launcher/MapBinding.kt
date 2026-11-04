@@ -367,7 +367,19 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (p == lightPreset) return
         lightPreset = p
         setBase("lightPreset", Value.valueOf(satLight(p)))
+        // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
+        // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(NIGHT_BUILDINGS)); buildingsTinted = true }
+        else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
+
+    /**
+     * The Horizon theme at night and dusk: buildings a soft lavender-blue, a step lighter than the ground, rather than the same dark
+     * shade as it (walls and roofs still take the map's light and shadow). Day keeps Mapbox's own building colours.
+     */
+    private val NIGHT_BUILDINGS = "#4C5478"
+    private var buildingsTinted = false
+    private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
     /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
      *  so satellite goes no darker than dusk. */
@@ -395,6 +407,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // Mapbox's own colours with a gentle purple-blue hint (mostly at night), from a colour look-up table
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
         }
+        buildingsTinted = !sat && horizonNightBuildings()
+        if (buildingsTinted) c.put("colorBuildings", NIGHT_BUILDINGS)
         return c
     }
 
