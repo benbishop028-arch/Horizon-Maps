@@ -4837,8 +4837,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Lined up with the real lanes (the ones Mapbox's map paints where it has them): the route line runs down the middle of the
         // road as mapped, so the lanes are laid out from there, at real lane widths. On a one-way road or a dual carriageway the
         // lanes are centred on the line; on a two-way road they're all on your side of it (the left in the UK).
-        val (approach, approachB) = pointAt(r, max(0.0, cur.off - 45.0))
-        val road = map.roadAt(approach, approachB, maxDistance = 10.0, headingTolerance = 25.0)
+        // the road on the approach, looked for a few places back from the junction (the nearest one may be under the junction itself)
+        var road: MapBinding.RoadPiece? = null
+        for (back in listOf(45.0, 80.0, 120.0, 25.0)) {
+            if (road != null) break
+            val (approach, approachB) = pointAt(r, max(0.0, cur.off - back))
+            road = map.roadAt(approach, approachB, maxDistance = 10.0, headingTolerance = 25.0)
+        }
         // Require a close, direction-compatible road match here: at exits and junctions a nearby ramp or cross-road can
         // otherwise supply the wrong one-way/road-centre metadata and offset the highlighted lane away from the route.
         // If the match is ambiguous, use the lane-relative fallback below so the route remains in the selected lane.
@@ -5004,6 +5009,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         map.setRouteShift(shift)
         map.setLanes(marks)
+        // The map's roads are only known close in (they're read off the screen), so 400 m out the junction's road often isn't there
+        // yet, and the lanes fell back to just your lane, with the route line left where it was, for that whole junction ("sometimes
+        // the route line moves over and sometimes it doesn't"). Until the road is found, the lanes are worked out again on the next
+        // update, until 80 m out.
+        if (road == null && !lined && !aligned && style == "lit" && d > 80.0) laneKey = null
     }
 
     /** The sideways offset (metres, + to the right) of the route line in the lane you need, by distance along the route; null when none. */
