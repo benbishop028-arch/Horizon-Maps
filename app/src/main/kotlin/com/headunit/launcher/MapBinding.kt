@@ -379,10 +379,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      */
     // (the night light darkens whatever colour is given to about a third, so it's given almost white to show as a soft lavender-blue:
     // "#4C5478" came out nearly black)
-    private val NIGHT_BUILDINGS = "#E8ECFF"
+    private val NIGHT_BUILDINGS = "#FFFFFF"
     // The night light also caps how light buildings can get (even near white only reaches the ground's own shade), so the ground is
     // taken a step darker at night instead, leaving the buildings a step lighter than it
-    private val NIGHT_LAND = "#56607F"
+    private val NIGHT_LAND = "#7A86AC"
     private var buildingsTinted = false
     private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
