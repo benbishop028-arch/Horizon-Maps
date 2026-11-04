@@ -102,6 +102,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Lane guidance on the map: the lane to use is lit up on the road again, with its arrows, as the view zooms in before the junction. Where the real lanes aren't known only that lane is drawn, under the route line, so nothing goes over the verge; on motorways where Mapbox's lanes are known the route line moves into your lane and the other lanes keep just their dividers. Settings > Turn card & lanes > Lanes shown as also offers a close-up picture of the junction's lanes under the turn card, or the sign over the road from the last few versions.
 - Settings easier to scan: long lists are split under more headings (3D, Sky and satellite; Speed, Cameras, Hazards, Zones and reminders; Directions, Voice and volume; Brightness, Sizes, Speed display; and on Android Auto, Sizes on the car screen and Setting it up). Nothing has moved section, and the settings search finds everything, now including "Show petrol stations too".
 - Electric cars: with Electric chosen as your fuel, the map page shows Charging first and Toilets instead of the petrol Fuel button (on the phone and Android Auto). Settings > Fuel > Show petrol stations too brings it back.
 - Android Auto settings: the 12 / 24-hour clock can be set from the car too.

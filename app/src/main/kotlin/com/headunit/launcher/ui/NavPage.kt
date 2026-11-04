@@ -513,6 +513,25 @@ internal fun LaneRow(sec: LaneSec, maneuver: String, near: Boolean = false) {
  * Lane hero view: the lanes drawn big across the turn card, like a stylised gantry picture: dark road, dashed lane lines,
  * the lane(s) you need lit with a glow and a large arrow, the others dimmed. Used before junctions with two or more lanes.
  */
+/**
+ * The junction close-up picture (Settings > Turn card & lanes > Lanes on the map > Close-up picture): for the last 400 m before a
+ * junction with lane data, a drawn picture of its lanes with the ones to use lit and the distance, under the turn card. Nothing is
+ * drawn on the map itself in this style, so it can never sit in the wrong place.
+ */
+@Composable
+internal fun JunctionCloseup(engine: NavEngine, modifier: Modifier = Modifier) {
+    if (!engine.prefs.b(PreferenceKeys.LANEMAP, true) || engine.prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit") != "closeup") return
+    if (engine.route == null || engine.previewing) return
+    val t = engine.turn ?: return
+    val sec = t.lanes ?: return
+    if (t.dist > 400.0 || t.dist < 5.0 || sec.lanes.size < 2) return
+    val shape = RoundedCornerShape(18.dp)
+    Column(modifier.widthIn(max = 420.dp).fillMaxWidth().shadow(8.dp, shape).clip(shape).background(Color(0xFF0E2A30))) {
+        Text(Geo.fmtDist(t.dist, engine.imperial), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp, top = 10.dp))
+        LaneHero(sec, t.maneuver, null)
+    }
+}
+
 @Composable
 internal fun LaneHero(sec: LaneSec, maneuver: String, advice: String?) {
     val anyFollow = sec.lanes.any { it.follow != null }

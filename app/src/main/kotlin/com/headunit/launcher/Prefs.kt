@@ -136,6 +136,9 @@ internal object PreferenceKeys {
     const val LAMPGAP = "lampgap"
     const val LANDMARKS3D = "landmarks3d"
     const val LANEMAP = "lanemap"
+    /** How lanes show on the map: "lit" (the lane to use lit up; on motorways where the real lanes are known, the route line moves
+     *  into it), "closeup" (a drawn picture of the junction's lanes in a corner of the map) or "sign" (a sign over the road). */
+    const val LANE_MAP_STYLE = "lanemapstyle"
     const val LASTLAT = "lastlat"
     const val LASTLON = "lastlon"
     const val LIMITCHANGE = "limitchange"

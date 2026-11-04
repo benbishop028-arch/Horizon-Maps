@@ -501,7 +501,13 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
     }
     SGroup("Lanes and junctions") {
-        SToggle(prefs, "Lanes painted on the map", "lanemap", true)
+        SToggle(prefs, "Lanes on the map", "lanemap", true)
+        if (prefs.b(PreferenceKeys.LANEMAP, true)) SChoice("Lanes shown as", listOf("lit" to "Lit lane", "closeup" to "Close-up picture", "sign" to "Sign"), prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit"),
+            when (prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit")) {
+                "closeup" -> "A drawn picture of the junction's lanes under the turn card for the last 400 m. Nothing drawn on the map"
+                "sign" -> "A sign over the road at the junction, with the lanes to use lit up"
+                else -> "The lane to use lit up on the road. On motorways, where the real lanes are known, the route line moves into it"
+            }) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
         SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
         SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m")
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)

@@ -4784,7 +4784,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var earlyLaneFor = -1.0
 
     private fun updateLaneMarks(r: Route, cur: Step, sec: LaneSec?, d: Double) {
-        val key = if (sec != null && d < (if (laneFast) 1300.0 else 400.0) && prefs.b(PreferenceKeys.LANEMAP, true)) Pair(cur.off, sec) else null
+        // how lanes show on the map (Settings > Turn card & lanes): the close-up picture is drawn by the screen itself, so nothing
+        // goes on the map for it
+        val style = prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit")
+        if (style != laneStyleSeen) { laneStyleSeen = style; laneKey = null; map.setLaneSign(null, emptyList()); laneSignFor = -1.0 }
+        val key = if (sec != null && d < (if (laneFast) 1300.0 else 400.0) && prefs.b(PreferenceKeys.LANEMAP, true) && style != "closeup") Pair(cur.off, sec) else null
         // the route line stays in its lane until you're past the end of its ease back after the junction (clearing it as soon as
         // the lane guidance ended made the line just ahead of you jump sideways)
         if (laneShiftEnd > 0.0 && key == null && curProgress >= laneShiftEnd) { map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0; turnArrowKey = -2 }
@@ -4861,7 +4865,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // instead, like a motorway gantry, so nothing is drawn that might not sit on the painted lanes.
         val prof = if (hdLanesFor == cur.off && hdProfileFor == cur.off) hdProfile.filter { it.second.size == n } else emptyList()
         val lined = prof.isNotEmpty()
-        if (!lined && curProgress < cur.off - 15.0) {
+        if (!lined && style == "sign" && curProgress < cur.off - 15.0) {
             map.setLaneSign(pointAt(r, max(0.0, cur.off - 10.0)).first, sec.lanes.mapIndexed { i, lane ->
                 val active = i in activeIdx
                 lane.dirs.map { dir -> dir to (active && (if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver))) } to active
@@ -4886,6 +4890,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return LL(p.lat + lateral * Math.cos(rad) / 111320.0, p.lon + lateral * Math.sin(rad) / (111320.0 * Math.cos(Math.toRadians(p.lat))))
         }
         val marks = ArrayList<MapBinding.LaneMark>()
+        // Lit lane, where the real lanes aren't known: only the lane to use is drawn, as a lit strip under the route line itself
+        // (which is on the road), with its arrows. No other lanes, so nothing can end up over the verge.
+        val litOnly = style == "lit" && !lined && activeIdx.isNotEmpty()
+        if (litOnly) {
+            val lane = sec.lanes[activeIdx.first()]
+            for (back in listOf(28.0, 65.0)) {
+                val off = cur.off - back
+                if (off < 0) continue
+                val (p, brg) = pointAt(r, off)
+                lane.dirs.forEach { dir -> marks += MapBinding.LaneMark(p, brg, dir, if (anyFollow) dir == lane.follow else laneHit(dir, cur.maneuver)) }
+            }
+        }
         for (back in if (lined) listOf(28.0, 65.0) else emptyList()) {
             val off = cur.off - back
             if (off < 0) continue
@@ -4917,7 +4933,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val last = samples.size - 1
             for (i in 0 until n) {
                 // cut into short pieces so the ribbon can fade in softly at its start
-                for (k in 0 until last) {
+                // (lit lane: only the lanes to use are filled; the other lanes keep just their dividers and faint arrows)
+                if (style == "lit" && i !in activeIdx) { } else for (k in 0 until last) {
                     val l = ArrayList<LL>(); val rt = ArrayList<LL>()
                     for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, leftE(sampleMids[m], i)); rt += shifted(p, brg, rightE(sampleMids[m], i)) }
                     val a = 0.5 + 0.5 * min(1.0, k / 3.0)
@@ -4928,6 +4945,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val outer = ArrayList<LL>(); for ((j, sp) in samples.withIndex()) outer += shifted(sp.first, sp.second, leftE(sampleMids[j], 0))
             divs += MapBinding.LaneEdge(outer, true)
+        } else if (litOnly && to - from > 20.0) {
+            // the lit strip: one lane wide (3.2 m), centred on the route line, over the last 60 m (fading in at its start)
+            val samples = ArrayList<Pair<LL, Double>>()
+            var o = from
+            while (o < to) { samples += pointAt(r, o); o += 10.0 }
+            samples += pointAt(r, to)
+            for (k in 0 until samples.size - 1) {
+                val l = ArrayList<LL>(); val rt = ArrayList<LL>()
+                for (m in k..k + 1) { val (p, brg) = samples[m]; l += shifted(p, brg, -1.6); rt += shifted(p, brg, 1.6) }
+                bands += MapBinding.LaneBand(l + rt.asReversed(), true, 0.5 + 0.5 * min(1.0, k / 3.0))
+            }
         }
         map.setLaneBands(bands, divs)
         // the route line moved into the lane you need (when the lanes are lined up with the road). One sideways offset along the
@@ -4976,6 +5004,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         private set
     private var laneDiagFor = -1.0
     private var hdProfileFor = -1.0
+    /** The lane style last drawn with ("lit", "closeup" or "sign"): a change redraws the junction's lanes. */
+    private var laneStyleSeen = ""
     /** The junction the lane sign is standing at (−1 for none). */
     private var laneSignFor = -1.0
     private var hdLanesFor = -1.0
