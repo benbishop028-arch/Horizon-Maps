@@ -369,7 +369,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         setBase("lightPreset", Value.valueOf(satLight(p)))
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
-        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(NIGHT_BUILDINGS)); buildingsTinted = true }
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(NIGHT_BUILDINGS)); setBase("colorLand", Value.valueOf(NIGHT_LAND)); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
 
@@ -380,6 +380,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // (the night light darkens whatever colour is given to about a third, so it's given almost white to show as a soft lavender-blue:
     // "#4C5478" came out nearly black)
     private val NIGHT_BUILDINGS = "#E8ECFF"
+    // The night light also caps how light buildings can get (even near white only reaches the ground's own shade), so the ground is
+    // taken a step darker at night instead, leaving the buildings a step lighter than it
+    private val NIGHT_LAND = "#56607F"
     private var buildingsTinted = false
     private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
@@ -410,7 +413,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
         }
         buildingsTinted = !sat && horizonNightBuildings()
-        if (buildingsTinted) c.put("colorBuildings", NIGHT_BUILDINGS)
+        if (buildingsTinted) { c.put("colorBuildings", NIGHT_BUILDINGS); c.put("colorLand", NIGHT_LAND) }
         return c
     }
 
