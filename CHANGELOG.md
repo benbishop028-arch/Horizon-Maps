@@ -111,7 +111,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
-- Horizon theme at night: buildings now stand out a step lighter than the ground (the ground is a little darker at night), instead of being the same shade as it. Walls and roofs still take the light and shadow, and day keeps its own colours.
+- Horizon theme at night: a softer, brighter "dusk" light with a gentle glow, and buildings a step lighter than the ground instead of the same shade. Settings > Map look > Horizon at night sets the light (Dusk or Night), the map's brightness and how much the buildings stand out, and the map changes as you move them. Day keeps its own colours.
 - Parking at your destination: the car parks offered near the end of a trip now show their price, opening hours and spaces where OpenStreetMap has them.
 - Your car on the phone: the phone now remembers where you parked at the end of any drive (not only after Android Auto), and the "Your car" card offers Walk back once you've walked away from it.
 - "Hey Google, navigate to …" on Android Auto: a place asked for by name or address now starts its route to the top result by itself (the route choice shows where to, with Cancel), instead of leaving a list to tap while driving.

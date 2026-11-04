@@ -369,7 +369,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         setBase("lightPreset", Value.valueOf(satLight(p)))
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
-        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(NIGHT_BUILDINGS)); setBase("colorLand", Value.valueOf(NIGHT_LAND)); buildingsTinted = true }
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
 
@@ -377,18 +377,41 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * The Horizon theme at night and dusk: buildings a soft lavender-blue, a step lighter than the ground, rather than the same dark
      * shade as it (walls and roofs still take the map's light and shadow). Day keeps Mapbox's own building colours.
      */
-    // (the night light darkens whatever colour is given to about a third, so it's given almost white to show as a soft lavender-blue:
-    // "#4C5478" came out nearly black)
-    private val NIGHT_BUILDINGS = "#FFFFFF"
-    // The night light also caps how light buildings can get (even near white only reaches the ground's own shade), so the ground is
-    // taken a step darker at night instead, leaving the buildings a step lighter than it
-    private val NIGHT_LAND = "#7A86AC"
+    // Horizon at night, set by eye in Settings > Map look > Horizon at night: the light (Mapbox's "dusk" is softer and brighter, with
+    // a gentle glow; "night" dims everything a lot more), how light the ground is, and how much lighter than it the buildings are
+    private var hzLight = "dusk"
+    private var hzBright = 60
+    private var hzBld = 40
+
+    fun setHorizonNight(light: String, bright: Int, bld: Int) {
+        val l = if (light == "night") "night" else "dusk"
+        val br = bright.coerceIn(0, 100); val bd = bld.coerceIn(0, 100)
+        if (l == hzLight && br == hzBright && bd == hzBld) return
+        hzLight = l; hzBright = br; hzBld = bd
+        setBase("lightPreset", Value.valueOf(satLight(lightPreset)))
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
+    }
+
+    private fun mix(a: Int, b: Int, t: Double): String {
+        fun ch(x: Int, s: Int) = (x shr s) and 0xFF
+        fun m(s: Int) = Math.round(ch(a, s) + (ch(b, s) - ch(a, s)) * t).toInt().coerceIn(0, 255)
+        return String.format("#%02X%02X%02X", m(16), m(8), m(0))
+    }
+    /** The ground: from a deep blue-grey (0%) to near white (100%), before the night light dims it. */
+    private fun hzLand(): String = mix(0x3A4260, 0xE6EBFF, hzBright / 100.0)
+    /** The buildings: the ground's colour taken towards white by the Buildings setting (0% is only just lighter than the ground). */
+    private fun hzBuildings(): String {
+        val t = hzBright / 100.0
+        val land = (Math.round(0x3A + (0xE6 - 0x3A) * t).toInt() shl 16) or (Math.round(0x42 + (0xEB - 0x42) * t).toInt() shl 8) or Math.round(0x60 + (0xFF - 0x60) * t).toInt()
+        return mix(land, 0xFFFFFF, 0.15 + 0.85 * hzBld / 100.0)
+    }
     private var buildingsTinted = false
     private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
     /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
      *  so satellite goes no darker than dusk. */
-    private fun satLight(p: String): String = if (satellite && p == "night") "dusk" else p
+    private fun satLight(p: String): String = if (satellite && p == "night") "dusk"
+        else if (p == "night" && colours == "horizon" && hzLight == "dusk") "dusk" else p
 
     /** One of Standard's settings (only once a style is showing; they're also written into the style when it loads). */
     private fun setBase(key: String, v: Value) {
@@ -400,7 +423,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun baseConfig(): org.json.JSONObject {
         val sat = (wantedStyle ?: "") == Style.STANDARD_SATELLITE
         val c = org.json.JSONObject()
-        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else lightPreset)
+        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else if (!sat && lightPreset == "night" && colours == "horizon" && hzLight == "dusk") "dusk" else lightPreset)
         // shop and place labels rest on the light map and (on the full map) while you're on the move: placing them is the costly part
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
@@ -413,7 +436,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
         }
         buildingsTinted = !sat && horizonNightBuildings()
-        if (buildingsTinted) { c.put("colorBuildings", NIGHT_BUILDINGS); c.put("colorLand", NIGHT_LAND) }
+        if (buildingsTinted) { c.put("colorBuildings", hzBuildings()); c.put("colorLand", hzLand()) }
         return c
     }
 

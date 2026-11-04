@@ -140,6 +140,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(mapDetail) { map.setMapDetail(mapDetail) }
     val mapColours = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
     LaunchedEffect(mapColours) { map.setColours(mapColours) }
+    // the Horizon theme at night (Settings > Map look > Horizon at night): changes show straight away
+    val hzLight = prefs.s(PreferenceKeys.HZ_NIGHT_LIGHT, "dusk"); val hzBright = prefs.i(PreferenceKeys.HZ_NIGHT_BRIGHT, 60); val hzBld = prefs.i(PreferenceKeys.HZ_NIGHT_BLD, 40)
+    LaunchedEffect(hzLight, hzBright, hzBld) { map.setHorizonNight(hzLight, hzBright, hzBld) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
     LaunchedEffect(logoCorner) { map.setLogoCorner(logoCorner) }
     // (off unless chosen: with it on, traffic on the roads round you vanished as soon as a route started, which looked like a bug)
