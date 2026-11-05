@@ -317,7 +317,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** "full" (Standard in 3D), "lite" (Standard, flat, fewer labels) or "lightest" (Mapbox's classic 2D map). Settings > Map. */
     var mapDetail = "full"
         private set
-    /** "mapbox", "horizon" (the app's own soft colours, slate blue at night), "twilight" (the same, with the original purple night), "faded" or "grey". Settings > Map. */
+    /** "mapbox", "horizon" (the app's own soft colours, slate blue at night), "twilight" (the same, with the original purple night), "moonlight" (a lighter blue night with glowing buildings), "faded" or "grey". Settings > Map. */
     private var colours = "mapbox"
     /** Whether the style has Standard's slots (classic styles don't: the app's layers then simply go on top). */
     private var slotsOn = true
@@ -346,7 +346,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     fun setColours(c: String) {
-        val v = if (c in setOf("mapbox", "horizon", "twilight", "faded", "grey")) c else "mapbox"
+        val v = if (c in setOf("mapbox", "horizon", "twilight", "moonlight", "faded", "grey")) c else "mapbox"
         if (v == colours) return
         colours = v
         // the colours are part of how the map loads (and Horizon is a different base map), so it's loaded again
@@ -369,7 +369,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         setBase("lightPreset", Value.valueOf(satLight(p)))
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
-        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true; style?.let { moonGlow(it) } }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
 
@@ -389,19 +389,41 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         return String.format("#%02X%02X%02X", m(16), m(8), m(0))
     }
     /** Horizon or Twilight: the two sets of the app's own colours (they differ only in the night tint). */
-    private fun hzFamily() = colours == "horizon" || colours == "twilight"
+    private fun hzFamily() = colours == "horizon" || colours == "twilight" || colours == "moonlight"
+    private fun moonlight() = colours == "moonlight"
     private fun twilight() = colours == "twilight"
     /** The ground's two ends: Twilight from a deep violet-blue to a pale lavender; Horizon the same brightness in slate blue with a touch of purple. */
     private fun landDark() = if (twilight()) 0x3A4260 else 0x3D4662
     private fun landLight() = if (twilight()) 0xE6EBFF else 0xEAEFFB
     /** The ground: from deep (0%) to pale (100%), before the night light dims it. */
-    private fun hzLand(): String = mix(landDark(), landLight(), hzBright / 100.0)
+    private fun hzLand(): String = if (moonlight()) MOON_LAND else mix(landDark(), landLight(), hzBright / 100.0)
     /** The buildings: the ground's colour taken towards white (Twilight) or a very pale slate blue (Horizon) by the Buildings level. */
     private fun hzBuildings(): String {
+        if (moonlight()) return MOON_BUILDINGS
         val land = Integer.parseInt(hzLand().substring(1), 16)
         return mix(land, if (twilight()) 0xFFFFFF else 0xF2F5FC, 0.15 + 0.85 * hzBld / 100.0)
     }
     private var buildingsTinted = false
+
+    // ---- Moonlight at night: a lighter blue map, like Google Maps at night, with the buildings softly glowing from within ----
+    // The ground and buildings are set before the light falls on them: under the softer, even light below, the ground comes out a
+    // mid navy and the buildings a brighter blue, their roofs lightest.
+    private val MOON_LAND = "#364F74"
+    private val MOON_BUILDINGS = "#78ACF0"
+
+    /**
+     * The glow: Mapbox's night light swapped for a softer, more even one (a strong pale-blue light all round, only a weak light from
+     * one side and no shadows), so the buildings look lit from inside instead of dark blocks with one lit side. Only for Moonlight
+     * at night; the map is loaded again when that ends (as it is for the buildings' colours), which brings Mapbox's own light back.
+     */
+    private fun moonGlow(st: Style) {
+        if (!moonlight() || satellite || !(lightPreset == "night" || lightPreset == "dusk")) return
+        try {
+            val lights = "[{\"id\":\"hz-moon-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#C8D2F0\",\"intensity\":0.55}}," +
+                "{\"id\":\"hz-moon-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#E6ECFF\",\"intensity\":0.3,\"direction\":[210,30],\"cast-shadows\":false}}]"
+            Value.fromJson(lights).value?.let { st.setStyleLights(it) }
+        } catch (e: Throwable) { /* not supported on this map: it just stays as Mapbox's night light */ }
+    }
     private fun horizonNightBuildings(): Boolean = hzFamily() && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
     /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
@@ -432,6 +454,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
             // the same with the original deeper purple-blue night
             "twilight" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", TwilightLut.BASE64) }
+            // a lighter blue night (its own ground and building colours and lights, below), on Horizon's gentle tint
+            "moonlight" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
         }
         buildingsTinted = !sat && horizonNightBuildings()
         if (buildingsTinted) { c.put("colorBuildings", hzBuildings()); c.put("colorLand", hzLand()) }
@@ -1853,6 +1877,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
+        moonGlow(st)
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
         addS(st, GeoJsonSource.Builder("dl-signals").featureCollection(empty()).build())

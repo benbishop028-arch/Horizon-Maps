@@ -83,6 +83,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Moonlight map colours: a new choice in Settings > Map look > Colours. At night the map is a lighter blue, like Google Maps at night, and the buildings are a brighter blue that looks softly lit from inside (a softer, even night light with no hard shadows). By day it's the same as Horizon.
 - Speed camera size: a slider in Settings > On the map > On your route, from 50% to 350%, to make the red speed camera badge on the map smaller or bigger (on the head unit, phone and Android Auto).
 - Twilight map colours: a new choice in Settings > Map look > Colours. It's the Horizon colours as they were, with the deeper purple-blue night.
 - Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
