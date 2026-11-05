@@ -202,7 +202,7 @@ internal val settingsIndex = listOf(
     SettingRef("Work", "Set or clear your work place", "Saved places", 7),
     SettingRef("Trip log", "Every drive, recorded when you park", "Trip log", 7),
     SettingRef("Speedometer and speed-limit sign", "Speed limit and speedometer size", "While driving", 10),
-    SettingRef("Colours", "Mapbox, Horizon, faded or grey", "The map", 0),
+    SettingRef("Colours", "Mapbox, Horizon, Twilight, faded or grey", "The map", 0),
     SettingRef("Text and button size", "The size of everything on screen", "Sizes", 10),
     SettingRef("Your places", "Your own labelled places: rename, reorder or remove", "Your places", 7),
 )

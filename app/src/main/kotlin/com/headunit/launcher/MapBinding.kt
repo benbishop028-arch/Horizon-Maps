@@ -317,7 +317,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** "full" (Standard in 3D), "lite" (Standard, flat, fewer labels) or "lightest" (Mapbox's classic 2D map). Settings > Map. */
     var mapDetail = "full"
         private set
-    /** "mapbox", "horizon" (the app's own soft colours), "faded" or "grey". Settings > Map. */
+    /** "mapbox", "horizon" (the app's own soft colours, slate blue at night), "twilight" (the same, with the original purple night), "faded" or "grey". Settings > Map. */
     private var colours = "mapbox"
     /** Whether the style has Standard's slots (classic styles don't: the app's layers then simply go on top). */
     private var slotsOn = true
@@ -346,7 +346,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     fun setColours(c: String) {
-        val v = if (c in setOf("mapbox", "horizon", "faded", "grey")) c else "mapbox"
+        val v = if (c in setOf("mapbox", "horizon", "twilight", "faded", "grey")) c else "mapbox"
         if (v == colours) return
         colours = v
         // the colours are part of how the map loads (and Horizon is a different base map), so it's loaded again
@@ -388,21 +388,26 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         fun m(s: Int) = Math.round(ch(a, s) + (ch(b, s) - ch(a, s)) * t).toInt().coerceIn(0, 255)
         return String.format("#%02X%02X%02X", m(16), m(8), m(0))
     }
-    /** The ground: from a deep blue-grey (0%) to near white (100%), before the night light dims it. */
-    private fun hzLand(): String = mix(0x3A4260, 0xE6EBFF, hzBright / 100.0)
-    /** The buildings: the ground's colour taken towards white by the Buildings setting (0% is only just lighter than the ground). */
+    /** Horizon or Twilight: the two sets of the app's own colours (they differ only in the night tint). */
+    private fun hzFamily() = colours == "horizon" || colours == "twilight"
+    private fun twilight() = colours == "twilight"
+    /** The ground's two ends: Twilight from a deep violet-blue to a pale lavender; Horizon the same brightness in slate blue with a touch of purple. */
+    private fun landDark() = if (twilight()) 0x3A4260 else 0x3D4662
+    private fun landLight() = if (twilight()) 0xE6EBFF else 0xEAEFFB
+    /** The ground: from deep (0%) to pale (100%), before the night light dims it. */
+    private fun hzLand(): String = mix(landDark(), landLight(), hzBright / 100.0)
+    /** The buildings: the ground's colour taken towards white (Twilight) or a very pale slate blue (Horizon) by the Buildings level. */
     private fun hzBuildings(): String {
-        val t = hzBright / 100.0
-        val land = (Math.round(0x3A + (0xE6 - 0x3A) * t).toInt() shl 16) or (Math.round(0x42 + (0xEB - 0x42) * t).toInt() shl 8) or Math.round(0x60 + (0xFF - 0x60) * t).toInt()
-        return mix(land, 0xFFFFFF, 0.15 + 0.85 * hzBld / 100.0)
+        val land = Integer.parseInt(hzLand().substring(1), 16)
+        return mix(land, if (twilight()) 0xFFFFFF else 0xF2F5FC, 0.15 + 0.85 * hzBld / 100.0)
     }
     private var buildingsTinted = false
-    private fun horizonNightBuildings(): Boolean = colours == "horizon" && !satellite && (lightPreset == "night" || lightPreset == "dusk")
+    private fun horizonNightBuildings(): Boolean = hzFamily() && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
     /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
      *  so satellite goes no darker than dusk. */
     private fun satLight(p: String): String = if (satellite && p == "night") "dusk"
-        else if (p == "night" && colours == "horizon" && hzLight == "dusk") "dusk" else p
+        else if (p == "night" && hzFamily() && hzLight == "dusk") "dusk" else p
 
     /** One of Standard's settings (only once a style is showing; they're also written into the style when it loads). */
     private fun setBase(key: String, v: Value) {
@@ -414,7 +419,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun baseConfig(): org.json.JSONObject {
         val sat = (wantedStyle ?: "") == Style.STANDARD_SATELLITE
         val c = org.json.JSONObject()
-        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else if (!sat && lightPreset == "night" && colours == "horizon" && hzLight == "dusk") "dusk" else lightPreset)
+        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else if (!sat && lightPreset == "night" && hzFamily() && hzLight == "dusk") "dusk" else lightPreset)
         // shop and place labels rest on the light map and (on the full map) while you're on the move: placing them is the costly part
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
@@ -425,6 +430,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             "grey" -> c.put("theme", "monochrome")
             // Mapbox's own colours with a gentle purple-blue hint (mostly at night), from a colour look-up table
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
+            // the same with the original deeper purple-blue night
+            "twilight" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", TwilightLut.BASE64) }
         }
         buildingsTinted = !sat && horizonNightBuildings()
         if (buildingsTinted) { c.put("colorBuildings", hzBuildings()); c.put("colorLand", hzLand()) }
@@ -1691,7 +1698,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val dayLook = !nightStyle
         bubImgs.clear(); laneImgs.clear()
         // the classic map in the Horizon colours
-        if (!slotsOn && (colours == "horizon" || recolourBase)) try { recolourClassic(st) } catch (e: Throwable) { }
+        if (!slotsOn && (hzFamily() || recolourBase)) try { recolourClassic(st) } catch (e: Throwable) { }
         // Standard's newer settings are set once it's loaded (so a style that doesn't know one can't stop the map loading)
         if (!satellite) {
             setBase("show3dTrees", Value.valueOf(treesOn)); setBase("showLandmarkIcons", Value.valueOf(!lite))
@@ -1942,7 +1949,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // the Horizon colours' own 3D buildings
             try {
                 if (st.styleLayerExists("dl-building-3d")) st.setStyleLayerProperty("dl-building-3d", "visibility", Value.valueOf(if (b3d) "visible" else "none"))
-                else if (b3d && colours == "horizon") recolourClassic(st)
+                else if (b3d && hzFamily()) recolourClassic(st)
             } catch (e: Throwable) { }
         }
     }

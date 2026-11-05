@@ -19,6 +19,9 @@ import androidx.car.app.model.Template
 import androidx.car.app.navigation.model.NavigationTemplate
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.headunit.launcher.LL
 import com.headunit.launcher.MapBinding
 import com.headunit.launcher.MapboxRest
@@ -72,6 +75,8 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
     private var routeShown: List<LL>? = null
     private var dark: Boolean? = null
     private var running = false
+    /** The map needs a lifecycle to attach to (there's no activity on the driver's display): without it, it crashed the app. */
+    private val owner = CarComposeOwner()
 
     private val prefs: Prefs get() = Prefs(carContext.applicationContext)
 
@@ -107,6 +112,10 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
             root.addView(m.mapView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             root.addView(m.roadView, FrameLayout.LayoutParams(1, 1))
             root.addView(m.locatorView, FrameLayout.LayoutParams(1, 1))
+            owner.start()
+            root.setViewTreeLifecycleOwner(owner)
+            root.setViewTreeSavedStateRegistryOwner(owner)
+            root.setViewTreeViewModelStoreOwner(owner)
             p.setContentView(root)
             p.show()
             try { m.mapView.onStart() } catch (e: Throwable) { }
@@ -179,6 +188,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
         try { map?.mapView?.onDestroy() } catch (e: Throwable) { }
         try { presentation?.dismiss() } catch (e: Throwable) { }
         try { display?.release() } catch (e: Throwable) { }
+        try { owner.stop() } catch (e: Throwable) { }
         map = null; presentation = null; display = null
     }
 }
