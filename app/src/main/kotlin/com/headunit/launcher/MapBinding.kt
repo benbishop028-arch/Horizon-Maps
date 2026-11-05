@@ -343,6 +343,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // the real 3D arrow only shows on the full map
             if (style != null) reinstall()
         }
+        shadedCheck()
     }
 
     fun setColours(c: String) {
@@ -369,6 +370,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         setBase("lightPreset", Value.valueOf(satLight(p)))
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
+        recolourShaded()
         if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
@@ -377,20 +379,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * The Horizon theme at night and dusk: buildings a soft lavender-blue, a step lighter than the ground, rather than the same dark
      * shade as it (walls and roofs still take the map's light and shadow). Day keeps Mapbox's own building colours.
      */
-    // Horizon at night, set by eye in Settings > Map look > Horizon at night: the light (Mapbox's "dusk" is softer and brighter, with
-    // a gentle glow; "night" dims everything a lot more), how light the ground is, and how much lighter than it the buildings are
-    private var hzLight = "dusk"
-    private var hzBright = 60
-    private var hzBld = 40
-
-    fun setHorizonNight(light: String, bright: Int, bld: Int) {
-        val l = if (light == "night") "night" else "dusk"
-        val br = bright.coerceIn(0, 100); val bd = bld.coerceIn(0, 100)
-        if (l == hzLight && br == hzBright && bd == hzBld) return
-        hzLight = l; hzBright = br; hzBld = bd
-        setBase("lightPreset", Value.valueOf(satLight(lightPreset)))
-        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
-    }
+    // Horizon at night (chosen by eye on the head unit): Mapbox's night light, the ground at 60% of the way from a deep blue-grey to
+    // near white, and the buildings as far towards white as they go, so they stand out lighter than the ground
+    private val hzLight = "night"
+    private val hzBright = 60
+    private val hzBld = 100
 
     private fun mix(a: Int, b: Int, t: Double): String {
         fun ch(x: Int, s: Int) = (x shr s) and 0xFF
@@ -435,6 +428,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // Mapbox's own colours with a gentle purple-blue hint (mostly at night), from a colour look-up table
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
         }
+        if (!sat && shadedActive()) c.put("show3dBuildings", false)
         buildingsTinted = !sat && horizonNightBuildings()
         if (buildingsTinted) { c.put("colorBuildings", hzBuildings()); c.put("colorLand", hzLand()) }
         return c
@@ -1041,6 +1035,67 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** (Standard Satellite has its own imagery, so this is no longer used.) */
     @Volatile var satTiles: String? = null
 
+
+    // ---- Horizon's shaded buildings (Settings > Map look > 3D > Shaded buildings) ----
+    /** Asked for in Settings; drawn only with the Horizon colours, 3D buildings on and the full map (not satellite, not Lite). */
+    private var shadedWanted = false
+    private fun shadedActive(): Boolean = shadedWanted && colours == "horizon" && !satellite && buildings3d && mapDetail == "full"
+
+    fun setShadedBuildings(on: Boolean) {
+        if (on == shadedWanted) return
+        shadedWanted = on
+        // Mapbox's own buildings are hidden or shown again as part of how the map loads, so it's loaded again (a settings change)
+        if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) }
+    }
+
+    private fun isNightLight() = lightPreset == "night" || lightPreset == "dusk"
+
+    /**
+     * Each building's colour: one of five slightly different shades (picked by the building's id, so neighbours differ but a building
+     * keeps its shade), lighter the taller it is. Day: soft blue-greys close to the map's own buildings; night: lavender blues.
+     */
+    private fun shadedColour(night: Boolean): String {
+        val pal = if (night) listOf("#4F5680" to "#737CAB", "#565D89" to "#7981B1", "#4B5279" to "#6D75A2", "#5B6391" to "#7F88B9", "#525980" to "#767EA9")
+            else listOf("#D3D7E2" to "#E8EBF2", "#CCD1DD" to "#E2E6EE", "#D8DBE4" to "#EDEFF4", "#C8CDDA" to "#DEE2EB", "#D0D4DF" to "#E5E8EF")
+        fun interp(p: Pair<String, String>) = "[\"interpolate\",[\"linear\"],[\"to-number\",[\"get\",\"height\"],8],5,\"${p.first}\",60,\"${p.second}\"]"
+        val arms = pal.withIndex().joinToString(",") { (i, p) -> "$i,${interp(p)}" }
+        return "[\"match\",[\"%\",[\"to-number\",[\"id\"],0],5],$arms,${interp(pal[0])}]"
+    }
+
+    /** A soft glow at night: the buildings partly light themselves, rather than being dimmed right down by the night light. */
+    private fun shadedGlow(night: Boolean) = if (night) 0.45 else 0.0
+
+    /** Whether the map now showing was loaded with the shaded buildings. */
+    private var shadedLoaded = false
+
+    /** After a change to the map's detail or 3D buildings: load the map again if the shaded buildings should now come or go. */
+    private fun shadedCheck() {
+        if (shadedWanted && shadedActive() != shadedLoaded && isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) }
+    }
+
+    private fun installShadedBuildings(st: Style) {
+        shadedLoaded = shadedActive()
+        if (!shadedActive()) return
+        try {
+            addL(st, FillExtrusionLayer("dl-hzbld", "dl-streets").sourceLayer("building").inSlot(MID).minZoom(15.0)
+                .filter(Expression.fromRaw("[\"all\",[\"!=\",[\"get\",\"extrude\"],\"false\"],[\"!=\",[\"get\",\"underground\"],\"true\"]]"))
+                .fillExtrusionColor(Expression.fromRaw(shadedColour(isNightLight())))
+                .fillExtrusionHeight(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],15,0,15.6,[\"to-number\",[\"get\",\"height\"],8]]"))
+                .fillExtrusionBase(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],15,0,15.6,[\"to-number\",[\"get\",\"min_height\"],0]]"))
+                .fillExtrusionVerticalGradient(true).fillExtrusionAmbientOcclusionIntensity(0.35)
+                .fillExtrusionEmissiveStrength(shadedGlow(isNightLight())))
+        } catch (e: Throwable) { }
+    }
+
+    /** Day to night (or back): the shaded buildings' colours and glow follow. */
+    private fun recolourShaded() {
+        val st = style ?: return
+        try {
+            if (!st.styleLayerExists("dl-hzbld")) return
+            st.setStyleLayerProperty("dl-hzbld", "fill-extrusion-color", Value.fromJson(shadedColour(isNightLight())).value ?: return)
+            st.setStyleLayerProperty("dl-hzbld", "fill-extrusion-emissive-strength", Value.valueOf(shadedGlow(isNightLight())))
+        } catch (e: Throwable) { }
+    }
 
     /**
      * The roads on screen, for snapping your position to the road while off-route (any time) and placing guessed street lamps
@@ -1855,6 +1910,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
+        installShadedBuildings(st)
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
         addS(st, GeoJsonSource.Builder("dl-signals").featureCollection(empty()).build())
@@ -1954,6 +2010,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 else if (b3d && colours == "horizon") recolourClassic(st)
             } catch (e: Throwable) { }
         }
+        if (!satChanged) shadedCheck()
     }
 
     /** The style the map should show: Standard, or Standard Satellite when satellite is on. */

@@ -268,13 +268,6 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
             "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
-    // the Horizon theme at night, set by eye (the map changes as the sliders move)
-    if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "horizon") SGroup("Horizon at night") {
-        SChoice("Night light", listOf("night" to "Night", "dusk" to "Dusk"), prefs.s(PreferenceKeys.HZ_NIGHT_LIGHT, "dusk"),
-            "Dusk is a softer, brighter light with a gentle glow, like Google's night map") { prefs.put(PreferenceKeys.HZ_NIGHT_LIGHT, it) }
-        SSlider("Map brightness", prefs.i(PreferenceKeys.HZ_NIGHT_BRIGHT, 60).toFloat(), 0f..100f, "%", sub = "The ground and roads", steps = 19, reset = 60f, live = true) { prefs.put(PreferenceKeys.HZ_NIGHT_BRIGHT, it) }
-        SSlider("Buildings", prefs.i(PreferenceKeys.HZ_NIGHT_BLD, 40).toFloat(), 0f..100f, "%", sub = "How much lighter than the ground", steps = 19, reset = 40f, live = true) { prefs.put(PreferenceKeys.HZ_NIGHT_BLD, it) }
-    }
     SGroup("3D view", footer = "30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.") {
         STilt("Tilt on a wide screen", "Landscape head units. Higher shows further ahead (more for a slow unit to draw)", prefs, PreferenceKeys.TILT_WIDE)
         STilt("Tilt on a tall screen", "Portrait screens and phones", prefs, PreferenceKeys.TILT_TALL)
@@ -282,6 +275,8 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
+        if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "horizon" && prefs.b("buildings3d", true))
+            SToggle(prefs, "Shaded buildings", PreferenceKeys.HZ_SHADED, false, "Horizon colours: each building a slightly different shade, lighter the taller it is, with a soft glow at night. Uses the full map; replaces the detailed building fronts")
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")

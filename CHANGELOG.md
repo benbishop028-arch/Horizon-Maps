@@ -82,6 +82,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Shaded buildings: a switch in Settings > Map look > 3D, with the Horizon colours. Each building is one of several slightly different shades, lighter the taller it is, with soft shadows at the base and a soft glow at night, like Google Maps. It uses the full map, and replaces Mapbox's detailed building fronts while it's on. Off to start with.
 - Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
 - Lorry check: with Lorry chosen, the route choice checks the height, weight, width and length limits along the whole route in the background and says "no limits under your lorry" or which it found (e.g. "1 low bridge (3.9 m)").
 - Lorry parks: a "+ Lorry park" stop on the route options, and Lorry parks in place of Parking on the map page, finding lorry parks and services that take lorries (from OpenStreetMap), with opening hours, spaces and showers where mapped.
@@ -111,7 +112,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
-- Horizon theme at night: a softer, brighter "dusk" light with a gentle glow, and buildings a step lighter than the ground instead of the same shade. Settings > Map look > Horizon at night sets the light (Dusk or Night), the map's brightness and how much the buildings stand out, and the map changes as you move them. Day keeps its own colours.
+- Horizon theme at night: buildings now stand out lighter than the ground instead of being the same shade, on the phone, head unit and Android Auto. Day keeps its own colours.
 - Parking at your destination: the car parks offered near the end of a trip now show their price, opening hours and spaces where OpenStreetMap has them.
 - Your car on the phone: the phone now remembers where you parked at the end of any drive (not only after Android Auto), and the "Your car" card offers Walk back once you've walked away from it.
 - "Hey Google, navigate to …" on Android Auto: a place asked for by name or address now starts its route to the top result by itself (the route choice shows where to, with Cancel), instead of leaving a list to tap while driving.
