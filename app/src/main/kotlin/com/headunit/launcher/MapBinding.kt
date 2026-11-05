@@ -367,9 +367,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (p == lightPreset) return
         lightPreset = p
         setBase("lightPreset", Value.valueOf(satLight(p)))
+        moonGlowShow()
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
-        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true; style?.let { moonGlow(it) } }
+        if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
 
@@ -396,7 +397,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun landDark() = if (twilight()) 0x3A4260 else 0x3D4662
     private fun landLight() = if (twilight()) 0xE6EBFF else 0xEAEFFB
     /** The ground: from deep (0%) to pale (100%), before the night light dims it. */
-    private fun hzLand(): String = if (moonlight()) MOON_LAND else mix(landDark(), landLight(), hzBright / 100.0)
+    private fun hzLand(): String = mix(landDark(), landLight(), hzBright / 100.0)
     /** The buildings: the ground's colour taken towards white (Twilight) or a very pale slate blue (Horizon) by the Buildings level. */
     private fun hzBuildings(): String {
         if (moonlight()) return MOON_BUILDINGS
@@ -405,27 +406,34 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
     private var buildingsTinted = false
 
-    // ---- Moonlight at night: a lighter blue map, like Google Maps at night, with the buildings softly glowing from within ----
-    // The ground and buildings are set before the light falls on them: under the softer, even light below, the ground comes out a
-    // mid navy and the buildings a brighter blue, their roofs lightest.
-    // (first try: a far stronger light, which made the whole map, grass included, much too bright. Now the light is about as strong
-    // as Mapbox's own night light, so the grass and everything else keep Horizon's night brightness, and only the ground and
-    // buildings take Moonlight's blues)
-    private val MOON_LAND = "#6B8AAC"
-    private val MOON_BUILDINGS = "#AAEBFF"
+    // ---- Moonlight at night: Horizon's night exactly (same light, ground, grass, roads), with the buildings softly glowing ----
+    // (first tries changed Mapbox's night light to make the buildings glow, but that light falls on everything, so the whole map
+    // came out far too bright. Mapbox's buildings can't light up by themselves, and Horizon's are already as light as their colour
+    // goes, so the glow is the app's own: a soft blue haze on the ground round each building, as if light spills out of it, under
+    // Mapbox's own buildings, which keep their detailed fronts)
+    /** Moonlight's buildings: as light as Horizon's, a clearer blue. */
+    private val MOON_BUILDINGS = "#D6E4FF"
 
-    /**
-     * The glow: Mapbox's night light swapped for a softer, more even one (a soft blue light all round, only a very weak light from
-     * one side and no shadows), so the buildings look lit from inside instead of dark blocks with one lit side. Only for Moonlight
-     * at night; the map is loaded again when that ends (as it is for the buildings' colours), which brings Mapbox's own light back.
-     */
+    private fun moonNight() = moonlight() && !satellite && (lightPreset == "night" || lightPreset == "dusk")
+
+    /** The glow: each building's outline drawn as a wide, soft, self-lit blue line on the ground (close in only, at night). */
     private fun moonGlow(st: Style) {
-        if (!moonlight() || satellite || !(lightPreset == "night" || lightPreset == "dusk")) return
+        if (!moonlight() || satellite) return
         try {
-            val lights = "[{\"id\":\"hz-moon-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#8C9EDA\",\"intensity\":0.42}}," +
-                "{\"id\":\"hz-moon-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#E6ECFF\",\"intensity\":0.08,\"direction\":[210,30],\"cast-shadows\":false}}]"
-            Value.fromJson(lights).value?.let { st.setStyleLights(it) }
-        } catch (e: Throwable) { /* not supported on this map: it just stays as Mapbox's night light */ }
+            addL(st, LineLayer("dl-moonglow", "dl-streets").sourceLayer("building").inSlot("bottom").minZoom(15.0)
+                .filter(Expression.fromRaw("[\"!=\",[\"get\",\"underground\"],\"true\"]"))
+                .lineColor("#7FA6FF").lineEmissiveStrength(1.0)
+                .lineOpacity(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],15,0,15.6,0.55]"))
+                .lineWidth(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
+                .lineBlur(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
+                .visibility(if (moonNight()) Visibility.VISIBLE else Visibility.NONE))
+        } catch (e: Throwable) { }
+    }
+
+    /** Day to night (or back): the glow comes and goes with it. */
+    private fun moonGlowShow() {
+        val st = style ?: return
+        try { if (st.styleLayerExists("dl-moonglow")) st.setStyleLayerProperty("dl-moonglow", "visibility", Value.valueOf(if (moonNight()) "visible" else "none")) } catch (e: Throwable) { }
     }
     private fun horizonNightBuildings(): Boolean = hzFamily() && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
