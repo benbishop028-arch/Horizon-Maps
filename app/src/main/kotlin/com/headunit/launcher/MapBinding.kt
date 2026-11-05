@@ -408,19 +408,22 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // ---- Moonlight at night: a lighter blue map, like Google Maps at night, with the buildings softly glowing from within ----
     // The ground and buildings are set before the light falls on them: under the softer, even light below, the ground comes out a
     // mid navy and the buildings a brighter blue, their roofs lightest.
-    private val MOON_LAND = "#364F74"
-    private val MOON_BUILDINGS = "#78ACF0"
+    // (first try: a far stronger light, which made the whole map, grass included, much too bright. Now the light is about as strong
+    // as Mapbox's own night light, so the grass and everything else keep Horizon's night brightness, and only the ground and
+    // buildings take Moonlight's blues)
+    private val MOON_LAND = "#6B8AAC"
+    private val MOON_BUILDINGS = "#AAEBFF"
 
     /**
-     * The glow: Mapbox's night light swapped for a softer, more even one (a strong pale-blue light all round, only a weak light from
+     * The glow: Mapbox's night light swapped for a softer, more even one (a soft blue light all round, only a very weak light from
      * one side and no shadows), so the buildings look lit from inside instead of dark blocks with one lit side. Only for Moonlight
      * at night; the map is loaded again when that ends (as it is for the buildings' colours), which brings Mapbox's own light back.
      */
     private fun moonGlow(st: Style) {
         if (!moonlight() || satellite || !(lightPreset == "night" || lightPreset == "dusk")) return
         try {
-            val lights = "[{\"id\":\"hz-moon-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#C8D2F0\",\"intensity\":0.55}}," +
-                "{\"id\":\"hz-moon-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#E6ECFF\",\"intensity\":0.3,\"direction\":[210,30],\"cast-shadows\":false}}]"
+            val lights = "[{\"id\":\"hz-moon-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#8C9EDA\",\"intensity\":0.42}}," +
+                "{\"id\":\"hz-moon-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#E6ECFF\",\"intensity\":0.08,\"direction\":[210,30],\"cast-shadows\":false}}]"
             Value.fromJson(lights).value?.let { st.setStyleLights(it) }
         } catch (e: Throwable) { /* not supported on this map: it just stays as Mapbox's night light */ }
     }
