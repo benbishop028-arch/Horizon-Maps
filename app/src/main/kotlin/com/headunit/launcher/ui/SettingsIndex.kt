@@ -30,6 +30,7 @@ internal val settingsIndex = listOf(
     SettingRef("Traffic lights", "", "On your route", 1),
     SettingRef("Number-plate cameras", "Flock / ALPR cameras on the map", "On your route", 1),
     SettingRef("Speed cameras and roadworks", "", "On your route", 1),
+    SettingRef("Speed camera size", "Make the red camera badge on the map bigger or smaller", "On your route", 1),
     SettingRef("Zebra crossings", "Painted on the road with beacons", "On your route", 1),
     SettingRef("Stop signs", "Stop signs on your route, with a chime", "On your route", 1),
     SettingRef("3D street lamps, traffic lights and cameras", "Real 3D models", "3D street furniture", 1),

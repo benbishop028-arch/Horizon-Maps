@@ -177,6 +177,8 @@ internal object PreferenceKeys {
     const val ALPR_CAMS = "alprcams"
     /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
     const val CLUSTER_MAP = "clustermap"
+    /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */
+    const val CAM_SIZE = "camsize"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

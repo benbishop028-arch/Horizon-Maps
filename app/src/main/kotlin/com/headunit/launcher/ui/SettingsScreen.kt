@@ -302,6 +302,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
     SGroup("On your route") {
         SToggle(prefs, "Traffic lights", "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) "Only the ones on your route. Now: " + engine.map.signalInfo() else null)
         SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true, "Their icons on the map. The warnings are in Settings > Alerts")
+        if (prefs.b("hazardicons", true)) SPercent("Speed camera size", "The red camera badge on the map", prefs, PreferenceKeys.CAM_SIZE, 50, 350)
         SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
         SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
         SToggle(prefs, "Number-plate cameras", PreferenceKeys.ALPR_CAMS, true, "Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts")
@@ -468,6 +469,25 @@ private fun STilt(title: String, sub: String, prefs: Prefs, key: String) {
         androidx.compose.material3.Slider(
             value = v, onValueChange = { v = it; moving = true }, onValueChangeFinished = { prefs.put(key, v.roundToInt().coerceIn(30, 65)) },
             valueRange = 30f..65f, steps = 34,
+            colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = c.accent, inactiveTrackColor = c.tile),
+        )
+    }
+}
+
+/** A size in percent with a slider ([min] to [max], in steps of 10), and Reset back to 100%. Saved when you let go. */
+@Composable
+private fun SPercent(title: String, sub: String, prefs: Prefs, key: String, min: Int, max: Int) {
+    val c = LocalVw.current
+    val saved = prefs.i(key, 100).coerceIn(min, max)
+    var v by remember(key, saved) { mutableStateOf(saved.toFloat()) }
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+        SItem(title, sub) {
+            Text("${v.roundToInt()}%", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            if (saved != 100) SButton("Reset") { prefs.put(key, 100) }
+        }
+        androidx.compose.material3.Slider(
+            value = v, onValueChange = { v = (it / 10f).roundToInt() * 10f }, onValueChangeFinished = { prefs.put(key, v.roundToInt().coerceIn(min, max)) },
+            valueRange = min.toFloat()..max.toFloat(), steps = (max - min) / 10 - 1,
             colors = androidx.compose.material3.SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = c.accent, inactiveTrackColor = c.tile),
         )
     }

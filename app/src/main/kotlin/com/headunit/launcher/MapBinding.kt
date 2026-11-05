@@ -1884,10 +1884,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-cams", "dl-cams")
             .iconImage("dl-hz-cam").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
-            .iconSize(zoomed(1.0, 8 to 0.36, 12 to 0.44, 15 to 0.68, 18 to 0.9)))
+            .iconSize(Expression.fromRaw(camsSize())))
         addL(st, SymbolLayer("dl-hazards", "dl-hazards")
             .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
-            .iconSize(zoomed(1.0, 11 to 0.45, 15 to 0.75, 18 to 1.0)))
+            .iconSize(Expression.fromRaw(HAZ_SIZE)))
         // where you parked (on the phone, after Android Auto disconnects)
         addImg(st, "dl-car-pin", parkedBitmap())
         addS(st, GeoJsonSource.Builder("dl-parked").featureCollection(FeatureCollection.fromFeatures(
@@ -2339,16 +2339,43 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     private var hazards: List<Pair<LL, Int>> = emptyList()
+    /** The route's badges' size by zoom, times each one's own scale ("sc": the camera size setting for speed cameras, 1 for the rest). */
+    private val HAZ_SIZE = "[\"interpolate\",[\"linear\"],[\"zoom\"]," +
+        listOf(11 to 0.45, 15 to 0.75, 18 to 1.0).joinToString(",") { (z, v) -> "$z,[\"*\",$v,[\"coalesce\",[\"get\",\"sc\"],1]]" } + "]"
     /** Map icons by kind: camera, roadworks, closure, police, accident, hazard, breakdown, mobile camera. */
     private val hazardNames = arrayOf("dl-hz-cam", "dl-hz-work", "dl-hz-closed", "dl-hz-police", "dl-hz-accident", "dl-hz-hazard", "dl-hz-breakdown", "dl-hz-mobilecam")
 
     /** Icons for speed cameras (0), roadworks (1) and closures (2) along the route. */
     fun setHazards(list: List<Pair<LL, Int>>) { hazards = list; pushHazards() }
 
+    // ---- the speed camera badge's size (Settings > Map look > On your route > Speed camera size): 50% to 350% ----
+    private var camScale = 1.0
+    fun setCameraSize(pct: Int) {
+        val v = pct.coerceIn(50, 350) / 100.0
+        if (v == camScale) return
+        val before = camDetail()
+        camScale = v
+        val st = style ?: return
+        if (camDetail() != before) addImg(st, "dl-hz-cam", cameraBitmap())
+        try { if (st.styleLayerExists("dl-cams")) Value.fromJson(camsSize()).value?.let { st.setStyleLayerProperty("dl-cams", "icon-size", it) } } catch (e: Throwable) { }
+        pushHazards()
+    }
+    /** How many times over the camera badge is drawn: twice over (for sharpness) once it's set above 150%. */
+    private fun camDetail() = if (camScale > 1.5) 2 else 1
+    /** Every camera around you: the badge's size by zoom, times the setting. */
+    private fun camsSize(): String {
+        fun f(x: Double) = String.format(java.util.Locale.US, "%.3f", x * camScale)
+        return "[\"interpolate\",[\"linear\"],[\"zoom\"],8,${f(0.36)},12,${f(0.44)},15,${f(0.68)},18,${f(0.9)}]"
+    }
+
     private fun pushHazards() {
         val s = src("dl-hazards") ?: return
         val fs = hazards.map { (p, k) ->
-            Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", hazardNames[k.coerceIn(0, hazardNames.size - 1)]) }
+            Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also {
+                it.addStringProperty("img", hazardNames[k.coerceIn(0, hazardNames.size - 1)])
+                // the speed camera badge follows the size setting; roadworks, closures and reports stay as they are
+                it.addNumberProperty("sc", if (k == 0) camScale else 1.0)
+            }
         }
         s.featureCollection(FeatureCollection.fromFeatures(fs))
     }
@@ -2359,8 +2386,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      */
     private fun cameraBitmap(): Bitmap {
         val n = 136
-        val bmp = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888)
+        // drawn with extra pixels when the size setting makes it big (the same size on the map, but sharp rather than blurry)
+        val k = camDetail()
+        val bmp = Bitmap.createBitmap(n * k, n * k, Bitmap.Config.ARGB_8888)
+        if (k > 1) bmp.density = bmp.density * k
         val c = Canvas(bmp)
+        c.scale(k.toFloat(), k.toFloat())
         val cx = n / 2f
         fun p(col: Int, st: Paint.Style = Paint.Style.FILL, w: Float = 0f) = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col; style = st; strokeWidth = w }
         // a soft shadow under it
