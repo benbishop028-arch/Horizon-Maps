@@ -9,7 +9,6 @@ internal val settingsIndex = listOf(
     SettingRef("Day starts at", "", "Day and night", 0),
     SettingRef("Map source", "", "The map", 0),
     SettingRef("Map detail", "Full 3D, Lite or Lightest", "The map", 0),
-    SettingRef("Shaded buildings", "Horizon colours: buildings in different shades, with a soft glow at night", "3D", 0),
     SettingRef("Default zoom", "Your normal zoom when not on a route, and reset", "The map", 0),
     SettingRef("Footpaths and trails", "Turn off for a cleaner driving map", "The map", 0),
     SettingRef("Glass panels", "See-through cards tinted by the map. Off gives solid cards", "The map", 0),

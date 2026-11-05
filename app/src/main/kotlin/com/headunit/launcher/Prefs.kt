@@ -181,8 +181,6 @@ internal object PreferenceKeys {
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */
     const val SPEED_POS_CAR = "speedposcar"
-    /** Horizon colours: the app's own shaded 3D buildings (each a slightly different shade, a soft glow at night) instead of Mapbox's. */
-    const val HZ_SHADED = "hzshaded"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
     /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */

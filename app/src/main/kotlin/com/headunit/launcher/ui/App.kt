@@ -140,8 +140,6 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(mapDetail) { map.setMapDetail(mapDetail) }
     val mapColours = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
     LaunchedEffect(mapColours) { map.setColours(mapColours) }
-    val shaded = prefs.b(PreferenceKeys.HZ_SHADED, false)
-    LaunchedEffect(shaded) { map.setShadedBuildings(shaded) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
     LaunchedEffect(logoCorner) { map.setLogoCorner(logoCorner) }
     // (off unless chosen: with it on, traffic on the roads round you vanished as soon as a route started, which looked like a bug)

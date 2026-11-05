@@ -275,8 +275,6 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
-        if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "horizon" && prefs.b("buildings3d", true))
-            SToggle(prefs, "Shaded buildings", PreferenceKeys.HZ_SHADED, false, "Horizon colours: each building a slightly different shade, lighter the taller it is, with a soft glow at night. Uses the full map; replaces the detailed building fronts")
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")
