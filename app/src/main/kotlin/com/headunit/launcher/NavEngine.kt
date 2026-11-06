@@ -1876,7 +1876,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         turnArrowKey = -1; map.setTurnArrow(emptyList())
         clearLiveAlts(); liveSaid.clear(); radar = emptyList(); radarSig = 0; bendsFor = null; bends = emptyList()
         flushRoads()
-        sessionAvoid.clear(); closuresAvoided.clear(); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
+        sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
         map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
@@ -3727,11 +3727,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      */
     fun findAlternatives() {
         val r = route ?: return
-        if (previewing || altBusy) return
-        toast("Looking for other routes…", 2500)
+        if (previewing) return
+        // the routes box opens at once (with "Looking for other routes" until they come)
+        altListOpen = true
+        if (altBusy) return
+        altSearching = true
         checkFaster(r, Double.MAX_VALUE, force = true)
     }
     @Volatile private var altBusy = false
+    /** The routes box beside the Other routes button: open, and still looking. */
+    var altListOpen by mutableStateOf(false)
+    var altSearching by mutableStateOf(false)
 
     /**
      * Every couple of minutes while driving, asks for fresh routes: the other ways stay on the map in grey with how they compare
@@ -3757,7 +3763,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // (both route services when there are keys for both, so there are more ways to choose from)
                 val rs = withContext(Dispatchers.IO) { netRoutes(f.pos, d.pos, true, 0L, viaPts, -1.0, false, askBoth = true) }
                 if (route !== cur) return@launch
-                if (rs.size < 2) { if (force) toast("No other routes right now", 3000); return@launch }
+                if (rs.size < 2) return@launch
                 // how much of each candidate runs along the road we are already following
                 fun overlap(r: Route): Double {
                     val s = r.pts.filterIndexed { i, _ -> i % 10 == 0 }
@@ -3773,7 +3779,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (route !== cur) return@launch
                     liveAlts = list
                     map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic })
-                    if (force) { if (list.isEmpty()) toast("No other routes right now", 3000) else showAlternatives(list.map { it.line() }) }
+                    if (force && list.isNotEmpty()) showAlternatives(list.map { it.line() })
                     val best = list.minByOrNull { it.diffMin }
                     if (best != null && best.diffMin <= -3 && liveSaid.add(best.diffMin / 2)) speak("A faster route is available, saving ${-best.diffMin} minutes. Tap it on the map to switch.", true)
                     return@launch
@@ -3788,7 +3794,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (faster === shown) { faster = null; lastFasterCheck = System.currentTimeMillis() + 300_000L }
                 }
             } catch (e: Exception) { if (force) toast("Couldn't look for other routes", 3000) }
-            finally { altBusy = false }
+            finally { altBusy = false; if (force) altSearching = false }
         }
     }
 
@@ -3892,6 +3898,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Switches to one of the grey alternatives on the map. */
     fun switchToAlt(i: Int) {
         val a = liveAlts.getOrNull(i) ?: return
+        altListOpen = false
         val old = route; val oldProg = curProgress
         routes = listOf(a.route); active = 0
         said.clear(); offCount = 0; lastIdx = 0; trustProg = -1.0; liveSaid.clear()
