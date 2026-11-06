@@ -179,6 +179,10 @@ internal object PreferenceKeys {
     const val CLUSTER_MAP = "clustermap"
     /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */
     const val CAM_SIZE = "camsize"
+    /** Custom map colours: the theme it started from, and the day and night changes (JSON, see [CustomLook]). */
+    const val CUSTOM_BASE = "custombase"
+    const val CUSTOM_DAY = "customday"
+    const val CUSTOM_NIGHT = "customnight"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

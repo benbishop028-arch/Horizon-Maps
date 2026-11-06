@@ -74,6 +74,7 @@ import com.headunit.launcher.NavEngine
 import com.headunit.launcher.OfflinePlaces
 import com.headunit.launcher.Place
 import com.headunit.launcher.Prefs
+import com.headunit.launcher.CustomLook
 import com.headunit.launcher.PreferenceKeys
 import com.headunit.launcher.mapSource
 import com.headunit.launcher.mapDetail
@@ -260,7 +261,18 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.mapSource() == "mapbox") {
             SChoice("Map detail", listOf("full" to "Full 3D", "lite" to "Lite", "lightest" to "Lightest"), prefs.mapDetail(),
                 "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
-            MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
+            MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { picked ->
+                val now = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
+                // Custom starts as the theme you had (nothing changes until you change something), unless you've made it your own before
+                if (picked == "custom" && now != "custom" &&
+                    CustomLook.parse(prefs.s(PreferenceKeys.CUSTOM_DAY, "")).isEmpty && CustomLook.parse(prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")).isEmpty
+                ) prefs.put(PreferenceKeys.CUSTOM_BASE, now)
+                prefs.put(PreferenceKeys.MAP_COLOURS, picked)
+            }
+            if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom")
+                SItem("Custom colours", "Choose each part of the map's colour, day and night, with the map showing as you go") {
+                    SButton("Edit") { CustomEditState.open = true }
+                }
         }
         DefaultZoomRow(prefs)
         SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
@@ -1192,9 +1204,10 @@ private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
         Triple("twilight", "Twilight", listOf(0xFFF1F0F5, 0xFFAAD4F5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE5E3EA)),
         Triple("faded", "Faded", listOf(0xFFF1F1F1, 0xFFD9E2EA, 0xFFE2E8DE, 0xFFFFFFFF, 0xFFE6E6E6)),
         Triple("grey", "Grey", listOf(0xFFE8E8E8, 0xFFCFCFCF, 0xFFDADADA, 0xFFFFFFFF, 0xFFD4D4D4)),
+        Triple("custom", "Custom", listOf(0xFF26304C, 0xFF2F6FB0, 0xFF3F7A5A, 0xFF8A93AE, 0xFFE0A84A)),
     )
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        SItem("Colours", "Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Day colours shown; each has a night version")
+        SItem("Colours", "Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Custom: choose your own. Day colours shown; each has a night version")
         Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             for ((id, name, cols) in sets) {
                 val sel = id == value

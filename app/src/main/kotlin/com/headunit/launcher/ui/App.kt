@@ -139,7 +139,13 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     val mapDetail = prefs.mapDetail()
     LaunchedEffect(mapDetail) { map.setMapDetail(mapDetail) }
     val mapColours = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
-    LaunchedEffect(mapColours) { map.setColours(mapColours) }
+    // Custom: the theme it started from, with the changes made in its editor on top
+    val customOn = mapColours == "custom"
+    val baseColours = if (customOn) prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapColours
+    LaunchedEffect(baseColours) { map.setColours(baseColours) }
+    val customDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
+    val customNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
+    LaunchedEffect(customOn, customDay, customNight) { map.setCustom(customOn, customDay, customNight) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     LaunchedEffect(camSize) { map.setCameraSize(camSize) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
@@ -241,6 +247,10 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                     // (setup asks for the key itself)
                     LaunchedEffect(Unit) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false) }
                     SetupScreen(prefs, engine) { settings = false }
+                } else if (settings && CustomEditState.open) {
+                    // the Custom colours editor: over the live map, so every change shows as it's made
+                    MapHost(map, Modifier.fillMaxSize())
+                    CustomEditor(prefs, map) { CustomEditState.open = false }
                 } else if (!settings && carOn && !phoneMap) {
                     // Android Auto is connected: the car screen has the map, so the phone shows the trip in brief
                     CarConnectedScreen(engine, onShowMap = { phoneMap = true }, onSettings = { settings = true })
