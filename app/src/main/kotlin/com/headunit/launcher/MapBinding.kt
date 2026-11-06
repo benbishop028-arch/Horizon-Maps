@@ -382,6 +382,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var glowWanted = false
     private var glowLevel = 0.6
 
+    /** Mapbox's detailed building fronts: as set, but not while the buildings glow (they're a layer of their own, and showed through the glowing buildings' corners). */
+    private fun facadesWanted() = facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail) && !glowNight()
+
     private fun glowNight() = glowWanted && !satellite && slotsOn && buildings3d && mapDetail == "full" && (lightPreset == "night" || lightPreset == "dusk")
 
     fun setGlowBuildings(on: Boolean) {
@@ -396,15 +399,29 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (v == glowLevel) return
         glowLevel = v
         val st = style ?: return
-        try { if (st.styleLayerExists("dl-glowbld")) st.setStyleLayerProperty("dl-glowbld", "fill-extrusion-emissive-strength", Value.valueOf(glowLevel)) } catch (e: Throwable) { }
+        try {
+            if (st.styleLayerExists("dl-glowbld")) st.setStyleLayerProperty("dl-glowbld", "fill-extrusion-emissive-strength", Value.valueOf(glowLevel))
+            if (st.styleLayerExists("dl-glowhalo")) st.setStyleLayerProperty("dl-glowhalo", "line-opacity", Value.valueOf(haloOpacity()))
+        } catch (e: Throwable) { }
     }
+
+    /** The soft light on the ground round each glowing building, stronger the stronger the glow. */
+    private fun haloOpacity() = 0.6 * glowLevel
 
     private fun installGlow(st: Style) {
         if (!glowWanted || satellite || !slotsOn) return
         try {
+            // the light spilling out round each building: its outline as a wide, soft, self-lit line on the ground
+            addL(st, LineLayer("dl-glowhalo", "dl-streets").sourceLayer("building").inSlot("bottom").minZoom(14.5)
+                .filter(Expression.fromRaw("[\"!=\",[\"get\",\"underground\"],\"true\"]"))
+                .lineColor("#6E95E6").lineEmissiveStrength(1.0).lineOpacity(haloOpacity())
+                .lineWidth(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
+                .lineBlur(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
+                .visibility(if (glowNight()) Visibility.VISIBLE else Visibility.NONE))
             addL(st, FillExtrusionLayer("dl-glowbld", "dl-streets").sourceLayer("building").inSlot(MID).minZoom(14.0)
                 .filter(Expression.fromRaw("[\"all\",[\"!=\",[\"get\",\"extrude\"],\"false\"],[\"!=\",[\"get\",\"underground\"],\"true\"]]"))
-                .fillExtrusionColor("#3E5A9A")
+                // (a lighter blue than first: at the 60% glow it comes out about the mockup's blue)
+                .fillExtrusionColor("#5A87D7")
                 .fillExtrusionHeight(Expression.fromRaw("[\"coalesce\",[\"get\",\"height\"],6]"))
                 .fillExtrusionBase(Expression.fromRaw("[\"coalesce\",[\"get\",\"min_height\"],0]"))
                 // shaded like Mapbox's own: soft shadow where walls meet the ground, no darkening down the walls
@@ -429,8 +446,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (!glowWanted || satellite || !slotsOn) return
         val on = glowNight()
         setBase("show3dBuildings", Value.valueOf(!on))
+        setBase("show3dFacades", Value.valueOf(facadesWanted()))
         val st = style ?: return
-        try { if (st.styleLayerExists("dl-glowbld")) st.setStyleLayerProperty("dl-glowbld", "visibility", Value.valueOf(if (on) "visible" else "none")) } catch (e: Throwable) { }
+        try {
+            for (id in listOf("dl-glowbld", "dl-glowhalo"))
+                if (st.styleLayerExists(id)) st.setStyleLayerProperty(id, "visibility", Value.valueOf(if (on) "visible" else "none"))
+        } catch (e: Throwable) { }
     }
 
     /**
@@ -792,7 +813,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         facadesOn = facades; landmarksOn = landmarks; pathsOn = paths; terrainOn = terrain; furnitureOn = furniture; clearOn = clear
         if (tapSelect != tapSelectOn) { tapSelectOn = tapSelect; if (!tapSelect) clearSelection() }
         main0.post {
-            setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("show3dFacades", Value.valueOf(facadesWanted()))
             setBase("show3dLandmarks", Value.valueOf(landmarksOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("showPedestrianRoads", Value.valueOf(pathsOn))
             if (rebuild && style != null) reinstall()
@@ -1768,7 +1789,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // lane markings, turn arrows, stop lines and 3D overpasses where Mapbox has them (Full 3D only)
             setBase("showHdRoads", Value.valueOf(MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             // detailed building fronts, landmark buildings, footpaths (Settings > Map)
-            setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("show3dFacades", Value.valueOf(facadesWanted()))
             setBase("show3dLandmarks", Value.valueOf(landmarksOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("showPedestrianRoads", Value.valueOf(pathsOn))
             // your destination's building is lit up in the app's blue as you get close
