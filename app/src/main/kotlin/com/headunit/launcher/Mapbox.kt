@@ -263,11 +263,28 @@ object MapboxRest {
      * Driving routes with live traffic (Mapbox's driving-traffic profile): the line, turn by turn (roundabout exits, motorway exits,
      * lanes), traffic along it, the speed limit of each stretch, and incidents on it. [leftHand]: driving on the left (for U-turn lanes).
      */
+    /** Points on closed roads to keep the route off (set before each route; see NavEngine's road closures). */
+    @Volatile var avoidPoints: List<LL> = emptyList()
+
     fun routes(token: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(),
                headingDeg: Double = -1.0, quick: Boolean = false, leftHand: Boolean = false): List<Route> {
+        val pts = avoidPoints.take(25)
+        if (pts.isEmpty()) return routesWith(token, from, to, alternatives, departAtMs, via, headingDeg, quick, leftHand, "")
+        val pex = pts.joinToString(",") { String.format(java.util.Locale.US, "point(%.6f %.6f)", it.lon, it.lat) }
+        // with the closed roads left out; if there's then no way at all (or Mapbox won't take them), as before
+        return try { routesWith(token, from, to, alternatives, departAtMs, via, headingDeg, quick, leftHand, pex) }
+        catch (e: IOException) {
+            val m = e.message ?: ""
+            if (m == "no signal" || m.startsWith("HTTP 401") || m.startsWith("HTTP 403") || m.startsWith("HTTP 429")) throw e
+            routesWith(token, from, to, alternatives, departAtMs, via, headingDeg, quick, leftHand, "")
+        }
+    }
+
+    private fun routesWith(token: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>,
+                           headingDeg: Double, quick: Boolean, leftHand: Boolean, pointEx: String): List<Route> {
         val pts = listOf(from) + via + listOf(to)
         val coords = pts.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }
-        val ex = excludes(TomTomRest.avoid)
+        val ex = listOf(excludes(TomTomRest.avoid), enc(pointEx)).filter { it.isNotEmpty() }.joinToString(",")
         val lang = java.util.Locale.getDefault().language.ifBlank { "en" }
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()

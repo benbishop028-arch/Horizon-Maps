@@ -45,6 +45,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Park
+import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.geometry.Offset
@@ -325,6 +326,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val railItems = ArrayList<@Composable () -> Unit>()
             railItems.add(@Composable { ImmCompass(engine) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = "Map options") })
+            // navigating: other ways to go, any time (as in Google Maps): shown in grey on the map with how they compare, tap one to switch
+            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = "Other routes") })
             if (!simple && (engine.prefs.b(PreferenceKeys.DEMO, false) || engine.simMode != 0)) railItems.add(@Composable { ImmIcon(Icons.Rounded.PlayArrow, { engine.cycleSim() }, active = engine.simMode != 0, desc = "Demo drive") })
             // zoom: hidden while the map is following you on the move (it zooms itself); back as soon as you touch or zoom the map, or
             // whenever you're stopped. (A little hysteresis on the speed, so it doesn't flicker at walking pace.)

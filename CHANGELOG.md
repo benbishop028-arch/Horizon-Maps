@@ -43,6 +43,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Routes through closed roads: a road closure on your route ahead now makes the route find a way round it, and known closures nearby are kept out of new routes (by TomTom, Mapbox and offline routes alike). A closure with no way round (the only road to where you're going) is still used.
+- Live alternatives not always showing: they're now looked for every 2 minutes (was 3), in slow traffic too (they were skipped under about 7 mph), up to the last 5 minutes of the trip (was 10), half a minute after a reroute, and from both route services when you have keys for both.
+- Android Auto split screen (GitHub #44): with Horizon Nav in the small part of the screen, only the right-hand part of the map showed, not centred, so the route and cards were out of view. The map now fits the part Android Auto gives it, and is laid out again when that part changes size.
+- Arrow turning off the road at lights (GitHub #42): slowing down, the GPS's direction swings about and the arrow turned into a car park or plaza beside the road until you moved off. It now keeps your last real direction and stays on the road down to a crawl.
 - Crash with the driver's display: on cars that show the map behind the steering wheel (seen on a Jaguar), the app could crash as soon as Android Auto started, because that map had nothing to tell it when to start and stop. It now has.
 - Fuel prices on Android Auto: euro and Australian prices showed as pence ("178.9p"); they now show the local way (€1.789, 189.9c).
 - Turn notification with Android Auto on: only the car screen updates it now, so it no longer flicks between two slightly different distances.
@@ -83,6 +87,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Other routes button: while navigating, a button on the map (under map options) shows the other ways to go any time, in grey with how they compare; tap one to switch. On Android Auto it's the first row in Settings, as a list you can pick from with a touch or the knob.
+- Roadworks and road closures round about (GitHub #45): with a TomTom key, roadworks and closures within about 7 km are shown on the map whether or not you're on a route, as Google Maps and Waze show them (before, only those on your route showed).
 - More map colours: Ember (warm and dark), Mono Night (greys, with only the route and warnings in colour), Forest, Arctic, High Contrast, Sepia, Neon, Pastel, and Match my car (a hint of your car's interior lighting colour, with how strong). In Settings > Map look > Colours.
 - Light and weather: a new group in Settings > Map look, with Night brightness, Moonlight at night (moved here) and its Moon strength, Shadows on or off, Sun in its real place (by day, light and shadows from where the sun really is), Overcast light (soft daylight, no hard shadows) and Weather light (greyer light when it's raining). Everything starts as before.
 - Moonlight at night: a switch in Settings > Map look > Light and weather. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.

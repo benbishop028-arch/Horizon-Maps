@@ -301,7 +301,11 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             val dm = carContext.getSystemService(DisplayManager::class.java)
             val vd = dm.createVirtualDisplay("HorizonNavCar", width, height, surfaceContainer.dpi, s, DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY)
             display = vd
-            val p = Presentation(carContext, vd.display)
+            // Android closes a presentation by itself when its screen changes size (Android Auto's split screen, going between the
+            // big and the small part): the map then wasn't redrawn for the new size. It's kept open instead, and simply laid out again
+            val p = object : Presentation(carContext, vd.display) {
+                override fun cancel() { if (closing) super.cancel() }
+            }
             // car screens have few pixels per inch for their size: drawn at the phone's own scale the map looked far too zoomed out
             // (and had to draw a huge area, which made it laggy), so it's drawn larger, like the app on a head unit
             val dens = p.context.resources.displayMetrics.density
@@ -356,7 +360,9 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
         try { com.headunit.launcher.CarDiag.screen = "${width}x$height, visible ${visibleArea.left},${visibleArea.top},${visibleArea.right},${visibleArea.bottom}" } catch (e: Exception) { }
         // some head units report a visible area that can't be right (a sliver of the screen, or one off the edge): going by it put
         // the arrow under the cards on the left. Then the whole screen is used, as when nothing is reported
-        val plausible = width <= 1 || height <= 1 || (visibleArea.width() >= width * 0.4 && visibleArea.height() >= height * 0.3 &&
+        // (a narrow part is real, though: Android Auto's split screen gives the app a narrow strip of a wide screen. Turning that
+        // down kept the map centred on the whole screen, with only its right-hand part showing, and the route and cards out of view)
+        val plausible = width <= 1 || height <= 1 || (visibleArea.width() >= minOf(width * 0.2, 240.0) && visibleArea.height() >= height * 0.3 &&
             visibleArea.left >= 0 && visibleArea.top >= 0 && visibleArea.right <= width + 2 && visibleArea.bottom <= height + 2)
         if (!plausible) {
             area.value = null
@@ -406,7 +412,11 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     /** Called about once a second (the cards update themselves). */
     fun tick() {}
 
+    /** Only true while the car screen is really being closed (see the presentation above). */
+    @Volatile private var closing = false
+
     fun release() {
+        closing = true
         try { owner.stop() } catch (e: Exception) { }
         try { map?.destroy() } catch (e: Exception) { }
         try { presentation?.dismiss() } catch (e: Exception) { }
@@ -818,6 +828,45 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
 }
 
 /** "Report here": police, crash, hazard, broken down or mobile camera, saved where you are (the same reports as the phone's). */
+/**
+ * Other routes while navigating (from Settings): asks for them, then lists them with how they compare, to pick with a touch or the
+ * car's knob (the grey routes on the map can only be tapped). Also on the map while this is open.
+ */
+class AltRoutesScreen(carContext: CarContext, private val holder: CarHolder) : Screen(carContext) {
+    private val handler = Handler(android.os.Looper.getMainLooper())
+    private var asked = 0L
+    private val poll = object : Runnable {
+        override fun run() { invalidate(); if (System.currentTimeMillis() - asked < 20_000L) handler.postDelayed(this, 1500) }
+    }
+
+    init {
+        holder.engine?.let { it.findAlternatives(); asked = System.currentTimeMillis(); handler.postDelayed(poll, 1500) }
+        lifecycle.addObserver(object : androidx.lifecycle.DefaultLifecycleObserver {
+            override fun onDestroy(owner: androidx.lifecycle.LifecycleOwner) { handler.removeCallbacks(poll) }
+        })
+    }
+
+    override fun onGetTemplate(): Template {
+        val e = holder.engine
+        val alts = e?.liveAlts ?: emptyList()
+        val b = ListTemplate.Builder().setTitle("Other routes").setHeaderAction(Action.BACK)
+        if (alts.isEmpty()) {
+            if (System.currentTimeMillis() - asked < 20_000L) return b.setLoading(true).build()
+            return b.setSingleList(ItemList.Builder().setNoItemsMessage("No other routes right now").build()).build()
+        }
+        val list = ItemList.Builder()
+        for ((i, a) in alts.withIndex()) {
+            val diff = when { a.diffMin > 0 -> "${a.diffMin} min slower"; a.diffMin < 0 -> "${-a.diffMin} min faster"; else -> "About the same time" }
+            // (the first named road after it leaves your route)
+            val split = a.route.cum.getOrNull(a.divIdx) ?: 0.0
+            val via = a.route.steps.firstOrNull { it.off > split && it.street.isNotBlank() }?.street
+            list.addItem(Row.Builder().setTitle(diff).apply { if (via != null) addText("Via $via") }
+                .setOnClickListener { e?.switchToAlt(i); screenManager.pop() }.build())
+        }
+        return b.setSingleList(list.build()).build()
+    }
+}
+
 class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Screen(carContext) {
     override fun onGetTemplate(): Template {
         val kinds = listOf(
@@ -1003,6 +1052,10 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         // most needed first: some cars only allow a few rows in a list, so what doesn't fit goes on a second page ("More settings")
         // rather than being left off (the last rows used to be cut off altogether on those cars)
         val rows = ArrayList<Row>()
+        // other ways to go while navigating: shown on the map in grey with how they compare (tap one, or Switch on the card)
+        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle("Other routes")
+            .addText("Show other ways to go on the map")
+            .setOnClickListener { screenManager.push(AltRoutesScreen(carContext, holder)) }.build()
         // 2D / 3D (its button gives way to Settings while navigating)
         if (e != null) rows += Row.Builder().setTitle(if (e.tilt3d) "View: 3D" else "View: 2D")
             .addText(if (e.tilt3d) "Tap to switch to 2D" else "Tap to switch to 3D")
