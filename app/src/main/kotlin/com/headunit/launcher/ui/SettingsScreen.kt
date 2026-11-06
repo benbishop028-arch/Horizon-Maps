@@ -262,7 +262,7 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Shadows", PreferenceKeys.SHADOWS, true, "Buildings and trees cast shadows. Off is also lighter work for a slow head unit")
         SToggle(prefs, "Sun in its real place", PreferenceKeys.SUN_REAL, false, "By day, the light and shadows come from where the sun really is right now")
         SToggle(prefs, "Overcast light", PreferenceKeys.OVERCAST, false, "Soft daylight with no hard shadows, calmer in glare")
-        SToggle(prefs, "Weather light", PreferenceKeys.WEATHER_LIGHT, false, "A greyer, softer daylight when it's raining or snowing where you are. Needs "Weather effects on the map" on (Settings > On the map), which also brings real rain and snow")
+        SToggle(prefs, "Weather light", PreferenceKeys.WEATHER_LIGHT, false, "A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow")
     }
     SGroup("The map") {
         SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
