@@ -179,9 +179,8 @@ internal object PreferenceKeys {
     const val CLUSTER_MAP = "clustermap"
     /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */
     const val CAM_SIZE = "camsize"
-    /** Glowing buildings at night (the app's own, in place of Mapbox's), and how strongly they glow in percent (60 to start). */
-    const val GLOW_BLD = "glowbld"
-    const val GLOW_STR = "glowstr"
+    /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
+    const val MOONLIT = "moonlit"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

@@ -205,8 +205,7 @@ class CarNavSession : Session() {
         val mapCols = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
         map.setColours(if (mapCols == "custom") prefs.s("custombase", "mapbox") else mapCols)
         map.setCameraSize(prefs.i(PreferenceKeys.CAM_SIZE, 100))
-        map.setGlowLevel(prefs.i(PreferenceKeys.GLOW_STR, 60))
-        map.setGlowBuildings(prefs.b(PreferenceKeys.GLOW_BLD, false))
+        map.setMoonlight(prefs.b(PreferenceKeys.MOONLIT, false))
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
         map.setExtras(prefs.b(PreferenceKeys.FACADES, true), prefs.b(PreferenceKeys.LANDMARKS3D, true), prefs.b(PreferenceKeys.PATHS, true), prefs.b(PreferenceKeys.TERRAIN, false),
             false, prefs.b(PreferenceKeys.FURNITURE3D, true), prefs.b(PreferenceKeys.CLEARVIEW, true))

@@ -253,6 +253,8 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
             SFieldItem("Night starts at", prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), "24-hour clock, for example 19:30", placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
             SFieldItem("Day starts at", prefs.s(PreferenceKeys.DAY_FROM, "07:00"), "24-hour clock, for example 06:45", placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
+        if (prefs.mapSource() == "mapbox")
+            SToggle(prefs, "Moonlight at night", PreferenceKeys.MOONLIT, false, "Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay")
     }
     SGroup("The map") {
         SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
@@ -275,11 +277,6 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
-        if (prefs.mapSource() == "mapbox" && prefs.b("buildings3d", true)) {
-            SToggle(prefs, "Glowing buildings", PreferenceKeys.GLOW_BLD, false, "At night: the buildings glow blue from within. While they glow, the detailed building fronts are hidden; landmarks stay. Full 3D only")
-            if (prefs.b(PreferenceKeys.GLOW_BLD, false))
-                SPercent("Glow", "How brightly the buildings glow. Lights the buildings only", prefs, PreferenceKeys.GLOW_STR, 0, 100, 60)
-        }
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")
