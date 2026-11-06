@@ -275,6 +275,11 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("3D") {
         SToggle(prefs, "3D buildings", "buildings3d", true)
+        if (prefs.mapSource() == "mapbox" && prefs.b("buildings3d", true)) {
+            SToggle(prefs, "Glowing buildings", PreferenceKeys.GLOW_BLD, false, "At night: the buildings glow blue from within. While they glow, the detailed building fronts are hidden; landmarks stay. Full 3D only")
+            if (prefs.b(PreferenceKeys.GLOW_BLD, false))
+                SPercent("Glow", "How brightly the buildings glow. Lights the buildings only", prefs, PreferenceKeys.GLOW_STR, 0, 100, 60)
+        }
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
         SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")

@@ -15,6 +15,7 @@ internal val settingsIndex = listOf(
     SettingRef("Mapbox logo position", "Pick the corner for Mapbox's logo", "The map", 0),
     SettingRef("Satellite", "", "Sky and satellite", 0),
     SettingRef("3D buildings", "", "3D", 0),
+    SettingRef("Glowing buildings", "Buildings glow blue at night, with a Glow slider", "3D", 0),
     SettingRef("Detailed building fronts", "Windows and shopfronts on buildings", "3D", 0),
     SettingRef("3D landmarks", "Models of well-known buildings", "3D", 0),
     SettingRef("3D hills and valleys", "Terrain", "3D", 0),

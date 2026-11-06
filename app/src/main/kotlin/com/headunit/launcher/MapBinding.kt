@@ -336,6 +336,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (wasLightest || v == "lightest") { if (isMapboxStyle(wantedStyle)) setStyleUrl(baseStyle()) }
         else {
             setBase("show3dObjects", Value.valueOf(buildings3d && v == "full"))
+            glowShow()
             setBase("showPointOfInterestLabels", Value.valueOf(!lite && !poiMoving))
             setBase("showTransitLabels", Value.valueOf(!lite))
             setBase("showLandmarkIcons", Value.valueOf(!lite))
@@ -371,6 +372,65 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
         if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
+        glowShow()
+    }
+
+    // ---- Glowing buildings (Settings > Map look > 3D), at night ----
+    // Mapbox's buildings can't glow (the night light always darkens them, and a stronger light brightens the whole map), so at
+    // night the app draws the buildings itself: one blue, lit from within by the Glow setting, which lights these buildings only.
+    // Mapbox's own buildings are hidden meanwhile (with their detailed fronts); landmarks and trees stay. By day, Mapbox's return.
+    private var glowWanted = false
+    private var glowLevel = 0.6
+
+    private fun glowNight() = glowWanted && !satellite && slotsOn && buildings3d && mapDetail == "full" && (lightPreset == "night" || lightPreset == "dusk")
+
+    fun setGlowBuildings(on: Boolean) {
+        if (on == glowWanted) return
+        glowWanted = on
+        // the glowing buildings are made when the map loads, so it's loaded again (only when the switch is flipped)
+        if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) }
+    }
+
+    fun setGlowLevel(pct: Int) {
+        val v = pct.coerceIn(0, 100) / 100.0
+        if (v == glowLevel) return
+        glowLevel = v
+        val st = style ?: return
+        try { if (st.styleLayerExists("dl-glowbld")) st.setStyleLayerProperty("dl-glowbld", "fill-extrusion-emissive-strength", Value.valueOf(glowLevel)) } catch (e: Throwable) { }
+    }
+
+    private fun installGlow(st: Style) {
+        if (!glowWanted || satellite || !slotsOn) return
+        try {
+            addL(st, FillExtrusionLayer("dl-glowbld", "dl-streets").sourceLayer("building").inSlot(MID).minZoom(14.0)
+                .filter(Expression.fromRaw("[\"all\",[\"!=\",[\"get\",\"extrude\"],\"false\"],[\"!=\",[\"get\",\"underground\"],\"true\"]]"))
+                .fillExtrusionColor("#3E5A9A")
+                .fillExtrusionHeight(Expression.fromRaw("[\"coalesce\",[\"get\",\"height\"],6]"))
+                .fillExtrusionBase(Expression.fromRaw("[\"coalesce\",[\"get\",\"min_height\"],0]"))
+                // shaded like Mapbox's own: soft shadow where walls meet the ground, no darkening down the walls
+                .fillExtrusionVerticalGradient(false).fillExtrusionAmbientOcclusionIntensity(0.3)
+                .fillExtrusionEmissiveStrength(glowLevel)
+                .fillExtrusionOpacity(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],14,0,14.5,1]"))
+                .visibility(if (glowNight()) Visibility.VISIBLE else Visibility.NONE))
+            // the same shape as Mapbox's: slightly rounded corners and roof edges, and casting shadows. Set one at a time, so a
+            // map that doesn't know one still gets the others
+            for ((k, v) in listOf(
+                "fill-extrusion-edge-radius" to Value.valueOf(0.7),
+                "fill-extrusion-rounded-roof" to Value.valueOf(true),
+                "fill-extrusion-cast-shadows" to Value.valueOf(true),
+                "fill-extrusion-ambient-occlusion-wall-radius" to Value.valueOf(3.0),
+                "fill-extrusion-ambient-occlusion-ground-radius" to Value.valueOf(5.0),
+            )) try { st.setStyleLayerProperty("dl-glowbld", k, v) } catch (e: Throwable) { }
+        } catch (e: Throwable) { }
+    }
+
+    /** Night and day, detail and 3D changes: swap between the glowing buildings and Mapbox's own. */
+    private fun glowShow() {
+        if (!glowWanted || satellite || !slotsOn) return
+        val on = glowNight()
+        setBase("show3dBuildings", Value.valueOf(!on))
+        val st = style ?: return
+        try { if (st.styleLayerExists("dl-glowbld")) st.setStyleLayerProperty("dl-glowbld", "visibility", Value.valueOf(if (on) "visible" else "none")) } catch (e: Throwable) { }
     }
 
     /**
@@ -425,6 +485,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
         if (!sat) c.put("show3dObjects", buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail))
+        if (!sat && glowNight()) c.put("show3dBuildings", false)
         // (colour themes are only for the drawn map: Standard Satellite has none, so nothing is sent for it)
         if (!sat) when (colours) {
             "faded" -> c.put("theme", "faded")
@@ -1855,6 +1916,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
+        installGlow(st)
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
         addS(st, GeoJsonSource.Builder("dl-signals").featureCollection(empty()).build())
@@ -1946,7 +2008,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         buildings3d = b3d
         // satellite is Mapbox's Standard Satellite style (a style of its own, so the map reloads); 3D buildings is one of Standard's settings
         if (satChanged && wantedStyle != null) { val r = onRestyle; if (r != null) r() else setStyleUrl(baseStyle()) }
-        else if (!sat && slotsOn) setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+        else if (!sat && slotsOn) { setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail))); glowShow() }
         else if (!sat) style?.let { st ->
             // the Horizon colours' own 3D buildings
             try {
