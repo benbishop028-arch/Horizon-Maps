@@ -14,7 +14,8 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
     val rbIn: Double = -1.0, val rbOut: Double = -1.0, val rbExits: List<Double> = emptyList())
 data class Place(val name: String, val sub: String, val pos: LL)
 
-class Incident(val id: String, val cat: String, val text: String, val delaySec: Int, val pts: List<LL>)
+/** A live incident. [mag]: how much it holds traffic up, 0 unknown, 1 minor, 2 moderate, 3 major (TomTom's magnitude / Mapbox's impact). */
+class Incident(val id: String, val cat: String, val text: String, val delaySec: Int, val pts: List<LL>, val mag: Int = 0)
 class Lane(val dirs: List<String>, val follow: String?)
 class LaneSec(val off: Double, val end: Double, val lanes: List<Lane>)
 
@@ -504,7 +505,7 @@ object TomTomRest {
         val c = URL(url).openConnection() as HttpURLConnection
         c.connectTimeout = 15000; c.readTimeout = 25000
         c.setRequestProperty("TomTom-Api-Key", key)
-        c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,delayInSeconds,from,to,roadNumbers,events(description)))")
+        c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,magnitudeOfDelay,delay,from,to,roadNumbers,events(description)))")
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
         val code = c.responseCode
         val body = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
@@ -522,7 +523,14 @@ object TomTomRest {
                 else for (n in 0 until co.length()) { val q = co.getJSONArray(n); pts += LL(q.getDouble(1), q.getDouble(0)) }
                 if (pts.isEmpty()) continue
                 val ev = pr.optJSONArray("events")?.optJSONObject(0)?.optString("description").orEmpty()
-                out += Incident(pr.optString("id"), pr.optString("iconCategory"), ev, pr.optInt("delayInSeconds", 0), pts)
+                // TomTom gives the kind as a number (and the delay as "delay"): both were read wrongly before, so its jams had no
+                // delay and no colour, and its closures and roadworks were never recognised
+                val cat = when (pr.optInt("iconCategory", -1)) {
+                    1 -> "accident"; 6 -> "jam"; 7 -> "laneClosed"; 8 -> "roadClosed"; 9 -> "roadWorks"
+                    2, 3, 4, 5, 10, 11, 14 -> "danger"
+                    else -> pr.optString("iconCategory").let { if (it.isNotEmpty() && !it[0].isDigit()) it else "other" }
+                }
+                out += Incident(pr.optString("id"), cat, ev, pr.optInt("delay", pr.optInt("delayInSeconds", 0)), pts, pr.optInt("magnitudeOfDelay", 0).coerceIn(0, 3))
             } catch (e: Exception) { /* skip bad entry */ }
         }
         return out

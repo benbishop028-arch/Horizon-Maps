@@ -3697,10 +3697,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val base = sevBase ?: return
         if (base.size != r.sev.size) return
         System.arraycopy(base, 0, r.sev, 0, base.size)
+        val extra = ArrayList<DelaySeg>()
+        val freeMs = if (r.freeFlow > 1) r.len / r.freeFlow else 13.0
         for ((inc, startOff, _) in found) {
+            val jam = inc.cat.equals("jam", true)
+            // a jam is always at least amber (it used to need a delay, which often isn't given, so a jam that was announced
+            // wasn't coloured); red for a major hold-up or a closure
             val level = when {
-                inc.cat.contains("close", true) || inc.delaySec >= 300 -> 2
-                inc.delaySec >= 90 || (inc.cat.contains("jam", true) && inc.delaySec >= 40) -> 1
+                inc.cat.contains("close", true) && !inc.cat.equals("laneClosed", true) -> 2
+                inc.delaySec >= 300 || inc.mag >= 3 -> 2
+                jam || inc.delaySec >= 90 || inc.mag == 2 -> 1
                 else -> 0
             }
             if (level == 0) continue
@@ -3716,8 +3722,25 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             if (endOff < startOff) endOff = startOff + 250.0
             for (i in r.sev.indices) if (r.cum[i] >= startOff - 20 && r.cum[i] <= endOff + 20) r.sev[i] = max(r.sev[i], level)
+            // its hold-up in the time left, unless the route's own traffic already has it: the delay given, or for a jam with none
+            // given, the stretch at a crawl (about 25, 15 or 7 km/h by how bad it is)
+            if (inc.cat.equals("roadClosed", true)) continue
+            val len = endOff - startOff
+            val est = if (inc.delaySec > 0) inc.delaySec.toDouble() else if (jam) {
+                val crawl = when (inc.mag) { 3 -> 7.0; 2 -> 15.0; else -> 25.0 } / 3.6
+                max(0.0, len / crawl - len / freeMs)
+            } else 0.0
+            if (est < 30) continue
+            val own = r.delays.sumOf { d -> val o = min(d.end, endOff) - max(d.off, startOff); if (o > 0) d.secs * o / max(1.0, d.end - d.off) else 0.0 }
+            if (own < est * 0.6) extra += DelaySeg(startOff, endOff, est - own)
         }
+        incDelays = extra; incDelaysRoute = r
+        lastDraw = 0L
     }
+
+    /** Hold-ups from live incidents that the route's own traffic doesn't have, added to the time left. */
+    private var incDelays: List<DelaySeg> = emptyList()
+    private var incDelaysRoute: Route? = null
 
     private fun p0Speed(): Double = fix?.speed ?: 0.0
 
@@ -4002,8 +4025,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val span = max(1.0, d.end - d.off)
                 d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
             }
-            val secs = r.freeFlow * frac + ahead
-            val delayMin = Math.round(ahead / 60.0).toInt()
+            // plus live incidents' hold-ups that the route's own traffic doesn't know about (a jam announced but not in the time)
+            val incAhead = if (incDelaysRoute !== r) 0.0 else incDelays.sumOf { d ->
+                val span = max(1.0, d.end - d.off)
+                d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
+            }
+            val ahead2 = ahead + incAhead
+            val secs = r.freeFlow * frac + ahead2
+            val delayMin = Math.round(ahead2 / 60.0).toInt()
             val arrive = Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
             routeFrac = (1.0 - frac).toFloat().coerceIn(0f, 1f)

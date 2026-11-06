@@ -500,7 +500,8 @@ object MapboxRest {
                 val a = (legPtStart + x.optInt("geometry_index_start", 0)).coerceIn(0, max(0, pts.size - 1))
                 val b = (legPtStart + x.optInt("geometry_index_end", x.optInt("geometry_index_start", 0))).coerceIn(a, max(0, pts.size - 1))
                 val text = x.optString("description").ifBlank { x.optString("long_description") }
-                incidents += Incident("mb-" + x.optString("id", "$a"), incidentCat(x.optString("type")), text, 0, pts.subList(a, b + 1).toList())
+                val mag = when (x.optString("impact")) { "critical" -> 3; "major" -> 2; "minor", "low" -> 1; else -> 0 }
+                incidents += Incident("mb-" + x.optString("id", "$a"), incidentCat(x.optString("type")), text, 0, pts.subList(a, b + 1).toList(), mag)
             } catch (e: Exception) { }
             legStart += leg.optDouble("distance", 0.0)
             legPtStart += n
