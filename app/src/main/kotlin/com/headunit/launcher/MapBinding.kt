@@ -279,6 +279,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (destroyed) return
         destroyed = true
         started = false
+        try { lightHandler.removeCallbacksAndMessages(null) } catch (e: Throwable) { }
         try { lampExec.shutdownNow() } catch (e: Throwable) { }
         try { signalExec.shutdownNow() } catch (e: Throwable) { }
         for (c in subs) try { c.cancel() } catch (e: Throwable) { }
@@ -363,7 +364,23 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Standard's light: "day", "dawn", "dusk" or "night". Changing it fades smoothly, without reloading the map. */
     private var lightPreset = "night"
 
+    /** The light the app wants now, and one forced for a while by the settings' map preview (Day / Night) to show the look. */
+    private var realLight = "night"
+    private var forcedLight: String? = null
+
     fun setLightPreset(p: String) {
+        realLight = p
+        if (forcedLight == null) applyLight(p)
+    }
+
+    /** The settings' map preview: show it in "day" or "night"; null goes back to the real light. */
+    fun forceLight(p: String?) {
+        if (p == forcedLight) return
+        forcedLight = p
+        applyLight(p ?: realLight)
+    }
+
+    private fun applyLight(p: String) {
         if (p == lightPreset) return
         lightPreset = p
         setBase("lightPreset", Value.valueOf(satLight(p)))
@@ -399,10 +416,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var wxCode = -1
     private val lightHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private val sunTick = object : Runnable {
-        override fun run() { applyLights(); lightHandler.postDelayed(this, 5 * 60_000L) }
+        override fun run() { if (destroyed) return; applyLights(); lightHandler.postDelayed(this, 5 * 60_000L) }
     }
 
     fun setLightOpts(o: LightOpts) {
+        // (the map may only be changed on the main thread)
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) { lightHandler.post { setLightOpts(o) }; return }
+        if (destroyed) return
         lightOpts = o
         lightHandler.removeCallbacks(sunTick)
         if (o.sunReal) lightHandler.postDelayed(sunTick, 5 * 60_000L)
@@ -410,6 +430,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     fun setWeatherCode(code: Int?) {
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) { lightHandler.post { setWeatherCode(code) }; return }
+        if (destroyed) return
         val c = code ?: -1
         if (c == wxCode) return
         wxCode = c

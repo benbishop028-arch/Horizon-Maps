@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Traffic
 import androidx.compose.material.icons.rounded.Route
+import androidx.compose.material.icons.rounded.WbTwilight
 import androidx.compose.material.icons.rounded.TurnRight
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.DirectionsCar
@@ -90,21 +92,22 @@ private class Section(val title: String, val sub: String, val icon: ImageVector,
 
 // (the order here is the order in the list; SettingsIndex refers to them by number)
 private val sections = listOf(
-    Section("Map look", "Day and night, detail, 3D, satellite", Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
+    Section("Map style", "Colours, day and night, map detail", Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
+    Section("Light & 3D", "Light, weather, 3D, tilt, sky", Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
     Section("On the map", "Traffic, lights, cameras, signs, weather", Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
     Section("Your arrow & route line", "Arrow or car, colours, route look", Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
-    Section("Routes", "Avoid, eco, faster routes, starting", Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
+    Section("Routes", "Vehicle, avoid, choosing, starting", Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
     Section("Turn card & lanes", "Signs, lanes, trip card, arriving", Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
     Section("Alerts", "Speed, cameras, hazards, reports", Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
     Section("Sound & voice", "Spoken directions and volume", Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
     Section("Places & trips", "Home, work, favourites, sharing, trip log", Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
     Section("Fuel & charging", "Your fuel, prices, electric car", Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
     Section("Offline maps", "Maps, routes and town names with no signal", Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
-    Section("Screen & sizes", "Brightness, sizes, units, while driving", Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
+    Section("Screen & sizes", "Brightness, sizes, glass, units, while driving", Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
     Section("Android Auto", "Car-screen sizes and setting it up", Icons.Rounded.DirectionsCar, Color(0xFF9CA4BF)),
     Section("Performance", "Smoothness on slower head units, demo", Icons.Rounded.Speed, Color(0xFF9CA4BF)),
     Section("Keys & accounts", "Map keys and search", Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
-    Section("About & backup", "Updates, permissions, backup", Icons.Rounded.Info, Color(0xFF9CA4BF)),
+    Section("About & backup", "Feedback, updates, permissions, backup", Icons.Rounded.Info, Color(0xFF9CA4BF)),
 )
 
 /** Every setting in one screen: sections on the left, the chosen section on the right, in the map screen's soft style. */
@@ -118,7 +121,9 @@ fun SettingsScreen(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
 @Composable
 private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
     val c = LocalVw.current
-    var cat by rememberSaveable { mutableIntStateOf(0) }
+    // opens on the page you were last on (kept between visits)
+    var cat by rememberSaveable { mutableIntStateOf(prefs.i("settingscat", 0).coerceIn(0, sections.size - 1)) }
+    androidx.compose.runtime.LaunchedEffect(cat) { prefs.put("settingscat", cat) }
     // portrait / narrow: one pane at a time (the section list, or the open section with a back arrow)
     val narrowS = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 720
     var showList by rememberSaveable { mutableStateOf(true) }
@@ -208,7 +213,12 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
             label = "section",
         ) { cat ->
           CompositionLocalProvider(LocalSettingHighlight provides highlight) {
+           // the map pages show the real map at the top, so every change can be seen as it's made
+           val withPreview = cat in 0..3
+           Column(Modifier.fillMaxSize()) {
+            if (withPreview && !narrowS) SettingsMapPreview(engine, 210)
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 4.dp)) {
+                if (withPreview && narrowS) SettingsMapPreview(engine, 170)
                 if (narrowS) Row(Modifier.padding(bottom = 6.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.ArrowBack, "All settings", tint = c.text, modifier = Modifier.size(22.dp))
@@ -219,24 +229,26 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                 Text(sections[cat].sub, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp, bottom = 16.dp))
                 Column(Modifier.widthIn(max = 820.dp)) {
                     when (cat) {
-                        0 -> MapLookSection(prefs, engine)
-                        1 -> OnTheMapSection(prefs, engine)
-                        2 -> ArrowSection(prefs, engine)
-                        3 -> RoutesSection(prefs, engine)
-                        4 -> GuidanceSection(prefs, engine)
-                        5 -> AlertsSection(prefs, engine)
-                        6 -> SoundSection(prefs, engine)
-                        7 -> { PlacesSection(engine); PhoneLinkGroup(prefs); SharingGroups(prefs) }
-                        8 -> FuelSection(prefs, engine)
-                        9 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
-                        10 -> ScreenSection(prefs, engine)
-                        11 -> AndroidAutoSection(prefs)
-                        12 -> PerformanceSection(prefs)
-                        13 -> KeysSection(prefs, engine)
+                        0 -> MapStyleSection(prefs, engine)
+                        1 -> LightSection(prefs)
+                        2 -> OnTheMapSection(prefs, engine)
+                        3 -> ArrowSection(prefs, engine)
+                        4 -> RoutesSection(prefs, engine)
+                        5 -> GuidanceSection(prefs, engine)
+                        6 -> AlertsSection(prefs, engine)
+                        7 -> SoundSection(prefs, engine)
+                        8 -> { PlacesSection(engine); PhoneLinkGroup(prefs); SharingGroups(prefs) }
+                        9 -> FuelSection(prefs, engine)
+                        10 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
+                        11 -> ScreenSection(prefs, engine)
+                        12 -> AndroidAutoSection(prefs)
+                        13 -> PerformanceSection(prefs)
+                        14 -> KeysSection(prefs, engine)
                         else -> AboutSection(prefs, engine)
                     }
                 }
             }
+           }
           }
         }
     }
@@ -245,7 +257,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
 // ------------------------------------------------------------------ Map look
 
 @Composable
-private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
+private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
     SGroup("Day and night") {
         SChoice("Day and night", listOf("auto" to "Auto", "lights" to "Headlights", "sun" to "Sun times", "times" to "My times", "day" to "Day", "night" to "Night"), prefs.s(PreferenceKeys.THEME, "auto"),
             "Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set") { prefs.put(PreferenceKeys.THEME, it) }
@@ -254,6 +266,36 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
             SFieldItem("Day starts at", prefs.s(PreferenceKeys.DAY_FROM, "07:00"), "24-hour clock, for example 06:45", placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
     }
+    if (prefs.mapSource() == "mapbox") SGroup("Colours") {
+        MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
+        if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "car") {
+            SItem("Car's lighting colour", "The map, mostly at night, takes a hint of it")
+            val cur = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
+            Row(Modifier.padding(start = 4.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                for (hex in listOf("#E64B4B", "#FF9A3C", "#F2D04A", "#2FC9A0", "#3C8CFF", "#8A5AD0", "#E64BD8", "#FFFFFF")) {
+                    val sel = hex.equals(cur, true)
+                    Box(Modifier.size(34.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(android.graphics.Color.parseColor(hex)))
+                        .border(if (sel) 3.dp else 1.dp, if (sel) LocalVw.current.accent else Color.White.copy(alpha = 0.25f), androidx.compose.foundation.shape.CircleShape)
+                        .pressClick { prefs.put(PreferenceKeys.CAR_TINT, hex) })
+                }
+            }
+            SPercent("How strong", "How much of the colour the map takes", prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
+        }
+    }
+    SGroup("The map") {
+        SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
+            "Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them") { prefs.put(PreferenceKeys.MAP_STYLE, it) }
+        if (prefs.mapSource() == "mapbox") {
+            SChoice("Map detail", listOf("full" to "Full 3D", "lite" to "Lite", "lightest" to "Lightest"), prefs.mapDetail(),
+                "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
+        }
+        DefaultZoomRow(prefs)
+        SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
+    }
+}
+
+@Composable
+private fun LightSection(prefs: Prefs) {
     if (prefs.mapSource() == "mapbox") SGroup("Light and weather") {
         SPercent("Night brightness", "How bright the whole night map is. 100% is Mapbox's own night light", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
         SToggle(prefs, "Moonlight at night", PreferenceKeys.MOONLIT, false, "Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay")
@@ -263,33 +305,6 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Sun in its real place", PreferenceKeys.SUN_REAL, false, "By day, the light and shadows come from where the sun really is right now")
         SToggle(prefs, "Overcast light", PreferenceKeys.OVERCAST, false, "Soft daylight with no hard shadows, calmer in glare")
         SToggle(prefs, "Weather light", PreferenceKeys.WEATHER_LIGHT, false, "A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow")
-    }
-    SGroup("The map") {
-        SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
-            "Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them") { prefs.put(PreferenceKeys.MAP_STYLE, it) }
-        if (prefs.mapSource() == "mapbox") {
-            SChoice("Map detail", listOf("full" to "Full 3D", "lite" to "Lite", "lightest" to "Lightest"), prefs.mapDetail(),
-                "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
-            MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
-            if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "car") {
-                SItem("Car's lighting colour", "The map, mostly at night, takes a hint of it")
-                val cur = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
-                Row(Modifier.padding(start = 4.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    for (hex in listOf("#E64B4B", "#FF9A3C", "#F2D04A", "#2FC9A0", "#3C8CFF", "#8A5AD0", "#E64BD8", "#FFFFFF")) {
-                        val sel = hex.equals(cur, true)
-                        Box(Modifier.size(34.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(android.graphics.Color.parseColor(hex)))
-                            .border(if (sel) 3.dp else 1.dp, if (sel) LocalVw.current.accent else Color.White.copy(alpha = 0.25f), androidx.compose.foundation.shape.CircleShape)
-                            .pressClick { prefs.put(PreferenceKeys.CAR_TINT, hex) })
-                    }
-                }
-                SPercent("How strong", "How much of the colour the map takes", prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
-            }
-        }
-        DefaultZoomRow(prefs)
-        SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
-        SToggle(prefs, "Glass panels", "glass", true, "See-through cards tinted by the map. Off gives solid cards")
-        SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
-            "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
     SGroup("3D view", footer = "30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.") {
         STilt("Tilt on a wide screen", "Landscape head units. Higher shows further ahead (more for a slow unit to draw)", prefs, PreferenceKeys.TILT_WIDE)
@@ -354,7 +369,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             else android.widget.Toast.makeText(ctx, "Couldn't read that picture (try a PNG or JPG)", android.widget.Toast.LENGTH_SHORT).show()
         }
         fun choosePic() { if (!pickPic()) android.widget.Toast.makeText(ctx, "No app on this unit can pick a picture (try installing a file manager or gallery)", android.widget.Toast.LENGTH_LONG).show() }
-        SChoice("Locator", listOf("arrow" to "3D arrow", "car" to "Car", "model" to "Real 3D model", "flat" to "Flat arrow", "custom" to "Your picture"), loc) {
+        SPictureChoice("Locator", null, listOf("arrow" to "3D arrow", "car" to "Car", "model" to "Real 3D model", "flat" to "Flat arrow", "custom" to "Your picture"), loc, { id, c -> locatorPicture(id, c) }) {
             if (it == "custom" && !hasPic) choosePic() else prefs.put(PreferenceKeys.LOCATOR, it)
         }
         if (loc == "model") {
@@ -545,12 +560,15 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup("Lanes and junctions") {
         SToggle(prefs, "Lanes on the map", "lanemap", true)
-        if (prefs.b(PreferenceKeys.LANEMAP, true)) SChoice("Lanes shown as", listOf("lit" to "Lit lane", "closeup" to "Close-up picture", "sign" to "Sign"), prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit"),
+        if (prefs.b(PreferenceKeys.LANEMAP, true)) SPictureChoice(
+            "Lanes shown as",
             when (prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit")) {
                 "closeup" -> "A drawn picture of the junction's lanes under the turn card for the last 400 m. Nothing drawn on the map"
                 "sign" -> "A sign over the road at the junction, with the lanes to use lit up"
                 else -> "The lane to use lit up on the road. On motorways, where the real lanes are known, the route line moves into it"
-            }) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
+            },
+            listOf("lit" to "Lit lane", "closeup" to "Close-up picture", "sign" to "Sign"), prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit"), { id, c -> lanePicture(id, c) },
+        ) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
         SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
         SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m")
         SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
@@ -914,6 +932,9 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SSlider("Brightness", prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = "100% leaves it to the system", live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, "Dim the screen at night", "dimnight", false)
         SToggle(prefs, "Keep the screen on", "keepon", true)
+        SToggle(prefs, "Glass panels", "glass", true, "See-through cards tinted by the map. Off gives solid cards")
+        SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
+            "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
     SGroup("Sizes") {
         val screenConfig = androidx.compose.ui.platform.LocalConfiguration.current
@@ -953,8 +974,9 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
         SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
         SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On this screen (Android Auto has its own size, under Android Auto)", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
-        SChoice("Speed position", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"),
-            "On the side away from the cards, so it never covers them. Move it up if your hand covers it") { prefs.put(PreferenceKeys.SPEED_POS, it) }
+        SPictureChoice("Speed position", "On the side away from the cards, so it never covers them. Move it up if your hand covers it",
+            listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"), { id, c -> speedPicture(id, c) },
+        ) { prefs.put(PreferenceKeys.SPEED_POS, it) }
     }
     SGroup("While driving") {
         SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
@@ -1090,6 +1112,9 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     // (here so the crash report further down can open it too)
     var feedback by remember { mutableStateOf(false) }
     if (feedback) FeedbackDialog(engine) { feedback = false }
+    SGroup("Feedback", footer = "Ideas and bug reports are very welcome, here or on GitHub and Reddit.") {
+        SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
+    }
     SGroup("Support Horizon Nav") {
         SItem("Donate", "Free, no ads. Donations help keep it going (PayPal)") { SButton("Donate", primary = true) { donating = true } }
     }
@@ -1104,7 +1129,6 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
         }
         SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
-        SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
     }
     SGroup("Permissions", footer = "While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.") {
         val hasLoc = ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -1247,6 +1271,110 @@ private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
                         drawRect(androidx.compose.ui.graphics.Color(0xFF2A7BE4), topLeft = androidx.compose.ui.geometry.Offset(w * 0.68f, 0f), size = androidx.compose.ui.geometry.Size(w * 0.05f, h))
                     }
                     Text(name, color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp))
+                }
+            }
+        }
+    }
+}
+
+
+// ------------------------------------------------------------------ pictures for the choices, and the map preview
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.lanePicture(id: String, c: Vw) {
+    val w = size.width; val h = size.height
+    drawRect(Color(0xFF2A3042))
+    when (id) {
+        "lit" -> {
+            // three lanes seen ahead, the middle one lit green
+            val road = androidx.compose.ui.graphics.Path().apply { moveTo(w * 0.2f, h); lineTo(w * 0.8f, h); lineTo(w * 0.62f, 0f); lineTo(w * 0.38f, 0f); close() }
+            drawPath(road, Color(0xFF596274))
+            val lit = androidx.compose.ui.graphics.Path().apply { moveTo(w * 0.4f, h); lineTo(w * 0.6f, h); lineTo(w * 0.54f, 0f); lineTo(w * 0.46f, 0f); close() }
+            drawPath(lit, Color(0xFF34C759).copy(alpha = 0.75f))
+            for (f in listOf(0.4f, 0.6f)) drawLine(Color.White, androidx.compose.ui.geometry.Offset(w * f, h), androidx.compose.ui.geometry.Offset(w * (0.5f + (f - 0.5f) * 0.4f), 0f), 2f)
+        }
+        "closeup" -> {
+            drawRoundRect(Color(0xFF1C2130), androidx.compose.ui.geometry.Offset(w * 0.08f, h * 0.12f), androidx.compose.ui.geometry.Size(w * 0.84f, h * 0.76f), androidx.compose.ui.geometry.CornerRadius(10f))
+            for ((i, on) in listOf(false, true, true).withIndex()) {
+                val x = w * (0.28f + i * 0.22f)
+                drawLine(if (on) Color.White else Color(0xFF6A7184), androidx.compose.ui.geometry.Offset(x, h * 0.72f), androidx.compose.ui.geometry.Offset(x, h * 0.32f), 5f)
+                drawLine(if (on) Color.White else Color(0xFF6A7184), androidx.compose.ui.geometry.Offset(x - 7f, h * 0.42f), androidx.compose.ui.geometry.Offset(x, h * 0.3f), 5f)
+                drawLine(if (on) Color.White else Color(0xFF6A7184), androidx.compose.ui.geometry.Offset(x + 7f, h * 0.42f), androidx.compose.ui.geometry.Offset(x, h * 0.3f), 5f)
+            }
+        }
+        else -> {
+            // a blue gantry sign over the road
+            drawRect(Color(0xFF596274), androidx.compose.ui.geometry.Offset(w * 0.3f, h * 0.55f), androidx.compose.ui.geometry.Size(w * 0.4f, h * 0.45f))
+            drawRoundRect(Color(0xFF1E5BC6), androidx.compose.ui.geometry.Offset(w * 0.12f, h * 0.1f), androidx.compose.ui.geometry.Size(w * 0.76f, h * 0.38f), androidx.compose.ui.geometry.CornerRadius(6f))
+            for (i in 0..2) {
+                val x = w * (0.3f + i * 0.2f)
+                drawLine(if (i == 0) Color(0xFF8FB0E8) else Color.White, androidx.compose.ui.geometry.Offset(x, h * 0.42f), androidx.compose.ui.geometry.Offset(x, h * 0.18f), 4f)
+            }
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.speedPicture(id: String, c: Vw) {
+    val w = size.width; val h = size.height
+    drawRect(Color(0xFF2A3042))
+    // the cards on the left, the speed sign on the right at the chosen height
+    drawRoundRect(Color(0xFF3A4256), androidx.compose.ui.geometry.Offset(w * 0.06f, h * 0.1f), androidx.compose.ui.geometry.Size(w * 0.36f, h * 0.3f), androidx.compose.ui.geometry.CornerRadius(6f))
+    drawRoundRect(Color(0xFF3A4256), androidx.compose.ui.geometry.Offset(w * 0.06f, h * 0.7f), androidx.compose.ui.geometry.Size(w * 0.5f, h * 0.22f), androidx.compose.ui.geometry.CornerRadius(6f))
+    val cy = when (id) { "top" -> h * 0.24f; "middle" -> h * 0.5f; else -> h * 0.76f }
+    val ctr = androidx.compose.ui.geometry.Offset(w * 0.82f, cy)
+    drawCircle(Color.White, h * 0.17f, ctr)
+    drawCircle(Color(0xFFE0202A), h * 0.17f, ctr, style = androidx.compose.ui.graphics.drawscope.Stroke(h * 0.05f))
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.locatorPicture(id: String, c: Vw) {
+    val w = size.width; val h = size.height
+    drawRect(Color(0xFF2A3042))
+    drawRect(Color(0xFF596274), androidx.compose.ui.geometry.Offset(w * 0.38f, 0f), androidx.compose.ui.geometry.Size(w * 0.24f, h))
+    val cx = w / 2; val cy = h * 0.55f
+    when (id) {
+        "car" -> {
+            drawRoundRect(Color(0xFF3C8CFF), androidx.compose.ui.geometry.Offset(cx - 10f, cy - 18f), androidx.compose.ui.geometry.Size(20f, 36f), androidx.compose.ui.geometry.CornerRadius(7f))
+            drawRoundRect(Color(0xFF1B2A44), androidx.compose.ui.geometry.Offset(cx - 7f, cy - 10f), androidx.compose.ui.geometry.Size(14f, 9f), androidx.compose.ui.geometry.CornerRadius(3f))
+        }
+        "custom" -> {
+            drawCircle(Color(0xFF9CA4BF), 16f, androidx.compose.ui.geometry.Offset(cx, cy))
+            drawCircle(Color(0xFF2A3042), 6f, androidx.compose.ui.geometry.Offset(cx, cy - 3f))
+        }
+        else -> {
+            val p = androidx.compose.ui.graphics.Path().apply { moveTo(cx, cy - 20f); lineTo(cx + 15f, cy + 16f); lineTo(cx, cy + 8f); lineTo(cx - 15f, cy + 16f); close() }
+            if (id == "flat") drawPath(p, Color.White)
+            else {
+                drawPath(p, Color(0xFF3C8CFF))
+                drawPath(p, Color.White, style = androidx.compose.ui.graphics.drawscope.Stroke(3f))
+                if (id == "model") drawCircle(Color(0x553C8CFF), 26f, androidx.compose.ui.geometry.Offset(cx, cy))
+            }
+        }
+    }
+}
+
+/**
+ * The real map at the top of the map settings pages, so every change shows as it's made. Day / Night show it in that light for a
+ * moment (to check the night colours in daylight); Now, or leaving, goes back. It can't be dragged, so the map stays where it was.
+ */
+@Composable
+private fun SettingsMapPreview(engine: NavEngine, heightDp: Int) {
+    val c = LocalVw.current
+    var mode by remember { mutableStateOf("now") }
+    androidx.compose.runtime.DisposableEffect(mode) {
+        engine.map.forceLight(when (mode) { "day" -> "day"; "night" -> "night"; else -> null })
+        onDispose { }
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { engine.map.forceLight(null) } }
+    Box(Modifier.fillMaxWidth().widthIn(max = 820.dp).height(heightDp.dp).padding(bottom = 10.dp).clip(RoundedCornerShape(20.dp)).border(1.dp, c.line, RoundedCornerShape(20.dp))) {
+        MapHost(engine.map, Modifier.fillMaxSize(), cornerDp = 20)
+        // (touches stop here: the preview only shows)
+        Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } } })
+        Text("Live preview", color = Color.White, fontSize = 12.sp,
+            modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x99000000)).padding(horizontal = 10.dp, vertical = 4.dp))
+        Row(Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x99000000))) {
+            for ((id, label) in listOf("day" to "Day", "night" to "Night", "now" to "Now")) {
+                val sel = id == mode
+                Box(Modifier.background(if (sel) c.accent else Color.Transparent).pressClick { mode = id }.padding(horizontal = 14.dp, vertical = 7.dp)) {
+                    Text(label, color = Color.White, fontSize = 13.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal)
                 }
             }
         }

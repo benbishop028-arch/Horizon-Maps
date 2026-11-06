@@ -2413,7 +2413,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         zoomOffset = 0.0
         rememberFreeZoom()
         fix?.let { onPosition(it, true) }
-        toast("This is now your default zoom. Change or reset it in Settings > Map look", 4500)
+        toast("This is now your default zoom. Change or reset it in Settings > Map style", 4500)
     }
 
     /** Phone: sends [p] to the paired head unit, which offers to start it (next time it's on, within 12 hours). */
@@ -3730,11 +3730,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (previewing) return
         // the routes box opens at once (with "Looking for other routes" until they come)
         altListOpen = true
-        if (altBusy) return
         altSearching = true
+        // (already looking, every couple of minutes: that answer fills the box)
+        if (altBusy) return
         checkFaster(r, Double.MAX_VALUE, force = true)
     }
     @Volatile private var altBusy = false
+    /** Closes the routes box, keeping your route, and goes back to following you. */
+    fun closeAlternatives() {
+        altListOpen = false
+        recenter(byUser = true)
+    }
+
     /** The routes box beside the Other routes button: open, and still looking. */
     var altListOpen by mutableStateOf(false)
     var altSearching by mutableStateOf(false)
@@ -3794,7 +3801,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (faster === shown) { faster = null; lastFasterCheck = System.currentTimeMillis() + 300_000L }
                 }
             } catch (e: Exception) { if (force) toast("Couldn't look for other routes", 3000) }
-            finally { altBusy = false; if (force) altSearching = false }
+            finally { altBusy = false; altSearching = false }
         }
     }
 
@@ -3907,7 +3914,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         drawRoutes()
         updateRouteZones()
         toast(if (a.diffMin < 0) "Switched: about ${-a.diffMin} min quicker" else if (a.diffMin > 0) "Switched: about ${a.diffMin} min longer" else "Switched route", 3000)
-        fix?.let { onPosition(it, true) }
+        // back to following you on the new route (the map had zoomed out to show the routes)
+        recenter(byUser = true)
         // the way you were going stays on the map as an alternative, with its card (the other way round: slower becomes faster)
         if (old != null && old !== a.route && prefs.b(PreferenceKeys.LIVE_ALTERNATIVES, true)) {
             val nr = a.route

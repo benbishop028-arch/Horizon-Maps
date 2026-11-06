@@ -221,3 +221,33 @@ internal fun SColours(title: String, options: List<Pair<String, String>>, value:
         }
     }
 }
+
+
+/**
+ * A choice shown as small pictures, for options that are hard to picture from words (lane styles, where the speed sits, the arrow).
+ * [draw] paints option [id]'s picture.
+ */
+@Composable
+internal fun SPictureChoice(
+    title: String, sub: String?, options: List<Pair<String, String>>, value: String,
+    draw: androidx.compose.ui.graphics.drawscope.DrawScope.(id: String, c: Vw) -> Unit, onPick: (String) -> Unit,
+) {
+    val c = LocalVw.current
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        SItem(title, sub)
+        Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            for ((id, label) in options) {
+                val sel = id == value
+                Column(
+                    Modifier.clip(RoundedCornerShape(14.dp)).background(if (sel) c.accent.copy(alpha = 0.14f) else c.tile)
+                        .border(2.dp, if (sel) c.accent else Color.Transparent, RoundedCornerShape(14.dp))
+                        .pressClick { onPick(id) }.padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    androidx.compose.foundation.Canvas(Modifier.size(width = 96.dp, height = 64.dp).clip(RoundedCornerShape(8.dp))) { draw(id, c) }
+                    Text(label, color = if (sel) c.accent else c.text, fontSize = 12.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal, modifier = Modifier.padding(top = 6.dp))
+                }
+            }
+        }
+    }
+}

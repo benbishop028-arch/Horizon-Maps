@@ -1389,7 +1389,7 @@ private fun RoutesBox(engine: NavEngine) {
     Column(Modifier.width(340.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 8.dp)) {
         Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("Routes", color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).pressClick { engine.altListOpen = false }, contentAlignment = Alignment.Center) {
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).pressClick { engine.closeAlternatives() }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, "Close", tint = c.sub, modifier = Modifier.size(22.dp))
             }
         }
@@ -1398,7 +1398,7 @@ private fun RoutesBox(engine: NavEngine) {
             title = Geo.fmtDur(eta.secs), titleCol = c.text,
             line2 = "Arrive ${eta.arrive} · ${Geo.fmtDist(eta.dist, engine.imperial)}",
             line3 = "Your route" + (if (eta.delayMin >= 2) " · ${eta.delayMin} min in traffic" else ""), selected = true,
-        ) { engine.altListOpen = false }
+        ) { engine.closeAlternatives() }
         for ((i, a) in alts.withIndex()) {
             val secs = (eta?.secs ?: 0.0) + a.diffMin * 60.0
             val arrive = com.headunit.launcher.Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())

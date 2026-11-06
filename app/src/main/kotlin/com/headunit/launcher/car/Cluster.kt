@@ -77,6 +77,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
     private var running = false
     /** The map needs a lifecycle to attach to (there's no activity on the driver's display): without it, it crashed the app. */
     private val owner = CarComposeOwner()
+    @Volatile private var closing = false
 
     private val prefs: Prefs get() = Prefs(carContext.applicationContext)
 
@@ -97,7 +98,10 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
             val dm = carContext.getSystemService(DisplayManager::class.java)
             val vd = dm.createVirtualDisplay("HorizonNavCluster", width, height, surfaceContainer.dpi, s, DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY)
             display = vd
-            val p = Presentation(carContext, vd.display)
+            // (kept open if the driver's display changes size, as the main car screen's is: Android would otherwise close it)
+            val p = object : Presentation(carContext, vd.display) {
+                override fun cancel() { if (closing) super.cancel() }
+            }
             try {
                 val tok = MapboxRest.clean(Prefs(p.context.applicationContext).s(PreferenceKeys.MAPBOX_TOKEN, ""))
                 if (tok.isNotEmpty() && com.mapbox.common.MapboxOptions.accessToken != tok) com.mapbox.common.MapboxOptions.accessToken = tok
@@ -183,6 +187,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
     } catch (e: Exception) { null }
 
     fun release() {
+        closing = true
         stop()
         try { map?.mapView?.onStop() } catch (e: Throwable) { }
         try { map?.mapView?.onDestroy() } catch (e: Throwable) { }
