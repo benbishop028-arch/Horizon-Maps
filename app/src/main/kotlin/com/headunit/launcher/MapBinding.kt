@@ -336,7 +336,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (wasLightest || v == "lightest") { if (isMapboxStyle(wantedStyle)) setStyleUrl(baseStyle()) }
         else {
             setBase("show3dObjects", Value.valueOf(buildings3d && v == "full"))
-            if (customOn) applyCustom()
             setBase("showPointOfInterestLabels", Value.valueOf(!lite && !poiMoving))
             setBase("showTransitLabels", Value.valueOf(!lite))
             setBase("showLandmarkIcons", Value.valueOf(!lite))
@@ -364,31 +363,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Standard's light: "day", "dawn", "dusk" or "night". Changing it fades smoothly, without reloading the map. */
     private var lightPreset = "night"
 
-    /** The light the app wants (day / night...), and one forced for a moment by the Custom colours editor to show day or night. */
-    private var realLight = "night"
-    private var forcedLight: String? = null
-
     fun setLightPreset(p: String) {
-        realLight = p
-        if (forcedLight == null) applyLight(p)
-    }
-
-    /** The Custom colours editor: show the map in "day" or "night" while it's open; null goes back to the real light. */
-    fun forceLight(p: String?) {
-        forcedLight = p
-        applyLight(p ?: realLight)
-    }
-
-    private fun applyLight(p: String) {
         if (p == lightPreset) return
         lightPreset = p
         setBase("lightPreset", Value.valueOf(satLight(p)))
         // Horizon at night: the buildings their own colour (below). Back to day, Mapbox's own building colours return; a colour once
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
         if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
-        else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()); return } }
-        // Custom colours: day and night have their own
-        if (customOn) applyCustom()
+        else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
     }
 
     /**
@@ -432,106 +414,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun setBase(key: String, v: Value) {
         val st = style ?: return
         try { st.setStyleImportConfigProperty(BASE, key, v) } catch (e: Throwable) { }
-    }
-
-    // ---- Custom colours (Settings > Map look > Colours > Custom) ----
-    // The theme it started from stays the map's colours ([colours]); only what's been changed in the Custom editor is put on top,
-    // so an untouched Custom looks exactly like that theme. A change made can be swapped live; one taken away (Reset, or a part
-    // only set for day when night comes) can't be taken back while the map is showing, so the map is loaded again.
-    private var customOn = false
-    private var customDay = CustomLook.Spec()
-    private var customNight = CustomLook.Spec()
-    /** Standard's colour settings Custom has set on the map now, and whether its own light is on. */
-    private var customApplied: Set<String> = emptySet()
-    private var customLights = false
-
-    fun setCustom(on: Boolean, dayJson: String?, nightJson: String?) {
-        val d = CustomLook.parse(dayJson); val n = CustomLook.parse(nightJson)
-        if (on == customOn && d == customDay && n == customNight) return
-        val switched = on != customOn
-        customOn = on; customDay = d; customNight = n
-        if (switched) { if (isMapboxStyle(wantedStyle) && slotsOn) { loadedStyle = null; setStyleUrl(baseStyle()) } }
-        else if (on) applyCustom()
-    }
-
-    private fun customNightNow() = lightPreset == "night" || lightPreset == "dusk"
-    private fun customSpec(): CustomLook.Spec? = if (!customOn) null else if (customNightNow()) customNight else customDay
-    private fun customGlowOn(sp: CustomLook.Spec?) = sp != null && sp.glow && buildings3d && mapDetail == "full"
-
-    private fun customReload() { if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
-
-    /** Puts the Custom colours for now (day or night) on the map. */
-    private fun applyCustom() {
-        val st = style ?: return
-        if (!customOn || !slotsOn || satellite) return
-        val sp = customSpec() ?: return
-        // the colours
-        val want = HashMap<String, String>()
-        for (part in CustomLook.parts) sp.colours[part.key]?.let { c -> for (k in part.config) want[k] = c }
-        val lightsWant = customNightNow() && sp.bright != null
-        if (customApplied.any { it !in want.keys } || (customLights && !lightsWant)) { customReload(); return }
-        for ((k, v) in want) setBase(k, Value.valueOf(v))
-        customApplied = want.keys.toSet()
-        // the tint (on top of the theme's own colour table), or the theme's own colours back
-        val baseLut = when (colours) { "horizon" -> HorizonLut.BASE64; "twilight" -> TwilightLut.BASE64; else -> null }
-        val canTint = colours !in setOf("faded", "grey")
-        val lut = if (sp.tint != null && canTint && sp.tintStr > 0) CustomLook.lut(baseLut, sp.tint, sp.tintStr) else null
-        if (lut != null) { setBase("theme", Value.valueOf("custom")); setBase("theme-data", Value.valueOf(lut)) }
-        else when (colours) {
-            "faded" -> setBase("theme", Value.valueOf("faded"))
-            "grey" -> setBase("theme", Value.valueOf("monochrome"))
-            "horizon", "twilight" -> { setBase("theme", Value.valueOf("custom")); setBase("theme-data", Value.valueOf(baseLut!!)) }
-            else -> setBase("theme", Value.valueOf("default"))
-        }
-        // the night light's strength: an even light like Mapbox's night one (100% is close to Mapbox's own), stronger or weaker
-        if (lightsWant) {
-            val k = (sp.bright ?: 100) / 100.0
-            fun f(x: Double) = String.format(java.util.Locale.US, "%.3f", x)
-            val lights = "[{\"id\":\"hz-c-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#B4BCE6\",\"intensity\":${f(0.11 * k)}}}," +
-                "{\"id\":\"hz-c-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#D2DCFF\",\"intensity\":${f(0.06 * k)},\"direction\":[200,40],\"cast-shadows\":true,\"shadow-intensity\":0.6}}]"
-            try { Value.fromJson(lights).value?.let { st.setStyleLights(it) } } catch (e: Throwable) { }
-            customLights = true
-        }
-        // glowing buildings: the app's own, in place of Mapbox's
-        val glow = customGlowOn(sp)
-        setBase("show3dBuildings", Value.valueOf(!glow))
-        try {
-            if (st.styleLayerExists("dl-cbld")) {
-                st.setStyleLayerProperty("dl-cbld", "visibility", Value.valueOf(if (glow) "visible" else "none"))
-                st.setStyleLayerProperty("dl-cbld", "fill-extrusion-color", Value.valueOf(sp.colours["buildings"] ?: "#3E5A9A"))
-                st.setStyleLayerProperty("dl-cbld", "fill-extrusion-emissive-strength", Value.valueOf(sp.glowStr / 100.0))
-            }
-            if (st.styleLayerExists("dl-cglow")) {
-                val u = sp.under && mapDetail == "full"
-                st.setStyleLayerProperty("dl-cglow", "visibility", Value.valueOf(if (u) "visible" else "none"))
-                st.setStyleLayerProperty("dl-cglow", "line-color", Value.valueOf(sp.underCol ?: "#7FA6FF"))
-                st.setStyleLayerProperty("dl-cglow", "line-opacity", Value.valueOf(0.9 * sp.underStr / 100.0))
-            }
-        } catch (e: Throwable) { }
-    }
-
-    /** Custom's glowing buildings and underglow (made on each map load while Custom is on, shown as its settings say). */
-    private fun installCustomLayers(st: Style) {
-        if (satellite || !slotsOn) return
-        try {
-            // the underglow: each building's outline as a wide, soft, self-lit line on the ground (close in only)
-            addL(st, LineLayer("dl-cglow", "dl-streets").sourceLayer("building").inSlot("bottom").minZoom(15.0)
-                .filter(Expression.fromRaw("[\"!=\",[\"get\",\"underground\"],\"true\"]"))
-                .lineColor("#7FA6FF").lineEmissiveStrength(1.0).lineOpacity(0.36)
-                .lineWidth(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
-                .lineBlur(Expression.fromRaw("[\"interpolate\",[\"exponential\",1.6],[\"zoom\"],15,5,17,12,19,26]"))
-                .visibility(Visibility.NONE))
-            // glowing buildings: one colour, lit from within by the Glow strength, so the night light can't darken them
-            addL(st, FillExtrusionLayer("dl-cbld", "dl-streets").sourceLayer("building").inSlot(MID).minZoom(14.0)
-                .filter(Expression.fromRaw("[\"all\",[\"!=\",[\"get\",\"extrude\"],\"false\"],[\"!=\",[\"get\",\"underground\"],\"true\"]]"))
-                .fillExtrusionColor("#3E5A9A")
-                .fillExtrusionHeight(Expression.fromRaw("[\"coalesce\",[\"get\",\"height\"],6]"))
-                .fillExtrusionBase(Expression.fromRaw("[\"coalesce\",[\"get\",\"min_height\"],0]"))
-                .fillExtrusionVerticalGradient(true).fillExtrusionAmbientOcclusionIntensity(0.3)
-                .fillExtrusionEmissiveStrength(0.6)
-                .fillExtrusionOpacity(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],14,0,14.5,1]"))
-                .visibility(Visibility.NONE))
-        } catch (e: Throwable) { }
     }
 
     /** Standard's settings as they should be now, written into the style before it loads (so night never flashes up as day). */
@@ -1973,7 +1855,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
-        if (customOn) { customApplied = emptySet(); customLights = false; installCustomLayers(st); applyCustom() }
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
         addS(st, GeoJsonSource.Builder("dl-signals").featureCollection(empty()).build())
@@ -2065,7 +1946,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         buildings3d = b3d
         // satellite is Mapbox's Standard Satellite style (a style of its own, so the map reloads); 3D buildings is one of Standard's settings
         if (satChanged && wantedStyle != null) { val r = onRestyle; if (r != null) r() else setStyleUrl(baseStyle()) }
-        else if (!sat && slotsOn) { setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail))); if (customOn) applyCustom() }
+        else if (!sat && slotsOn) setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
         else if (!sat) style?.let { st ->
             // the Horizon colours' own 3D buildings
             try {

@@ -83,7 +83,6 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
-- Custom map colours: a Custom tile in Settings > Map look > Colours, with an editor over the live map. Day and night each get their own colours for the ground, water, parks, roads, main roads, buildings, coloured areas and labels, plus night brightness, an overall tint, glowing buildings and underglow. It starts as the theme you had, so nothing changes until you change something.
 - Speed camera size: a slider in Settings > On the map > On your route, from 50% to 350%, to make the red speed camera badge on the map smaller or bigger (on the head unit, phone and Android Auto).
 - Twilight map colours: a new choice in Settings > Map look > Colours. It's the Horizon colours as they were, with the deeper purple-blue night.
 - Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
@@ -115,6 +114,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Android Auto with a rotary knob or buttons: a Places button is now on every car's top row. It opens a list the knob can move through, with Search first, then the fuel, food and parking shortcuts and saved places (the search bar and chips drawn on the map can't be reached by a knob).
+- Android Auto Settings while navigating: the Settings button now stays while you navigate (Stop, Sound, Report, Settings). 2D / 3D has moved to the first row of the car's Settings.
 - Horizon colours: the night map is now a dark slate blue with just a touch of purple (less obviously purple than before), with the buildings a lighter slate blue. Same brightness as before. The old purple look is now called Twilight.
 - Horizon theme at night: buildings now stand out lighter than the ground instead of being the same shade, on the phone, head unit and Android Auto. Day keeps its own colours.
 - Parking at your destination: the car parks offered near the end of a trip now show their price, opening hours and spaces where OpenStreetMap has them.
