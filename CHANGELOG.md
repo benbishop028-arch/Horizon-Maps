@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Freezing head units not helped: when the map locked the screen up and Android closed the app (the unit itself kept running), it didn't count, so the map's drawing was never turned down for that unit. A lock-up now counts, and turns the drawing down a step straight away at the next start (Lite map at a lower sharpness, then Lightest), with a message saying so.
 - Routes through closed roads: a road closure on your route ahead now makes the route find a way round it, and known closures nearby are kept out of new routes (by TomTom, Mapbox and offline routes alike). A closure with no way round (the only road to where you're going) is still used.
 - Live alternatives not always showing: they're now looked for every 2 minutes (was 3), in slow traffic too (they were skipped under about 7 mph), up to the last 5 minutes of the trip (was 10), half a minute after a reroute, and from both route services when you have keys for both.
 - Android Auto split screen (GitHub #44): with Horizon Nav in the small part of the screen, only the right-hand part of the map showed, not centred, so the route and cards were out of view. The map now fits the part Android Auto gives it, and is laid out again when that part changes size.

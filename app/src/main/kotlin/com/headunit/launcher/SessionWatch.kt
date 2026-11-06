@@ -53,7 +53,9 @@ object SessionWatch {
                 val wasStuck = p.getBoolean(STUCK, false)
                 // the screen had locked up before the end, it ended while moving, or it ended within 90 s of opening (a short
                 // drive switched off normally takes longer than that, and ends parked)
-                val suspicious = unitRestarted && beat > 0L && (wasStuck || lastSpeed > 4f || lenS < 90L)
+                // A screen that locked up counts whoever ended it: Android closing a stuck app (the unit kept running) used not to
+                // count at all, so a unit that kept freezing never had its drawing turned down
+                val suspicious = beat > 0L && (wasStuck || (unitRestarted && (lastSpeed > 4f || lenS < 90L)))
                 val report = buildString {
                     append("Last session didn't close normally: open ${lenS / 60} min ${lenS % 60} s, ")
                     append(if (unitRestarted) "and the head unit itself restarted afterwards" else "the app was closed by Android (the unit kept running)")
@@ -62,7 +64,8 @@ object SessionWatch {
                     append("Last note (${java.util.Date(beat)}): ${p.getString(NOTE, "") ?: ""}")
                     if (suspicious) append(" [counted as a possible crash]")
                 }
-                var strikes = if (suspicious) p.getInt(STRIKES, 0) + 1 else p.getInt(STRIKES, 0)
+                // (a lock-up of the screen is serious enough to step down straight away; anything else needs two)
+                var strikes = if (suspicious) p.getInt(STRIKES, 0) + (if (wasStuck) 2 else 1) else p.getInt(STRIKES, 0)
                 var level = p.getInt(LEVEL, 0)
                 if (strikes >= 2 && level < 3) {
                     level += 1; strikes = 0; stepped = level
@@ -99,9 +102,9 @@ object SessionWatch {
 
     /** What to say once it has stepped down to [level]. */
     fun message(level: Int): String = when (level) {
-        1 -> "Your head unit restarted while Horizon Nav was open, twice. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup"
-        2 -> "Your head unit restarted again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed"
-        else -> "Your head unit keeps restarting, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed"
+        1 -> "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup"
+        2 -> "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed"
+        else -> "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed"
     }
 
     /** The app is on screen: start the 10-second notes. */
