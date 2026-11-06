@@ -191,6 +191,12 @@ internal object PreferenceKeys {
     /** "Match my car" colours: the car's interior lighting colour, and how strong (percent). */
     const val CAR_TINT = "cartint"
     const val CAR_TINT_STR = "cartintstr"
+    /** The Custom theme: the theme it starts from, day and night colours (JSON, see [CustomLook]), route width in percent, saved themes. */
+    const val CUSTOM_BASE = "custombase"
+    const val CUSTOM_DAY = "customday"
+    const val CUSTOM_NIGHT = "customnight"
+    const val CUSTOM_ROUTE_W = "customroutew"
+    const val CUSTOM_SAVED = "customsaved"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

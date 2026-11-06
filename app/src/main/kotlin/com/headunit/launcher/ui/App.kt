@@ -140,8 +140,14 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(mapDetail) { map.setMapDetail(mapDetail) }
     val mapColours = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
     // (anyone who'd picked the short-lived Custom colours keeps the theme it started from)
-    val baseColours = if (mapColours == "custom") prefs.s("custombase", "mapbox") else mapColours
+    // Custom: the theme it starts from, with its own colours on top
+    val customOn = mapColours == "custom"
+    val baseColours = if (customOn) prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapColours
     LaunchedEffect(baseColours) { map.setColours(baseColours) }
+    val customDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
+    val customNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
+    val customW = prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100)
+    LaunchedEffect(customOn, customDay, customNight, customW) { map.setCustom(customOn, customDay, customNight, customW) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     LaunchedEffect(camSize) { map.setCameraSize(camSize) }
     // Light and weather, and the "Match my car" colour

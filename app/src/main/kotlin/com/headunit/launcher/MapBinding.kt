@@ -389,7 +389,50 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
         applyLights()
+        applyCustom()
     }
+
+    // ---- the Custom theme (Settings > Map style > Colours > Custom) ----
+    // The theme it starts from stays the map's colours ([colours]); only the parts changed are set on top, so an untouched Custom
+    // looks exactly like that theme. A colour set can be changed live; one taken away (Reset, or a part set for day but not night)
+    // can't be handed back while the map shows, so the map is loaded again. The route line's colour and width are part of the map's
+    // layers, so changing those loads it again too.
+    private var customOn = false
+    private var customDay = CustomLook.Spec()
+    private var customNight = CustomLook.Spec()
+    private var customRouteK = 1f
+    private var customApplied: Set<String> = emptySet()
+
+    private fun customSpec(): CustomLook.Spec? = if (!customOn || satellite) null else if (lightPreset == "night" || lightPreset == "dusk") customNight else customDay
+    private fun customRouteCol(): String? = customSpec()?.route
+
+    fun setCustom(on: Boolean, dayJson: String?, nightJson: String?, widthPct: Int) {
+        val d = CustomLook.parse(dayJson); val n = CustomLook.parse(nightJson)
+        val k = (if (on) widthPct.coerceIn(60, 180) else 100) / 100f
+        if (on == customOn && d == customDay && n == customNight && k == customRouteK) return
+        val reload = on != customOn || k != customRouteK || (on && (d.route != customDay.route || n.route != customNight.route))
+        customOn = on; customDay = d; customNight = n; customRouteK = k
+        if (reload) { if (isMapboxStyle(wantedStyle) && style != null) { loadedStyle = null; setStyleUrl(baseStyle()) } }
+        else applyCustom()
+    }
+
+    private fun applyCustom() {
+        if (!slotsOn) return
+        val st = style ?: return
+        val sp = customSpec()
+        val want = HashMap<String, String>()
+        if (sp != null) for (part in CustomLook.parts) sp.colours[part.key]?.let { c -> for (k in part.config) want[k] = c }
+        // a part that had its own colour and now doesn't (or the route colour changing between day and night): load again
+        val routeNow = sp?.route
+        if (customApplied.any { it !in want.keys } || routeNow != appliedRouteCol) {
+            if (loadedStyle != null && isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) }
+            return
+        }
+        for ((k, v) in want) setBase(k, Value.valueOf(v))
+        customApplied = want.keys.toSet()
+    }
+    /** The route colour the map's layers were made with (checked against the one wanted now). */
+    private var appliedRouteCol: String? = null
 
     // ---- "Match my car": the car's interior lighting colour, and how strong ----
     private var carTint = "#8A5AD0"
@@ -1979,6 +2022,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
+        // (the route line was just made with the colour wanted now)
+        appliedRouteCol = customRouteCol(); customApplied = emptySet(); applyCustom()
         lightsApplied = null; applyLights()
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
@@ -2260,7 +2305,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Makes the route line (and everything sized with it) thicker: the Android Auto map sets this a little above 1, as the
      *  line looked thin there against the buildings. Set straight after creating the map, before its style is built. */
     var routeBoost = 1f
-    private val ROUTE_K: Float get() = routeBoost
+    private val ROUTE_K: Float get() = routeBoost * customRouteK
 
     private fun line(p: List<LL>): Feature =
         Feature.fromGeometry(LineString.fromLngLats(p.map { Point.fromLngLat(it.lon, it.lat) }))
@@ -2278,7 +2323,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun sevColor(im: Boolean = false, day: Boolean = false): Expression = Expression.switchCase(
         Expression.eq(Expression.get("sev"), lit(2)), col(if (im) "#D93025" else "#FF4D4D"),
         Expression.eq(Expression.get("sev"), lit(1)), col(if (im) "#F9AB00" else "#FFB020"),
-        col(if (day) "#2A7BE4" else if (im) "#2FC4F5" else "#4CC9FF"),
+        col(customRouteCol() ?: if (day) "#2A7BE4" else if (im) "#2FC4F5" else "#4CC9FF"),
     )
 
     private fun pushAll() {

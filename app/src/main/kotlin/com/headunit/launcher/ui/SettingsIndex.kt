@@ -209,7 +209,9 @@ internal val settingsIndex = listOf(
     SettingRef("Work", "Set or clear your work place", "Saved places", 8),
     SettingRef("Trip log", "Every drive, recorded when you park", "Trip log", 8),
     SettingRef("Speedometer and speed-limit sign", "Speed limit and speedometer size", "While driving", 11),
-    SettingRef("Colours", "Mapbox, Horizon, Twilight, Faded, Grey, Ember, Mono Night, Forest, Arctic, High Contrast, Sepia, Neon, Pastel, Match my car", "Colours", 0),
+    SettingRef("Colours", "Mapbox, Horizon, Twilight, Faded, Grey, Ember, Mono Night, Forest, Arctic, High Contrast, Sepia, Neon, Pastel, Match my car, Custom", "Colours", 0),
+    SettingRef("Custom colours", "Your own map colours, day and night, route line colour and width, save as a theme", "Custom colours", 0),
+    SettingRef("Your themes", "Themes you saved from Custom", "Your themes", 0),
     SettingRef("Text and button size", "The size of everything on screen", "Sizes", 11),
     SettingRef("Your places", "Your own labelled places: rename, reorder or remove", "Your places", 8),
 )
