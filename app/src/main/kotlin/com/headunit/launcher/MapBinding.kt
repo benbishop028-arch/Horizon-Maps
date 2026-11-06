@@ -346,7 +346,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     fun setColours(c: String) {
-        val v = if (c in setOf("mapbox", "horizon", "twilight", "faded", "grey")) c else if (c == "moonlight") "horizon" else "mapbox"
+        val v = if (c in setOf("mapbox", "horizon", "twilight", "faded", "grey") || c in ThemeLut.ids) c else if (c == "moonlight") "horizon" else "mapbox"
         if (v == colours) return
         colours = v
         // the colours are part of how the map loads (and Horizon is a different base map), so it's loaded again
@@ -371,43 +371,108 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // given can't be taken back while the map is showing, so the map is loaded again (only at that switch, once or twice a day)
         if (horizonNightBuildings()) { setBase("colorBuildings", Value.valueOf(hzBuildings())); setBase("colorLand", Value.valueOf(hzLand())); buildingsTinted = true }
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
-        applyMoon()
+        applyLights()
     }
 
-    // ---- Moonlight at night (Settings > Map look > Day and night) ----
-    // Dusk's look (a low light from one side, long soft shadows) but from the moon: Mapbox's flat night light is swapped for a low,
-    // pale blue light from the south-west and a dim blue light all round. The night sky, street lamps and the theme's colours stay.
-    // Pitched to about the same overall brightness as Mapbox's own night light (measured from screenshots: the light falls on the
-    // whole map, so a stronger one brightens everything). Taken away when night ends by loading the map again, which brings
-    // Mapbox's own light back.
-    private var moonWanted = false
-    private var moonApplied = false
+    // ---- "Match my car": the car's interior lighting colour, and how strong ----
+    private var carTint = "#8A5AD0"
+    private var carTintStr = 40
 
-    private fun moonNow() = moonWanted && slotsOn && !satellite && lightPreset == "night"
-
-    fun setMoonlight(on: Boolean) {
-        if (on == moonWanted) return
-        moonWanted = on
-        applyMoon()
+    fun setCarTint(hex: String, pct: Int) {
+        if (hex == carTint && pct == carTintStr) return
+        carTint = hex; carTintStr = pct.coerceIn(0, 100)
+        if (colours == "car" && !satellite) ThemeLut.lut("car", carTint, carTintStr)?.let { setBase("theme-data", Value.valueOf(it)) }
     }
 
-    private fun applyMoon() {
-        if (moonApplied && !moonNow()) {
-            moonApplied = false
-            // (unless the map is already being loaded again, for the Horizon colours)
-            if (loadedStyle != null && isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) }
-            return
+    // ---- Light and weather (Settings > Map look > Light and weather) ----
+    // Mapbox's own light for each time of day, unless a setting here asks for something else; then the app sets its own two lights
+    // (one all round, one from a direction). Pitched to Mapbox's own brightness: by night measured from screenshots, by day from
+    // Mapbox's published daylight (expect a tuning round). Mapbox's light can't be handed back while the map is showing, so when
+    // nothing calls for the app's own any more, the map is loaded again.
+    class LightOpts(
+        val nightBright: Int = 100, val moon: Boolean = false, val moonStr: Int = 100, val shadows: Boolean = true,
+        val sunReal: Boolean = false, val overcast: Boolean = false, val weatherLight: Boolean = false,
+    )
+    private var lightOpts = LightOpts()
+    private var lightsApplied: String? = null
+    /** The weather here now (Open-Meteo's code), for Weather light; -1 when not known. */
+    private var wxCode = -1
+    private val lightHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val sunTick = object : Runnable {
+        override fun run() { applyLights(); lightHandler.postDelayed(this, 5 * 60_000L) }
+    }
+
+    fun setLightOpts(o: LightOpts) {
+        lightOpts = o
+        lightHandler.removeCallbacks(sunTick)
+        if (o.sunReal) lightHandler.postDelayed(sunTick, 5 * 60_000L)
+        applyLights()
+    }
+
+    fun setWeatherCode(code: Int?) {
+        val c = code ?: -1
+        if (c == wxCode) return
+        wxCode = c
+        applyLights()
+    }
+
+    private fun raining() = wxCode in 51..67 || wxCode in 80..82 || wxCode in 95..99
+    private fun snowing() = wxCode in 71..77 || wxCode in 85..86
+
+    private fun f3(x: Double) = String.format(java.util.Locale.US, "%.3f", x)
+    private fun lightJson(ambCol: String, amb: Double, dirCol: String, dir: Double, az: Double, polar: Double, shadows: Boolean, shadowInt: Double) =
+        "[{\"id\":\"hz-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"$ambCol\",\"intensity\":${f3(amb)}}}," +
+            "{\"id\":\"hz-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"$dirCol\",\"intensity\":${f3(dir)}," +
+            "\"direction\":[${f3(az)},${f3(polar)}],\"cast-shadows\":$shadows,\"shadow-intensity\":${f3(shadowInt)}}}]"
+
+    /** The app's own light for now, or null for Mapbox's own. */
+    private fun wantedLights(): String? {
+        if (!slotsOn || satellite) return null
+        val o = lightOpts
+        return when (lightPreset) {
+            "night" -> {
+                if (!o.moon && o.nightBright == 100 && o.shadows) return null
+                val k = o.nightBright / 100.0
+                // the moon: Dusk's low light from one side and long shadows, from a low, pale blue moon in the south-west
+                if (o.moon) lightJson("#8C9CE0", 0.085 * k, "#C8D8FF", 0.22 * k * o.moonStr / 100.0, 215.0, 68.0, o.shadows, 0.7)
+                // otherwise an even light like Mapbox's night one, brighter or darker
+                else lightJson("#B4BCE6", 0.11 * k, "#D2DCFF", 0.06 * k, 200.0, 40.0, o.shadows, 0.6)
+            }
+            "day" -> {
+                val grey = o.overcast || (o.weatherLight && (raining() || snowing()))
+                if (!grey && !o.sunReal && o.shadows) return null
+                if (grey) {
+                    // overcast: soft light from all round, no hard shadows (greyer still when it's raining)
+                    val wet = o.weatherLight && (raining() || snowing())
+                    lightJson(if (wet) "#DCE0E6" else "#F2F4F7", if (wet) 0.86 else 0.92, "#FFFFFF", 0.08, 180.0, 30.0, false, 0.0)
+                } else {
+                    var az = 180.0; var polar = 30.0
+                    if (o.sunReal) try {
+                        val c = mbMap.cameraState.center
+                        val (a, el) = Sun.position(c.latitude(), c.longitude(), System.currentTimeMillis())
+                        az = a; polar = (90.0 - el).coerceIn(15.0, 75.0)
+                    } catch (e: Throwable) { }
+                    lightJson("#FFFFFF", 0.8, "#FFFFFF", 0.2, az, polar, o.shadows, 0.3)
+                }
+            }
+            else -> null
         }
-        if (!moonNow() || moonApplied) return
-        val st = style ?: return
-        try {
-            val lights = "[{\"id\":\"hz-moon-amb\",\"type\":\"ambient\",\"properties\":{\"color\":\"#8C9CE0\",\"intensity\":0.085}}," +
-                "{\"id\":\"hz-moon-dir\",\"type\":\"directional\",\"properties\":{\"color\":\"#C8D8FF\",\"intensity\":0.22," +
-                "\"direction\":[215,68],\"cast-shadows\":true,\"shadow-intensity\":0.7}}]"
-            Value.fromJson(lights).value?.let { st.setStyleLights(it) }
-            moonApplied = true
-        } catch (e: Throwable) { }
     }
+
+    private fun applyLights() {
+        val want = wantedLights()
+        if (want == null) {
+            if (lightsApplied != null) {
+                lightsApplied = null
+                // (unless the map is already being loaded again, for the Horizon colours)
+                if (loadedStyle != null && isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()); return }
+            }
+        } else if (want != lightsApplied) {
+            val st = style ?: return
+            try { Value.fromJson(want).value?.let { st.setStyleLights(it); lightsApplied = want } } catch (e: Throwable) { }
+        }
+    }
+
 
     /**
      * The Horizon theme at night and dusk: buildings a soft lavender-blue, a step lighter than the ground, rather than the same dark
@@ -428,14 +493,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun hzFamily() = colours == "horizon" || colours == "twilight"
     private fun twilight() = colours == "twilight"
     /** The ground's two ends: Twilight from a deep violet-blue to a pale lavender; Horizon the same brightness in slate blue with a touch of purple. */
-    private fun landDark() = if (twilight()) 0x3A4260 else 0x3D4662
-    private fun landLight() = if (twilight()) 0xE6EBFF else 0xEAEFFB
+    private fun landDark() = if (twilight()) 0x3A4260 else 0x3C4463
+    private fun landLight() = if (twilight()) 0xE6EBFF else 0xE9EBFD
     /** The ground: from deep (0%) to pale (100%), before the night light dims it. */
     private fun hzLand(): String = mix(landDark(), landLight(), hzBright / 100.0)
     /** The buildings: the ground's colour taken towards white (Twilight) or a very pale slate blue (Horizon) by the Buildings level. */
     private fun hzBuildings(): String {
         val land = Integer.parseInt(hzLand().substring(1), 16)
-        return mix(land, if (twilight()) 0xFFFFFF else 0xF2F5FC, 0.15 + 0.85 * hzBld / 100.0)
+        return mix(land, if (twilight()) 0xFFFFFF else 0xF5F4FE, 0.15 + 0.85 * hzBld / 100.0)
     }
     private var buildingsTinted = false
 
@@ -469,7 +534,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             "horizon" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", HorizonLut.BASE64) }
             // the same with the original deeper purple-blue night
             "twilight" -> if (!sat) { c.put("theme", "custom"); c.put("theme-data", TwilightLut.BASE64) }
-            // a lighter blue night (its own ground and building colours and lights, below), on Horizon's gentle tint
+            // the other themes (Ember, Mono Night, Forest...): tables made on the device
+            else -> if (colours in ThemeLut.ids) ThemeLut.lut(colours, carTint, carTintStr)?.let { c.put("theme", "custom"); c.put("theme-data", it) }
         }
         buildingsTinted = !sat && horizonNightBuildings()
         if (buildingsTinted) { c.put("colorBuildings", hzBuildings()); c.put("colorLand", hzLand()) }
@@ -1891,7 +1957,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
-        moonApplied = false; applyMoon()
+        lightsApplied = null; applyLights()
         // traffic lights (icons stand on the road, above shop labels)
         addImg(st, "dl-signal", signalBitmap())
         addS(st, GeoJsonSource.Builder("dl-signals").featureCollection(empty()).build())

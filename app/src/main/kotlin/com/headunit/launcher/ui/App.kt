@@ -144,8 +144,16 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(baseColours) { map.setColours(baseColours) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     LaunchedEffect(camSize) { map.setCameraSize(camSize) }
-    val moonlit = prefs.b(PreferenceKeys.MOONLIT, false)
-    LaunchedEffect(moonlit) { map.setMoonlight(moonlit) }
+    // Light and weather, and the "Match my car" colour
+    val lightOpts = com.headunit.launcher.lightOptsFrom(prefs)
+    LaunchedEffect(lightOpts.nightBright, lightOpts.moon, lightOpts.moonStr, lightOpts.shadows, lightOpts.sunReal, lightOpts.overcast, lightOpts.weatherLight) {
+        map.setLightOpts(lightOpts)
+    }
+    val wxCode = engine.weather?.code
+    LaunchedEffect(wxCode) { map.setWeatherCode(wxCode) }
+    val carTint = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
+    val carTintStr = prefs.i(PreferenceKeys.CAR_TINT_STR, 40)
+    LaunchedEffect(carTint, carTintStr) { map.setCarTint(carTint, carTintStr) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
     LaunchedEffect(logoCorner) { map.setLogoCorner(logoCorner) }
     // (off unless chosen: with it on, traffic on the roads round you vanished as soon as a route started, which looked like a bug)

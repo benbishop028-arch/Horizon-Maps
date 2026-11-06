@@ -205,7 +205,8 @@ class CarNavSession : Session() {
         val mapCols = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
         map.setColours(if (mapCols == "custom") prefs.s("custombase", "mapbox") else mapCols)
         map.setCameraSize(prefs.i(PreferenceKeys.CAM_SIZE, 100))
-        map.setMoonlight(prefs.b(PreferenceKeys.MOONLIT, false))
+        map.setCarTint(prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0"), prefs.i(PreferenceKeys.CAR_TINT_STR, 40))
+        map.setLightOpts(com.headunit.launcher.lightOptsFrom(prefs))
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
         map.setExtras(prefs.b(PreferenceKeys.FACADES, true), prefs.b(PreferenceKeys.LANDMARKS3D, true), prefs.b(PreferenceKeys.PATHS, true), prefs.b(PreferenceKeys.TERRAIN, false),
             false, prefs.b(PreferenceKeys.FURNITURE3D, true), prefs.b(PreferenceKeys.CLEARVIEW, true))
@@ -219,7 +220,7 @@ class CarNavSession : Session() {
         try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine
         surface.engine = engine
-        CarTicks.tick = { surface.tick() }
+        CarTicks.tick = { surface.tick(); try { holder.map?.setWeatherCode(holder.engine?.weather?.code) } catch (e: Exception) { } }
         applyTheme()
         try { engine.startLocation() } catch (e: Exception) { }
         mapScreen?.start()

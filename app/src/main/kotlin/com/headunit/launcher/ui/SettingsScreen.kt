@@ -253,8 +253,16 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
             SFieldItem("Night starts at", prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), "24-hour clock, for example 19:30", placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
             SFieldItem("Day starts at", prefs.s(PreferenceKeys.DAY_FROM, "07:00"), "24-hour clock, for example 06:45", placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
-        if (prefs.mapSource() == "mapbox")
-            SToggle(prefs, "Moonlight at night", PreferenceKeys.MOONLIT, false, "Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay")
+    }
+    if (prefs.mapSource() == "mapbox") SGroup("Light and weather") {
+        SPercent("Night brightness", "How bright the whole night map is. 100% is Mapbox's own night light", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
+        SToggle(prefs, "Moonlight at night", PreferenceKeys.MOONLIT, false, "Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay")
+        if (prefs.b(PreferenceKeys.MOONLIT, false))
+            SPercent("Moon strength", "How strongly the moon lights walls and casts shadows", prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
+        SToggle(prefs, "Shadows", PreferenceKeys.SHADOWS, true, "Buildings and trees cast shadows. Off is also lighter work for a slow head unit")
+        SToggle(prefs, "Sun in its real place", PreferenceKeys.SUN_REAL, false, "By day, the light and shadows come from where the sun really is right now")
+        SToggle(prefs, "Overcast light", PreferenceKeys.OVERCAST, false, "Soft daylight with no hard shadows, calmer in glare")
+        SToggle(prefs, "Weather light", PreferenceKeys.WEATHER_LIGHT, false, "A greyer, softer daylight when it's raining or snowing where you are. Needs "Weather effects on the map" on (Settings > On the map), which also brings real rain and snow")
     }
     SGroup("The map") {
         SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
@@ -263,6 +271,19 @@ private fun MapLookSection(prefs: Prefs, engine: NavEngine) {
             SChoice("Map detail", listOf("full" to "Full 3D", "lite" to "Lite", "lightest" to "Lightest"), prefs.mapDetail(),
                 "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
             MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { prefs.put(PreferenceKeys.MAP_COLOURS, it) }
+            if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "car") {
+                SItem("Car's lighting colour", "The map, mostly at night, takes a hint of it")
+                val cur = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
+                Row(Modifier.padding(start = 4.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    for (hex in listOf("#E64B4B", "#FF9A3C", "#F2D04A", "#2FC9A0", "#3C8CFF", "#8A5AD0", "#E64BD8", "#FFFFFF")) {
+                        val sel = hex.equals(cur, true)
+                        Box(Modifier.size(34.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(android.graphics.Color.parseColor(hex)))
+                            .border(if (sel) 3.dp else 1.dp, if (sel) LocalVw.current.accent else Color.White.copy(alpha = 0.25f), androidx.compose.foundation.shape.CircleShape)
+                            .pressClick { prefs.put(PreferenceKeys.CAR_TINT, hex) })
+                    }
+                }
+                SPercent("How strong", "How much of the colour the map takes", prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
+            }
         }
         DefaultZoomRow(prefs)
         SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
@@ -1194,9 +1215,18 @@ private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
         Triple("twilight", "Twilight", listOf(0xFFF1F0F5, 0xFFAAD4F5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE5E3EA)),
         Triple("faded", "Faded", listOf(0xFFF1F1F1, 0xFFD9E2EA, 0xFFE2E8DE, 0xFFFFFFFF, 0xFFE6E6E6)),
         Triple("grey", "Grey", listOf(0xFFE8E8E8, 0xFFCFCFCF, 0xFFDADADA, 0xFFFFFFFF, 0xFFD4D4D4)),
+        Triple("ember", "Ember", listOf(0xFFF3EEE6, 0xFFB8D0DC, 0xFFD6E4C4, 0xFFFFFFFF, 0xFFE6DDD0)),
+        Triple("mono", "Mono Night", listOf(0xFFEFEFEF, 0xFFD4D4D4, 0xFFDEDEDE, 0xFFFFFFFF, 0xFFE2E2E2)),
+        Triple("forest", "Forest", listOf(0xFFEEF0E6, 0xFFA8CFC8, 0xFFBCDCAE, 0xFFFFFFFF, 0xFFE0E2D4)),
+        Triple("arctic", "Arctic", listOf(0xFFF2F6FA, 0xFFBFE0F5, 0xFFD8ECEA, 0xFFFFFFFF, 0xFFE4ECF4)),
+        Triple("contrast", "High Contrast", listOf(0xFFFFFFFF, 0xFF7CC4F0, 0xFFB4E0A4, 0xFF222222, 0xFFD8D8D8)),
+        Triple("sepia", "Sepia", listOf(0xFFEFE4CF, 0xFFC8D2C0, 0xFFD8DCB4, 0xFFFAF4E6, 0xFFE2D4B8)),
+        Triple("neon", "Neon", listOf(0xFFECEBF4, 0xFFA8E4F4, 0xFFC8ECD4, 0xFFFFFFFF, 0xFFE2E0EE)),
+        Triple("pastel", "Pastel", listOf(0xFFF6F3F0, 0xFFCFE4F2, 0xFFDCECD6, 0xFFFFFFFF, 0xFFECE8E6)),
+        Triple("car", "Match my car", listOf(0xFF1A1424, 0xFF14182C, 0xFF232C30, 0xFF5A4A6E, 0xFF2A2240)),
     )
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        SItem("Colours", "Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Day colours shown; each has a night version")
+        SItem("Colours", "Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Mono Night: greys, with only the route and warnings in colour. Match my car: a hint of your car's interior lighting colour. Day colours shown (Match my car at night); each has a night version")
         Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             for ((id, name, cols) in sets) {
                 val sel = id == value

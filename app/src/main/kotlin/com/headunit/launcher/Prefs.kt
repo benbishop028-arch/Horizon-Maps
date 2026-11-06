@@ -181,6 +181,16 @@ internal object PreferenceKeys {
     const val CAM_SIZE = "camsize"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
     const val MOONLIT = "moonlit"
+    /** Light and weather (Settings > Map look): night brightness and moon strength in percent (100 as Mapbox / as first made). */
+    const val NIGHT_BRIGHT = "nightbright"
+    const val MOON_STR = "moonstr"
+    const val SHADOWS = "shadows"
+    const val SUN_REAL = "sunreal"
+    const val OVERCAST = "overcast"
+    const val WEATHER_LIGHT = "weatherlight"
+    /** "Match my car" colours: the car's interior lighting colour, and how strong (percent). */
+    const val CAR_TINT = "cartint"
+    const val CAR_TINT_STR = "cartintstr"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

@@ -83,7 +83,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
-- Moonlight at night: a switch in Settings > Map look > Day and night. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.
+- More map colours: Ember (warm and dark), Mono Night (greys, with only the route and warnings in colour), Forest, Arctic, High Contrast, Sepia, Neon, Pastel, and Match my car (a hint of your car's interior lighting colour, with how strong). In Settings > Map look > Colours.
+- Light and weather: a new group in Settings > Map look, with Night brightness, Moonlight at night (moved here) and its Moon strength, Shadows on or off, Sun in its real place (by day, light and shadows from where the sun really is), Overcast light (soft daylight, no hard shadows) and Weather light (greyer light when it's raining). Everything starts as before.
+- Moonlight at night: a switch in Settings > Map look > Light and weather. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.
 - Speed camera size: a slider in Settings > On the map > On your route, from 50% to 350%, to make the red speed camera badge on the map smaller or bigger (on the head unit, phone and Android Auto).
 - Twilight map colours: a new choice in Settings > Map look > Colours. It's the Horizon colours as they were, with the deeper purple-blue night.
 - Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
@@ -115,6 +117,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Horizon colours: a little more lilac.
 - Android Auto with a rotary knob or buttons: a Places button is now on every car's top row. It opens a list the knob can move through, with Search first, then the fuel, food and parking shortcuts and saved places (the search bar and chips drawn on the map can't be reached by a knob).
 - Android Auto Settings while navigating: the Settings button now stays while you navigate (Stop, Sound, Report, Settings). 2D / 3D has moved to the first row of the car's Settings.
 - Horizon colours: the night map is now a dark slate blue with just a touch of purple (less obviously purple than before), with the buildings a lighter slate blue. Same brightness as before. The old purple look is now called Twilight.

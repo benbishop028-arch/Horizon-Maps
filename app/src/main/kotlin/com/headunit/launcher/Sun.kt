@@ -57,4 +57,31 @@ object Sun {
             else -> ""
         }
     }
+
+    /**
+     * Where the sun is: [first] its direction in degrees clockwise from north, [second] its height above the horizon in degrees
+     * (below zero at night). NOAA approximation, good to about a degree.
+     */
+    fun position(lat: Double, lon: Double, nowMs: Long): Pair<Double, Double> {
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { timeInMillis = nowMs }
+        val n = cal.get(Calendar.DAY_OF_YEAR)
+        val hour = cal.get(Calendar.HOUR_OF_DAY) + cal.get(Calendar.MINUTE) / 60.0
+        val g = 2 * PI / 365.0 * (n - 1 + (hour - 12) / 24.0)
+        val eq = 229.18 * (0.000075 + 0.001868 * cos(g) - 0.032077 * sin(g) - 0.014615 * cos(2 * g) - 0.040849 * sin(2 * g))
+        val decl = 0.006918 - 0.399912 * cos(g) + 0.070257 * sin(g) - 0.006758 * cos(2 * g) + 0.000907 * sin(2 * g) - 0.002697 * cos(3 * g) + 0.00148 * sin(3 * g)
+        val trueMin = hour * 60 + eq + 4 * lon
+        val ha = Math.toRadians(trueMin / 4 - 180)
+        val la = Math.toRadians(lat)
+        val cosZen = (sin(la) * sin(decl) + cos(la) * cos(decl) * cos(ha)).coerceIn(-1.0, 1.0)
+        val zen = acos(cosZen)
+        val elev = 90 - Math.toDegrees(zen)
+        val sz = sin(zen)
+        var az = if (sz < 1e-6) 180.0 else {
+            val c = ((sin(la) * cosZen - sin(decl)) / (cos(la) * sz)).coerceIn(-1.0, 1.0)
+            val a = Math.toDegrees(acos(c))
+            if (ha > 0) (a + 180) % 360 else (540 - a) % 360
+        }
+        if (az < 0) az += 360
+        return Pair(az, elev)
+    }
 }
