@@ -322,6 +322,7 @@ private fun LightSection(prefs: Prefs) {
         STilt("Tilt on Android Auto", "The car screen", prefs, PreferenceKeys.TILT_CAR)
     }
     SGroup("3D") {
+        SToggle(prefs, "Hill shading", PreferenceKeys.HILLSHADE, false, "Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills")
         SToggle(prefs, "3D buildings", "buildings3d", true)
         SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
         SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
@@ -433,6 +434,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         SSlider(if (shapeCar) "Car size" else if (loc == "custom") "Picture size" else "Arrow size", prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
     }
     SGroup("Route line") {
+        SToggle(prefs, "3D flags", PreferenceKeys.FLAGS_3D, true, "A tall flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance")
         SToggle(prefs, "Turn arrow on the route", "turnarrows", true, "A white arrow through the next junction or roundabout")
         SToggle(prefs, "Chevrons along the route", "routechevrons", true, "Small arrows along the line when zoomed in")
         SToggle(prefs, "Route ribbon", "ribbon", true, "A soft shadow under the route line, and the route showing faintly through 3D buildings in front of it")

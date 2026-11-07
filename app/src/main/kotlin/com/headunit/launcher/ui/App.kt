@@ -150,6 +150,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     LaunchedEffect(customOn, customDay, customNight, customW) { map.setCustom(customOn, customDay, customNight, customW) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     LaunchedEffect(camSize) { map.setCameraSize(camSize) }
+    val flags3d = prefs.b(PreferenceKeys.FLAGS_3D, true)
+    val hills = prefs.b(PreferenceKeys.HILLSHADE, false)
+    LaunchedEffect(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }
     // Light and weather, and the "Match my car" colour
     val lightOpts = com.headunit.launcher.lightOptsFrom(prefs)
     LaunchedEffect(lightOpts.nightBright, lightOpts.moon, lightOpts.moonStr, lightOpts.shadows, lightOpts.sunReal, lightOpts.overcast, lightOpts.weatherLight) {

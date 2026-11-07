@@ -205,6 +205,10 @@ internal object PreferenceKeys {
     const val WHATS_HERE = "whatshere"
     /** The next speed limit ahead, shown small beside the current one. */
     const val NEXT_LIMIT = "nextlimit"
+    /** Tall 3D flags at the destination and your stops. */
+    const val FLAGS_3D = "flags3d"
+    /** Soft shading on hillsides. */
+    const val HILLSHADE = "hillshade"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

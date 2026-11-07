@@ -1468,26 +1468,3 @@ private fun RouteRow(title: String, titleCol: Color, line2: String, line3: Strin
     }
 }
 
-@Composable
-private fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
-    val c = LocalVw.current
-    Column(Modifier.widthIn(max = 460.dp).fillMaxWidth().padding(horizontal = 16.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(if (h.place.name == "Dropped pin") "What's here" else h.place.name, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), maxLines = 1)
-            Box(Modifier.size(40.dp).clip(CircleShape).pressClick { engine.here = null }, contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Close, "Close", tint = c.sub, modifier = Modifier.size(22.dp))
-            }
-        }
-        if (h.loading) Text("Looking…", color = c.sub, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
-        for ((i, l) in h.lines.withIndex()) Text(l, color = if (i == 0) c.text else c.sub, fontSize = if (i == 0) 15.sp else 13.sp, modifier = Modifier.padding(top = 3.dp), maxLines = 2)
-        Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            val driving = engine.route != null && !engine.previewing
-            Box(Modifier.clip(RoundedCornerShape(20.dp)).background(c.accent).pressClick { engine.hereGo(false) }.padding(horizontal = 20.dp, vertical = 11.dp)) {
-                Text(if (driving) "Go here instead" else "Go", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            }
-            if (driving) Box(Modifier.clip(RoundedCornerShape(20.dp)).background(c.tile).pressClick { engine.hereGo(true) }.padding(horizontal = 20.dp, vertical = 11.dp)) {
-                Text("Add as a stop", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            }
-        }
-    }
-}

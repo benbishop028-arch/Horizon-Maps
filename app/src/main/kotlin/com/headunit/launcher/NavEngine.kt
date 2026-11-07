@@ -1790,6 +1790,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun drawRoutes() {
         val r = route ?: return
         map.setRoute(r.pts, routes.filterIndexed { i, _ -> i != active }.map { it.pts }, r.sev)
+        map.setStopFlags(via.map { it.pos })
         map.setTunnels(r.tunnels.map { (a, b) -> slice(r, a, b) })
     }
 
@@ -3547,29 +3548,39 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    /** The What's here card (holding on the map): the place, and lines about it as they come in. */
-    class HereCard(val place: Place, val lines: List<String>, val loading: Boolean)
+    /**
+     * The What's here card (holding on the map): the place, and what's known about it as it comes in: the road (name, kind, number
+     * and class for its badge), the speed limit, what the land is, the area, and how far it is from you.
+     */
+    class HereCard(
+        val place: Place, val loading: Boolean, val road: String = "", val roadKind: String = "", val roadClass: String = "", val ref: String = "",
+        val limitMs: Double = 0.0, val limitEstimated: Boolean = false, val land: String = "", val landClass: String = "", val area: String = "", val distM: Double = -1.0,
+    )
     var here by mutableStateOf<HereCard?>(null)
 
     private fun showHere(place: Place) {
-        here = HereCard(place, emptyList(), true)
         val p = place.pos
+        val dist = fix?.pos?.let { Geo.dist(it, p) } ?: -1.0
+        here = HereCard(place, true, distM = dist)
         scope.launch {
             val token = mbToken
             val info = withContext(Dispatchers.IO) { if (token.isNotBlank() && online()) MapboxRest.whatsHere(token, p) else null }
             val lim = withContext(Dispatchers.IO) { try { Overpass.speedLimit(p) } catch (e: Exception) { null } }
             if (here?.place !== place) return@launch
-            val lines = ArrayList<String>()
-            val road = info?.road?.ifBlank { null } ?: lim?.road?.ifBlank { null }
-            if (road != null || !info?.roadKind.isNullOrBlank()) lines += listOfNotNull(road, info?.roadKind?.ifBlank { null }).joinToString(" · ")
-            if (lim != null && lim.ms > 0) {
-                val v = Math.round(lim.ms * if (imperial) 2.23694 else 3.6)
-                lines += "Speed limit $v ${if (imperial) "mph" else "km/h"}" + (if (lim.estimated) " (usual for this road)" else "")
-            }
-            listOfNotNull(info?.land?.ifBlank { null }, info?.place?.ifBlank { null }).joinToString(" · ").takeIf { it.isNotBlank() }?.let { lines += it }
-            lines += String.format(java.util.Locale.US, "%.5f, %.5f", p.lat, p.lon)
-            here = HereCard(place, lines, false)
+            here = HereCard(
+                place, false,
+                road = info?.road?.ifBlank { null } ?: lim?.road.orEmpty(), roadKind = info?.roadKind.orEmpty(), roadClass = info?.roadClass.orEmpty(), ref = info?.ref.orEmpty(),
+                limitMs = lim?.ms ?: 0.0, limitEstimated = lim?.estimated ?: false,
+                land = info?.land.orEmpty(), landClass = info?.landClass.orEmpty(), area = info?.place.orEmpty(), distM = dist,
+            )
         }
+    }
+
+    /** Saves the What's here place as a favourite (or takes it off again). */
+    fun hereSave(): Boolean {
+        val h = here ?: return false
+        val name = h.place.name.takeIf { it != "Dropped pin" } ?: h.road.ifBlank { "Saved place" }
+        return places.toggleFavourite(Place(name, h.area, h.place.pos))
     }
 
     /** From the What's here card: go there, or add it as a stop when driving a route. */
@@ -4041,6 +4052,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             liveAlts = list
             // the plain grey lines make way for the ones with cards
             map.setRoute(cur.pts, emptyList(), cur.sev)
+            map.setStopFlags(via.map { it.pos })
             map.setTunnels(cur.tunnels.map { (a, b) -> slice(r = cur, a = a, b = b) })
             map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic })
         }

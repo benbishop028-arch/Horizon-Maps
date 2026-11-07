@@ -44,6 +44,7 @@ import com.mapbox.maps.extension.style.layers.getLayer
 import com.mapbox.maps.extension.style.layers.generated.CircleLayer
 import com.mapbox.maps.extension.style.layers.generated.FillExtrusionLayer
 import com.mapbox.maps.extension.style.layers.generated.FillLayer
+import com.mapbox.maps.extension.style.layers.generated.HillshadeLayer
 import com.mapbox.maps.extension.style.layers.generated.LineLayer
 import com.mapbox.maps.extension.style.layers.generated.ModelLayer
 import com.mapbox.maps.interactions.standard.generated.standardBuildings
@@ -64,6 +65,7 @@ import com.mapbox.maps.extension.style.layers.properties.generated.Visibility
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.RasterSource
+import com.mapbox.maps.extension.style.sources.generated.RasterDemSource
 import com.mapbox.maps.extension.style.sources.generated.VectorSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.plugin.animation.MapAnimationOptions
@@ -390,6 +392,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         else if (buildingsTinted) { buildingsTinted = false; if (isMapboxStyle(wantedStyle)) { loadedStyle = null; setStyleUrl(baseStyle()) } }
         applyLights()
         applyCustom()
+        // the hill shading has its own day and night shades
+        if (hillsOn) style?.let { installHills(it) }
     }
 
     // ---- the Custom theme (Settings > Map style > Colours > Custom) ----
@@ -1899,6 +1903,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addS(st, GeoJsonSource.Builder("dl-flow").featureCollection(empty()).lineMetrics(true).build())
         addS(st, GeoJsonSource.Builder("dl-done").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-dest").featureCollection(empty()).build())
+        addS(st, GeoJsonSource.Builder("dl-flags").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-hazards").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-me").featureCollection(empty()).build())
         // the arrow at the next turn, drawn on the route; no simplification, so small shapes keep their corners
@@ -2022,6 +2027,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
+        installHills(st)
         // (the route line was just made with the colour wanted now)
         appliedRouteCol = customRouteCol(); customApplied = emptySet(); applyCustom()
         lightsApplied = null; applyLights()
@@ -2079,6 +2085,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 .iconAllowOverlap(true).iconIgnorePlacement(true).iconSize(0.6))
         } else addL(st, CircleLayer("dl-dest-dot", "dl-dest")
             .circleRadius(10.0).circleColor("#ff3b30").circleStrokeColor("#ffffff").circleStrokeWidth(3.0).circleEmissiveStrength(1.0))
+        // the 3D flags (destination red, stops amber), lit from within so they stand out day and night
+        if (!satellite) try {
+            addL(st, FillExtrusionLayer("dl-flags-3d", "dl-flags").inSlot(MID).minZoom(12.0)
+                .fillExtrusionColor(Expression.fromRaw("[\"case\",[\"==\",[\"get\",\"part\"],\"pole\"],\"#F2F4F8\",[\"==\",[\"get\",\"kind\"],\"stop\"],\"#FFB020\",\"#FF3B30\"]"))
+                .fillExtrusionHeight(Expression.get("top")).fillExtrusionBase(Expression.get("base"))
+                .fillExtrusionEmissiveStrength(0.85).fillExtrusionOpacity(1.0))
+        } catch (e: Throwable) { }
         if (!im) {
             addL(st, CircleLayer("dl-me-halo", "dl-me")
                 .circleRadius(15.0 * 0.625 * arrowScale).circleColor("#2e8bff").circleOpacity(0.25).circleEmissiveStrength(1.0)
@@ -2328,7 +2341,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     private fun pushAll() {
         pushLive(); pushRadar(); pushTurn()
-        pushRoute(); pushDest(); pushMe(); pushHazards(); pushCams(); pushSignals()
+        pushRoute(); pushDest(); pushFlags(); pushMe(); pushHazards(); pushCams(); pushSignals()
     }
 
     private var cams: List<LL> = emptyList()
@@ -3810,7 +3823,59 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // they were for the first stretch, so lights further along never appeared)
         pushSignals()
     }
-    fun setDest(p: LL?) { dest = p; pushDest() }
+    fun setDest(p: LL?) { dest = p; pushDest(); pushFlags() }
+
+    // ---- 3D flags: a tall flag at the destination (and smaller ones at your stops) standing above the buildings ----
+    private var flagsOn = true
+    private var stopPts: List<LL> = emptyList()
+
+    fun setFlags(on: Boolean) { if (on != flagsOn) { flagsOn = on; pushFlags() } }
+    fun setStopFlags(stops: List<LL>) { if (stops != stopPts) { stopPts = stops; pushFlags() } }
+
+    /** A flag at [p], [h] metres tall: a thin pole and a flag near its top, as 3D shapes ("part" pole / flag, "kind" dest / stop). */
+    private fun flagShapes(p: LL, h: Double, kind: String): List<Feature> {
+        val kx = 1.0 / (111_320.0 * kotlin.math.cos(Math.toRadians(p.lat))); val ky = 1.0 / 110_540.0
+        fun box(x0: Double, y0: Double, x1: Double, y1: Double): com.mapbox.geojson.Polygon = com.mapbox.geojson.Polygon.fromLngLats(listOf(listOf(
+            Point.fromLngLat(p.lon + x0 * kx, p.lat + y0 * ky), Point.fromLngLat(p.lon + x1 * kx, p.lat + y0 * ky),
+            Point.fromLngLat(p.lon + x1 * kx, p.lat + y1 * ky), Point.fromLngLat(p.lon + x0 * kx, p.lat + y1 * ky), Point.fromLngLat(p.lon + x0 * kx, p.lat + y0 * ky))))
+        val w = h / 45.0   // thicker for a taller flag
+        val pole = Feature.fromGeometry(box(-0.5 * w, -0.5 * w, 0.5 * w, 0.5 * w)).also { it.addStringProperty("part", "pole"); it.addStringProperty("kind", kind); it.addNumberProperty("base", 0.0); it.addNumberProperty("top", h) }
+        val flag = Feature.fromGeometry(box(0.5 * w, -0.25 * w, h * 0.22, 0.25 * w)).also { it.addStringProperty("part", "flag"); it.addStringProperty("kind", kind); it.addNumberProperty("base", h * 0.74); it.addNumberProperty("top", h * 0.98) }
+        return listOf(pole, flag)
+    }
+
+    private fun pushFlags() {
+        val s = src("dl-flags") ?: return
+        val d = dest
+        if (!flagsOn || d == null) { s.featureCollection(empty()); return }
+        val fs = ArrayList<Feature>(flagShapes(d, 42.0, "dest"))
+        for (q in stopPts.take(10)) fs += flagShapes(q, 28.0, "stop")
+        s.featureCollection(FeatureCollection.fromFeatures(fs))
+    }
+
+    // ---- hill shading: soft shading on hillsides, even on a flat map (Settings > Light & 3D > 3D) ----
+    private var hillsOn = false
+
+    fun setHillShading(on: Boolean) {
+        if (on == hillsOn) return
+        hillsOn = on
+        style?.let { installHills(it) }
+    }
+
+    private fun installHills(st: Style) {
+        try {
+            if (!hillsOn || satellite || !slotsOn || mapDetail == "lightest") { if (st.styleLayerExists("dl-hills")) st.removeStyleLayer("dl-hills"); return }
+            if (!st.styleSourceExists("dl-dem")) st.addSource(RasterDemSource.Builder("dl-dem").url("mapbox://mapbox.mapbox-terrain-dem-v1").tileSize(514L).maxzoom(14L).build())
+            if (st.styleLayerExists("dl-hills")) st.removeStyleLayer("dl-hills")
+            val night = lightPreset == "night" || lightPreset == "dusk"
+            addL(st, HillshadeLayer("dl-hills", "dl-dem").inSlot("bottom").maxZoom(17.0)
+                .hillshadeExaggeration(if (night) 0.35 else 0.45)
+                .hillshadeShadowColor(if (night) "#05070F" else "#3A4A5C")
+                .hillshadeHighlightColor(if (night) "#2A3354" else "#FFFFFF")
+                .hillshadeAccentColor(if (night) "#0B1020" else "#5A6B7A")
+                .hillshadeIlluminationAnchor(com.mapbox.maps.extension.style.layers.properties.generated.HillshadeIlluminationAnchor.MAP))
+        } catch (e: Throwable) { }
+    }
     private var meAnim: android.animation.ValueAnimator? = null
     private var lastMePush = 0L
 

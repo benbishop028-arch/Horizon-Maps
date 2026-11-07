@@ -754,31 +754,32 @@ object MapboxRest {
      * null when it couldn't tell, -1 when the road has no limit known.
      */
     /** What's at [p] (Mapbox's map data round it): the road and its kind, what the land is, the place it's in. */
-    class Here(val road: String, val roadKind: String, val land: String, val place: String)
+    class Here(val road: String, val roadKind: String, val land: String, val place: String, val roadClass: String = "", val ref: String = "", val landClass: String = "")
 
     fun whatsHere(token: String, p: LL): Here? = try {
         val url = String.format(java.util.Locale.US, "$API/v4/mapbox.mapbox-streets-v8/tilequery/%.6f,%.6f.json?radius=40&limit=20&dedupe=true&layers=road,landuse,landuse_overlay,place_label,building&access_token=%s",
             p.lon, p.lat, enc(token))
         val fs = JSONObject(get(url, 8000, 10000)).optJSONArray("features") ?: JSONArray()
-        var road = ""; var kind = ""; var land = ""; var place = ""
+        var road = ""; var kind = ""; var land = ""; var place = ""; var cls = ""; var ref = ""; var landCls = ""
         for (i in 0 until fs.length()) {
             val f = fs.optJSONObject(i) ?: continue
             val pr = f.optJSONObject("properties") ?: continue
             when (pr.optJSONObject("tilequery")?.optString("layer")) {
                 "road" -> if (road.isEmpty() && kind.isEmpty()) {
                     road = pr.optString("name").ifBlank { pr.optString("ref") }
+                    cls = pr.optString("class"); ref = pr.optString("ref").substringBefore(';')
                     kind = when (pr.optString("class")) {
                         "motorway" -> "Motorway"; "trunk" -> "Main road (dual carriageway or trunk)"; "primary" -> "A road"; "secondary" -> "B road"
                         "tertiary" -> "Minor road"; "street", "street_limited" -> "Street"; "service" -> "Service road"; "path", "pedestrian" -> "Path"
                         "motorway_link", "trunk_link", "primary_link" -> "Slip road"; else -> pr.optString("class").replace('_', ' ').replaceFirstChar { it.uppercase() }
                     }
                 }
-                "landuse", "landuse_overlay" -> if (land.isEmpty()) land = pr.optString("class").replace('_', ' ').replaceFirstChar { it.uppercase() }
-                "building" -> if (land.isEmpty()) land = "Building"
+                "landuse", "landuse_overlay" -> if (land.isEmpty()) { landCls = pr.optString("class"); land = landCls.replace('_', ' ').replaceFirstChar { it.uppercase() } }
+                "building" -> if (land.isEmpty()) { land = "Building"; landCls = "building" }
                 "place_label" -> if (place.isEmpty()) place = pr.optString("name")
             }
         }
-        Here(road, kind, land, place)
+        Here(road, kind, land, place, cls, ref, landCls)
     } catch (e: Exception) { null }
 
     fun speedLimit(token: String, trail: List<LL>): Double? {
