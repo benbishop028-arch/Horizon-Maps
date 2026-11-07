@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Wc
+import androidx.compose.material.icons.rounded.ZoomOutMap
+import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.History
@@ -228,10 +230,12 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                             }
                         })
                 }
-                if (!compact) engine.advice?.let { AdvicePill(it) }
+                // only a really short screen leaves these off (a 7-inch 800 x 480 unit counts as compact, but has room for them)
+                val tiny = maxHeight < 330.dp
+                if (!tiny) engine.advice?.let { AdvicePill(it) }
                 // a low bridge or weight limit the lorry is over: shown even on a small car screen
                 LorryWarnCard(engine)
-                if (!compact) JunctionCloseup(engine)
+                if (!tiny) JunctionCloseup(engine)
             }
         }
 
@@ -442,14 +446,23 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
             CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
             engine.evArrivalPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
         }
+        // the whole route, and other routes (as in the app): Android Auto has no room left for them among its own buttons
+        val small: @Composable (androidx.compose.ui.graphics.vector.ImageVector, String, () -> Unit, androidx.compose.ui.unit.Dp) -> Unit = { icon, id, act, sz ->
+            Box(Modifier.size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(c.line).carTap(id, act), contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(icon, null, tint = c.text, modifier = Modifier.size(sz * 0.52f))
+            }
+        }
+        val extra: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
+            small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
+            small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
+        }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
-            Box(Modifier.padding(start = 12.dp)) { sound(36.dp) }
-            Box(Modifier.padding(start = 8.dp)) { end(36.dp) }
+            Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { extra(36.dp); sound(36.dp); end(36.dp) }
         } else Row(Modifier.widthIn(min = 400.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
-            Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { sound(40.dp); end(40.dp) }
+            Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { extra(40.dp); sound(40.dp); end(40.dp) }
         }
     }
 }

@@ -1026,7 +1026,8 @@ internal fun ImmTurnCard(
         // A proper UK direction sign: blue for motorways, green for primary roads, white for local roads.
         if (engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit")))
             UkSign(t.sign, t.tag.removePrefix("Exit ").takeIf { t.tag.startsWith("Exit") }.orEmpty(), t.street, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp))
-        if (!compact && engine.prefs.b(PreferenceKeys.LANE_STRIP, true)) t.lanes?.let { ls ->
+        // (the lanes stay on a small car screen too: they were left off with everything else, so small screens had no lane guidance)
+        if ((!compact || car) && engine.prefs.b(PreferenceKeys.LANE_STRIP, true)) t.lanes?.let { ls ->
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
             // (not in Android Auto: the big lane picture made the card grow to fill much of a car screen as soon as a junction came up)
             val hero = !car && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && ls.lanes.size >= 2 && t.dist < 900.0

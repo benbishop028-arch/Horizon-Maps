@@ -197,7 +197,7 @@ class CarNavSession : Session() {
         // Keep the locator proportionate to the more compact Android Auto overlay sizing.
         // Android Auto uses a smaller map surface than the main head-unit app. Keep the
         // user preference, but normalise it so the 240% main-app default doesn't create an enormous car-screen locator.
-        map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180) / 100f))
+        map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180) / 100f))
         map.setMapDetail(prefs.mapDetail())
         map.setTrafficGreen(prefs.b(PreferenceKeys.TRAFFIC_GREEN, false))
         map.setCarModel(prefs.s(PreferenceKeys.CAR_MODEL, "saloon"))
@@ -1055,6 +1055,10 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         // most needed first: some cars only allow a few rows in a list, so what doesn't fit goes on a second page ("More settings")
         // rather than being left off (the last rows used to be cut off altogether on those cars)
         val rows = ArrayList<Row>()
+        // the whole route at a glance (back to following you after a while)
+        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle("Route overview")
+            .addText("See the whole route")
+            .setOnClickListener { e.overview(); screenManager.pop() }.build()
         // other ways to go while navigating: shown on the map in grey with how they compare (tap one, or Switch on the card)
         if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle("Other routes")
             .addText("Show other ways to go on the map")
@@ -1098,11 +1102,11 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
                 invalidate()
             }.build()
         // the car screen's own arrow size (it used to change the phone's arrow size too)
-        val arrowSize = prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(60, 180)
+        val arrowSize = prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180)
         rows += Row.Builder().setTitle("Arrow size")
-            .addText("${arrowSize}% · tap to change (60% to 180%)")
+            .addText("${arrowSize}% · tap to change (30% to 180%)")
             .setOnClickListener {
-                val levels = listOf(60, 80, 100, 120, 140, 160, 180)
+                val levels = listOf(30, 45, 60, 80, 100, 120, 140, 160, 180)
                 val next = levels[(levels.indexOf(arrowSize).takeIf { it >= 0 } ?: 2).let { (it + 1) % levels.size }]
                 prefs.put(PreferenceKeys.CAR_ARROW_SIZE, next)
                 try { holder.map?.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (next / 100f)) } catch (_: Exception) { }

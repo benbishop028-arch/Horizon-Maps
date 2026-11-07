@@ -1052,7 +1052,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
             SSlider("Card size", prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Turn, trip and route cards", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_CARD_SIZE, it) }
             SSlider("Button size", prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Round controls and tappable buttons", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
             SSlider("Text size", prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent of card and button sizing", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
-            SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
+            SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 30f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
             SSlider("Road name size", prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
         }
     }

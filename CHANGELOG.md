@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Small Android Auto screens (GitHub, Pioneer SPH-DA160): on 7-inch 800 x 480 units the turn card left out the lanes, the junction close-up and the driving advice, as if the screen were too small. Lanes now always show on the car's turn card, and the close-up and advice show unless the screen is really short.
+- Services on the route bar with the services card off: switching off Next services card now takes them off the route bar too.
 - Traffic jams not added to the route: a jam could be announced ("Traffic jam ahead") without the time left going up or the route line turning amber or red. TomTom's incident details were read wrongly (the kind of incident as a word when it's a number, and the delay under the wrong name), and a jam with no delay given was skipped. Now every jam ahead colours the route (amber, red when it's major), and its hold-up is added to the time left when the route's own traffic doesn't already have it.
 - TomTom roadworks and closures not recognised: the same misreading meant TomTom's closures and roadworks weren't known as such, so they weren't avoided or shown round about. Fixed with the above.
 - Freezing head units not helped: when the map locked the screen up and Android closed the app (the unit itself kept running), it didn't count, so the map's drawing was never turned down for that unit. A lock-up now counts, and turns the drawing down a step straight away at the next start (Lite map at a lower sharpness, then Lightest), with a message saying so.
@@ -133,6 +135,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Android Auto: Route overview and Other routes buttons on the trip card (beside sound and end), and Route overview in the car's Settings too.
+- Android Auto arrow size now goes down to 30% (was 60%), for small car screens where even 60% looked big.
 - Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
 - Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
 - Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
