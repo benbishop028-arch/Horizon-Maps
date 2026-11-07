@@ -10,6 +10,8 @@ import kotlin.math.*
 
 data class LL(val lat: Double, val lon: Double)
 data class Step(val off: Double, val maneuver: String, val street: String, val msg: String, val roundExit: Int = 0, val exitNo: String = "", val sign: String = "",
+    /** Mapbox's picture of this junction (a motorway junction with the lanes marked), when there is one; "" otherwise. */
+    val junctionPic: String = "",
     /** At a roundabout: the way you're heading as you come onto it, the way you leave it, and the other roads off it (degrees; -1 unknown). */
     val rbIn: Double = -1.0, val rbOut: Double = -1.0, val rbExits: List<Double> = emptyList())
 data class Place(val name: String, val sub: String, val pos: LL)

@@ -82,6 +82,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var departMin by mutableIntStateOf(0)
     var departAtMs by mutableLongStateOf(0L)
     var speedLimit by mutableStateOf<Double?>(null)     // m/s
+    /** The next speed limit on the route ahead (m/s) and how far to it (m), when it changes within about half a mile. */
+    var nextLimit by mutableStateOf<Pair<Double, Double>?>(null)
     var limitEstimated by mutableStateOf(false)
     private var limitOkAt = 0L
     private var limitOkPos: LL? = null
@@ -615,7 +617,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val t = tappedPoi
             val place = if (t != null && Geo.dist(t.second, p) < 60.0 && android.os.SystemClock.uptimeMillis() - tappedAt < 120_000L) { tappedPoi = null; Place(t.first, "", t.second) }
                 else Place("Dropped pin", "", p)
-            if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
+            // What's here: a card with the road, its limit and the area first, with Go / Add as a stop (Settings > On the map)
+            if (prefs.b(PreferenceKeys.WHATS_HERE, true)) showHere(place)
+            else if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
         map.onAlprTap = { who -> toast("Number-plate camera" + (if (who.isNotBlank()) " · $who" else ""), 3500) }
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(if (route != null && !previewing) "$name: hold on it to add it as a stop" else "$name: hold on it to go there", 3000) }
@@ -1636,6 +1640,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (pts.size <= 2) closedPts += pts.last() else { closedPts += pts[pts.size / 2]; closedPts += pts.first(); closedPts += pts.last() }
         }
         MapboxRest.avoidPoints = closedPts.take(25)
+        MapboxRest.curbSide = prefs.b(PreferenceKeys.ARRIVE_SIDE, true)
+        MapboxRest.junctionPics = prefs.b(PreferenceKeys.JUNCTION_PICS, false)
         if (prefs.b(PreferenceKeys.AVOIDZONES, false)) {
             for (z in Zones.all(ctx)) {
                 if ((from != null && Zones.inside(z, from)) || (to != null && Zones.inside(z, to))) continue
@@ -1876,7 +1882,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         turnArrowKey = -1; map.setTurnArrow(emptyList())
         clearLiveAlts(); liveSaid.clear(); radar = emptyList(); radarSig = 0; bendsFor = null; bends = emptyList()
         flushRoads()
-        sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
+        sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; nextLimit = null; routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
         map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
@@ -2056,7 +2062,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val sc = secs[m]
             if (at < sc.off) hi = m - 1 else if (at >= sc.end) lo = m + 1 else { hit = sc; break }
         }
-        if (hit == null) return      // no posted limit known for this stretch: the map data takes over
+        if (hit == null) { nextLimit = null; return }      // no posted limit known for this stretch: the map data takes over
+        // the next change ahead, within about half a mile (shown small above the limit sign)
+        var nx: Pair<Double, Double>? = null
+        for (sc in secs) {
+            if (sc.off <= at || sc.off - at > 800.0) continue
+            if (kotlin.math.abs(sc.ms - hit.ms) > 0.5) { nx = sc.ms to (sc.off - at); break }
+        }
+        val shown = nextLimit
+        if (nx == null) { if (shown != null) nextLimit = null }
+        else if (shown == null || kotlin.math.abs(shown.first - nx.first) > 0.1 || kotlin.math.abs(shown.second - nx.second) > 15.0) nextLimit = nx
         routeLimitAt = System.currentTimeMillis()
         pendHits = 0; pendLimit = -2.0
         if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false }
@@ -2896,6 +2911,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         onRouteNow = onR
         if (onR) curProg = guideProg
         if (onR && newFix) try { applyRouteLimit(r, guideProg, p) } catch (e: Exception) { }
+        else if (!onR && nextLimit != null) nextLimit = null
         updateGuidance(guideProg, onR && android.os.SystemClock.elapsedRealtime() - gFullAt < 1500L)
         syncPulse()
     }
@@ -3531,6 +3547,38 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    /** The What's here card (holding on the map): the place, and lines about it as they come in. */
+    class HereCard(val place: Place, val lines: List<String>, val loading: Boolean)
+    var here by mutableStateOf<HereCard?>(null)
+
+    private fun showHere(place: Place) {
+        here = HereCard(place, emptyList(), true)
+        val p = place.pos
+        scope.launch {
+            val token = mbToken
+            val info = withContext(Dispatchers.IO) { if (token.isNotBlank() && online()) MapboxRest.whatsHere(token, p) else null }
+            val lim = withContext(Dispatchers.IO) { try { Overpass.speedLimit(p) } catch (e: Exception) { null } }
+            if (here?.place !== place) return@launch
+            val lines = ArrayList<String>()
+            val road = info?.road?.ifBlank { null } ?: lim?.road?.ifBlank { null }
+            if (road != null || !info?.roadKind.isNullOrBlank()) lines += listOfNotNull(road, info?.roadKind?.ifBlank { null }).joinToString(" · ")
+            if (lim != null && lim.ms > 0) {
+                val v = Math.round(lim.ms * if (imperial) 2.23694 else 3.6)
+                lines += "Speed limit $v ${if (imperial) "mph" else "km/h"}" + (if (lim.estimated) " (usual for this road)" else "")
+            }
+            listOfNotNull(info?.land?.ifBlank { null }, info?.place?.ifBlank { null }).joinToString(" · ").takeIf { it.isNotBlank() }?.let { lines += it }
+            lines += String.format(java.util.Locale.US, "%.5f, %.5f", p.lat, p.lon)
+            here = HereCard(place, lines, false)
+        }
+    }
+
+    /** From the What's here card: go there, or add it as a stop when driving a route. */
+    fun hereGo(asStop: Boolean) {
+        val h = here ?: return
+        here = null
+        if (asStop && route != null && !previewing && dest != null) addStop(h.place) else startRoute(h.place)
+    }
+
     /** Road closures the route is being kept off this trip (id to the closed road's points). */
     private val closuresAvoided = LinkedHashMap<String, List<LL>>()
 
@@ -4092,6 +4140,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (thenOn && nxt != null) "Then " + Geo.maneuverText(nxt.maneuver, nxt.roundExit) + (if (nxt.street.isNotBlank()) " onto ${nxt.street}" else "") else "",
                 laneSec, Geo.stepTag(cur), laneAdv, cur.roundExit, cur.sign,
                 exitNo = cur.exitNo, rbIn = cur.rbIn, rbOut = cur.rbOut, rbExits = cur.rbExits, thenGap = if (thenOn) gap else 0.0, thenExit = if (thenOn) (nxt?.roundExit ?: 0) else 0,
+                junctionPic = cur.junctionPic,
             )
             // only publish a new turn card when something a driver can see changed (about 3 m of distance), so the screen is not redrawn four times a second for nothing
             val ot = turn

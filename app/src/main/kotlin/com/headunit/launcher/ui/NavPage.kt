@@ -93,6 +93,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -545,6 +546,24 @@ internal fun LaneRow(sec: LaneSec, maneuver: String, near: Boolean = false) {
  */
 @Composable
 internal fun JunctionCloseup(engine: NavEngine, modifier: Modifier = Modifier) {
+    // Mapbox's own picture of a motorway junction, when it has one (Settings > Turn card & lanes > Junction pictures)
+    run {
+        val t = engine.turn
+        if (t != null && t.junctionPic.isNotEmpty() && engine.route != null && !engine.previewing && t.dist in 5.0..1000.0 && engine.prefs.b(PreferenceKeys.JUNCTION_PICS, false)) {
+            var bmp by remember(t.junctionPic) { mutableStateOf(JunctionPics.cached(t.junctionPic)) }
+            if (bmp == null) LaunchedEffect(t.junctionPic) { bmp = JunctionPics.load(t.junctionPic, engine.mbToken) }
+            val b = bmp
+            if (b != null) {
+                val shape = RoundedCornerShape(18.dp)
+                Box(modifier.widthIn(max = 420.dp).fillMaxWidth().shadow(8.dp, shape).clip(shape).background(Color.Black)) {
+                    androidx.compose.foundation.Image(b.asImageBitmap(), "Junction", Modifier.fillMaxWidth(), contentScale = androidx.compose.ui.layout.ContentScale.FillWidth)
+                    Text(Geo.fmtDist(t.dist, engine.imperial), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(10.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x99000000)).padding(horizontal = 10.dp, vertical = 4.dp))
+                }
+                return
+            }
+        }
+    }
     if (!engine.prefs.b(PreferenceKeys.LANEMAP, true) || engine.prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit") != "closeup") return
     if (engine.route == null || engine.previewing) return
     val t = engine.turn ?: return
@@ -609,5 +628,29 @@ internal fun LaneHero(sec: LaneSec, maneuver: String, advice: String?) {
             drawLine(Color.White.copy(alpha = 0.9f * a), o(xAt(1f, 0f), 0f), o(w, h), 3.dp.toPx())
         }
         if (advice != null) Text(advice, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp))
+    }
+}
+
+/** Mapbox's junction pictures, fetched once each and kept (a few) for the drive. */
+internal object JunctionPics {
+    private val cache = object : LinkedHashMap<String, android.graphics.Bitmap>(8, 0.75f, true) {
+        override fun removeEldestEntry(e: MutableMap.MutableEntry<String, android.graphics.Bitmap>?) = size > 6
+    }
+    private val failed = HashSet<String>()
+
+    fun cached(url: String): android.graphics.Bitmap? = synchronized(cache) { cache[url] }
+
+    suspend fun load(url: String, token: String): android.graphics.Bitmap? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        synchronized(cache) { cache[url] }?.let { return@withContext it }
+        if (url in failed || token.isBlank()) return@withContext null
+        try {
+            val full = url + (if ('?' in url) "&" else "?") + "access_token=" + java.net.URLEncoder.encode(token, "UTF-8")
+            val c = java.net.URL(full).openConnection() as java.net.HttpURLConnection
+            c.connectTimeout = 8000; c.readTimeout = 10000
+            if (c.responseCode !in 200..299) { failed += url; return@withContext null }
+            val b = c.inputStream.use { android.graphics.BitmapFactory.decodeStream(it) } ?: run { failed += url; return@withContext null }
+            synchronized(cache) { cache[url] = b }
+            b
+        } catch (e: Exception) { null }
     }
 }

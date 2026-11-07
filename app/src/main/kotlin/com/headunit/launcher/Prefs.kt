@@ -197,6 +197,14 @@ internal object PreferenceKeys {
     const val CUSTOM_NIGHT = "customnight"
     const val CUSTOM_ROUTE_W = "customroutew"
     const val CUSTOM_SAVED = "customsaved"
+    /** Arrive on your side of the road (Mapbox and offline routes). */
+    const val ARRIVE_SIDE = "arriveside"
+    /** Mapbox's junction pictures at motorway junctions (only shown when Mapbox has them for the account). */
+    const val JUNCTION_PICS = "junctionpics"
+    /** Holding on the map shows what's there first (road, limit, area), with Go and Add as a stop. */
+    const val WHATS_HERE = "whatshere"
+    /** The next speed limit ahead, shown small beside the current one. */
+    const val NEXT_LIMIT = "nextlimit"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */

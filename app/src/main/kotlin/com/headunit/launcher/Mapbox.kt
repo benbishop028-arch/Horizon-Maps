@@ -265,6 +265,10 @@ object MapboxRest {
      */
     /** Points on closed roads to keep the route off (set before each route; see NavEngine's road closures). */
     @Volatile var avoidPoints: List<LL> = emptyList()
+    /** Arrive on your side of the road (the kerb side of where you're going). */
+    @Volatile var curbSide = true
+    /** Ask for Mapbox's junction pictures (banner instructions). */
+    @Volatile var junctionPics = false
 
     fun routes(token: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(),
                headingDeg: Double = -1.0, quick: Boolean = false, leftHand: Boolean = false): List<Route> {
@@ -290,6 +294,10 @@ object MapboxRest {
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
         if (headingDeg >= 0) base += "&bearings=" + enc((listOf("${headingDeg.toInt() % 360},45") + List(pts.size - 1) { "" }).joinToString(";"))
+        // arrive on your side of the road (the destination on the kerb side), the other points as Mapbox likes
+        if (curbSide) base += "&approaches=" + enc((List(pts.size - 1) { "" } + listOf("curb")).joinToString(";"))
+        // pictures of motorway junctions, when Mapbox has them for this account
+        if (junctionPics) base += "&banner_instructions=true"
         val dep = if (departAtMs > 0) "&depart_at=" + enc(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).format(java.util.Date(departAtMs))) else ""
         val attempts = ArrayList<String>()
         if (dep.isNotEmpty() && !quick) { if (ex.isNotEmpty()) attempts += "$base&exclude=$ex$dep"; attempts += "$base$dep" }
@@ -446,7 +454,16 @@ object MapboxRest {
                     val ref = s.optString("ref").substringBefore(';').trim()
                     val street = if (type == "off ramp" && name.isBlank()) s.optString("destinations") else name.ifBlank { ref }
                     val exit = if (man.startsWith("ROUNDABOUT")) m.optInt("exit", 0) else 0
-                    steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"),
+                    // Mapbox's picture of the junction (from its banner instructions, when asked for and it has one)
+                    var pic = ""
+                    s.optJSONArray("bannerInstructions")?.let { bi ->
+                        for (k in 0 until bi.length()) {
+                            val comps = bi.optJSONObject(k)?.optJSONObject("view")?.optJSONArray("components") ?: continue
+                            for (q in 0 until comps.length()) { val u = comps.optJSONObject(q)?.optString("imageURL").orEmpty(); if (u.startsWith("https://")) { pic = u; break } }
+                            if (pic.isNotEmpty()) break
+                        }
+                    }
+                    steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0)
                     if (type == "roundabout" || type == "rotary") rbIdx = steps.size - 1
                     // the lanes at this junction: which go where, and the ones to be in
@@ -736,6 +753,34 @@ object MapboxRest {
      * The posted limit (m/s) of the road you're on, from Mapbox matching your last few positions [trail] (oldest first) to its roads:
      * null when it couldn't tell, -1 when the road has no limit known.
      */
+    /** What's at [p] (Mapbox's map data round it): the road and its kind, what the land is, the place it's in. */
+    class Here(val road: String, val roadKind: String, val land: String, val place: String)
+
+    fun whatsHere(token: String, p: LL): Here? = try {
+        val url = String.format(java.util.Locale.US, "$API/v4/mapbox.mapbox-streets-v8/tilequery/%.6f,%.6f.json?radius=40&limit=20&dedupe=true&layers=road,landuse,landuse_overlay,place_label,building&access_token=%s",
+            p.lon, p.lat, enc(token))
+        val fs = JSONObject(get(url, 8000, 10000)).optJSONArray("features") ?: JSONArray()
+        var road = ""; var kind = ""; var land = ""; var place = ""
+        for (i in 0 until fs.length()) {
+            val f = fs.optJSONObject(i) ?: continue
+            val pr = f.optJSONObject("properties") ?: continue
+            when (pr.optJSONObject("tilequery")?.optString("layer")) {
+                "road" -> if (road.isEmpty() && kind.isEmpty()) {
+                    road = pr.optString("name").ifBlank { pr.optString("ref") }
+                    kind = when (pr.optString("class")) {
+                        "motorway" -> "Motorway"; "trunk" -> "Main road (dual carriageway or trunk)"; "primary" -> "A road"; "secondary" -> "B road"
+                        "tertiary" -> "Minor road"; "street", "street_limited" -> "Street"; "service" -> "Service road"; "path", "pedestrian" -> "Path"
+                        "motorway_link", "trunk_link", "primary_link" -> "Slip road"; else -> pr.optString("class").replace('_', ' ').replaceFirstChar { it.uppercase() }
+                    }
+                }
+                "landuse", "landuse_overlay" -> if (land.isEmpty()) land = pr.optString("class").replace('_', ' ').replaceFirstChar { it.uppercase() }
+                "building" -> if (land.isEmpty()) land = "Building"
+                "place_label" -> if (place.isEmpty()) place = pr.optString("name")
+            }
+        }
+        Here(road, kind, land, place)
+    } catch (e: Exception) { null }
+
     fun speedLimit(token: String, trail: List<LL>): Double? {
         if (trail.size < 2) return null
         val coords = trail.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }

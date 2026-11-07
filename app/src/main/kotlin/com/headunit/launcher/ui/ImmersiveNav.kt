@@ -392,6 +392,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
         } else androidx.compose.runtime.SideEffect { engine.setPanel(2, 0f, 0f, 0f, 0f); if (buttonsWPx != 0) buttonsWPx = 0 }
 
+        // ---- What's here (holding on the map): the road, its limit and the area, with Go / Add as a stop
+        engine.here?.let { h ->
+            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp)) { HereCardView(engine, h) }
+        }
+
         // ---- the routes box, folded out beside the buttons by Other routes (as in Google Maps): your route and the other ways, with
         // the time, arrival, distance, the road each goes by and the traffic; tap one to switch
         if (!previewing && engine.altListOpen && engine.route != null) {
@@ -798,11 +803,32 @@ private fun ImmCompass(engine: NavEngine) {
 internal fun ImmSpeed(engine: NavEngine) {
     // the size from Settings (100% = the standard size): it's laid out at that size, so it keeps clear of the edges and other cards
     val pct = engine.prefs.i(PreferenceKeys.SPEED_SIZE, 100).coerceIn(50, 200)
-    if (pct == 100) { SpeedBlock(engine); return }
+    if (pct == 100) { SpeedWithNext(engine); return }
     val base = androidx.compose.ui.platform.LocalDensity.current
     androidx.compose.runtime.CompositionLocalProvider(
         androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(base.density * pct / 100f, base.fontScale),
-    ) { SpeedBlock(engine) }
+    ) { SpeedWithNext(engine) }
+}
+
+/** The speed, with the next speed limit on the route (when it changes within about half a mile) small above it. */
+@Composable
+private fun SpeedWithNext(engine: NavEngine) {
+    val nx = engine.nextLimit
+    if (nx == null || !engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true)) { SpeedBlock(engine); return }
+    val c = LocalVw.current
+    val k = if (engine.imperial) 2.23694 else 3.6
+    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(Modifier.size(34.dp).clip(CircleShape).background(Color.White).border(4.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
+                Text("${(Math.round(nx.first * k / 5.0) * 5)}", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+            }
+            Text("in " + Geo.fmtDist(nx.second, engine.imperial), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        }
+        SpeedBlock(engine)
+    }
 }
 
 @Composable
@@ -1438,6 +1464,30 @@ private fun RouteRow(title: String, titleCol: Color, line2: String, line3: Strin
             Text(title, color = titleCol, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             Text(line2, color = c.text, fontSize = 13.sp, maxLines = 1)
             Text(line3, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+        }
+    }
+}
+
+@Composable
+private fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
+    val c = LocalVw.current
+    Column(Modifier.widthIn(max = 460.dp).fillMaxWidth().padding(horizontal = 16.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(if (h.place.name == "Dropped pin") "What's here" else h.place.name, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), maxLines = 1)
+            Box(Modifier.size(40.dp).clip(CircleShape).pressClick { engine.here = null }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Close, "Close", tint = c.sub, modifier = Modifier.size(22.dp))
+            }
+        }
+        if (h.loading) Text("Looking…", color = c.sub, fontSize = 14.sp, modifier = Modifier.padding(top = 4.dp))
+        for ((i, l) in h.lines.withIndex()) Text(l, color = if (i == 0) c.text else c.sub, fontSize = if (i == 0) 15.sp else 13.sp, modifier = Modifier.padding(top = 3.dp), maxLines = 2)
+        Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            val driving = engine.route != null && !engine.previewing
+            Box(Modifier.clip(RoundedCornerShape(20.dp)).background(c.accent).pressClick { engine.hereGo(false) }.padding(horizontal = 20.dp, vertical = 11.dp)) {
+                Text(if (driving) "Go here instead" else "Go", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+            if (driving) Box(Modifier.clip(RoundedCornerShape(20.dp)).background(c.tile).pressClick { engine.hereGo(true) }.padding(horizontal = 20.dp, vertical = 11.dp)) {
+                Text("Add as a stop", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

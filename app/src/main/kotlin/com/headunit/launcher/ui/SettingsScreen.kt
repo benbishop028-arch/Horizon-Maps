@@ -341,6 +341,9 @@ private fun LightSection(prefs: Prefs) {
 
 @Composable
 private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
+    SGroup("Holding on the map") {
+        SToggle(prefs, "What's here", PreferenceKeys.WHATS_HERE, true, "Holding on the map shows the road, its speed limit and the area first, with Go and Add as a stop. Off goes straight there, as before")
+    }
     SGroup("Traffic") {
         SToggle(prefs, "Live traffic", "traffic", true)
         SToggle(prefs, "Traffic overview when stopped", PreferenceKeys.STOPPED_OVERVIEW, true, "After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off")
@@ -473,6 +476,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, "Keep other routes on the map", "livealts", true, "Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead")
         SToggle(prefs, "Suggest where you're going", "predict", true, "With the live journey time, including home and work at your usual times")
         SToggle(prefs, "Weather on the route", "routewx", true)
+        SToggle(prefs, "Arrive on your side of the road", PreferenceKeys.ARRIVE_SIDE, true, "The route brings you to the kerb side of where you're going, so you don't have to cross the traffic. Mapbox and offline routes")
     }
     SGroup("Starting a route") {
         SToggle(prefs, "Auto-start route countdown", PreferenceKeys.AUTO_START_ROUTE, true, "Automatically start navigation when the countdown finishes")
@@ -569,6 +573,7 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
     }
     SGroup("Lanes and junctions") {
+        SToggle(prefs, "Junction pictures", PreferenceKeys.JUNCTION_PICS, false, "Mapbox's pictures of motorway junctions, with the lanes to use, in the last kilometre. Only where Mapbox has them, and only for Mapbox accounts it offers them to: if none ever show, yours doesn't have them")
         SToggle(prefs, "Lanes on the map", "lanemap", true)
         if (prefs.b(PreferenceKeys.LANEMAP, true)) SPictureChoice(
             "Lanes shown as",
@@ -622,6 +627,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, "Warn when over the limit", "speedwarn", true)
         if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice("Warn when over by", listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
         SToggle(prefs, "Say when the limit changes", "limitchange", true)
+        SToggle(prefs, "Next speed limit ahead", PreferenceKeys.NEXT_LIMIT, true, "A small sign above the limit with the next one on your route and how far it is, from about half a mile away")
         SToggle(prefs, "Show estimated limits", "limitest", false, "Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess")
     }
     SGroup("Cameras") {
