@@ -280,7 +280,9 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
         val short = minOf(width, height).toFloat()
         // Keep Android Auto overlays close to standard navigation UI sizing; large screens should
         // not inflate buttons/cards. Only allow a small adjustment for unusually compact surfaces.
-        val perUnit = (short / 1050f).coerceIn(dens * 0.68f, dens * 0.98f)
+        // a narrow part of the screen (Android Auto's split screen) can go smaller still, so the cards fit beside the map
+        val narrow = width < 760 || width < height
+        val perUnit = (short / 1050f).coerceIn(dens * (if (narrow) 0.52f else 0.68f), dens * 0.98f)
         uiScale.value = perUnit / dens
     }
 
