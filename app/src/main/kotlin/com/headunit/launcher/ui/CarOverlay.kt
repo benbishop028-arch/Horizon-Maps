@@ -150,6 +150,8 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val narrow = maxWidth < 900.dp
         val wideLandscape = aspect > 2.0f
         val compact = lowVertical || narrow || wideLandscape
+        // only a really short screen leaves the junction close-up and advice off (a 7-inch 800 x 480 unit counts as compact, but has room)
+        val tiny = maxHeight < 330.dp
         val portrait = maxHeight > maxWidth * 1.1f || narrow
         val insL = with(dens) { (a?.left ?: 0).toDp() }
         val insT = with(dens) { (a?.top ?: 0).toDp() }
@@ -230,8 +232,6 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                             }
                         })
                 }
-                // only a really short screen leaves these off (a 7-inch 800 x 480 unit counts as compact, but has room for them)
-                val tiny = maxHeight < 330.dp
                 if (!tiny) engine.advice?.let { AdvicePill(it) }
                 // a low bridge or weight limit the lorry is over: shown even on a small car screen
                 LorryWarnCard(engine)
