@@ -132,7 +132,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
 - Other routes: picking a route (or closing the Routes box) goes straight back to following you on the map.
 - Behind the scenes: the light and weather settings only ever change the map from the right place in the app (a change from the car screen could have come from elsewhere and upset the map), and stop cleanly when the map closes; the driver's display, like the main car screen, now stays open when Android resizes it; the Routes box shows "Looking" while a check already under way finishes, rather than "No other routes".
-- Horizon colours: a little more lilac.
+- Horizon colours: now a cool moonlight blue at night (ground, buildings and the whole map's tint), so it's clearly different from Twilight's purple.
 - Android Auto with a rotary knob or buttons: a Places button is now on every car's top row. It opens a list the knob can move through, with Search first, then the fuel, food and parking shortcuts and saved places (the search bar and chips drawn on the map can't be reached by a knob).
 - Android Auto Settings while navigating: the Settings button now stays while you navigate (Stop, Sound, Report, Settings). 2D / 3D has moved to the first row of the car's Settings.
 - Horizon colours: the night map is now a dark slate blue with just a touch of purple (less obviously purple than before), with the buildings a lighter slate blue. Same brightness as before. The old purple look is now called Twilight.

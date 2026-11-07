@@ -558,14 +558,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun hzFamily() = colours == "horizon" || colours == "twilight"
     private fun twilight() = colours == "twilight"
     /** The ground's two ends: Twilight from a deep violet-blue to a pale lavender; Horizon the same brightness in slate blue with a touch of purple. */
-    private fun landDark() = if (twilight()) 0x3F3A66 else 0x3C4463
-    private fun landLight() = if (twilight()) 0xEAE4FF else 0xE9EBFD
+    private fun landDark() = if (twilight()) 0x3F3A66 else 0x37475F
+    private fun landLight() = if (twilight()) 0xEAE4FF else 0xE4EDFB
     /** The ground: from deep (0%) to pale (100%), before the night light dims it. */
     private fun hzLand(): String = mix(landDark(), landLight(), hzBright / 100.0)
     /** The buildings: the ground's colour taken towards white (Twilight) or a very pale slate blue (Horizon) by the Buildings level. */
     private fun hzBuildings(): String {
         val land = Integer.parseInt(hzLand().substring(1), 16)
-        return mix(land, if (twilight()) 0xF7F2FF else 0xF5F4FE, 0.15 + 0.85 * hzBld / 100.0)
+        return mix(land, if (twilight()) 0xF7F2FF else 0xEEF4FF, 0.15 + 0.85 * hzBld / 100.0)
     }
     private var buildingsTinted = false
 
