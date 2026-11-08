@@ -1556,6 +1556,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             // the online search and the saved / downloaded places run at the same time, and their results are merged
             val localJob = async { offlineMatches(q, near) }
+            val pcJob = postcodeJob(q)
             val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
             // the online results are shown straight away if the downloaded lists are still being searched; those are merged in after
             var local = kotlinx.coroutines.withTimeoutOrNull(500L) { localJob.await() }
@@ -1564,11 +1565,26 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (first.isNotEmpty()) results = first
                 local = localJob.await()
             }
-            val merged = rankResults(q, near, net ?: emptyList(), local)
+            val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
             results = merged
             if (merged.isEmpty()) toast(if (net == null) "Search failed: weak or no signal" else "No matches. Try adding a town or postcode.", 3500)
             else if (net == null) toast("Weak signal: showing saved places and offline towns", 3500)
         }
+    }
+
+    /** A search that looks like a UK postcode also looks the postcode itself up (at the same time as the other searches). */
+    private fun kotlinx.coroutines.CoroutineScope.postcodeJob(q: String) =
+        if (countryCode().let { it.isBlank() || it.equals("gb", true) } && MapboxRest.looksLikePostcode(q))
+            async(Dispatchers.IO) { try { MapboxRest.postcodes(q) } catch (e: Exception) { emptyList() } }
+        else null
+
+    /** The postcode results at the top (waiting at most 4 s for them), with the same postcode not listed twice. */
+    private suspend fun postcodeFirst(job: kotlinx.coroutines.Deferred<List<Place>>?, rest: List<Place>): List<Place> {
+        val pcs = job?.let { kotlinx.coroutines.withTimeoutOrNull(4000L) { it.await() } }.orEmpty()
+        if (pcs.isEmpty()) return rest
+        fun key(s: String) = s.replace(" ", "").uppercase()
+        val names = pcs.map { key(it.name) }.toSet()
+        return pcs + rest.filter { key(it.name) !in names }
     }
 
     /** Search used by the stops editor: the same sources as the search box, returned instead of shown. */
@@ -1578,8 +1594,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // both at once, as in the main search
         return kotlinx.coroutines.coroutineScope {
             val localJob = async { offlineMatches(q, near) }
+            val pcJob = postcodeJob(q)
             val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
-            rankResults(q, near, net ?: emptyList(), localJob.await())
+            postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), localJob.await()))
         }
     }
 
@@ -4120,7 +4137,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val fastRoad = cur.exitNo.isNotBlank() || (fix?.let { f -> try { map.roadAt(f.pos, f.heading)?.cls } catch (e: Throwable) { null } }?.let { it.startsWith("motorway") || it.startsWith("trunk") } == true)
             laneFast = fastRoad
             val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter {
-                progress < it.end + 5 && abs(it.end - cur.off) < 200
+                // a section has to run up to this junction: one ending well before it belongs to a junction on the way (an
+                // earlier slip road), and lit its exit lane as if that were the turn to take
+                progress < it.end + 5 && it.end > cur.off - 60 && it.end < cur.off + 200
             }.sortedWith(compareByDescending<LaneSec> { it.lanes.size }.thenBy { abs(it.end - cur.off) }).firstOrNull() else null
             // for the feedback report: the lane list in use, as the route data gives it (so a junction with the wrong arrows can be
             // traced to the data or the app)

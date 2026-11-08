@@ -405,6 +405,8 @@ object MapboxRest {
             val leg = legs.getJSONObject(li)
             var off = legStart
             var prevOff = legStart
+            // the last junction passed on the way to the next turn (an earlier slip road, say): the next turn's lanes start after it
+            var lastPassed: LL? = null
             val ss = leg.optJSONArray("steps") ?: JSONArray()
             for (si in 0 until ss.length()) {
                 val s = ss.getJSONObject(si)
@@ -470,19 +472,39 @@ object MapboxRest {
                     try {
                         val lanes = s.optJSONArray("intersections")?.optJSONObject(0)?.optJSONArray("lanes")
                         if (lanes != null && lanes.length() >= 2 && type != "depart" && type != "arrive") {
+                            // Mapbox marks the lanes you can use ("valid") and, of those, the ones to be in ("active"): when it picks
+                            // some, only those are lit (two lanes lit where the road is really keep-left came from using every valid one)
+                            val anyActive = (0 until lanes.length()).any { n -> lanes.getJSONObject(n).let { it.optBoolean("valid", false) && it.optBoolean("active", false) } }
                             val out = (0 until lanes.length()).map { n ->
                                 val ln = lanes.getJSONObject(n)
                                 val ind = ln.optJSONArray("indications") ?: JSONArray()
                                 val dirs = (0 until ind.length()).map { laneDir(ind.optString(it), leftHand) }.distinct().ifEmpty { listOf("STRAIGHT") }
                                 val vi = ln.optString("valid_indication")
-                                Lane(dirs, if (ln.optBoolean("valid", false)) (if (vi.isNotBlank()) laneDir(vi, leftHand) else dirs.first()) else null)
+                                val use = ln.optBoolean("valid", false) && (!anyActive || ln.optBoolean("active", false))
+                                Lane(dirs, if (use) (if (vi.isNotBlank()) laneDir(vi, leftHand) else dirs.first()) else null)
                             }
-                            if (out.any { it.follow != null } && out.any { it.follow == null }) laneSecs += LaneSec(max(prevOff * k, at - 300.0), at, out)
+                            // shown from 300 m out, but never before a junction still to be passed on the way (with two slip roads close
+                            // together, the second one's lanes lit up at the first and made it look like the exit to take)
+                            var from = max(prevOff * k, at - 300.0)
+                            val ml = m.optJSONArray("location")
+                            if (lastPassed != null && ml != null) from = max(from, at - Geo.dist(lastPassed!!, LL(ml.getDouble(1), ml.getDouble(0))) + 15.0)
+                            if (out.any { it.follow != null } && out.any { it.follow == null } && from < at - 20.0) laneSecs += LaneSec(from, at, out)
                         }
                     } catch (e: Exception) { }
                 }
                 prevOff = off
                 off += s.optDouble("distance", 0.0)
+                // the last lane-marked junction along this step (other than where it starts), passed before the next turn: an
+                // earlier slip road, say (plain side roads have no lanes given, so they don't cut the lane picture short)
+                lastPassed = try {
+                    val ints = s.optJSONArray("intersections")
+                    var p: LL? = null
+                    if (ints != null) for (ii in ints.length() - 1 downTo 1) {
+                        val x = ints.getJSONObject(ii)
+                        if ((x.optJSONArray("lanes")?.length() ?: 0) >= 2) { p = x.optJSONArray("location")?.let { LL(it.getDouble(1), it.getDouble(0)) }; break }
+                    }
+                    p
+                } catch (e: Exception) { null }
             }
             // traffic, durations and speed limits for each stretch of the line
             val ann = leg.optJSONObject("annotation")
@@ -620,6 +642,29 @@ object MapboxRest {
                 Place(r.optString("outcode", oc), if (d.isNotBlank() && d != "null") d else "Postcode district", LL(r.getDouble("latitude"), r.getDouble("longitude")))
             } else null
         } catch (e: Exception) { null }
+    }
+
+    // the start of a full postcode: the district and the first figure of the rest ("SO17 1", "SO171")
+    private val UK_PART = Regex("^([A-Za-z]{1,2}[0-9][A-Za-z0-9]?)\\s*([0-9][A-Za-z]?)$")
+
+    /** Whether [q] looks like a UK postcode, whole or half-typed ("SO17 1BJ", "SO17 1", "SO17"). */
+    fun looksLikePostcode(q: String): Boolean { val t = q.trim(); return UK_FULL.matches(t) || UK_OUT.matches(t) || UK_PART.matches(t) }
+
+    /**
+     * The postcode itself as search results, for any search (TomTom's and Mapbox's both tend to give the addresses in it
+     * instead): the exact postcode or district, or for a half-typed one the postcodes it could be (up to 6). From
+     * postcodes.io (free, no key, UK only). Empty when it isn't a postcode or nothing is found.
+     */
+    fun postcodes(q: String): List<Place> {
+        val t = q.trim()
+        if (t.length > 9) return emptyList()
+        if (UK_FULL.matches(t) || UK_OUT.matches(t)) return listOfNotNull(ukPostcode(t))
+        if (!UK_PART.matches(t)) return emptyList()
+        return try {
+            val arr = JSONObject(get("https://api.postcodes.io/postcodes/" + enc(t) + "/autocomplete?limit=6", 8000, 10000)).optJSONArray("result") ?: return emptyList()
+            val codes = (0 until arr.length()).map { arr.optString(it) }.filter { it.isNotBlank() }.take(6)
+            codes.mapNotNull { c -> try { ukPostcode(c) } catch (e: Exception) { null } }
+        } catch (e: Exception) { emptyList() }
     }
 
     /** Runs [work] on its own thread; [join] waits for it (at most [ms]) and gives its result, or null. */

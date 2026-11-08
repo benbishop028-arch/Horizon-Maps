@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Lanes at two slip roads close together: the second junction's lanes no longer light up at the first one, which made it look like the exit to take.
+- Lanes lit too generously: where Mapbox picks the lanes to be in, only those are lit now, not every lane that could work.
 - Next speed limit: no longer shows a strange "0 in 700 m" sign above the speed when the road ahead has no known limit.
 - Car turn card: the "then" line for the turn after next now shows on small Android Auto screens too.
 - Pinch zoom on Android Auto: zooms smoothly around the middle of the map instead of jumping about.
@@ -95,6 +97,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Postcode search: typing a UK postcode now shows the postcode itself at the top of the results (not just addresses in it), on the phone and Android Auto. A half-typed one ("SO17 1") lists the postcodes it could be, and a district ("SO17") works too.
 - Battery estimate toggle: electric car drivers can hide the battery % on the trip card (phone and Android Auto) in Settings › Fuel › Your electric car.
 - 3D flags: a tall red flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance. On by default; Settings > Your arrow & route line > Route line.
 - Hill shading: soft shading on hillsides, so valleys and ridges show even on a flat map, with its own day and night shades. Off by default; Settings > Light & 3D > 3D.
