@@ -4224,7 +4224,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun zoomAround(dz: Double, x: Float, y: Float) {
         try {
             val z = mbMap.cameraState.zoom
-            mbMap.setCamera(CameraOptions.Builder().zoom((z + dz).coerceIn(1.0, 21.0)).anchor(ScreenCoordinate(x.toDouble(), y.toDouble())).build())
+            val b = CameraOptions.Builder().zoom((z + dz).coerceIn(1.0, 21.0))
+            if (!x.isNaN() && !y.isNaN()) b.anchor(ScreenCoordinate(x.toDouble(), y.toDouble()))
+            mbMap.setCamera(b.build())
         } catch (e: Throwable) { }
     }
 

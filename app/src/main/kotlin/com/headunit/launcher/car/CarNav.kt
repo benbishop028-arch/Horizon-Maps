@@ -411,7 +411,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
         m.onUserGesture?.invoke()
         // a double tap comes as a negative factor: zoom in one step
         val dz = if (scaleFactor <= 0f) 1.0 else Math.log(scaleFactor.toDouble()) / Math.log(2.0)
-        try { m.zoomAround(dz, focusX, focusY) } catch (e: Exception) { }
+        // zoomed about the middle of the map: around the fingers, on a tilted 3D map, the view jumped about between steps
+        try { m.zoomAround(dz, Float.NaN, Float.NaN) } catch (e: Exception) { }
     }
 
     /** Called about once a second (the cards update themselves). */

@@ -2068,6 +2068,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         var nx: Pair<Double, Double>? = null
         for (sc in secs) {
             if (sc.off <= at || sc.off - at > 800.0) continue
+            // (a stretch with no known limit is 0: it isn't a limit, and showed as "0 in 700 m")
+            if (sc.ms < 2.0) continue
             if (kotlin.math.abs(sc.ms - hit.ms) > 0.5) { nx = sc.ms to (sc.off - at); break }
         }
         val shown = nextLimit

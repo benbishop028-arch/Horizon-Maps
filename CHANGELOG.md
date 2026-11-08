@@ -43,6 +43,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Next speed limit: no longer shows a strange "0 in 700 m" sign above the speed when the road ahead has no known limit.
+- Car turn card: the "then" line for the turn after next now shows on small Android Auto screens too.
+- Pinch zoom on Android Auto: zooms smoothly around the middle of the map instead of jumping about.
 - Small Android Auto screens (GitHub, Pioneer SPH-DA160): on 7-inch 800 x 480 units the turn card left out the lanes, the junction close-up and the driving advice, as if the screen were too small. Lanes now always show on the car's turn card, and the close-up and advice show unless the screen is really short.
 - Services on the route bar with the services card off: switching off Next services card now takes them off the route bar too.
 - Traffic jams not added to the route: a jam could be announced ("Traffic jam ahead") without the time left going up or the route line turning amber or red. TomTom's incident details were read wrongly (the kind of incident as a word when it's a number, and the delay under the wrong name), and a jam with no delay given was skipped. Now every jam ahead colours the route (amber, red when it's major), and its hold-up is added to the time left when the route's own traffic doesn't already have it.
