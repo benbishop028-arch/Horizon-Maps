@@ -1104,10 +1104,65 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var toneGen: android.media.ToneGenerator? = null
     private fun chime(tone: Int = android.media.ToneGenerator.TONE_PROP_ACK) {
         if (soundMode == 2 || quiet()) return
+        // on Android Auto the phone's media sound only reaches the car's speakers while Android Auto is the car's sound source
+        // (with the radio or the car's own music on, the speeding beep was never heard): there it goes out on the navigation
+        // channel instead, like the spoken directions, which plays over whatever is on
+        if (isCar) { guidanceBeep(tone == android.media.ToneGenerator.TONE_PROP_BEEP2); return }
         try {
             val g = toneGen ?: android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100).also { toneGen = it }
             g.startTone(tone, 250)
         } catch (e: Exception) { toneGen = null }
+    }
+
+    // the beep's sound, made once: a short 1 kHz tone (twice for a warning), faded in and out so it doesn't click
+    private fun beepPcm(double: Boolean): ShortArray {
+        val rate = 22050
+        val one = rate * 140 / 1000; val gap = rate * 70 / 1000
+        val n = if (double) one * 2 + gap else one * 2
+        val fade = rate * 0.008
+        return ShortArray(n) { i ->
+            val j = if (double && i >= one + gap) i - one - gap else i
+            val len = if (double) one else n
+            if (double && i in one until one + gap) 0.toShort() else {
+                val env = minOf(1.0, minOf(j, len - j).toDouble() / fade)
+                (Math.sin(2.0 * Math.PI * 1000.0 * i / rate) * env * 0.55 * Short.MAX_VALUE).toInt().toShort()
+            }
+        }
+    }
+    private val beepSingle by lazy { beepPcm(false) }
+    private val beepDouble by lazy { beepPcm(true) }
+    @Volatile private var beepBusy = false
+
+    /** A beep on the navigation channel (Android Auto), with the music lowered for it. */
+    private fun guidanceBeep(double: Boolean) {
+        if (beepBusy) return
+        beepBusy = true
+        scope.launch(Dispatchers.Default) {
+            var tr: android.media.AudioTrack? = null
+            var fr: android.media.AudioFocusRequest? = null
+            try {
+                val pcm = if (double) beepDouble else beepSingle
+                val attrs = android.media.AudioAttributes.Builder()
+                    .setUsage(if (voiceChan == "media") android.media.AudioAttributes.USAGE_MEDIA else android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+                fr = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(attrs).build()
+                audioMgr.requestAudioFocus(fr)
+                val t = android.media.AudioTrack.Builder().setAudioAttributes(attrs)
+                    .setAudioFormat(android.media.AudioFormat.Builder().setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT)
+                        .setSampleRate(22050).setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO).build())
+                    .setTransferMode(android.media.AudioTrack.MODE_STATIC).setBufferSizeInBytes(pcm.size * 2).build()
+                tr = t
+                t.write(pcm, 0, pcm.size)
+                t.play()
+                delay(pcm.size * 1000L / 22050 + 250)
+            } catch (e: Exception) {
+            } finally {
+                try { tr?.stop() } catch (e: Exception) { }
+                try { tr?.release() } catch (e: Exception) { }
+                try { fr?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+                beepBusy = false
+            }
+        }
     }
 
     private fun checkLimitChange(newMs: Double, estimated: Boolean) {
