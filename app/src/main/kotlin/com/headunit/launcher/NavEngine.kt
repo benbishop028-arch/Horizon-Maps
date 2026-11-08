@@ -2963,7 +2963,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             speedMps = p.speed,
             elapsedSeconds = (nowT - trustAt) / 1000.0
         )
-        val onR = r != null && s != null && !jump && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
+        // driving straight past the turn: you're a little way off the route and heading a different way from the road it takes
+        // just ahead. The arrow let go of the route only once you were 40 m+ away (until then it carried on round the turn you
+        // hadn't taken), and the reroute waited for three fixes past 30 m: now this lets go at once and reroutes in about 2 s
+        val headingOff = r != null && s != null && !isStill && p.speed > 4.0 && s.dist > 15.0 && gpsReliableForReroute && run {
+            val a = pointAt(r, s.progress).first
+            val b = pointAt(r, s.progress + 25.0).first
+            Geo.dist(a, b) > 5.0 && abs(angDiff(Geo.bearing(a, b), p.heading)) > 55.0
+        }
+        val onR = r != null && s != null && !jump && !headingOff && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
         if (onR && s != null && newFix && s.dist <= offLim) { trustProg = s.progress; trustAt = nowT }
         if (newFix) {
             mAt = tNow; mSpeed = sp
@@ -2998,6 +3006,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 offCount += NavigationPolicy.offRouteStrikeCount(jump, s.dist, offLim)
                 if (offCount >= 3) reroute()
             }
+        } else if (headingOff && newFix) {
+            // past the turn and going another way: two strikes a fix, so two fixes in a row reroute
+            offCount += 2
+            if (offCount >= 3) reroute()
         } else if (gpsReliableForReroute && newFix) {
             // Still close to the route, but a vehicle moving away from its direction can indicate a wrong turn.
             val seg = Geo.bearing(r.pts[s.segmentIndex], r.pts[min(s.segmentIndex + 1, r.pts.size - 1)])

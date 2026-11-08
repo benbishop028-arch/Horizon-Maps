@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Missed turns noticed sooner: driving straight past a turn, the arrow no longer carries on round the turn you didn't take. It follows you straight away and a new route is asked for in about 2 seconds (it used to wait until you were 40 m or more off the route).
 - Speeding beep on Android Auto: now plays on the navigation channel (like the spoken directions), so it is heard over the radio or the car's own music too. Before, it only reached the speakers while Android Auto was the sound source.
 - Lanes at two slip roads close together: the second junction's lanes no longer light up at the first one, which made it look like the exit to take.
 - Lanes lit too generously: where Mapbox picks the lanes to be in, only those are lit now, not every lane that could work.
