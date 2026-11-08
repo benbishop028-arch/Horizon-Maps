@@ -669,6 +669,12 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
             L.t("The whole app: directions, screens and Android Auto. Phone's language uses English when the phone's isn't one of these")) {
             prefs.put(PreferenceKeys.APP_LANG, it); engine.setLanguage(it)
         }
+        // a language that isn't there yet: asked for on GitHub (an issue, filled in, sent from the browser)
+        var langReq by remember { mutableStateOf(false) }
+        SItem(L.t("Missing your language?"), L.t("Ask for it: the request goes to GitHub, where you can see when it's added")) {
+            SButton(L.t("Request a language")) { langReq = true }
+        }
+        if (langReq) LanguageRequestDialog(engine) { langReq = false }
         SChoice(L.t("Spoken guidance"), listOf("0" to L.t("All"), "1" to L.t("Alerts only"), "2" to L.t("Off")), engine.soundMode.toString(),
             L.t("Alerts only skips turn-by-turn but still speaks cameras, limits and hazards")) { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
         SToggle(prefs, L.t("Say road names"), PreferenceKeys.VOICE_ROADS, true, L.t("Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs"))
@@ -1242,6 +1248,55 @@ private fun FeedbackDialog(engine: NavEngine, onClose: () -> Unit) {
                     val title = note.lineSequence().firstOrNull()?.take(80)?.ifBlank { null } ?: L.t("Report from Horizon Nav {0}", com.headunit.launcher.BuildConfig.VERSION_NAME)
                     // a link has a length limit, so a very long report is cut down (Copy always has all of it)
                     val body = engine.feedbackReport(note).take(5000)
+                    val url = "https://github.com/${BuildConfig.UPDATE_REPO}/issues/new?title=" + android.net.Uri.encode(title) + "&body=" + android.net.Uri.encode(body)
+                    try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    catch (e: Exception) { engine.toast(L.t("No browser on this unit: use Copy instead"), 3500) }
+                    onClose()
+                }
+            }
+        }
+    }
+}
+
+/**
+ * "Request a language": the language wanted (and anything else) goes to GitHub as an issue, filled in, from the browser. The
+ * title and the details stay in English so they can be read there; only what the person typed is theirs.
+ */
+@Composable
+private fun LanguageRequestDialog(engine: NavEngine, onClose: () -> Unit) {
+    val c = LocalVw.current
+    val ctx = LocalContext.current
+    var lang by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var helper by remember { mutableStateOf(false) }
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(L.t("Request a language"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(L.t("Which language would you like Horizon Nav in? If you can speak it, say so: you could help check the wording."), color = c.sub, fontSize = 14.sp)
+            SField(lang, { lang = it.take(40) }, placeholder = L.t("e.g. Swedish"), width = 516.dp, fill = true)
+            SField(note, { note = it.take(400) }, placeholder = L.t("Anything else (optional)"), width = 516.dp, fill = true)
+            Row(Modifier.fillMaxWidth().pressClick { helper = !helper }, verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Checkbox(helper, { helper = it })
+                Text(L.t("I can help check the wording"), color = c.text, fontSize = 15.sp)
+            }
+            Text(L.t("Opens GitHub with the request filled in: tap Submit there to send it."), color = c.sub, fontSize = 12.sp)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                SButton(L.t("Close")) { onClose() }
+                SButton(L.t("Send on GitHub"), primary = true) {
+                    val want = lang.trim()
+                    if (want.isEmpty()) { engine.toast(L.t("Type the language first"), 2500); return@SButton }
+                    val phone = java.util.Locale.getDefault()
+                    val body = buildString {
+                        append("**Language requested:** ").append(want).append("\n\n")
+                        append("**Can help check the wording:** ").append(if (helper) "yes" else "no").append("\n\n")
+                        if (note.isNotBlank()) append("**Notes:** ").append(note.trim()).append("\n\n")
+                        append("---\n")
+                        append("Phone language: ").append(phone.getDisplayName(java.util.Locale.ENGLISH)).append(" (").append(phone.toLanguageTag()).append(")\n")
+                        append("App language: ").append(L.lang).append("\n")
+                        append("Horizon Nav ").append(BuildConfig.VERSION_NAME).append("\n")
+                        append("_Sent from Settings › Sound & voice › Request a language_")
+                    }
+                    val title = "Language request: " + want
                     val url = "https://github.com/${BuildConfig.UPDATE_REPO}/issues/new?title=" + android.net.Uri.encode(title) + "&body=" + android.net.Uri.encode(body)
                     try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
                     catch (e: Exception) { engine.toast(L.t("No browser on this unit: use Copy instead"), 3500) }
