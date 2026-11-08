@@ -1573,10 +1573,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** A search that looks like a UK postcode also looks the postcode itself up (at the same time as the other searches). */
-    private fun kotlinx.coroutines.CoroutineScope.postcodeJob(q: String) =
-        if (countryCode().let { it.isBlank() || it.equals("gb", true) } && MapboxRest.looksLikePostcode(q))
-            async(Dispatchers.IO) { try { MapboxRest.postcodes(q) } catch (e: Exception) { emptyList() } }
-        else null
+    private fun kotlinx.coroutines.CoroutineScope.postcodeJob(q: String): kotlinx.coroutines.Deferred<List<Place>>? {
+        val cc = countryCode()
+        if (!(cc.isBlank() || cc.equals("gb", true)) || !MapboxRest.looksLikePostcode(q)) return null
+        return async<List<Place>>(Dispatchers.IO) {
+            try { MapboxRest.postcodes(q) } catch (e: Exception) { emptyList<Place>() }
+        }
+    }
 
     /** The postcode results at the top (waiting at most 4 s for them), with the same postcode not listed twice. */
     private suspend fun postcodeFirst(job: kotlinx.coroutines.Deferred<List<Place>>?, rest: List<Place>): List<Place> {
