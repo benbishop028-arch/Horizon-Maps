@@ -895,6 +895,7 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         SFieldItem("FuelCheck API secret", prefs.s(PreferenceKeys.NSW_FUEL_SECRET, ""), placeholder = "Paste the API secret", password = true) { prefs.put(PreferenceKeys.NSW_FUEL_SECRET, it.trim()) }
     }
     if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Your electric car", footer = "With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).") {
+        SToggle(prefs, "Battery estimate on the trip card", PreferenceKeys.EV_PCT_CARD, true, "Roughly how much battery you'll arrive with, on the phone and Android Auto. It's worked out from your settings, not read from the car")
         SToggle(prefs, "Show petrol stations too", PreferenceKeys.EV_SHOW_FUEL, false, "The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place")
         if (mi) SFieldItem("Efficiency (miles per kWh)", prefs.s(PreferenceKeys.EVMPK, ""), placeholder = "e.g. 3.5", number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
         else SFieldItem("Efficiency (km per kWh)", prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = "e.g. 5.6", number = true) { s ->

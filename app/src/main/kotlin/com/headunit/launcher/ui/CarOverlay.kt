@@ -444,7 +444,7 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
             CarStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "left", dc)
             CarStat(e.arrive, "arrive", c.text)
             CarStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
-            engine.evArrivalPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
+            engine.evCardPct()?.let { p -> CarStat("$p%", "battery", if (p < 10) Bad else if (p < 20) Warn else Good) }
         }
         // the whole route, and other routes (as in the app): Android Auto has no room left for them among its own buttons
         val small: @Composable (androidx.compose.ui.graphics.vector.ImageVector, String, () -> Unit, androidx.compose.ui.unit.Dp) -> Unit = { icon, id, act, sz ->

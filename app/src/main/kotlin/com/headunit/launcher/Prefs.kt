@@ -290,6 +290,7 @@ internal object PreferenceKeys {
     const val TRAFFIC_GREEN = "trafficgreen"
     const val STOP_SIGNS = "stopsigns"
     const val EV_BATTERY_KWH = "evbatt"
+    const val EV_PCT_CARD = "evpctcard"
     const val EV_CHARGE_PCT = "evcharge"
     const val EV_MIN_ARRIVE = "evminarr"
 }

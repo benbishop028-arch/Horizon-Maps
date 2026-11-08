@@ -145,6 +145,7 @@ internal val settingsIndex = listOf(
     SettingRef("Spotted a wrong price?", "", "Fuel prices", 9),
     SettingRef("Tankerkönig key (Germany)", "Fuel prices in Germany", "Fuel prices outside the UK", 9),
     SettingRef("Efficiency (miles per kWh)", "", "Your electric car", 9),
+    SettingRef("Battery estimate on the trip card", "Electric car: hide or show the battery % at arrival", "Your electric car", 9),
     SettingRef("Show petrol stations too", "Electric car: the Fuel button on the map page too", "Your electric car", 9),
     SettingRef("Usable battery (kWh)", "", "Your electric car", 9),
     SettingRef("Electricity price (pence per kWh)", "", "Your electric car", 9),

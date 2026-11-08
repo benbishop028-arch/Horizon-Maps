@@ -95,6 +95,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Battery estimate toggle: electric car drivers can hide the battery % on the trip card (phone and Android Auto) in Settings › Fuel › Your electric car.
 - 3D flags: a tall red flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance. On by default; Settings > Your arrow & route line > Route line.
 - Hill shading: soft shading on hillsides, so valleys and ridges show even on a flat map, with its own day and night shades. Off by default; Settings > Light & 3D > 3D.
 - Arrive on your side of the road: routes bring you to the kerb side of where you're going, so you don't have to cross the traffic (Mapbox and offline routes). On by default; Settings > Routes > Choosing a route.

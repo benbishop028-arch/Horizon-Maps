@@ -4548,6 +4548,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** kWh used per km: from the efficiency in Settings > Fuel (miles per kWh), or a typical 0.18. */
     private fun evKwhPerKm(): Double = prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.takeIf { it in 1.0..8.0 }?.let { 1.0 / (it * 1.609344) } ?: 0.18
     /** Roughly how much battery (%) you'll arrive with: the charge you set before the trip, less what's been driven and what's left. */
+    /** The battery estimate for the trip card, or null when it's switched off (Settings > Fuel). */
+    fun evCardPct(): Int? = if (prefs.b(PreferenceKeys.EV_PCT_CARD, true)) evArrivalPct() else null
     fun evArrivalPct(): Int? {
         if (!isEv) return null
         val e = eta ?: return null

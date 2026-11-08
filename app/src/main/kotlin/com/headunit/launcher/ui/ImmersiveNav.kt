@@ -722,12 +722,13 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                 }
                 // electric: roughly how much battery you'll arrive with (amber under 20%, red under 10%)
                 val evPct = engine.evArrivalPct()
+                val evStat = evPct != null && engine.prefs.b(PreferenceKeys.EV_PCT_CARD, true)
                 val evCol = if (evPct == null) c.text else if (evPct < 10) Bad else if (evPct < 20) Warn else Good
                 val stats: @Composable () -> Unit = {
                     ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min traffic" else "time left", dc)
                     ImmStat(e.arrive, "arrival", c.text)
                     ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
-                    if (evPct != null) ImmStat("$evPct%", "battery at arrival", evCol)
+                    if (evStat) ImmStat("$evPct%", "battery at arrival", evCol)
                 }
                 val buttons: @Composable () -> Unit = {
                     // electric: chargers along the route from here
@@ -749,7 +750,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     // portrait: one compact line (figures, then the buttons), so the card stays low and clear of your arrow. When it can't
                     // all fit (an electric car adds a fourth figure and a fifth button), the buttons go on a line under the figures:
                     // squeezed onto one line the figures ran into each other ("21 min14:1216 km75")
-                    val nStats = if (evPct != null) 4 else 3
+                    val nStats = if (evStat) 4 else 3
                     val nButtons = if (evPct != null) 5 else 4
                     val oneLine = maxWidth >= (nStats * 74 + nButtons * 42 + 30).dp
                     val figures: @Composable (Modifier) -> Unit = { m ->
@@ -757,7 +758,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                             ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min" else "time left", dc, compact = true)
                             ImmStat(e.arrive, "arrival", c.text, compact = true)
                             ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text, compact = true)
-                            if (evPct != null) ImmStat("$evPct%", "battery", evCol, compact = true)
+                            if (evStat) ImmStat("$evPct%", "battery", evCol, compact = true)
                         }
                     }
                     val smallButtons: @Composable (Modifier) -> Unit = { m ->
