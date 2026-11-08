@@ -388,6 +388,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Routes from one service ("mapbox" or "tomtom"). */
     private fun routesFrom(p: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean): List<Route> =
         routesFromInner(p, from, to, alternatives, departAtMs, via, headingDeg, quick).also { rs ->
+            for (r in rs) r.from = p
             if (Vehicle.lorry) for (r in rs) r.lorry = if (p == "mapbox") "partial" else "full"
         }
 
@@ -404,7 +405,39 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * them isn't working.
      */
     private fun netRoutes(from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(), headingDeg: Double = -1.0, quick: Boolean = false,
-                          askBoth: Boolean = false): List<Route> {
+                          askBoth: Boolean = false, simple: Boolean = false): List<Route> {
+        val rs = netRoutesRaw(from, to, alternatives, departAtMs, via, headingDeg, quick, askBoth)
+        if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false)) return rs
+        val out = simplerFirst(rs)
+        if (out.first() !== rs.first() && out.first().from.isNotBlank()) lastRouteProvider = out.first().from
+        return out
+    }
+
+    /** The turns a driver actually makes on [r]: every step but "carry on", the start and the end. */
+    private fun turnCount(r: Route): Int = r.steps.count { s ->
+        val m = s.maneuver.uppercase()
+        !(m == "STRAIGHT" || m == "FOLLOW" || m.startsWith("DEPART") || m.startsWith("ARRIVE"))
+    }
+
+    /**
+     * The simpler of routes that take about the same time goes first: when another route is no more than a minute and a half
+     * slower (3% on long trips) and has clearly fewer turns, it's the one chosen. A route with far fewer turns keeps to the main
+     * roads instead of cutting through back streets to save a few seconds (the "interesting" routes people mentioned). The
+     * quicker one stays on the list to pick.
+     */
+    private fun simplerFirst(rs: List<Route>): List<Route> {
+        val top = rs.first()
+        val slack = max(90.0, top.time * 0.03)
+        val t0 = turnCount(top)
+        val pick = rs.drop(1).filter { r ->
+            val t = turnCount(r)
+            r.time <= top.time + slack && t0 - t >= 3 && t <= t0 * 0.8
+        }.minWithOrNull(compareBy<Route> { turnCount(it) }.thenBy { it.time }) ?: return rs
+        return listOf(pick) + rs.filter { it !== pick }
+    }
+
+    private fun netRoutesRaw(from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean,
+                             askBoth: Boolean): List<Route> {
         val now = System.currentTimeMillis()
         val both = askBoth && !quick && hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" &&
             !prefs.b(PreferenceKeys.ROUTE_ECO, false) && now >= ttDownUntil && now >= mbDownUntil
@@ -1764,7 +1797,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     if (haveOffline && (!hasOnline || !online())) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, via.map { it.pos }) }
-                    else try { netRoutes(from, to.pos, true, departMs, via.map { it.pos }, askBoth = true) }
+                    else try { netRoutes(from, to.pos, true, departMs, via.map { it.pos }, askBoth = true, simple = true) }
                     catch (e: Exception) {
                         if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, via.map { it.pos }) } else throw e
                     }
@@ -3981,6 +4014,43 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var lastTrafficAt = 0L
     private var trafficBusy = false
 
+    /** TomTom's timing of the road being driven (a Mapbox route), from where you were when it was asked. */
+    private class TtTiming(val route: Route, val at: Double, val span: Double, val free: Double, val delays: List<DelaySeg>)
+    @Volatile private var ttTiming: TtTiming? = null
+
+    /**
+     * With a Mapbox route and a TomTom key, TomTom also times the same road at each traffic refresh. Each stretch of the line is
+     * coloured with whichever service says it's worse, and the time left is the longer of the two (so a jam either one knows
+     * about shows on the line and in the arrival time; one service alone sometimes said 5 minutes when 15 was nearer the truth).
+     */
+    private suspend fun tomtomOverlay(cur: Route, at: Double) {
+        if (cur.from != "mapbox" || !hasKey || refusedKey == apiKey || System.currentTimeMillis() < ttDownUntil) return
+        if (cur.len - at < 800.0) return
+        val i0 = max(0, idxAt(cur, at))
+        val pts = cur.pts.subList(min(i0 + 1, cur.pts.size - 1), cur.pts.size)
+        val start = pointAt(cur, at).first
+        val tt = withContext(Dispatchers.IO) { try { TomTomRest.timeAlong(apiKey, listOf(start) + pts) } catch (e: Exception) { null } } ?: return
+        if (route !== cur) return
+        val span = cur.len - at
+        val scale = if (tt.len > 0) span / tt.len else 1.0
+        ttTiming = TtTiming(cur, at, span, max(0.0, tt.time - tt.delay), tt.delays.map { DelaySeg(at + it.off * scale, at + it.end * scale, it.secs) })
+        if (tt.sev.isEmpty() || cur.sev.isEmpty()) return
+        if (sevBaseRoute !== cur || sevBase?.size != cur.sev.size) { sevBase = cur.sev.copyOf(); sevBaseRoute = cur }
+        val base = sevBase ?: return
+        for (i in max(0, i0) until cur.sev.size) {
+            if (i + 1 >= cur.cum.size) break
+            val x = ((cur.cum[i] + cur.cum[i + 1]) / 2.0 - at) / scale
+            if (x < 0) continue
+            var j = java.util.Arrays.binarySearch(tt.cum, x)
+            if (j < 0) j = -j - 2
+            j = j.coerceIn(0, tt.sev.size - 1)
+            if (tt.sev[j] > base[i]) base[i] = tt.sev[j]
+        }
+        System.arraycopy(base, 0, cur.sev, 0, base.size)
+        try { applyIncidentSev(cur, incMatches) } catch (e: Exception) { }
+        lastDraw = 0L
+    }
+
     /** Every few minutes asks TomTom for the same trip again, so the amber/red road and the time left follow the traffic as it changes. */
     private fun checkTraffic(cur: Route) {
         val now = System.currentTimeMillis()
@@ -3988,7 +4058,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val d = dest ?: return
         if (previewing || simMode != 0 || trafficBusy || !hasOnline || shadow()) return
         if (lastTrafficAt == 0L) { lastTrafficAt = now - 120_000L }   // first refresh about a minute after setting off
-        if (now - lastTrafficAt < 180_000L) return
+        // every 3 minutes, every 2 when you're crawling along (in a queue the time left goes stale fastest)
+        if (now - lastTrafficAt < (if (f.speed < 4.0) 120_000L else 180_000L)) return
         lastTrafficAt = now
         trafficBusy = true
         val viaPts = via.map { it.pos }
@@ -3996,10 +4067,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         scope.launch {
             try {
                 syncRoutePrefs(f.pos, d.pos)
-                val rs = withContext(Dispatchers.IO) { netRoutes(f.pos, d.pos, false, 0L, viaPts, -1.0, true) }
-                val fresh = rs.firstOrNull() ?: return@launch
+                val rs = try { withContext(Dispatchers.IO) { netRoutes(f.pos, d.pos, false, 0L, viaPts, -1.0, true) } }
+                    catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { emptyList() }
                 if (route !== cur) return@launch
-                refreshTraffic(cur, fresh, at)
+                rs.firstOrNull()?.let { fresh -> refreshTraffic(cur, fresh, at) }
+                // and TomTom's view of the same road, on a Mapbox route
+                tomtomOverlay(cur, at)
             } catch (e: Exception) { }
             finally { trafficBusy = false }
         }
@@ -4168,8 +4241,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
             }
             val ahead2 = ahead + incAhead
-            val secs = r.freeFlow * frac + ahead2
-            val delayMin = Math.round(ahead2 / 60.0).toInt()
+            var secs = r.freeFlow * frac + ahead2
+            var delayMin = Math.round(ahead2 / 60.0).toInt()
+            // TomTom's own timing of this road (a Mapbox route with a TomTom key): the longer of the two is used
+            ttTiming?.takeIf { it.route === r && it.span > 0 }?.let { t ->
+                val ttAhead = t.delays.sumOf { d ->
+                    val span = max(1.0, d.end - d.off)
+                    d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
+                }
+                val ttSecs = t.free * (rem / t.span).coerceIn(0.0, 1.2) + ttAhead
+                if (ttSecs > secs) { secs = ttSecs; delayMin = max(delayMin, Math.round(ttAhead / 60.0).toInt()) }
+            }
             val arrive = Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
             routeFrac = (1.0 - frac).toFloat().coerceIn(0f, 1f)

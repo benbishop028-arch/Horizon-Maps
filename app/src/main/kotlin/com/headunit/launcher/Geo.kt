@@ -45,6 +45,8 @@ class Route(
     /** Planned for a lorry: "full" (every measurement used: TomTom or offline), "partial" (Mapbox: height, width and weight only),
      *  or "" (a car). Shown as a badge on the route choice. */
     @Volatile var lorry: String = ""
+    /** Which service planned it ("mapbox", "tomtom"; "" offline). */
+    @Volatile var from: String = ""
 }
 
 /** The posted limit [ms] (m/s) from [off] to [end] metres along a route. */
@@ -311,6 +313,34 @@ object TomTomRest {
 
     /** False once TomTom has refused a request for speed limit sections (then routes are asked for without them). */
     @Volatile private var speedSecOk = true
+
+    /**
+     * TomTom's live traffic along a road already chosen (another service's route): TomTom is given the line itself and times
+     * that exact road, with its traffic stretches. [pts] runs from where you are to the end; thinned to at most 400 points.
+     * Null when TomTom can't follow it.
+     */
+    fun timeAlong(key: String, pts: List<LL>): Route? {
+        if (pts.size < 2) return null
+        var len = 0.0
+        for (i in 1 until pts.size) len += Geo.dist(pts[i - 1], pts[i])
+        val gap = max(40.0, len / 400.0)
+        val keep = ArrayList<LL>()
+        keep += pts.first()
+        var run = 0.0
+        for (i in 1 until pts.size - 1) { run += Geo.dist(pts[i - 1], pts[i]); if (run >= gap) { keep += pts[i]; run = 0.0 } }
+        keep += pts.last()
+        val k = URLEncoder.encode(key, "UTF-8")
+        val a = keep.first(); val b = keep.last()
+        val u = "$CLASSIC/${a.lat},${a.lon}:${b.lat},${b.lon}/json?key=$k&traffic=true&routeRepresentation=polyline&sectionType=traffic${Vehicle.tomtom()}"
+        val arr = JSONArray()
+        for (p in keep) arr.put(JSONObject().put("latitude", p.lat).put("longitude", p.lon))
+        val body = try { post(u, JSONObject().put("supportingPoints", arr).toString(), 10000, 15000) } catch (e: IOException) { return null }
+        val r = JSONObject(body).optJSONArray("routes")?.optJSONObject(0) ?: return null
+        val out = parse(r)
+        // it has to be the same road: about the same length as the line it was given
+        if (out.len <= 0 || kotlin.math.abs(out.len - len) > max(300.0, len * 0.1)) return null
+        return out
+    }
 
     fun routes(key: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(), headingDeg: Double = -1.0, quick: Boolean = false): List<Route> {
         val rects = avoidRects

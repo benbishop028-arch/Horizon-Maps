@@ -143,6 +143,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Traffic from both services: on a Mapbox route with a TomTom key, TomTom also times the same road at every traffic refresh. Each stretch of the route line shows whichever service says it's worse, and the time left and arrival time use the longer of the two, so a jam either one knows about is counted.
+- Time left in queues: traffic is refreshed every 2 minutes instead of 3 while you're crawling along, so the arrival time catches up with a jam sooner.
+- Simpler routes: when planning, a route with clearly fewer turns is chosen over one that's only up to about a minute and a half quicker, so it keeps to the main roads instead of cutting through back streets. The quicker one is still offered to pick.
 - Android Auto split screen: in the narrow part of the screen the app's cards and buttons now shrink further by themselves, so they fit beside the map. The Overall size setting (Settings > Android Auto, or the car's own Settings) still sets them bigger or smaller, 40% to 300%.
 - Android Auto: Route overview and Other routes buttons on the trip card (beside sound and end), and Route overview in the car's Settings too.
 - Android Auto arrow size now goes down to 30% (was 60%), for small car screens where even 60% looked big.
