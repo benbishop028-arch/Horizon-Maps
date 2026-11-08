@@ -290,7 +290,7 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             SPercent("How strong", "How much of the colour the map takes", prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
         }
     }
-    if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs)
+    if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
     if (prefs.mapSource() == "mapbox") SavedThemesGroup(prefs)
     SGroup("The map") {
         SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),

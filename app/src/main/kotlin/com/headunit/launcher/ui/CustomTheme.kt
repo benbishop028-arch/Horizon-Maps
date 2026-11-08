@@ -48,28 +48,56 @@ private val palette = listOf(
 
 /**
  * The Custom theme's settings: what it starts from, Day and Night tabs (the preview at the top shows the one being edited), the
- * colours of the ground, water, parks, roads, main roads and buildings, the route line's colour and width, night brightness, save
- * as a theme, and reset.
+ * colours of the ground, water, parks, roads, main roads and buildings, the route line's colour and width, night brightness, save,
+ * and reset.
+ *
+ * Changes are a draft: the preview at the top shows each one as it's made (while a slider is still moving, too), but nothing is
+ * kept until Save. Leaving without saving puts the map back as it was.
  */
 @Composable
-internal fun CustomThemeGroup(prefs: Prefs) {
+internal fun CustomThemeGroup(prefs: Prefs, engine: com.headunit.launcher.NavEngine) {
     val c = LocalVw.current
     val night = PreviewLight.mode == "night"
-    val key = if (night) PreferenceKeys.CUSTOM_NIGHT else PreferenceKeys.CUSTOM_DAY
-    val spec = CustomLook.parse(prefs.s(key, ""))
-    fun save(s: CustomLook.Spec) = prefs.put(key, if (s.isEmpty) "" else s.toJson())
+    // what's saved now
+    val savedBase = prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox")
+    val savedDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
+    val savedNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
+    val savedW = prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100)
+    // the draft being edited (starts again from what's saved whenever that changes: after Save, or Use on a saved theme)
+    var base by remember(savedBase) { mutableStateOf(savedBase) }
+    var day by remember(savedDay) { mutableStateOf(CustomLook.parse(savedDay)) }
+    var nightSpec by remember(savedNight) { mutableStateOf(CustomLook.parse(savedNight)) }
+    var width by remember(savedW) { mutableStateOf(savedW) }
+    fun js(sp: CustomLook.Spec) = if (sp.isEmpty) "" else sp.toJson()
+    val changed = base != savedBase || js(day) != savedDay || js(nightSpec) != savedNight || width != savedW
+    val map = engine.map
+    // the preview shows the draft
+    androidx.compose.runtime.LaunchedEffect(base, day, nightSpec, width) {
+        try { map.setColours(base); map.setCustom(true, js(day), js(nightSpec), width) } catch (e: Exception) { }
+    }
+    // leaving without saving: the map goes back to what's saved (read fresh, in case the theme itself was changed meanwhile)
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                val on = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom"
+                if (on) map.setColours(prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox"))
+                map.setCustom(on, prefs.s(PreferenceKeys.CUSTOM_DAY, ""), prefs.s(PreferenceKeys.CUSTOM_NIGHT, ""), prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100))
+            } catch (e: Exception) { }
+        }
+    }
+    val spec = if (night) nightSpec else day
+    fun edit(sp: CustomLook.Spec) { if (night) nightSpec = sp else day = sp }
     var open by remember { mutableStateOf<String?>(null) }
-    SGroup("Custom colours", footer = "A part you haven't changed keeps the colour of the theme it starts from. At night the light darkens the colours you pick, as it does every theme: the preview at the top shows the real result.") {
+    SGroup("Custom colours", footer = "Changes show on the preview at the top as you make them, and are only kept when you press Save. A part you haven't changed keeps the colour of the theme it starts from. At night the light darkens the colours you pick, as it does every theme.") {
         // what it starts from
         SItem("Starts from", "The theme your colours go on top of")
         Row(Modifier.padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            val base = prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox")
             for ((id, label) in listOf("mapbox" to "Mapbox", "horizon" to "Horizon", "twilight" to "Twilight", "mono" to "Mono", "ember" to "Ember", "arctic" to "Arctic")) {
                 val sel = base == id
                 Box(
                     Modifier.clip(RoundedCornerShape(50)).background(if (sel) c.accent.copy(alpha = 0.22f) else c.tile)
                         .border(1.dp, if (sel) c.accent else Color.Transparent, RoundedCornerShape(50))
-                        .pressClick { prefs.put(PreferenceKeys.CUSTOM_BASE, id) }.padding(horizontal = 12.dp, vertical = 7.dp),
+                        .pressClick { base = id }.padding(horizontal = 12.dp, vertical = 7.dp),
                 ) { Text(label, color = c.text, fontSize = 13.sp) }
             }
         }
@@ -84,24 +112,42 @@ internal fun CustomThemeGroup(prefs: Prefs) {
             }
         }
         for (part in CustomLook.parts) {
-            ColourRow(part.name, part.sub, spec.colours[part.key], open == part.key, { open = if (open == part.key) null else part.key }) { v ->
-                save(spec.copy(colours = if (v == null) spec.colours - part.key else spec.colours + (part.key to v)))
+            ColourRow(part.name, part.sub, spec.colours[part.key], open == part.key, { open = if (open == part.key) null else part.key }, live = true) { v ->
+                edit(spec.copy(colours = if (v == null) spec.colours - part.key else spec.colours + (part.key to v)))
             }
         }
-        ColourRow("Route line", "The route you're following (traffic still shows amber and red)", spec.route, open == "route", { open = if (open == "route") null else "route" }) { v ->
-            save(spec.copy(route = v))
+        // (the route line's colour is part of the map's layers, so each change loads the map again: only when a slider is let go)
+        ColourRow("Route line", "The route you're following (traffic still shows amber and red)", spec.route, open == "route", { open = if (open == "route") null else "route" }, live = false) { v ->
+            edit(spec.copy(route = v))
         }
-        SPercent("Route line width", "Day and night", prefs, PreferenceKeys.CUSTOM_ROUTE_W, 60, 180, 100)
-        if (night) SPercent("Night brightness", "How bright the whole night map is (for every theme; also in Light & 3D)", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
-        // save as a theme
+        // route line width (draft too: shown when the slider is let go, as it loads the map again)
+        var wv by remember(width) { mutableStateOf(width.toFloat()) }
+        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            SItem("Route line width", "Day and night") {
+                Text("${Math.round(wv)}%", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Slider(wv, { wv = (it / 10f).let { x -> Math.round(x) * 10f } }, onValueChangeFinished = { width = Math.round(wv).coerceIn(60, 180) },
+                valueRange = 60f..180f, steps = 11,
+                colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = c.accent, inactiveTrackColor = c.tile))
+        }
+        if (night) SPercent("Night brightness", "How bright the whole night map is (for every theme; also in Light & 3D; kept straight away)", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
+        // save: keeps the changes, and with a name also adds them to Your themes
         var name by remember { mutableStateOf("") }
-        SFieldItem("Save as a theme", name, "Name it, then Save: it's kept under Your themes", placeholder = "My theme") { name = it }
+        SFieldItem("Name (optional)", name, "Give it a name to also keep it under Your themes", placeholder = "My theme") { name = it }
+        if (changed) Text("Not saved yet: leave without saving and the map goes back as it was", color = c.accent, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
         Row(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SButton("Save", primary = true) { CustomLook.saveCurrent(prefs, name); name = "" }
-            SButton(if (night) "Reset night" else "Reset day") { save(CustomLook.Spec()); open = null }
-            SButton("Reset all") {
-                prefs.put(PreferenceKeys.CUSTOM_DAY, ""); prefs.put(PreferenceKeys.CUSTOM_NIGHT, ""); prefs.put(PreferenceKeys.CUSTOM_ROUTE_W, 100); open = null
+            SButton("Save", primary = true) {
+                prefs.put(PreferenceKeys.CUSTOM_BASE, base)
+                prefs.put(PreferenceKeys.CUSTOM_DAY, js(day))
+                prefs.put(PreferenceKeys.CUSTOM_NIGHT, js(nightSpec))
+                prefs.put(PreferenceKeys.CUSTOM_ROUTE_W, width)
+                if (name.isNotBlank()) { CustomLook.saveCurrent(prefs, name); name = "" }
             }
+            if (changed) SButton("Undo changes") {
+                base = savedBase; day = CustomLook.parse(savedDay); nightSpec = CustomLook.parse(savedNight); width = savedW; open = null
+            }
+            SButton(if (night) "Reset night" else "Reset day") { edit(CustomLook.Spec()); open = null }
+            SButton("Reset all") { day = CustomLook.Spec(); nightSpec = CustomLook.Spec(); width = 100; open = null }
         }
     }
 }
@@ -136,8 +182,14 @@ private fun Swatch(hex: String?, size: Int = 30) {
 
 /** One part's colour: tap to open the palette and the shade / lightness sliders; "Theme's own" takes the change away. */
 @Composable
-private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolean, onToggle: () -> Unit, onPick: (String?) -> Unit) {
+private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolean, onToggle: () -> Unit, live: Boolean = true, onPick: (String?) -> Unit) {
     val c = LocalVw.current
+    // while a slider moves, the colour goes to the preview about eight times a second (every frame would be too much for a head unit)
+    var lastPush by remember { mutableStateOf(0L) }
+    fun push(v: String) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (live && now - lastPush >= 120L) { lastPush = now; onPick(v) }
+    }
     Column(Modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth().pressClick { onToggle() }.padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -163,17 +215,21 @@ private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolea
                 // fine-tune: shade (hue) and lightness, keeping the colour's strength
                 val hsl = FloatArray(3)
                 ColorUtils.colorToHSL(android.graphics.Color.parseColor(hex ?: "#3A5590"), hsl)
-                var hue by remember(hex) { mutableStateOf(hsl[0]) }
-                var light by remember(hex) { mutableStateOf(hsl[2]) }
+                // (remembered per open picker, not per colour: a live update changes the colour mid-drag, which mustn't reset the slider)
+                var hue by remember(expanded) { mutableStateOf(hsl[0]) }
+                var light by remember(expanded) { mutableStateOf(hsl[2]) }
+                var dragging by remember { mutableStateOf(false) }
+                // a palette tap or "Theme's own" sets the sliders to that colour
+                androidx.compose.runtime.LaunchedEffect(hex) { if (!dragging) { hue = hsl[0]; light = hsl[2] } }
                 val satv = if (hsl[1] < 0.05f) 0.45f else hsl[1]
                 fun make(h: Float, l: Float) = CustomLook.hex(ColorUtils.HSLToColor(floatArrayOf(h, satv, l)))
                 Text("Shade", color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(Brush.horizontalGradient((0..6).map { Color.hsl(it * 60f % 360f, satv, 0.5f) })))
-                Slider(hue, { hue = it }, onValueChangeFinished = { onPick(make(hue, light)) }, valueRange = 0f..359f,
+                Slider(hue, { hue = it; dragging = true; push(make(hue, light)) }, onValueChangeFinished = { dragging = false; onPick(make(hue, light)) }, valueRange = 0f..359f,
                     colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = Color.Transparent, inactiveTrackColor = Color.Transparent))
                 Text("Lightness", color = c.sub, fontSize = 12.sp)
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(Brush.horizontalGradient(listOf(Color.Black, Color.hsl(hue, satv, 0.5f), Color.White))))
-                Slider(light, { light = it }, onValueChangeFinished = { onPick(make(hue, light)) }, valueRange = 0.02f..0.98f,
+                Slider(light, { light = it; dragging = true; push(make(hue, light)) }, onValueChangeFinished = { dragging = false; onPick(make(hue, light)) }, valueRange = 0.02f..0.98f,
                     colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = Color.Transparent, inactiveTrackColor = Color.Transparent))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Swatch(make(hue, light), 24)

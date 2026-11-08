@@ -1675,7 +1675,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (pcs.isEmpty()) return rest
         fun key(s: String) = s.replace(" ", "").uppercase()
         val names = pcs.map { key(it.name) }.toSet()
-        return pcs + rest.filter { key(it.name) !in names }
+        val others = rest.filter { key(it.name) !in names }
+        // a district on its own ("M25", "B1") is also how roads are named: it goes third, so a search for the M25 still
+        // shows the motorway first
+        if (pcs.all { !it.name.trim().contains(' ') } && others.size >= 2) return others.take(2) + pcs + others.drop(2)
+        return pcs + others
     }
 
     /** Search used by the stops editor: the same sources as the search box, returned instead of shown. */
@@ -2035,7 +2039,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val r = route ?: return
         val pts = listOfNotNull(fix?.pos) + r.pts.drop(lastIdx.coerceIn(0, max(0, r.pts.size - 2))).filterIndexed { n, _ -> n % 6 == 0 } + r.pts.last()
         following = false
-        map.fit(pts)
+        // on Android Auto there's no preview panel at the bottom: fitting as if there were left the route in the top third of
+        // the screen, zoomed out further than needed, with place names too small to read
+        map.fit(pts, panel = !isCar)
         scheduleRecentre(10_000)
     }
 
@@ -2966,10 +2972,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // driving straight past the turn: you're a little way off the route and heading a different way from the road it takes
         // just ahead. The arrow let go of the route only once you were 40 m+ away (until then it carried on round the turn you
         // hadn't taken), and the reroute waited for three fixes past 30 m: now this lets go at once and reroutes in about 2 s
-        val headingOff = r != null && s != null && !isStill && p.speed > 4.0 && s.dist > 15.0 && gpsReliableForReroute && run {
+        // (beyond the GPS's own error, and a sharper angle than just before a turn, when the road ahead already bends away: a
+        // turn 10 m ahead reads about 45 degrees, one you've gone past about 90)
+        val headingOff = r != null && s != null && !isStill && p.speed > 4.0 && s.dist > max(15.0, p.acc) && gpsReliableForReroute && simMode == 0 && run {
             val a = pointAt(r, s.progress).first
-            val b = pointAt(r, s.progress + 25.0).first
-            Geo.dist(a, b) > 5.0 && abs(angDiff(Geo.bearing(a, b), p.heading)) > 55.0
+            val b = pointAt(r, s.progress + 20.0).first
+            Geo.dist(a, b) > 5.0 && abs(angDiff(Geo.bearing(a, b), p.heading)) > 65.0
         }
         val onR = r != null && s != null && !jump && !headingOff && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
         if (onR && s != null && newFix && s.dist <= offLim) { trustProg = s.progress; trustAt = nowT }
@@ -3871,6 +3879,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private var sevBase: IntArray? = null
     private var sevBaseRoute: Route? = null
+    // the route service's own traffic colours, before TomTom's view and the incidents are painted on: each refresh starts from
+    // these, so a jam that clears goes back to normal (they used to be built on the painted line, so red never faded)
+    private var ownSev: IntArray? = null
+    private var ownSevRoute: Route? = null
+    private fun ownOf(r: Route): IntArray {
+        ownSev?.let { if (ownSevRoute === r && it.size == r.sev.size) return it }
+        val o = sevBase?.takeIf { sevBaseRoute === r && it.size == r.sev.size }?.copyOf() ?: r.sev.copyOf()
+        ownSev = o; ownSevRoute = r
+        return o
+    }
 
     /** Colours the stretch of road around each live incident amber (slow) or red (heavy), on top of the route's own traffic data. */
     private fun applyIncidentSev(r: Route, found: List<Triple<Incident, Double, String>>) {
@@ -4047,8 +4065,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val scale = if (tt.len > 0) span / tt.len else 1.0
         ttTiming = TtTiming(cur, at, span, max(0.0, tt.time - tt.delay), tt.delays.map { DelaySeg(at + it.off * scale, at + it.end * scale, it.secs) })
         if (tt.sev.isEmpty() || cur.sev.isEmpty()) return
-        if (sevBaseRoute !== cur || sevBase?.size != cur.sev.size) { sevBase = cur.sev.copyOf(); sevBaseRoute = cur }
-        val base = sevBase ?: return
+        val base = ownOf(cur).copyOf()
         for (i in max(0, i0) until cur.sev.size) {
             if (i + 1 >= cur.cum.size) break
             val x = ((cur.cum[i] + cur.cum[i + 1]) / 2.0 - at) / scale
@@ -4058,6 +4075,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             j = j.coerceIn(0, tt.sev.size - 1)
             if (tt.sev[j] > base[i]) base[i] = tt.sev[j]
         }
+        sevBase = base.copyOf(); sevBaseRoute = cur
         System.arraycopy(base, 0, cur.sev, 0, base.size)
         try { applyIncidentSev(cur, incMatches) } catch (e: Exception) { }
         lastDraw = 0L
@@ -4097,8 +4115,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val m = HashMap<Long, Int>(fresh.sev.size * 2)
         for (i in fresh.sev.indices) m[key(fresh.pts[i])] = fresh.sev[i]
         var hit = 0
+        val own = ownOf(cur)
         val base = IntArray(cur.sev.size)
-        for (i in cur.sev.indices) { val v = m[key(cur.pts[i])]; if (v != null) { base[i] = v; hit++ } else base[i] = cur.sev[i] }
+        for (i in cur.sev.indices) { val v = m[key(cur.pts[i])]; if (v != null) { base[i] = v; hit++ } else base[i] = own[i] }
         // only trust it when it is the same road: a good share of the points still ahead must line up with the fresh route
         val firstAhead = max(0, idxAt(cur, at))
         var ahead = 0; var match = 0
@@ -4109,6 +4128,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             cur.freeFlow = max(0.0, fresh.time - fresh.delay) / fresh.len * cur.len
             cur.delays = fresh.delays.map { DelaySeg(it.off + at, it.end + at, it.secs) }
         }
+        ownSev = base.copyOf(); ownSevRoute = cur
         sevBase = base.copyOf(); sevBaseRoute = cur
         System.arraycopy(base, 0, cur.sev, 0, base.size)
         try { applyIncidentSev(cur, incMatches) } catch (e: Exception) { }

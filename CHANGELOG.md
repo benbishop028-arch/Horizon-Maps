@@ -43,6 +43,10 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.
+- Missed-turn detection: made safer against GPS drift in town. It only triggers beyond the GPS's own error and at a sharper angle, so approaching a turn never sets off a reroute.
+- Postcode district search: a district on its own ("M25", "B1") is also how roads are named, so it now shows third, and a search for the M25 still shows the motorway first.
+- Route overview on Android Auto: the route now fills the screen instead of sitting in the top third (it left room for a panel that isn't there on the car), so it's zoomed in further and the place names are easier to read.
 - Missed turns noticed sooner: driving straight past a turn, the arrow no longer carries on round the turn you didn't take. It follows you straight away and a new route is asked for in about 2 seconds (it used to wait until you were 40 m or more off the route).
 - Speeding beep on Android Auto: now plays on the navigation channel (like the spoken directions), so it is heard over the radio or the car's own music too. Before, it only reached the speakers while Android Auto was the sound source.
 - Lanes at two slip roads close together: the second junction's lanes no longer light up at the first one, which made it look like the exit to take.
@@ -144,6 +148,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Custom theme live preview: every change shows on the preview at the top as you make it, even while a slider is still moving. Nothing is kept until you press Save. Leave without saving (or press Undo changes) and the map goes back to how it was. Giving it a name also keeps it under Your themes.
 - Traffic from both services: on a Mapbox route with a TomTom key, TomTom also times the same road at every traffic refresh. Each stretch of the route line shows whichever service says it's worse, and the time left and arrival time use the longer of the two, so a jam either one knows about is counted.
 - Time left in queues: traffic is refreshed every 2 minutes instead of 3 while you're crawling along, so the arrival time catches up with a jam sooner.
 - Simpler routes: when planning, a route with clearly fewer turns is chosen over one that's only up to about a minute and a half quicker, so it keeps to the main roads instead of cutting through back streets. The quicker one is still offered to pick.
