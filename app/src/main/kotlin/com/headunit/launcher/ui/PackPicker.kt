@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -56,22 +58,22 @@ internal fun PackPickerDialog(current: PackRegion, onPick: (PackRegion) -> Unit,
             Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).border(1.dp, c.line, RoundedCornerShape(26.dp)).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("Choose an area", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            SField(q, { q = it }, placeholder = "Search, e.g. France, Texas, Bavaria", width = 520.dp, fill = true)
+            Text(L.t("Choose an area"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            SField(q, { q = it }, placeholder = L.t("Search, e.g. France, Texas, Bavaria"), width = 520.dp, fill = true)
             // near you: the smallest area that covers where you are, and (beside it) the whole country
             val nr = near
             if (q.isBlank() && nr != null) Column(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.accent.copy(alpha = 0.16f)).padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text("NEAR YOU", color = c.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                Text(L.t("NEAR YOU"), color = c.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable { pick(nr.first) }.padding(vertical = 4.dp)) {
                         Text(nr.first.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                         nr.second?.let { Text(it.name, color = c.sub, fontSize = 12.sp) }
                     }
                     nr.second?.let { whole ->
-                        Text("or all of ${whole.name}", color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                        Text(L.t("or all of {0}", whole.name), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.clip(RoundedCornerShape(10.dp)).clickable { pick(whole) }.padding(horizontal = 8.dp, vertical = 8.dp))
                     }
                 }
@@ -92,12 +94,12 @@ internal fun PackPickerDialog(current: PackRegion, onPick: (PackRegion) -> Unit,
                                 Text(r.name, color = c.text, fontSize = 16.sp, fontWeight = if (sel || isOpen) FontWeight.SemiBold else FontWeight.Medium)
                                 if (q.isNotBlank()) Text(if (r.parent.isNotBlank()) PackRegions.byId(r.parent).name else r.group, color = c.sub, fontSize = 12.sp)
                             }
-                            if (regions.isNotEmpty()) Text(if (isOpen) "⌄" else "${regions.size} regions ›", color = c.sub, fontSize = 14.sp)
+                            if (regions.isNotEmpty()) Text(if (isOpen) "⌄" else L.t("{0} regions ›", regions.size), color = c.sub, fontSize = 14.sp)
                             else if (sel) Icon(Icons.Rounded.Check, null, tint = c.accent, modifier = Modifier.size(20.dp))
                         }
                     }
-                    if (isOpen) items(listOf(r.copy(name = "Whole country")) + regions, key = { "sub-" + it.id + it.name }) { sr ->
-                        val target = if (sr.name == "Whole country" && sr.id == r.id) r else sr
+                    if (isOpen) items(listOf(r.copy(name = L.t("Whole country"))) + regions, key = { "sub-" + it.id + it.name }) { sr ->
+                        val target = if (sr.name == L.t("Whole country") && sr.id == r.id) r else sr
                         val sel = target.id == current.id
                         Row(
                             Modifier.fillMaxWidth().clickable { pick(target) }.padding(start = 30.dp, end = 14.dp, top = 9.dp, bottom = 9.dp),
@@ -109,8 +111,8 @@ internal fun PackPickerDialog(current: PackRegion, onPick: (PackRegion) -> Unit,
                     }
                 }
             }
-            if (shown.isEmpty()) SNote("No area matches. Try the country's name in English.")
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { SButton("Close") { onClose() } }
+            if (shown.isEmpty()) SNote(L.t("No area matches. Try the country's name in English."))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { SButton(L.t("Close")) { onClose() } }
         }
     }
 }

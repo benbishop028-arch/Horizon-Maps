@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.animation.animateContentSize
@@ -68,7 +70,8 @@ internal val LocalSettingHighlight = androidx.compose.runtime.compositionLocalOf
 @Composable
 internal fun SItem(title: String, sub: String? = null, onClick: (() -> Unit)? = null, trailing: @Composable () -> Unit = {}) {
     val c = LocalVw.current
-    val hl = LocalSettingHighlight.current == title
+    // (the settings search names a setting in English: it matches here in whichever language the screen is in)
+    val hl = LocalSettingHighlight.current?.let { it == title || L.t(it) == title } == true
     var hlMod: Modifier = Modifier
     if (hl) {
         val req = remember { androidx.compose.foundation.relocation.BringIntoViewRequester() }
@@ -140,7 +143,7 @@ internal fun SSlider(title: String, value: Float, range: ClosedFloatingPointRang
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         SItem(title, sub) {
             Text("${v.roundToInt()}$unit", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            if (reset != null && v.roundToInt() != reset.roundToInt()) SButton("Reset") { v = reset; onDone(reset.roundToInt()) }
+            if (reset != null && v.roundToInt() != reset.roundToInt()) SButton(L.t("Reset")) { v = reset; onDone(reset.roundToInt()) }
         }
         Slider(
             value = v, onValueChange = { v = it; if (live) onDone(it.roundToInt()) }, onValueChangeFinished = { onDone(v.roundToInt()) },

@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
@@ -199,11 +201,11 @@ fun rememberShareEta(engine: NavEngine): () -> Unit {
     val ctx = LocalContext.current
     val prefs = engine.prefs
     fun message(): String {
-        val d = engine.dest?.name ?: "my destination"
+        val d = engine.dest?.name ?: L.t("my destination")
         val e = engine.eta
         val p = engine.fix?.pos
-        return "I'm on my way to $d" + (if (e != null) ", arriving about ${e.arrive}" else "") +
-            (if (p != null) ". Where I am now: https://maps.google.com/?q=${p.lat},${p.lon}" else ".")
+        return L.t("I'm on my way to {0}", d) + (if (e != null) L.t(", arriving about {0}", e.arrive) else "") +
+            (if (p != null) L.t(". Where I am now: https://maps.google.com/?q={0},{1}", p.lat, p.lon) else ".")
     }
     fun shareNow() {
         val num = prefs.s(PreferenceKeys.ETA_NUMBER, "")
@@ -215,13 +217,13 @@ fun rememberShareEta(engine: NavEngine): () -> Unit {
                 .putExtra("sms_body", msg)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         } catch (e: Exception) {
-            engine.toast("No messaging app available", 3000)
+            engine.toast(L.t("No messaging app available"), 3000)
         }
     }
-    val pickContact = rememberEtaContactPicker(prefs) { engine.toast("Contact saved. Tap share again to send.", 3500) }
+    val pickContact = rememberEtaContactPicker(prefs) { engine.toast(L.t("Contact saved. Tap share again to send."), 3500) }
     return {
         if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isBlank()) {
-            engine.toast("Choose who to send your ETA to", 3000)
+            engine.toast(L.t("Choose who to send your ETA to"), 3000)
             pickContact()
         } else shareNow()
     }

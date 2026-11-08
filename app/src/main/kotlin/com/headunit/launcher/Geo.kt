@@ -108,23 +108,19 @@ object Geo {
     fun spoken(m: Double, imperial: Boolean): String {
         if (imperial) {
             val ft = m * 3.28084
-            return if (ft < 528) "${((ft / 50).roundToInt()) * 50} feet" else String.format("%.1f miles", m / 1609.344)
+            return if (ft < 528) L.t("{0} feet", ((ft / 50).roundToInt()) * 50) else L.t("{0} miles", String.format(L.locale, "%.1f", m / 1609.344))
         }
-        return if (m < 1000) "${((m / 50).roundToInt()) * 50} metres" else String.format("%.1f kilometres", m / 1000.0)
+        return if (m < 1000) L.t("{0} metres", ((m / 50).roundToInt()) * 50) else L.t("{0} kilometres", String.format(L.locale, "%.1f", m / 1000.0))
     }
 
-    fun ordinal(n: Int): String = when {
-        n % 100 in 11..13 -> "${n}th"
-        n % 10 == 1 -> "${n}st"; n % 10 == 2 -> "${n}nd"; n % 10 == 3 -> "${n}rd"
-        else -> "${n}th"
-    }
+    fun ordinal(n: Int): String = L.ordShort(n)
 
     /** Spoken/short wording for a manoeuvre, e.g. "turn left" or "take the 2nd exit at the roundabout". */
     fun maneuverText(m: String, exit: Int = 0): String {
         val u = m.uppercase()
         if (u.startsWith("ROUNDABOUT")) {
-            if (u == "ROUNDABOUT_BACK") return if (exit > 0) "take the ${ordinal(exit)} exit at the roundabout" else "go all the way round the roundabout"
-            return if (exit > 0) "at the roundabout, take the ${ordinal(exit)} exit" else "take the roundabout"
+            if (u == "ROUNDABOUT_BACK") return if (exit > 0) L.t("take the {0} exit at the roundabout", L.ordSpoken(exit)) else L.t("go all the way round the roundabout")
+            return if (exit > 0) L.t("at the roundabout, take the {0} exit", L.ordSpoken(exit)) else L.t("take the roundabout")
         }
         val t = mapOf(
             "ARRIVE" to "arrive", "ARRIVE_LEFT" to "arrive, destination on the left", "ARRIVE_RIGHT" to "arrive, destination on the right",
@@ -136,7 +132,7 @@ object Geo {
             "MOTORWAY_EXIT_RIGHT" to "take the exit on the right", "ENTRANCE_RAMP" to "take the slip road", "SWITCH_PARALLEL_ROAD" to "switch to the parallel road",
             "SWITCH_MAIN_ROAD" to "switch to the main road", "TAKE_FERRY" to "take the ferry",
         )
-        return t[u] ?: u.lowercase().replace('_', ' ')
+        return t[u]?.let { L.t(it) } ?: u.lowercase().replace('_', ' ')
     }
 
     private fun laneFits(dir: String, maneuver: String): Boolean {
@@ -150,26 +146,28 @@ object Geo {
     }
 
     /** "Stay in the left two lanes" and similar, from the lanes that lead where the route goes. Null when every lane works. */
-    fun laneAdvice(sec: LaneSec, maneuver: String): String? {
+    fun laneAdvice(sec: LaneSec, maneuver: String, move: Boolean = false): String? {
         val n = sec.lanes.size
         if (n < 2) return null
         val anyFollow = sec.lanes.any { it.follow != null }
         val act = sec.lanes.indices.filter { i -> if (anyFollow) sec.lanes[i].follow != null else sec.lanes[i].dirs.any { laneFits(it, maneuver) } }
         if (act.isEmpty() || act.size == n) return null
         val cnt = act.size
-        val lanes = if (cnt == 1) "lane" else "${if (cnt == 2) "two" else if (cnt == 3) "three" else cnt.toString()} lanes"
-        return when {
-            act.first() == 0 -> "Use the left $lanes"
-            act.last() == n - 1 -> "Use the right $lanes"
-            cnt == 1 -> "Use lane ${act[0] + 1} from the left"
-            else -> "Use the middle $lanes"
+        // "Use the left two lanes", or for the early call on fast roads "move into the left two lanes"
+        val v = if (move) "move into" else "Use"
+        val side = when {
+            act.first() == 0 -> "left"
+            act.last() == n - 1 -> "right"
+            cnt == 1 -> return L.t("$v lane {0} from the left", act[0] + 1)
+            else -> "middle"
         }
+        return if (cnt == 1) L.t("$v the $side lane") else L.t("$v the $side {0} lanes", L.count(cnt))
     }
 
     /** Short caption shown on the turn card for a roundabout or motorway exit, or blank. */
     fun stepTag(s: Step): String = when {
-        s.maneuver.uppercase().startsWith("ROUNDABOUT") && s.roundExit > 0 -> "${ordinal(s.roundExit)} exit"
-        s.exitNo.isNotBlank() -> "Exit ${s.exitNo}"
+        s.maneuver.uppercase().startsWith("ROUNDABOUT") && s.roundExit > 0 -> L.t("{0} exit", ordinal(s.roundExit))
+        s.exitNo.isNotBlank() -> L.t("Exit {0}", s.exitNo)
         else -> ""
     }
 
@@ -364,7 +362,7 @@ object TomTomRest {
         val base = "$API/routing/calculateRoute/$loc/json?key=$k&apiVersion=2&maxAlternatives=$n"
         val iso = if (departAtMs > 0) java.net.URLEncoder.encode(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.US).format(java.util.Date(departAtMs)), "UTF-8") else ""
         val dep = if (iso.isNotEmpty()) "&departAt=$iso" else ""
-        val lang = "&language=" + URLEncoder.encode(java.util.Locale.getDefault().toLanguageTag(), "UTF-8")
+        val lang = "&language=" + URLEncoder.encode(L.locale.toLanguageTag(), "UTF-8")
         // The classic routing API is tried first: it returns turn-by-turn instructions, roundabout exits and lane data.
         // The newer Orbis routing API does not return any guidance, so it is only a fallback for the line itself.
         val prefs = avoid.joinToString("") { "&avoid=$it" } + (if (routeType != "fastest") "&routeType=$routeType" else "")

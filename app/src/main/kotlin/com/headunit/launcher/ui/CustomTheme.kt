@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -88,11 +90,11 @@ internal fun CustomThemeGroup(prefs: Prefs, engine: com.headunit.launcher.NavEng
     val spec = if (night) nightSpec else day
     fun edit(sp: CustomLook.Spec) { if (night) nightSpec = sp else day = sp }
     var open by remember { mutableStateOf<String?>(null) }
-    SGroup("Custom colours", footer = "Changes show on the preview at the top as you make them, and are only kept when you press Save. A part you haven't changed keeps the colour of the theme it starts from. At night the light darkens the colours you pick, as it does every theme.") {
+    SGroup(L.t("Custom colours"), footer = L.t("Changes show on the preview at the top as you make them, and are only kept when you press Save. A part you haven't changed keeps the colour of the theme it starts from. At night the light darkens the colours you pick, as it does every theme.")) {
         // what it starts from
-        SItem("Starts from", "The theme your colours go on top of")
+        SItem(L.t("Starts from"), L.t("The theme your colours go on top of"))
         Row(Modifier.padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            for ((id, label) in listOf("mapbox" to "Mapbox", "horizon" to "Horizon", "twilight" to "Twilight", "mono" to "Mono", "ember" to "Ember", "arctic" to "Arctic")) {
+            for ((id, label) in listOf("mapbox" to L.t("Mapbox"), "horizon" to L.t("Horizon"), "twilight" to L.t("Twilight"), "mono" to L.t("Mono"), "ember" to L.t("Ember"), "arctic" to L.t("Arctic"))) {
                 val sel = base == id
                 Box(
                     Modifier.clip(RoundedCornerShape(50)).background(if (sel) c.accent.copy(alpha = 0.22f) else c.tile)
@@ -103,7 +105,7 @@ internal fun CustomThemeGroup(prefs: Prefs, engine: com.headunit.launcher.NavEng
         }
         // Day / Night: which colours you're editing, and how the preview shows the map
         Row(Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            for ((n, label) in listOf(false to "Day colours", true to "Night colours")) {
+            for ((n, label) in listOf(false to L.t("Day colours"), true to L.t("Night colours"))) {
                 val sel = night == n
                 Box(
                     Modifier.clip(RoundedCornerShape(50)).background(if (sel) c.accent else c.tile)
@@ -117,37 +119,37 @@ internal fun CustomThemeGroup(prefs: Prefs, engine: com.headunit.launcher.NavEng
             }
         }
         // (the route line's colour is part of the map's layers, so each change loads the map again: only when a slider is let go)
-        ColourRow("Route line", "The route you're following (traffic still shows amber and red)", spec.route, open == "route", { open = if (open == "route") null else "route" }, live = false) { v ->
+        ColourRow(L.t("Route line"), L.t("The route you're following (traffic still shows amber and red)"), spec.route, open == "route", { open = if (open == "route") null else "route" }, live = false) { v ->
             edit(spec.copy(route = v))
         }
         // route line width (draft too: shown when the slider is let go, as it loads the map again)
         var wv by remember(width) { mutableStateOf(width.toFloat()) }
         Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-            SItem("Route line width", "Day and night") {
+            SItem(L.t("Route line width"), L.t("Day and night")) {
                 Text("${Math.round(wv)}%", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             }
             Slider(wv, { wv = (it / 10f).let { x -> Math.round(x) * 10f } }, onValueChangeFinished = { width = Math.round(wv).coerceIn(60, 180) },
                 valueRange = 60f..180f, steps = 11,
                 colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = c.accent, inactiveTrackColor = c.tile))
         }
-        if (night) SPercent("Night brightness", "How bright the whole night map is (for every theme; also in Light & 3D; kept straight away)", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
+        if (night) SPercent(L.t("Night brightness"), L.t("How bright the whole night map is (for every theme; also in Light & 3D; kept straight away)"), prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
         // save: keeps the changes, and with a name also adds them to Your themes
         var name by remember { mutableStateOf("") }
-        SFieldItem("Name (optional)", name, "Give it a name to also keep it under Your themes", placeholder = "My theme") { name = it }
-        if (changed) Text("Not saved yet: leave without saving and the map goes back as it was", color = c.accent, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
+        SFieldItem(L.t("Name (optional)"), name, L.t("Give it a name to also keep it under Your themes"), placeholder = L.t("My theme")) { name = it }
+        if (changed) Text(L.t("Not saved yet: leave without saving and the map goes back as it was"), color = c.accent, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
         Row(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SButton("Save", primary = true) {
+            SButton(L.t("Save"), primary = true) {
                 prefs.put(PreferenceKeys.CUSTOM_BASE, base)
                 prefs.put(PreferenceKeys.CUSTOM_DAY, js(day))
                 prefs.put(PreferenceKeys.CUSTOM_NIGHT, js(nightSpec))
                 prefs.put(PreferenceKeys.CUSTOM_ROUTE_W, width)
                 if (name.isNotBlank()) { CustomLook.saveCurrent(prefs, name); name = "" }
             }
-            if (changed) SButton("Undo changes") {
+            if (changed) SButton(L.t("Undo changes")) {
                 base = savedBase; day = CustomLook.parse(savedDay); nightSpec = CustomLook.parse(savedNight); width = savedW; open = null
             }
-            SButton(if (night) "Reset night" else "Reset day") { edit(CustomLook.Spec()); open = null }
-            SButton("Reset all") { day = CustomLook.Spec(); nightSpec = CustomLook.Spec(); width = 100; open = null }
+            SButton(if (night) L.t("Reset night") else L.t("Reset day")) { edit(CustomLook.Spec()); open = null }
+            SButton(L.t("Reset all")) { day = CustomLook.Spec(); nightSpec = CustomLook.Spec(); width = 100; open = null }
         }
     }
 }
@@ -157,15 +159,15 @@ internal fun CustomThemeGroup(prefs: Prefs, engine: com.headunit.launcher.NavEng
 internal fun SavedThemesGroup(prefs: Prefs) {
     val list = CustomLook.saved(prefs)
     if (list.isEmpty()) return
-    SGroup("Your themes") {
+    SGroup(L.t("Your themes")) {
         for (t in list) {
             val dayCols = CustomLook.parse(t.day).colours
-            SItem(t.name, "Starts from " + t.base.replaceFirstChar { it.uppercase() }) {
+            SItem(t.name, L.t("Starts from ") + t.base.replaceFirstChar { it.uppercase() }) {
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     for (k in listOf("land", "water", "green", "buildings")) dayCols[k]?.let { Swatch(it, 18) }
                     Spacer(Modifier.width(6.dp))
-                    SButton("Use", primary = true) { CustomLook.use(prefs, t) }
-                    SButton("Delete") { CustomLook.delete(prefs, t.name) }
+                    SButton(L.t("Use"), primary = true) { CustomLook.use(prefs, t) }
+                    SButton(L.t("Delete")) { CustomLook.delete(prefs, t.name) }
                 }
             }
         }
@@ -194,7 +196,7 @@ private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolea
         Row(Modifier.fillMaxWidth().pressClick { onToggle() }.padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(name, color = c.text, fontSize = 15.sp)
-                Text(if (hex == null) (sub?.let { "$it · theme's own" } ?: "Theme's own") else (sub ?: hex), color = c.sub, fontSize = 11.5.sp)
+                Text(if (hex == null) (sub?.let { L.t("{0} · theme's own", it) } ?: L.t("Theme's own")) else (sub ?: hex), color = c.sub, fontSize = 11.5.sp)
             }
             Swatch(hex)
         }
@@ -223,11 +225,11 @@ private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolea
                 androidx.compose.runtime.LaunchedEffect(hex) { if (!dragging) { hue = hsl[0]; light = hsl[2] } }
                 val satv = if (hsl[1] < 0.05f) 0.45f else hsl[1]
                 fun make(h: Float, l: Float) = CustomLook.hex(ColorUtils.HSLToColor(floatArrayOf(h, satv, l)))
-                Text("Shade", color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                Text(L.t("Shade"), color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(Brush.horizontalGradient((0..6).map { Color.hsl(it * 60f % 360f, satv, 0.5f) })))
                 Slider(hue, { hue = it; dragging = true; push(make(hue, light)) }, onValueChangeFinished = { dragging = false; onPick(make(hue, light)) }, valueRange = 0f..359f,
                     colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = Color.Transparent, inactiveTrackColor = Color.Transparent))
-                Text("Lightness", color = c.sub, fontSize = 12.sp)
+                Text(L.t("Lightness"), color = c.sub, fontSize = 12.sp)
                 Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(Brush.horizontalGradient(listOf(Color.Black, Color.hsl(hue, satv, 0.5f), Color.White))))
                 Slider(light, { light = it; dragging = true; push(make(hue, light)) }, onValueChangeFinished = { dragging = false; onPick(make(hue, light)) }, valueRange = 0.02f..0.98f,
                     colors = SliderDefaults.colors(thumbColor = c.accent, activeTrackColor = Color.Transparent, inactiveTrackColor = Color.Transparent))
@@ -235,7 +237,7 @@ private fun ColourRow(name: String, sub: String?, hex: String?, expanded: Boolea
                     Swatch(make(hue, light), 24)
                     Spacer(Modifier.width(8.dp))
                     Text(make(hue, light), color = c.sub, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                    if (hex != null) SButton("Theme's own") { onPick(null) }
+                    if (hex != null) SButton(L.t("Theme's own")) { onPick(null) }
                 }
             }
         }

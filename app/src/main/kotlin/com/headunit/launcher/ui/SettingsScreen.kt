@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import com.headunit.launcher.BuildConfig
 import com.headunit.launcher.FuelFinder
 import com.headunit.launcher.Geo
+import com.headunit.launcher.L
 import com.headunit.launcher.NavEngine
 import com.headunit.launcher.OfflinePlaces
 import com.headunit.launcher.Place
@@ -91,23 +92,24 @@ import kotlinx.coroutines.withContext
 private class Section(val title: String, val sub: String, val icon: ImageVector, val tint: Color, val heading: String? = null)
 
 // (the order here is the order in the list; SettingsIndex refers to them by number)
-private val sections = listOf(
-    Section("Map style", "Colours, day and night, map detail", Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
-    Section("Light & 3D", "Light, weather, 3D, tilt, sky", Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
-    Section("On the map", "Traffic, lights, cameras, signs, weather", Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
-    Section("Your arrow & route line", "Arrow or car, colours, route look", Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
-    Section("Routes", "Vehicle, avoid, choosing, starting", Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
-    Section("Turn card & lanes", "Signs, lanes, trip card, arriving", Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
-    Section("Alerts", "Speed, cameras, hazards, reports", Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
-    Section("Sound & voice", "Spoken directions and volume", Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
-    Section("Places & trips", "Home, work, favourites, sharing, trip log", Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
-    Section("Fuel & charging", "Your fuel, prices, electric car", Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
-    Section("Offline maps", "Maps, routes and town names with no signal", Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
-    Section("Screen & sizes", "Brightness, sizes, glass, units, while driving", Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
-    Section("Android Auto", "Car-screen sizes and setting it up", Icons.Rounded.DirectionsCar, Color(0xFF9CA4BF)),
-    Section("Performance", "Smoothness on slower head units, demo", Icons.Rounded.Speed, Color(0xFF9CA4BF)),
-    Section("Keys & accounts", "Map keys and search", Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
-    Section("About & backup", "Feedback, updates, permissions, backup", Icons.Rounded.Info, Color(0xFF9CA4BF)),
+// (made each time it's read, so the names follow a change of language straight away)
+private val sections: List<Section> get() = listOf(
+    Section(L.t("Map style"), L.t("Colours, day and night, map detail"), Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
+    Section(L.t("Light & 3D"), L.t("Light, weather, 3D, tilt, sky"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
+    Section(L.t("On the map"), L.t("Traffic, lights, cameras, signs, weather"), Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
+    Section(L.t("Your arrow & route line"), L.t("Arrow or car, colours, route look"), Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
+    Section(L.t("Routes"), L.t("Vehicle, avoid, choosing, starting"), Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
+    Section(L.t("Turn card & lanes"), L.t("Signs, lanes, trip card, arriving"), Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
+    Section(L.t("Alerts"), L.t("Speed, cameras, hazards, reports"), Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
+    Section(L.t("Sound & voice"), L.t("Spoken directions and volume"), Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
+    Section(L.t("Places & trips"), L.t("Home, work, favourites, sharing, trip log"), Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
+    Section(L.t("Fuel & charging"), L.t("Your fuel, prices, electric car"), Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
+    Section(L.t("Offline maps"), L.t("Maps, routes and town names with no signal"), Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
+    Section(L.t("Screen & sizes"), L.t("Brightness, sizes, glass, units, while driving"), Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
+    Section(L.t("Android Auto"), L.t("Car-screen sizes and setting it up"), Icons.Rounded.DirectionsCar, Color(0xFF9CA4BF)),
+    Section(L.t("Performance"), L.t("Smoothness on slower head units, demo"), Icons.Rounded.Speed, Color(0xFF9CA4BF)),
+    Section(L.t("Keys & accounts"), L.t("Map keys and search"), Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
+    Section(L.t("About & backup"), L.t("Feedback, updates, permissions, backup"), Icons.Rounded.Info, Color(0xFF9CA4BF)),
 )
 
 /** Every setting in one screen: sections on the left, the chosen section on the right, in the map screen's soft style. */
@@ -134,9 +136,10 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
     val words = query.trim().lowercase().split(Regex("\\s+")).filter { it.isNotBlank() }
     val matches = remember(query) {
         if (words.isEmpty()) emptyList() else settingsIndex.filter { r ->
-            val hay = (r.title + " " + r.sub + " " + r.group + " " + sections[r.section].title).lowercase()
+            // (English and the chosen language both match, so "Sprache" and "language" find the same setting)
+            val hay = (r.title + " " + L.t(r.title) + " " + r.sub + " " + r.group + " " + L.t(r.group) + " " + sections[r.section].title).lowercase()
             words.all { hay.contains(it) }
-        }.sortedBy { if (it.title.lowercase().startsWith(words[0])) 0 else if (it.title.lowercase().contains(words[0])) 1 else 2 }.take(40)
+        }.sortedBy { val t = it.title.lowercase() + " " + L.t(it.title).lowercase(); if (t.startsWith(words[0]) || L.t(it.title).lowercase().startsWith(words[0])) 0 else if (t.contains(words[0])) 1 else 2 }.take(40)
     }
     Row(Modifier.fillMaxSize().background(c.bg).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         // the list of sections
@@ -146,9 +149,9 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
         ) {
             Row(Modifier.fillMaxWidth().padding(start = 4.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(46.dp).clip(CircleShape).background(c.tile).pressClick(onClose), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.ArrowBack, "Back to the map", tint = c.text, modifier = Modifier.size(24.dp))
+                    Icon(Icons.Rounded.ArrowBack, L.t("Back to the map"), tint = c.text, modifier = Modifier.size(24.dp))
                 }
-                Text("Settings", color = c.text, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
+                Text(L.t("Settings"), color = c.text, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 14.dp))
             }
             // search every setting by name
             Row(
@@ -157,7 +160,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
             ) {
                 Icon(Icons.Rounded.Search, null, tint = c.sub, modifier = Modifier.size(20.dp))
                 Box(Modifier.weight(1f).padding(start = 10.dp), contentAlignment = Alignment.CenterStart) {
-                    if (query.isEmpty()) Text("Search settings", color = c.sub, fontSize = 15.sp)
+                    if (query.isEmpty()) Text(L.t("Search settings"), color = c.sub, fontSize = 15.sp)
                     androidx.compose.foundation.text.BasicTextField(
                         value = query, onValueChange = { query = it; highlight = null }, singleLine = true,
                         textStyle = androidx.compose.ui.text.TextStyle(color = c.text, fontSize = 15.sp),
@@ -167,23 +170,23 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                if (query.isNotEmpty()) Icon(Icons.Rounded.Close, "Clear", tint = c.sub, modifier = Modifier.size(20.dp).clickable { query = ""; focus.clearFocus() })
+                if (query.isNotEmpty()) Icon(Icons.Rounded.Close, L.t("Clear"), tint = c.sub, modifier = Modifier.size(20.dp).clickable { query = ""; focus.clearFocus() })
             }
             if (words.isNotEmpty()) {
-                if (matches.isEmpty()) Text("Nothing matches \"${query.trim()}\"", color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(10.dp))
+                if (matches.isEmpty()) Text(L.t("Nothing matches \"{0}\"", query.trim()), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(10.dp))
                 matches.forEach { r ->
                     Column(
                         Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).clickable {
                             cat = r.section; highlight = r.title; query = ""; focus.clearFocus(); showList = false
                         }.padding(horizontal = 12.dp, vertical = 9.dp),
                     ) {
-                        Text(r.title, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(sections[r.section].title + (if (r.group.isNotBlank()) " · " + r.group else ""), color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(L.t(r.title), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(sections[r.section].title + (if (r.group.isNotBlank()) " · " + L.t(r.group) else ""), color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             } else sections.forEachIndexed { i, s ->
                 // the small group headings in the list: Map, Driving, You, Device
-                if (s.heading != null) Text(s.heading, color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp,
+                if (s.heading != null) Text(L.t(s.heading), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp,
                     modifier = Modifier.padding(start = 14.dp, top = if (i == 0) 2.dp else 12.dp, bottom = 2.dp))
                 val on = i == cat
                 val rowBg by androidx.compose.animation.animateColorAsState(if (on) c.accent.copy(alpha = 0.16f) else Color.Transparent, androidx.compose.animation.core.tween(200), label = "secBg")
@@ -221,9 +224,9 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                 if (withPreview && narrowS) SettingsMapPreview(engine, 170)
                 if (narrowS) Row(Modifier.padding(bottom = 6.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.ArrowBack, "All settings", tint = c.text, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Rounded.ArrowBack, L.t("All settings"), tint = c.text, modifier = Modifier.size(22.dp))
                     }
-                    Text("Settings", color = c.sub, fontSize = 15.sp, modifier = Modifier.padding(start = 10.dp))
+                    Text(L.t("Settings"), color = c.sub, fontSize = 15.sp, modifier = Modifier.padding(start = 10.dp))
                 }
                 Text(sections[cat].title, color = c.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp, top = 6.dp))
                 Text(sections[cat].sub, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp, bottom = 16.dp))
@@ -258,15 +261,15 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
 
 @Composable
 private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Day and night") {
-        SChoice("Day and night", listOf("auto" to "Auto", "lights" to "Headlights", "sun" to "Sun times", "times" to "My times", "day" to "Day", "night" to "Night"), prefs.s(PreferenceKeys.THEME, "auto"),
-            "Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set") { prefs.put(PreferenceKeys.THEME, it) }
+    SGroup(L.t("Day and night")) {
+        SChoice(L.t("Day and night"), listOf("auto" to L.t("Auto"), "lights" to L.t("Headlights"), "sun" to L.t("Sun times"), "times" to L.t("My times"), "day" to L.t("Day"), "night" to L.t("Night")), prefs.s(PreferenceKeys.THEME, "auto"),
+            L.t("Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set")) { prefs.put(PreferenceKeys.THEME, it) }
         if (prefs.s(PreferenceKeys.THEME, "auto") == "times") {
-            SFieldItem("Night starts at", prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), "24-hour clock, for example 19:30", placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
-            SFieldItem("Day starts at", prefs.s(PreferenceKeys.DAY_FROM, "07:00"), "24-hour clock, for example 06:45", placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
+            SFieldItem(L.t("Night starts at"), prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), L.t("24-hour clock, for example 19:30"), placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
+            SFieldItem(L.t("Day starts at"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"), L.t("24-hour clock, for example 06:45"), placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
     }
-    if (prefs.mapSource() == "mapbox") SGroup("Colours") {
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Colours")) {
         MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { picked ->
             val now = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
             // Custom starts as exactly the theme you had (nothing changes until you change something)
@@ -277,7 +280,7 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             prefs.put(PreferenceKeys.MAP_COLOURS, picked)
         }
         if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "car") {
-            SItem("Car's lighting colour", "The map, mostly at night, takes a hint of it")
+            SItem(L.t("Car's lighting colour"), L.t("The map, mostly at night, takes a hint of it"))
             val cur = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
             Row(Modifier.padding(start = 4.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 for (hex in listOf("#E64B4B", "#FF9A3C", "#F2D04A", "#2FC9A0", "#3C8CFF", "#8A5AD0", "#E64BD8", "#FFFFFF")) {
@@ -287,54 +290,54 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
                         .pressClick { prefs.put(PreferenceKeys.CAR_TINT, hex) })
                 }
             }
-            SPercent("How strong", "How much of the colour the map takes", prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
+            SPercent(L.t("How strong"), L.t("How much of the colour the map takes"), prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
         }
     }
     if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
     if (prefs.mapSource() == "mapbox") SavedThemesGroup(prefs)
-    SGroup("The map") {
-        SChoice("Map source", listOf("mapbox" to "Mapbox", "tomtom" to "TomTom", "osm" to "OpenStreetMap"), prefs.mapSource(),
-            "Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them") { prefs.put(PreferenceKeys.MAP_STYLE, it) }
+    SGroup(L.t("The map")) {
+        SChoice(L.t("Map source"), listOf("mapbox" to L.t("Mapbox"), "tomtom" to L.t("TomTom"), "osm" to L.t("OpenStreetMap")), prefs.mapSource(),
+            L.t("Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them")) { prefs.put(PreferenceKeys.MAP_STYLE, it) }
         if (prefs.mapSource() == "mapbox") {
-            SChoice("Map detail", listOf("full" to "Full 3D", "lite" to "Lite", "lightest" to "Lightest"), prefs.mapDetail(),
-                "Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units") { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
+            SChoice(L.t("Map detail"), listOf("full" to L.t("Full 3D"), "lite" to L.t("Lite"), "lightest" to L.t("Lightest")), prefs.mapDetail(),
+                L.t("Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units")) { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
         }
         DefaultZoomRow(prefs)
-        SToggle(prefs, "Footpaths and trails", "paths", true, "Turn off for a cleaner driving map")
+        SToggle(prefs, L.t("Footpaths and trails"), "paths", true, L.t("Turn off for a cleaner driving map"))
     }
 }
 
 @Composable
 private fun LightSection(prefs: Prefs) {
-    if (prefs.mapSource() == "mapbox") SGroup("Light and weather") {
-        SPercent("Night brightness", "How bright the whole night map is. 100% is Mapbox's own night light", prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
-        SToggle(prefs, "Moonlight at night", PreferenceKeys.MOONLIT, false, "Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay")
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Light and weather")) {
+        SPercent(L.t("Night brightness"), L.t("How bright the whole night map is. 100% is Mapbox's own night light"), prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
+        SToggle(prefs, L.t("Moonlight at night"), PreferenceKeys.MOONLIT, false, L.t("Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay"))
         if (prefs.b(PreferenceKeys.MOONLIT, false))
-            SPercent("Moon strength", "How strongly the moon lights walls and casts shadows", prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
-        SToggle(prefs, "Shadows", PreferenceKeys.SHADOWS, true, "Buildings and trees cast shadows. Off is also lighter work for a slow head unit")
-        SToggle(prefs, "Sun in its real place", PreferenceKeys.SUN_REAL, false, "By day, the light and shadows come from where the sun really is right now")
-        SToggle(prefs, "Overcast light", PreferenceKeys.OVERCAST, false, "Soft daylight with no hard shadows, calmer in glare")
-        SToggle(prefs, "Weather light", PreferenceKeys.WEATHER_LIGHT, false, "A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow")
+            SPercent(L.t("Moon strength"), L.t("How strongly the moon lights walls and casts shadows"), prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
+        SToggle(prefs, L.t("Shadows"), PreferenceKeys.SHADOWS, true, L.t("Buildings and trees cast shadows. Off is also lighter work for a slow head unit"))
+        SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("By day, the light and shadows come from where the sun really is right now"))
+        SToggle(prefs, L.t("Overcast light"), PreferenceKeys.OVERCAST, false, L.t("Soft daylight with no hard shadows, calmer in glare"))
+        SToggle(prefs, L.t("Weather light"), PreferenceKeys.WEATHER_LIGHT, false, L.t("A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow"))
     }
-    SGroup("3D view", footer = "30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.") {
-        STilt("Tilt on a wide screen", "Landscape head units. Higher shows further ahead (more for a slow unit to draw)", prefs, PreferenceKeys.TILT_WIDE)
-        STilt("Tilt on a tall screen", "Portrait screens and phones", prefs, PreferenceKeys.TILT_TALL)
-        STilt("Tilt on Android Auto", "The car screen", prefs, PreferenceKeys.TILT_CAR)
+    SGroup(L.t("3D view"), footer = L.t("30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {
+        STilt(L.t("Tilt on a wide screen"), L.t("Landscape head units. Higher shows further ahead (more for a slow unit to draw)"), prefs, PreferenceKeys.TILT_WIDE)
+        STilt(L.t("Tilt on a tall screen"), L.t("Portrait screens and phones"), prefs, PreferenceKeys.TILT_TALL)
+        STilt(L.t("Tilt on Android Auto"), L.t("The car screen"), prefs, PreferenceKeys.TILT_CAR)
     }
     SGroup("3D") {
-        SToggle(prefs, "Hill shading", PreferenceKeys.HILLSHADE, false, "Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills")
-        SToggle(prefs, "3D buildings", "buildings3d", true)
-        SToggle(prefs, "Detailed building fronts", "facades", true, "Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)")
-        SToggle(prefs, "3D landmarks", "landmarks3d", true, "Detailed models of well-known buildings, bridges and stadiums")
-        SToggle(prefs, "3D hills and valleys", "terrain", false, "Real terrain. Lovely in hilly areas, but harder work for a slow head unit")
-        SToggle(prefs, "Trees in parks", "trees", true, "Mapbox's 3D trees in parks and along streets")
-        SToggle(prefs, "Keep the road ahead clear", "clearview", true, "Mapbox's 3D trees and landmarks are left out round your arrow and, on a route, along the middle of the road just ahead, so they never hide it")
-        SToggle(prefs, "Tap to highlight", "tapselect", true, "Tap a building to light it up; tap a shop or place, then hold on it to go there")
+        SToggle(prefs, L.t("Hill shading"), PreferenceKeys.HILLSHADE, false, L.t("Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills"))
+        SToggle(prefs, L.t("3D buildings"), "buildings3d", true)
+        SToggle(prefs, L.t("Detailed building fronts"), "facades", true, L.t("Windows, doors and shopfronts on buildings, where Mapbox has them (mostly city centres)"))
+        SToggle(prefs, L.t("3D landmarks"), "landmarks3d", true, L.t("Detailed models of well-known buildings, bridges and stadiums"))
+        SToggle(prefs, L.t("3D hills and valleys"), "terrain", false, L.t("Real terrain. Lovely in hilly areas, but harder work for a slow head unit"))
+        SToggle(prefs, L.t("Trees in parks"), "trees", true, L.t("Mapbox's 3D trees in parks and along streets"))
+        SToggle(prefs, L.t("Keep the road ahead clear"), "clearview", true, L.t("Mapbox's 3D trees and landmarks are left out round your arrow and, on a route, along the middle of the road just ahead, so they never hide it"))
+        SToggle(prefs, L.t("Tap to highlight"), "tapselect", true, L.t("Tap a building to light it up; tap a shop or place, then hold on it to go there"))
     }
-    SGroup("Sky and satellite") {
-        SToggle(prefs, "Satellite", "satellite", false)
-        SToggle(prefs, "Fog and sky", "skyweather", true, "Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog")
-        SToggle(prefs, "Night sky in 3D", "nightsky", true, "Twinkling stars above the horizon after dark")
+    SGroup(L.t("Sky and satellite")) {
+        SToggle(prefs, L.t("Satellite"), "satellite", false)
+        SToggle(prefs, L.t("Fog and sky"), "skyweather", true, L.t("Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog"))
+        SToggle(prefs, L.t("Night sky in 3D"), "nightsky", true, L.t("Twinkling stars above the horizon after dark"))
     }
 }
 
@@ -342,31 +345,31 @@ private fun LightSection(prefs: Prefs) {
 
 @Composable
 private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Holding on the map") {
-        SToggle(prefs, "What's here", PreferenceKeys.WHATS_HERE, true, "Holding on the map shows the road, its speed limit and the area first, with Go and Add as a stop. Off goes straight there, as before")
+    SGroup(L.t("Holding on the map")) {
+        SToggle(prefs, L.t("What's here"), PreferenceKeys.WHATS_HERE, true, L.t("Holding on the map shows the road, its speed limit and the area first, with Go and Add as a stop. Off goes straight there, as before"))
     }
-    SGroup("Traffic") {
-        SToggle(prefs, "Live traffic", "traffic", true)
-        SToggle(prefs, "Traffic overview when stopped", PreferenceKeys.STOPPED_OVERVIEW, true, "After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off")
-        SToggle(prefs, "Only show traffic on your route while navigating", "routetrafficonly", false, "Off shows traffic on the roads around you too, as Google Maps does")
-        SToggle(prefs, "Light traffic in green", PreferenceKeys.TRAFFIC_GREEN, false, "Free-flowing main roads shown green, as well as slow traffic in amber and red")
+    SGroup(L.t("Traffic")) {
+        SToggle(prefs, L.t("Live traffic"), "traffic", true)
+        SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
+        SToggle(prefs, L.t("Only show traffic on your route while navigating"), "routetrafficonly", false, L.t("Off shows traffic on the roads around you too, as Google Maps does"))
+        SToggle(prefs, L.t("Light traffic in green"), PreferenceKeys.TRAFFIC_GREEN, false, L.t("Free-flowing main roads shown green, as well as slow traffic in amber and red"))
     }
-    SGroup("On your route") {
-        SToggle(prefs, "Traffic lights", "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) "Only the ones on your route. Now: " + engine.map.signalInfo() else null)
-        SToggle(prefs, "Speed cameras and roadworks", "hazardicons", true, "Their icons on the map. The warnings are in Settings > Alerts")
-        if (prefs.b("hazardicons", true)) SPercent("Speed camera size", "The red camera badge on the map", prefs, PreferenceKeys.CAM_SIZE, 50, 350)
-        SToggle(prefs, "Zebra crossings", "zebras", true, "Crossings on your route painted on the road, with Belisha beacons at zebras (close in)")
-        SToggle(prefs, "Stop signs", PreferenceKeys.STOP_SIGNS, true, "Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)")
-        SToggle(prefs, "Number-plate cameras", PreferenceKeys.ALPR_CAMS, true, "Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts")
+    SGroup(L.t("On your route")) {
+        SToggle(prefs, L.t("Traffic lights"), "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) L.t("Only the ones on your route. Now: ") + engine.map.signalInfo() else null)
+        SToggle(prefs, L.t("Speed cameras and roadworks"), "hazardicons", true, L.t("Their icons on the map. The warnings are in Settings > Alerts"))
+        if (prefs.b("hazardicons", true)) SPercent(L.t("Speed camera size"), L.t("The red camera badge on the map"), prefs, PreferenceKeys.CAM_SIZE, 50, 350)
+        SToggle(prefs, L.t("Zebra crossings"), "zebras", true, L.t("Crossings on your route painted on the road, with Belisha beacons at zebras (close in)"))
+        SToggle(prefs, L.t("Stop signs"), PreferenceKeys.STOP_SIGNS, true, L.t("Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)"))
+        SToggle(prefs, L.t("Number-plate cameras"), PreferenceKeys.ALPR_CAMS, true, L.t("Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts"))
     }
-    SGroup("3D street furniture") {
-        SToggle(prefs, "3D street lamps, traffic lights and cameras", "furniture3d", true, "Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks")
-        SToggle(prefs, "Street lamps", "lamps", true, if (prefs.b(PreferenceKeys.LAMPS, true)) "Now: " + engine.map.lampInfo() else null)
-        if (prefs.b(PreferenceKeys.LAMPS, true)) SSlider("Street lamp spacing", prefs.s(PreferenceKeys.LAMPGAP, "40").toFloatOrNull() ?: 40f, 15f..120f, " m", reset = 40f) { prefs.put(PreferenceKeys.LAMPGAP, it.toString()) }
+    SGroup(L.t("3D street furniture")) {
+        SToggle(prefs, L.t("3D street lamps, traffic lights and cameras"), "furniture3d", true, L.t("Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks"))
+        SToggle(prefs, L.t("Street lamps"), "lamps", true, if (prefs.b(PreferenceKeys.LAMPS, true)) L.t("Now: ") + engine.map.lampInfo() else null)
+        if (prefs.b(PreferenceKeys.LAMPS, true)) SSlider(L.t("Street lamp spacing"), prefs.s(PreferenceKeys.LAMPGAP, "40").toFloatOrNull() ?: 40f, 15f..120f, " m", reset = 40f) { prefs.put(PreferenceKeys.LAMPGAP, it.toString()) }
     }
-    SGroup("Weather") {
-        SToggle(prefs, "Weather effects on the map", "rainfx", false, "Real rain and snow falling on the map (and fog) to match the weather where you are")
-        SToggle(prefs, "Rain radar layer", "radar", false, "Live radar from RainViewer, under the route")
+    SGroup(L.t("Weather")) {
+        SToggle(prefs, L.t("Weather effects on the map"), "rainfx", false, L.t("Real rain and snow falling on the map (and fog) to match the weather where you are"))
+        SToggle(prefs, L.t("Rain radar layer"), "radar", false, L.t("Live radar from RainViewer, under the route"))
     }
 }
 
@@ -374,36 +377,36 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
 
 @Composable
 private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Your arrow", footer = "Real 3D model: drawn in the map itself, lit and shadowed like the buildings (Full 3D only; otherwise the picture of the same shape is used). The 3D arrow and car are pictures of 3D shapes. The flat arrow is the lightest to draw on a slow unit.") {
+    SGroup(L.t("Your arrow"), footer = L.t("Real 3D model: drawn in the map itself, lit and shadowed like the buildings (Full 3D only; otherwise the picture of the same shape is used). The 3D arrow and car are pictures of 3D shapes. The flat arrow is the lightest to draw on a slow unit.")) {
         val loc = prefs.s(PreferenceKeys.LOCATOR, "arrow")
         val ctx = LocalContext.current
         val hasPic = prefs.s(PreferenceKeys.LOCATOR_IMAGE, "").isNotBlank() && java.io.File(ctx.filesDir, "locator.png").exists()
         val pickPic = rememberLocatorImagePicker { ok ->
             if (ok) { prefs.put(PreferenceKeys.LOCATOR_IMAGE, System.currentTimeMillis().toString()); prefs.put(PreferenceKeys.LOCATOR, "custom") }
-            else android.widget.Toast.makeText(ctx, "Couldn't read that picture (try a PNG or JPG)", android.widget.Toast.LENGTH_SHORT).show()
+            else android.widget.Toast.makeText(ctx, L.t("Couldn't read that picture (try a PNG or JPG)"), android.widget.Toast.LENGTH_SHORT).show()
         }
-        fun choosePic() { if (!pickPic()) android.widget.Toast.makeText(ctx, "No app on this unit can pick a picture (try installing a file manager or gallery)", android.widget.Toast.LENGTH_LONG).show() }
-        SPictureChoice("Locator", null, listOf("arrow" to "3D arrow", "car" to "Car", "model" to "Real 3D model", "flat" to "Flat arrow", "custom" to "Your picture"), loc, { id, c -> locatorPicture(id, c) }) {
+        fun choosePic() { if (!pickPic()) android.widget.Toast.makeText(ctx, L.t("No app on this unit can pick a picture (try installing a file manager or gallery)"), android.widget.Toast.LENGTH_LONG).show() }
+        SPictureChoice(L.t("Locator"), null, listOf("arrow" to L.t("3D arrow"), "car" to L.t("Car"), "model" to L.t("Real 3D model"), "flat" to L.t("Flat arrow"), "custom" to L.t("Your picture")), loc, { id, c -> locatorPicture(id, c) }) {
             if (it == "custom" && !hasPic) choosePic() else prefs.put(PreferenceKeys.LOCATOR, it)
         }
         if (loc == "model") {
-            SChoice("Model shape", listOf("arrow" to "Arrow", "car" to "Car"), prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow")) { prefs.put(PreferenceKeys.MODEL_SHAPE, it) }
-            SToggle(prefs, "Glow", PreferenceKeys.MODEL_GLOW, true, "A soft blue glow round the model, and the model lit up brightly")
-            if (prefs.mapDetail() != "full") SNote("The real 3D model shows with Map detail: Full 3D. On Lite and Lightest the picture of the same shape is used.")
+            SChoice(L.t("Model shape"), listOf("arrow" to L.t("Arrow"), "car" to L.t("Car")), prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow")) { prefs.put(PreferenceKeys.MODEL_SHAPE, it) }
+            SToggle(prefs, L.t("Glow"), PreferenceKeys.MODEL_GLOW, true, L.t("A soft blue glow round the model, and the model lit up brightly"))
+            if (prefs.mapDetail() != "full") SNote(L.t("The real 3D model shows with Map detail: Full 3D. On Lite and Lightest the picture of the same shape is used."))
         }
         val shapeCar = loc == "car" || (loc == "model" && prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow") == "car")
         val shapeArrow = loc == "arrow" || (loc == "model" && !shapeCar)
         if (loc == "custom") {
-            SItem("Picture", "A PNG with a see-through background looks best. Point the top of it the way you drive") { SButton(if (hasPic) "Change" else "Choose") { choosePic() } }
-            SToggle(prefs, "Turns with you", PreferenceKeys.LOCATOR_IMAGE_TURNS, true, "Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright")
-            SToggle(prefs, "Round crop", PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false, "Cuts it to a circle with a white edge (good for photos)")
+            SItem(L.t("Picture"), L.t("A PNG with a see-through background looks best. Point the top of it the way you drive")) { SButton(if (hasPic) L.t("Change") else L.t("Choose")) { choosePic() } }
+            SToggle(prefs, L.t("Turns with you"), PreferenceKeys.LOCATOR_IMAGE_TURNS, true, L.t("Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright"))
+            SToggle(prefs, L.t("Round crop"), PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false, L.t("Cuts it to a circle with a white edge (good for photos)"))
         }
         // the car's shape: for the Car picture and the real 3D car alike
         if (shapeCar) {
             val cur = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
             val colour = prefs.s(PreferenceKeys.CAR_COLOUR, "#F4F5F7")
-            val names = listOf("saloon" to "Saloon", "hatch" to "Hatchback", "estate" to "Estate", "suv" to "SUV", "pickup" to "Pickup", "van" to "Van", "sports" to "Sports")
-            SItem("Car type", names.firstOrNull { it.first == cur }?.second)
+            val names = listOf("saloon" to L.t("Saloon"), "hatch" to L.t("Hatchback"), "estate" to L.t("Estate"), "suv" to "SUV", "pickup" to L.t("Pickup"), "van" to L.t("Van"), "sports" to L.t("Sports"))
+            SItem(L.t("Car type"), names.firstOrNull { it.first == cur }?.second)
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 for ((id, name) in names) {
@@ -421,28 +424,28 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
                 }
             }
         }
-        if (shapeCar) SColours("Car colour", listOf(
-            "#F4F5F7" to "White", "#B9BEC8" to "Silver", "#7A808C" to "Grey", "#3E434D" to "Graphite", "#2A2D34" to "Black", "#1E2A4A" to "Navy",
-            "#2F6BDF" to "Blue", "#5FB3E8" to "Sky blue", "#1FA39A" to "Teal", "#2E8B57" to "Green", "#6E8B3D" to "Olive", "#F2C230" to "Yellow",
-            "#F07C28" to "Orange", "#D7263D" to "Red", "#8E1B2E" to "Burgundy", "#7B4FC9" to "Purple", "#E86FA8" to "Pink", "#C9A27A" to "Champagne", "#6B4A35" to "Brown",
+        if (shapeCar) SColours(L.t("Car colour"), listOf(
+            "#F4F5F7" to L.t("White"), "#B9BEC8" to L.t("Silver"), "#7A808C" to L.t("Grey"), "#3E434D" to L.t("Graphite"), "#2A2D34" to L.t("Black"), "#1E2A4A" to L.t("Navy"),
+            "#2F6BDF" to L.t("Blue"), "#5FB3E8" to L.t("Sky blue"), "#1FA39A" to L.t("Teal"), "#2E8B57" to L.t("Green"), "#6E8B3D" to L.t("Olive"), "#F2C230" to L.t("Yellow"),
+            "#F07C28" to L.t("Orange"), "#D7263D" to L.t("Red"), "#8E1B2E" to L.t("Burgundy"), "#7B4FC9" to L.t("Purple"), "#E86FA8" to L.t("Pink"), "#C9A27A" to L.t("Champagne"), "#6B4A35" to L.t("Brown"),
         ), prefs.s(PreferenceKeys.CAR_COLOUR, "#F4F5F7")) { prefs.put(PreferenceKeys.CAR_COLOUR, it) }
-        else if (shapeArrow) SColours("Arrow colour", listOf(
-            "#F2F2F6" to "White", "#C2C6D0" to "Silver", "#8A909C" to "Grey", "#3E434D" to "Graphite", "#4C8DFF" to "Blue", "#6FD0FF" to "Sky blue",
-            "#1FC7A6" to "Teal", "#3DDC84" to "Green", "#B5E34A" to "Lime", "#FFD54A" to "Yellow", "#FF9A3C" to "Orange", "#FF4D5E" to "Red",
-            "#FF6FB5" to "Pink", "#A56BFF" to "Purple",
+        else if (shapeArrow) SColours(L.t("Arrow colour"), listOf(
+            "#F2F2F6" to L.t("White"), "#C2C6D0" to L.t("Silver"), "#8A909C" to L.t("Grey"), "#3E434D" to L.t("Graphite"), "#4C8DFF" to L.t("Blue"), "#6FD0FF" to L.t("Sky blue"),
+            "#1FC7A6" to L.t("Teal"), "#3DDC84" to L.t("Green"), "#B5E34A" to L.t("Lime"), "#FFD54A" to L.t("Yellow"), "#FF9A3C" to L.t("Orange"), "#FF4D5E" to L.t("Red"),
+            "#FF6FB5" to L.t("Pink"), "#A56BFF" to L.t("Purple"),
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
-        SSlider(if (shapeCar) "Car size" else if (loc == "custom") "Picture size" else "Arrow size", prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
+        SSlider(if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
     }
-    SGroup("Route line") {
-        SToggle(prefs, "3D flags", PreferenceKeys.FLAGS_3D, true, "A tall flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance")
-        SToggle(prefs, "Turn arrow on the route", "turnarrows", true, "A white arrow through the next junction or roundabout")
-        SToggle(prefs, "Chevrons along the route", "routechevrons", true, "Small arrows along the line when zoomed in")
-        SToggle(prefs, "Route ribbon", "ribbon", true, "A soft shadow under the route line, and the route showing faintly through 3D buildings in front of it")
-        SToggle(prefs, "Flowing light along the route", "routeflow", true)
-        SColours("Alternative route line colour", listOf(
-            "#C4D9E6" to "Pale blue-grey (default)", "#A9D4F0" to "Light blue", "#5AB7F5" to "Blue", "#315CBA" to "Dark blue",
-            "#A9B4C2" to "Silver grey", "#FFFFFF" to "White", "#42CFA5" to "Mint", "#F4C542" to "Yellow",
-            "#FF9A4A" to "Orange", "#F05D6C" to "Red", "#C58AF9" to "Purple", "#F08AC5" to "Pink",
+    SGroup(L.t("Route line")) {
+        SToggle(prefs, L.t("3D flags"), PreferenceKeys.FLAGS_3D, true, L.t("A tall flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance"))
+        SToggle(prefs, L.t("Turn arrow on the route"), "turnarrows", true, L.t("A white arrow through the next junction or roundabout"))
+        SToggle(prefs, L.t("Chevrons along the route"), "routechevrons", true, L.t("Small arrows along the line when zoomed in"))
+        SToggle(prefs, L.t("Route ribbon"), "ribbon", true, L.t("A soft shadow under the route line, and the route showing faintly through 3D buildings in front of it"))
+        SToggle(prefs, L.t("Flowing light along the route"), "routeflow", true)
+        SColours(L.t("Alternative route line colour"), listOf(
+            "#C4D9E6" to L.t("Pale blue-grey (default)"), "#A9D4F0" to L.t("Light blue"), "#5AB7F5" to L.t("Blue"), "#315CBA" to L.t("Dark blue"),
+            "#A9B4C2" to L.t("Silver grey"), "#FFFFFF" to L.t("White"), "#42CFA5" to L.t("Mint"), "#F4C542" to L.t("Yellow"),
+            "#FF9A4A" to L.t("Orange"), "#F05D6C" to L.t("Red"), "#C58AF9" to L.t("Purple"), "#F08AC5" to L.t("Pink"),
         ), prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")) { prefs.put(PreferenceKeys.ALT_ROUTE_COLOUR, it) }
     }
 }
@@ -452,39 +455,39 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
 @Composable
 private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
     VehicleGroup(prefs, engine.imperial)
-    SGroup("Avoid", footer = "Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.") {
-        SToggle(prefs, "Avoid toll roads", "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "Everywhere" else null)
+    SGroup(L.t("Avoid"), footer = L.t("Changes apply to the next route you plan. \"Avoid this road\" on the map only lasts for that trip.")) {
+        SToggle(prefs, L.t("Avoid toll roads"), "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) L.t("Everywhere") else null)
         // ...or only in some countries: a route that would use a toll road in one of them is planned without toll roads
         if (!prefs.b(PreferenceKeys.AVOID_TOLL, false)) {
             val chosen = prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').filter { it.isNotBlank() }.toSet()
-            SItem("Avoid tolls only in", if (chosen.isEmpty()) "Pick countries: a route that would pay a toll in one of them is planned without toll roads" else "A route that would pay a toll in one of these is planned without toll roads")
+            SItem(L.t("Avoid tolls only in"), if (chosen.isEmpty()) L.t("Pick countries: a route that would pay a toll in one of them is planned without toll roads") else L.t("A route that would pay a toll in one of these is planned without toll roads"))
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for ((cc, name) in listOf("FR" to "France", "IT" to "Italy", "ES" to "Spain", "PT" to "Portugal", "AT" to "Austria", "CH" to "Switzerland",
-                    "SI" to "Slovenia", "HR" to "Croatia", "PL" to "Poland", "CZ" to "Czechia", "HU" to "Hungary", "GR" to "Greece", "IE" to "Ireland", "NO" to "Norway", "US" to "USA")) {
+                for ((cc, name) in listOf("FR" to L.t("France"), "IT" to L.t("Italy"), "ES" to L.t("Spain"), "PT" to L.t("Portugal"), "AT" to L.t("Austria"), "CH" to L.t("Switzerland"),
+                    "SI" to L.t("Slovenia"), "HR" to L.t("Croatia"), "PL" to L.t("Poland"), "CZ" to L.t("Czechia"), "HU" to L.t("Hungary"), "GR" to L.t("Greece"), "IE" to L.t("Ireland"), "NO" to L.t("Norway"), "US" to "USA")) {
                     Pill(name, cc in chosen, { prefs.put(PreferenceKeys.AVOID_TOLL_COUNTRIES, (if (cc in chosen) chosen - cc else chosen + cc).joinToString(",")) })
                 }
             }
         }
-        SToggle(prefs, "Avoid motorways", "avoid_motorway", false)
-        SToggle(prefs, "Avoid ferries", "avoid_ferry", false)
-        SToggle(prefs, "Avoid unpaved roads", "avoid_unpaved", true)
-        SToggle(prefs, "Avoid Clean Air Zones and ULEZ", "avoidzones", false, "A zone you start or finish in can't be avoided")
+        SToggle(prefs, L.t("Avoid motorways"), "avoid_motorway", false)
+        SToggle(prefs, L.t("Avoid ferries"), "avoid_ferry", false)
+        SToggle(prefs, L.t("Avoid unpaved roads"), "avoid_unpaved", true)
+        SToggle(prefs, L.t("Avoid Clean Air Zones and ULEZ"), "avoidzones", false, L.t("A zone you start or finish in can't be avoided"))
         ZonesItem()
     }
-    SGroup("Choosing a route") {
-        SToggle(prefs, "Eco routes", "route_eco", false, "Fuel-efficient instead of fastest")
-        SToggle(prefs, "Offer faster routes", "fasterroute", true)
-        if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, "Keep other routes on the map", "livealts", true, "Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead")
-        SToggle(prefs, "Suggest where you're going", "predict", true, "With the live journey time, including home and work at your usual times")
-        SToggle(prefs, "Weather on the route", "routewx", true)
-        SToggle(prefs, "Arrive on your side of the road", PreferenceKeys.ARRIVE_SIDE, true, "The route brings you to the kerb side of where you're going, so you don't have to cross the traffic. Mapbox and offline routes")
+    SGroup(L.t("Choosing a route")) {
+        SToggle(prefs, L.t("Eco routes"), "route_eco", false, L.t("Fuel-efficient instead of fastest"))
+        SToggle(prefs, L.t("Offer faster routes"), "fasterroute", true)
+        if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, L.t("Keep other routes on the map"), "livealts", true, L.t("Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead"))
+        SToggle(prefs, L.t("Suggest where you're going"), "predict", true, L.t("With the live journey time, including home and work at your usual times"))
+        SToggle(prefs, L.t("Weather on the route"), "routewx", true)
+        SToggle(prefs, L.t("Arrive on your side of the road"), PreferenceKeys.ARRIVE_SIDE, true, L.t("The route brings you to the kerb side of where you're going, so you don't have to cross the traffic. Mapbox and offline routes"))
     }
-    SGroup("Starting a route") {
-        SToggle(prefs, "Auto-start route countdown", PreferenceKeys.AUTO_START_ROUTE, true, "Automatically start navigation when the countdown finishes")
-        SSlider("Auto-start countdown", prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = "How long before navigation starts", steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
-        SToggle(prefs, "Fly along a new route", "cinematic", true, "A 3-second 3D fly-through before the overview. Tap the map to skip")
-        SToggle(prefs, "Fly over route button", "flyover", true, "On the route options: a 3D flight along the whole drive before you set off")
+    SGroup(L.t("Starting a route")) {
+        SToggle(prefs, L.t("Auto-start route countdown"), PreferenceKeys.AUTO_START_ROUTE, true, L.t("Automatically start navigation when the countdown finishes"))
+        SSlider(L.t("Auto-start countdown"), prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = L.t("How long before navigation starts"), steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
+        SToggle(prefs, L.t("Fly along a new route"), "cinematic", true, L.t("A 3-second 3D fly-through before the overview. Tap the map to skip"))
+        SToggle(prefs, L.t("Fly over route button"), "flyover", true, L.t("On the route options: a 3D flight along the whole drive before you set off"))
     }
 }
 
@@ -492,16 +495,16 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
 @Composable
 private fun VehicleGroup(prefs: Prefs, imperial: Boolean) {
     val lorry = prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry"
-    SGroup("Vehicle", footer = if (lorry) "Used by TomTom and offline routes, and by Mapbox for height, width and weight. Limits come from the map data, so some may be missing: always follow the road signs." else null) {
-        SChoice("Vehicle", listOf("car" to "Car", "lorry" to "Lorry"), if (lorry) "lorry" else "car",
-            if (lorry) "Routes avoid low bridges, weight limits and lorry bans for your size" else null) { prefs.put(PreferenceKeys.VEHICLE, it) }
+    SGroup(L.t("Vehicle"), footer = if (lorry) L.t("Used by TomTom and offline routes, and by Mapbox for height, width and weight. Limits come from the map data, so some may be missing: always follow the road signs.") else null) {
+        SChoice(L.t("Vehicle"), listOf("car" to L.t("Car"), "lorry" to L.t("Lorry")), if (lorry) "lorry" else "car",
+            if (lorry) L.t("Routes avoid low bridges, weight limits and lorry bans for your size") else null) { prefs.put(PreferenceKeys.VEHICLE, it) }
         if (lorry) {
-            SStep("Height", "Including the load. Low bridges are checked against this", prefs, PreferenceKeys.LORRY_HEIGHT, 400, 200, 500, 5) { Vehicle.heightText(it, imperial) }
-            SStep("Width", "Without mirrors", prefs, PreferenceKeys.LORRY_WIDTH, 255, 180, 300, 5) { String.format(java.util.Locale.US, "%.2f m", it / 100.0) }
-            SStep("Length", "Tractor and trailer", prefs, PreferenceKeys.LORRY_LENGTH, 1650, 500, 2500, 50) { String.format(java.util.Locale.US, "%.1f m", it / 100.0) }
-            SStep("Weight", "Fully loaded", prefs, PreferenceKeys.LORRY_WEIGHT, 440, 35, 600, 5) { tonnes(it) }
-            SStep("Axle weight", "Heaviest axle", prefs, PreferenceKeys.LORRY_AXLE, 115, 50, 200, 5) { tonnes(it) }
-            SToggle(prefs, "Hazardous goods", PreferenceKeys.LORRY_HAZMAT, false, "Avoids tunnels and roads closed to hazardous loads")
+            SStep(L.t("Height"), L.t("Including the load. Low bridges are checked against this"), prefs, PreferenceKeys.LORRY_HEIGHT, 400, 200, 500, 5) { Vehicle.heightText(it, imperial) }
+            SStep(L.t("Width"), L.t("Without mirrors"), prefs, PreferenceKeys.LORRY_WIDTH, 255, 180, 300, 5) { String.format(java.util.Locale.US, "%.2f m", it / 100.0) }
+            SStep(L.t("Length"), L.t("Tractor and trailer"), prefs, PreferenceKeys.LORRY_LENGTH, 1650, 500, 2500, 50) { String.format(java.util.Locale.US, "%.1f m", it / 100.0) }
+            SStep(L.t("Weight"), L.t("Fully loaded"), prefs, PreferenceKeys.LORRY_WEIGHT, 440, 35, 600, 5) { tonnes(it) }
+            SStep(L.t("Axle weight"), L.t("Heaviest axle"), prefs, PreferenceKeys.LORRY_AXLE, 115, 50, 200, 5) { tonnes(it) }
+            SToggle(prefs, L.t("Hazardous goods"), PreferenceKeys.LORRY_HAZMAT, false, L.t("Avoids tunnels and roads closed to hazardous loads"))
         }
     }
 }
@@ -517,8 +520,8 @@ private fun STilt(title: String, sub: String, prefs: Prefs, key: String) {
     var moving by remember(key, saved) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         SItem(title, sub) {
-            Text(if (saved in 30..65 || moving) "${v.roundToInt()}°" else "Auto", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            if (saved in 30..65) SButton("Auto") { prefs.put(key, 0) }
+            Text(if (saved in 30..65 || moving) "${v.roundToInt()}°" else L.t("Auto"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            if (saved in 30..65) SButton(L.t("Auto")) { prefs.put(key, 0) }
         }
         androidx.compose.material3.Slider(
             value = v, onValueChange = { v = it; moving = true }, onValueChangeFinished = { prefs.put(key, v.roundToInt().coerceIn(30, 65)) },
@@ -537,7 +540,7 @@ internal fun SPercent(title: String, sub: String, prefs: Prefs, key: String, min
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         SItem(title, sub) {
             Text("${v.roundToInt()}%", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            if (saved != def) SButton("Reset") { prefs.put(key, def) }
+            if (saved != def) SButton(L.t("Reset")) { prefs.put(key, def) }
         }
         androidx.compose.material3.Slider(
             value = v, onValueChange = { v = (it / 10f).roundToInt() * 10f }, onValueChangeFinished = { prefs.put(key, v.roundToInt().coerceIn(min, max)) },
@@ -564,45 +567,45 @@ private fun SStep(title: String, sub: String, prefs: Prefs, key: String, def: In
 @Composable
 private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
     val mi = engine.imperial
-    SGroup("Turn card") {
-        SToggle(prefs, "UK road signs on the turn card", "uksigns", true)
-        SToggle(prefs, "Living turn card", "livecard", true, "Grows and glows as the turn gets close")
-        SToggle(prefs, "Lane guidance on the turn card", "lanestrip", true)
-        if (prefs.b(PreferenceKeys.LANE_STRIP, true)) SChoice("Lane guidance style", listOf("hero" to "Lane hero view", "classic" to "Classic strip"), prefs.s(PreferenceKeys.LANE_STYLE, "hero"),
-            if (prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero") "Before junctions with two or more lanes the turn card shows a big lane picture with yours lit" else "The small lane strip at every junction") { prefs.put(PreferenceKeys.LANE_STYLE, it) }
-        SChoice("Next turn on the turn card", listOf("close" to "When close", "always" to "Always", "off" to "Off"), prefs.s(PreferenceKeys.THEN_MODE, "close"),
-            when (prefs.s(PreferenceKeys.THEN_MODE, "close")) { "close" -> "Only when the turn after comes straight after (within about 15 seconds)"; "always" -> "The turn after the next one, all the time"; else -> null }) { prefs.put(PreferenceKeys.THEN_MODE, it) }
-        if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice("Shown as", listOf("row" to "A line under the card", "icon" to "A small arrow"), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
+    SGroup(L.t("Turn card")) {
+        SToggle(prefs, L.t("UK road signs on the turn card"), "uksigns", true)
+        SToggle(prefs, L.t("Living turn card"), "livecard", true, L.t("Grows and glows as the turn gets close"))
+        SToggle(prefs, L.t("Lane guidance on the turn card"), "lanestrip", true)
+        if (prefs.b(PreferenceKeys.LANE_STRIP, true)) SChoice(L.t("Lane guidance style"), listOf("hero" to L.t("Lane hero view"), "classic" to L.t("Classic strip")), prefs.s(PreferenceKeys.LANE_STYLE, "hero"),
+            if (prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero") L.t("Before junctions with two or more lanes the turn card shows a big lane picture with yours lit") else L.t("The small lane strip at every junction")) { prefs.put(PreferenceKeys.LANE_STYLE, it) }
+        SChoice(L.t("Next turn on the turn card"), listOf("close" to L.t("When close"), "always" to L.t("Always"), "off" to L.t("Off")), prefs.s(PreferenceKeys.THEN_MODE, "close"),
+            when (prefs.s(PreferenceKeys.THEN_MODE, "close")) { "close" -> L.t("Only when the turn after comes straight after (within about 15 seconds)"); "always" -> L.t("The turn after the next one, all the time"); else -> null }) { prefs.put(PreferenceKeys.THEN_MODE, it) }
+        if (prefs.s(PreferenceKeys.THEN_MODE, "close") != "off") SChoice(L.t("Shown as"), listOf("row" to L.t("A line under the card"), "icon" to L.t("A small arrow")), prefs.s(PreferenceKeys.THEN_STYLE, "row")) { prefs.put(PreferenceKeys.THEN_STYLE, it) }
     }
-    SGroup("Lanes and junctions") {
-        SToggle(prefs, "Junction pictures", PreferenceKeys.JUNCTION_PICS, false, "Mapbox's pictures of motorway junctions, with the lanes to use, in the last kilometre. Only where Mapbox has them, and only for Mapbox accounts it offers them to: if none ever show, yours doesn't have them")
-        SToggle(prefs, "Lanes on the map", "lanemap", true)
+    SGroup(L.t("Lanes and junctions")) {
+        SToggle(prefs, L.t("Junction pictures"), PreferenceKeys.JUNCTION_PICS, false, L.t("Mapbox's pictures of motorway junctions, with the lanes to use, in the last kilometre. Only where Mapbox has them, and only for Mapbox accounts it offers them to: if none ever show, yours doesn't have them"))
+        SToggle(prefs, L.t("Lanes on the map"), "lanemap", true)
         if (prefs.b(PreferenceKeys.LANEMAP, true)) SPictureChoice(
-            "Lanes shown as",
+            L.t("Lanes shown as"),
             when (prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit")) {
-                "closeup" -> "A drawn picture of the junction's lanes under the turn card for the last 400 m. Nothing drawn on the map"
-                "sign" -> "A sign over the road at the junction, with the lanes to use lit up"
-                else -> "The lane to use lit up on the road. On motorways, where the real lanes are known, the route line moves into it"
+                "closeup" -> L.t("A drawn picture of the junction's lanes under the turn card for the last 400 m. Nothing drawn on the map")
+                "sign" -> L.t("A sign over the road at the junction, with the lanes to use lit up")
+                else -> L.t("The lane to use lit up on the road. On motorways, where the real lanes are known, the route line moves into it")
             },
-            listOf("lit" to "Lit lane", "closeup" to "Close-up picture", "sign" to "Sign"), prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit"), { id, c -> lanePicture(id, c) },
+            listOf("lit" to L.t("Lit lane"), "closeup" to L.t("Close-up picture"), "sign" to L.t("Sign")), prefs.s(PreferenceKeys.LANE_MAP_STYLE, "lit"), { id, c -> lanePicture(id, c) },
         ) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
-        SToggle(prefs, "Zoom in on lanes before a junction", "laneview", true)
-        SToggle(prefs, "Junction close-up", "junctionview", true, "At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m")
-        SToggle(prefs, "Flatten the map to 2D at turns", "turn2d", true)
-        SToggle(prefs, "Tilt with speed", "speedtilt", true, "Flatter when slow, a longer view at speed")
+        SToggle(prefs, L.t("Zoom in on lanes before a junction"), "laneview", true)
+        SToggle(prefs, L.t("Junction close-up"), "junctionview", true, L.t("At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m"))
+        SToggle(prefs, L.t("Flatten the map to 2D at turns"), "turn2d", true)
+        SToggle(prefs, L.t("Tilt with speed"), "speedtilt", true, L.t("Flatter when slow, a longer view at speed"))
     }
-    SGroup("Trip card") {
-        SToggle(prefs, "Route bar on the trip card", "routebar", true, "Traffic, cameras, services and stops, with your progress")
-        SToggle(prefs, "Next services card", "servicescard", true)
-        SToggle(prefs, "Hazard radar", "hazardradar", false, (if (mi) "The next 2 miles" else "The next 3 km") + ": bends, crossings, schools, bumps, cameras and checks")
+    SGroup(L.t("Trip card")) {
+        SToggle(prefs, L.t("Route bar on the trip card"), "routebar", true, L.t("Traffic, cameras, services and stops, with your progress"))
+        SToggle(prefs, L.t("Next services card"), "servicescard", true)
+        SToggle(prefs, L.t("Hazard radar"), "hazardradar", false, (if (mi) L.t("The next 2 miles") else L.t("The next 3 km")) + L.t(": bends, crossings, schools, bumps, cameras and checks"))
     }
-    SGroup("Arriving") {
-        SToggle(prefs, "Arrival moment", "arrivalfx", true, "The camera swoops to your destination and shows the nearest parking")
-        SToggle(prefs, "Parking near your destination", "parkprompt", true, (if (mi) "About a mile" else "About 1.5 km") + " before you arrive, car parks close by with the walk from each")
-        SToggle(prefs, "Route back", "routeback", true, "On the arrival card: one tap for the way back to where you started")
+    SGroup(L.t("Arriving")) {
+        SToggle(prefs, L.t("Arrival moment"), "arrivalfx", true, L.t("The camera swoops to your destination and shows the nearest parking"))
+        SToggle(prefs, L.t("Parking near your destination"), "parkprompt", true, (if (mi) L.t("About a mile") else L.t("About 1.5 km")) + L.t(" before you arrive, car parks close by with the walk from each"))
+        SToggle(prefs, L.t("Route back"), "routeback", true, L.t("On the arrival card: one tap for the way back to where you started"))
     }
-    SGroup("Other screens") {
-        SToggle(prefs, "Next turn in the notification", PreferenceKeys.TURN_NOTIF, true, "The arrow, distance and road in Horizon Nav's notification while you navigate, for car launchers, watches and other screens that show navigation notifications")
+    SGroup(L.t("Other screens")) {
+        SToggle(prefs, L.t("Next turn in the notification"), PreferenceKeys.TURN_NOTIF, true, L.t("The arrow, distance and road in Horizon Nav's notification while you navigate, for car launchers, watches and other screens that show navigation notifications"))
     }
 }
 
@@ -612,10 +615,10 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
 private fun ZonesItem() {
     val ctx = LocalContext.current
     val sc = rememberCoroutineScope()
-    var st by remember { mutableStateOf(Zones.all(ctx).let { z -> if (z.isEmpty()) "Not downloaded yet" else "${z.size} zones: " + z.joinToString(", ") { it.name }.take(140) }) }
+    var st by remember { mutableStateOf(Zones.all(ctx).let { z -> if (z.isEmpty()) L.t("Not downloaded yet") else "${z.size} zones: " + z.joinToString(", ") { it.name }.take(140) }) }
     var busy by remember { mutableStateOf(false) }
-    SItem("Clean air zones on this unit", st) {
-        SButton(if (busy) "Updating…" else "Update") {
+    SItem(L.t("Clean air zones on this unit"), st) {
+        SButton(if (busy) L.t("Updating…") else L.t("Update")) {
             if (!busy) { busy = true; sc.launch { withContext(Dispatchers.IO) { Zones.fetch(ctx) }; st = Zones.status; busy = false } }
         }
     }
@@ -625,33 +628,33 @@ private fun ZonesItem() {
 
 @Composable
 private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Speed") {
-        SToggle(prefs, "Warn when over the limit", "speedwarn", true)
-        if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice("Warn when over by", listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
-        SToggle(prefs, "Say when the limit changes", "limitchange", true)
-        SToggle(prefs, "Next speed limit ahead", PreferenceKeys.NEXT_LIMIT, true, "A small sign above the limit with the next one on your route and how far it is, from about half a mile away")
-        SToggle(prefs, "Show estimated limits", "limitest", false, "Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess")
+    SGroup(L.t("Speed")) {
+        SToggle(prefs, L.t("Warn when over the limit"), "speedwarn", true)
+        if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice(L.t("Warn when over by"), listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
+        SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
+        SToggle(prefs, L.t("Next speed limit ahead"), PreferenceKeys.NEXT_LIMIT, true, L.t("A small sign above the limit with the next one on your route and how far it is, from about half a mile away"))
+        SToggle(prefs, L.t("Show estimated limits"), "limitest", false, L.t("Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess"))
     }
-    SGroup("Cameras") {
-        SToggle(prefs, "Speed cameras", "cameras", true, "Spoken and on-screen warnings as you come up to one")
-        if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, "Off where they're banned", "cambanobey", true, "France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves")
-        SToggle(prefs, "Average speed checks", "avgzones", true, "Shows your average against the limit")
+    SGroup(L.t("Cameras")) {
+        SToggle(prefs, L.t("Speed cameras"), "cameras", true, L.t("Spoken and on-screen warnings as you come up to one"))
+        if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, L.t("Off where they're banned"), "cambanobey", true, L.t("France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves"))
+        SToggle(prefs, L.t("Average speed checks"), "avgzones", true, L.t("Shows your average against the limit"))
     }
-    SGroup("Hazards", footer = "Speed bumps, schools, level crossings and fords come from OpenStreetMap, so some may be missing.") {
-        SToggle(prefs, "Roadworks and incidents", "incidents", true)
-        SToggle(prefs, "Wrong-way warning", "wrongway", true, "If you turn the wrong way into a one-way street")
-        SToggle(prefs, "Speed bumps", "bumps", true)
-        SToggle(prefs, "Schools at school-run times", "schools", true)
-        SToggle(prefs, "Level crossings and fords", "railford", true, "A warning sign and a spoken warning for level crossings and fords on your route")
+    SGroup(L.t("Hazards"), footer = L.t("Speed bumps, schools, level crossings and fords come from OpenStreetMap, so some may be missing.")) {
+        SToggle(prefs, L.t("Roadworks and incidents"), "incidents", true)
+        SToggle(prefs, L.t("Wrong-way warning"), "wrongway", true, L.t("If you turn the wrong way into a one-way street"))
+        SToggle(prefs, L.t("Speed bumps"), "bumps", true)
+        SToggle(prefs, L.t("Schools at school-run times"), "schools", true)
+        SToggle(prefs, L.t("Level crossings and fords"), "railford", true, L.t("A warning sign and a spoken warning for level crossings and fords on your route"))
     }
-    SGroup("Zones and reminders") {
-        SToggle(prefs, "Clean Air Zones and ULEZ", "zonewarn", true)
-        SToggle(prefs, "Break reminder after 2 hours", "breakremind", true)
-        SToggle(prefs, "Weather advice", "wxadvice", true, "A quiet note in heavy rain, snow, fog or ice when you're near the limit")
+    SGroup(L.t("Zones and reminders")) {
+        SToggle(prefs, L.t("Clean Air Zones and ULEZ"), "zonewarn", true)
+        SToggle(prefs, L.t("Break reminder after 2 hours"), "breakremind", true)
+        SToggle(prefs, L.t("Weather advice"), "wxadvice", true, L.t("A quiet note in heavy rain, snow, fog or ice when you're near the limit"))
     }
-    SGroup("Your reports", footer = "Make a report from the map options button. Reports stay on this unit and fade after a few hours.") {
-        SToggle(prefs, "Warn about reports ahead", "policealerts", true)
-        SItem("Reports still active", "${engine.reportsActive().size}") { SButton("Clear", danger = true) { engine.clearReports() } }
+    SGroup(L.t("Your reports"), footer = L.t("Make a report from the map options button. Reports stay on this unit and fade after a few hours.")) {
+        SToggle(prefs, L.t("Warn about reports ahead"), "policealerts", true)
+        SItem(L.t("Reports still active"), "${engine.reportsActive().size}") { SButton(L.t("Clear"), danger = true) { engine.clearReports() } }
     }
 }
 
@@ -660,17 +663,22 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
 @Composable
 private fun SoundSection(prefs: Prefs, engine: NavEngine) {
     val ctx = LocalContext.current
-    SGroup("Directions") {
-        SChoice("Spoken guidance", listOf("0" to "All", "1" to "Alerts only", "2" to "Off"), engine.soundMode.toString(),
-            "Alerts only skips turn-by-turn but still speaks cameras, limits and hazards") { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
-        SToggle(prefs, "Say road names", PreferenceKeys.VOICE_ROADS, true, "Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs")
-        SToggle(prefs, "Smarter directions", "smartvoice", true, "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot")
+    SGroup(L.t("Directions")) {
+        // the language of the spoken directions and the turn card (the rest of the app is still English for now)
+        SChoice(L.t("Language"), listOf("auto" to L.t("Phone's language")) + L.supported, prefs.s(PreferenceKeys.APP_LANG, "auto"),
+            L.t("The whole app: directions, screens and Android Auto. Phone's language uses English when the phone's isn't one of these")) {
+            prefs.put(PreferenceKeys.APP_LANG, it); engine.setLanguage(it)
+        }
+        SChoice(L.t("Spoken guidance"), listOf("0" to L.t("All"), "1" to L.t("Alerts only"), "2" to L.t("Off")), engine.soundMode.toString(),
+            L.t("Alerts only skips turn-by-turn but still speaks cameras, limits and hazards")) { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
+        SToggle(prefs, L.t("Say road names"), PreferenceKeys.VOICE_ROADS, true, L.t("Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs"))
+        SToggle(prefs, L.t("Smarter directions"), "smartvoice", true, L.t("Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot"))
     }
-    SGroup("Voice and volume") {
-        SChoice("Voice channel", listOf("nav" to "Navigation", "media" to "Media"), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
-            "If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel") { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
-        SItem("Voice and language", "Uses the system text-to-speech voice") { SButton("Open") { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
-        SItem("Volume") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
+    SGroup(L.t("Voice and volume")) {
+        SChoice(L.t("Voice channel"), listOf("nav" to L.t("Navigation"), "media" to L.t("Media")), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
+            L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel")) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
+        SItem(L.t("Voice and language"), L.t("Uses the system text-to-speech voice")) { SButton(L.t("Open")) { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
+        SItem(L.t("Volume")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
     }
 }
 
@@ -679,9 +687,9 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
 
 @Composable
 private fun PlaceItem(label: String, p: Place?, onChange: () -> Unit, onClear: () -> Unit) {
-    SItem(label, p?.let { it.name + (if (it.sub.isNotBlank()) ", " + it.sub else "") } ?: "Not set") {
-        SButton(if (p != null) "Change" else "Set", primary = true, onClick = onChange)
-        if (p != null) SButton("Clear", danger = true, onClick = onClear)
+    SItem(label, p?.let { it.name + (if (it.sub.isNotBlank()) ", " + it.sub else "") } ?: L.t("Not set")) {
+        SButton(if (p != null) L.t("Change") else L.t("Set"), primary = true, onClick = onChange)
+        if (p != null) SButton(L.t("Clear"), danger = true, onClick = onClear)
     }
 }
 
@@ -691,9 +699,9 @@ private fun PlacesSection(engine: NavEngine) {
     var settingSlot by remember { mutableStateOf<String?>(null) }
     // (read again whenever the saved places change, so a change shows straight away)
     val slotsRaw = engine.prefs.s(PreferenceKeys.PLACE_HOME, "") + engine.prefs.s("place_work", "")
-    SGroup("Saved places", footer = "Home and Work can also be set from the pills under the search bar, or the house or briefcase on the route options.") {
-        PlaceItem("Home", remember(slotsRaw) { pl.slot("home") }, { settingSlot = "home" }) { pl.clearSlot("home") }
-        PlaceItem("Work", remember(slotsRaw) { pl.slot("work") }, { settingSlot = "work" }) { pl.clearSlot("work") }
+    SGroup(L.t("Saved places"), footer = L.t("Home and Work can also be set from the pills under the search bar, or the house or briefcase on the route options.")) {
+        PlaceItem(L.t("Home"), remember(slotsRaw) { pl.slot("home") }, { settingSlot = "home" }) { pl.clearSlot("home") }
+        PlaceItem(L.t("Work"), remember(slotsRaw) { pl.slot("work") }, { settingSlot = "work" }) { pl.clearSlot("work") }
     }
     settingSlot?.let { s -> AddPlaceDialog(engine, null, slot = s) { settingSlot = null } }
     // your own labelled places: rename, reorder or remove
@@ -701,57 +709,57 @@ private fun PlacesSection(engine: NavEngine) {
     val mine = remember(raw) { pl.customs() }
     var renaming by remember { mutableStateOf<String?>(null) }
     var adding by remember { mutableStateOf(false) }
-    SGroup("Your places", footer = "Shown as pills under the search bar, after Home and Work. Add one with the + pill there, or the bookmark on the route options.") {
-        if (mine.isEmpty()) SNote("No places of your own yet.")
+    SGroup(L.t("Your places"), footer = L.t("Shown as pills under the search bar, after Home and Work. Add one with the + pill there, or the bookmark on the route options.")) {
+        if (mine.isEmpty()) SNote(L.t("No places of your own yet."))
         mine.forEachIndexed { i, lp ->
             if (renaming == lp.label) {
                 var t by remember(lp.label) { mutableStateOf(lp.label) }
-                SItem("Rename ${lp.label}") {
+                SItem(L.t("Rename {0}", lp.label)) {
                     SField(t, { t = it.take(24) }, width = 220.dp)
-                    SButton("Save", primary = true) { pl.renameCustom(lp.label, t); renaming = null }
+                    SButton(L.t("Save"), primary = true) { pl.renameCustom(lp.label, t); renaming = null }
                 }
             } else SItem(lp.label, lp.place.name + if (lp.place.sub.isNotBlank()) ", " + lp.place.sub else "") {
                 if (i > 0) SButton("↑") { pl.moveCustom(lp.label, -1) }
-                SButton("Rename") { renaming = lp.label }
-                SButton("Remove", danger = true) { pl.removeCustom(lp.label) }
+                SButton(L.t("Rename")) { renaming = lp.label }
+                SButton(L.t("Remove"), danger = true) { pl.removeCustom(lp.label) }
             }
         }
-        SItem("Add a place") { SButton("Add", primary = true) { adding = true } }
+        SItem(L.t("Add a place")) { SButton(L.t("Add"), primary = true) { adding = true } }
     }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val favRaw = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
     val favs = remember(favRaw) { pl.favourites() }
     var renamingFav by remember { mutableStateOf<Place?>(null) }
     var slotFor by remember { mutableStateOf<Place?>(null) }
-    SGroup("Favourites") {
-        if (favs.isEmpty()) SNote("No favourites yet. Tap the star on a destination to add one.")
+    SGroup(L.t("Favourites")) {
+        if (favs.isEmpty()) SNote(L.t("No favourites yet. Tap the star on a destination to add one."))
         favs.forEach { f ->
             when {
                 renamingFav == f -> {
                     var t by remember(f) { mutableStateOf(f.name) }
-                    SItem("Rename ${f.name}") {
+                    SItem(L.t("Rename {0}", f.name)) {
                         SField(t, { t = it.take(40) }, width = 220.dp)
-                        SButton("Save", primary = true) { pl.renameFavourite(f, t); renamingFav = null }
+                        SButton(L.t("Save"), primary = true) { pl.renameFavourite(f, t); renamingFav = null }
                     }
                 }
-                slotFor == f -> SItem("Make ${f.name}…") {
-                    SButton("Home", primary = true) { pl.setSlot("home", f); slotFor = null; engine.toast("${f.name} is now Home", 2500) }
-                    SButton("Work", primary = true) { pl.setSlot("work", f); slotFor = null; engine.toast("${f.name} is now Work", 2500) }
-                    SButton("Cancel") { slotFor = null }
+                slotFor == f -> SItem(L.t("Make {0}…", f.name)) {
+                    SButton(L.t("Home"), primary = true) { pl.setSlot("home", f); slotFor = null; engine.toast(L.t("{0} is now Home", f.name), 2500) }
+                    SButton(L.t("Work"), primary = true) { pl.setSlot("work", f); slotFor = null; engine.toast(L.t("{0} is now Work", f.name), 2500) }
+                    SButton(L.t("Cancel")) { slotFor = null }
                 }
                 else -> SItem(f.name, f.sub) {
-                    SButton("Rename") { renamingFav = f }
-                    SButton("Make Home / Work") { slotFor = f }
-                    SButton("Remove", danger = true) { pl.toggleFavourite(f) }
+                    SButton(L.t("Rename")) { renamingFav = f }
+                    SButton(L.t("Make Home / Work")) { slotFor = f }
+                    SButton(L.t("Remove"), danger = true) { pl.toggleFavourite(f) }
                 }
             }
         }
-        if (favs.size > 1) SItem("Remove every favourite") { SButton("Remove all", danger = true) { pl.clearFavourites() } }
+        if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
     }
-    SGroup("History", footer = "Swipe a place sideways on the Saved & recent list to take it off.") {
-        SToggle(engine.prefs, "Saved & recent under the search bar", "quicklist", true, "The list of favourites and recent places on the map")
-        SItem("Recent destinations", "${pl.recents().size} recent, plus places remembered for searching without signal") {
-            SButton("Clear", danger = true) { pl.clearHistory(); engine.toast("History cleared", 2000) }
+    SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
+        SToggle(engine.prefs, L.t("Saved & recent under the search bar"), "quicklist", true, L.t("The list of favourites and recent places on the map"))
+        SItem(L.t("Recent destinations"), L.t("{0} recent, plus places remembered for searching without signal", pl.recents().size)) {
+            SButton(L.t("Clear"), danger = true) { pl.clearHistory(); engine.toast(L.t("History cleared"), 2000) }
         }
     }
     TripsGroup(engine)
@@ -763,14 +771,14 @@ private fun TripsGroup(engine: NavEngine) {
     val fmt = com.headunit.launcher.Clock.format("EEE d MMM, ")
     val k = if (engine.imperial) 2.23694 else 3.6
     val unit = if (engine.imperial) "mph" else "km/h"
-    SGroup("Trip log") {
-        if (shown.isEmpty()) SNote("No trips yet. Every drive is recorded here when you park.")
-        else SItem("${shown.size} trips", Geo.fmtDist(shown.sumOf { it.dist }, engine.imperial) + " in all") { SButton("Clear", danger = true) { engine.trips.clear(); shown = emptyList() } }
+    SGroup(L.t("Trip log")) {
+        if (shown.isEmpty()) SNote(L.t("No trips yet. Every drive is recorded here when you park."))
+        else SItem("${shown.size} trips", Geo.fmtDist(shown.sumOf { it.dist }, engine.imperial) + L.t(" in all")) { SButton(L.t("Clear"), danger = true) { engine.trips.clear(); shown = emptyList() } }
         shown.take(50).forEach { t ->
             val mins = ((t.end - t.start) / 60000L).toInt()
             SItem(
                 fmt.format(java.util.Date(t.start)) + (if (t.to.isNotBlank()) " → ${t.to}" else ""),
-                "${Geo.fmtDur(mins * 60.0)} · moving ${Geo.fmtDur(t.moving.toDouble())} · top ${Math.round(t.maxSpeed * k)} $unit",
+                L.t("{0} · moving {1} · top {2} {3}", Geo.fmtDur(mins * 60.0), Geo.fmtDur(t.moving.toDouble()), Math.round(t.maxSpeed * k), unit),
             ) { Text(Geo.fmtDist(t.dist, engine.imperial), color = LocalVw.current.text, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
         }
     }
@@ -786,14 +794,14 @@ private fun DefaultZoomRow(prefs: Prefs) {
     var v by remember(saved) { mutableStateOf(saved) }
     fun save(x: Float) = prefs.put(PreferenceKeys.DEFAULT_ZOOM, String.format(java.util.Locale.US, "%.2f", x))
     Column(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        SItem("Default zoom", "When you're not on a route. Auto zoom still pulls out at speed and moves in at junctions, round your setting. Or zoom with + and − on the map and tap \"Make this my default\"") {
-            if (kotlin.math.abs(v) > 0.01f) SButton("Reset") { v = 0f; save(0f) }
+        SItem(L.t("Default zoom"), L.t("When you're not on a route. Auto zoom still pulls out at speed and moves in at junctions, round your setting. Or zoom with + and − on the map and tap \"Make this my default\"")) {
+            if (kotlin.math.abs(v) > 0.01f) SButton(L.t("Reset")) { v = 0f; save(0f) }
         }
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Further out", color = c.sub, fontSize = 13.sp)
+            Text(L.t("Further out"), color = c.sub, fontSize = 13.sp)
             androidx.compose.material3.Slider(value = v, onValueChange = { v = (Math.round(it * 4f) / 4f) }, onValueChangeFinished = { save(v) },
                 valueRange = -2f..2f, modifier = Modifier.weight(1f).padding(horizontal = 10.dp))
-            Text("Closer", color = c.sub, fontSize = 13.sp)
+            Text(L.t("Closer"), color = c.sub, fontSize = 13.sp)
         }
     }
 }
@@ -807,29 +815,29 @@ private fun PhoneLinkGroup(prefs: Prefs) {
     val code = prefs.s(PreferenceKeys.LINK_CODE, "")
     val role = prefs.s(PreferenceKeys.LINK_ROLE, "")
     var typing by remember { mutableStateOf(false) }
-    SGroup("Send places from your phone", footer = "Pair once: on the head unit, tap Pair a phone and type its code into Horizon Nav on your phone (in this same place). Then \"Send to car\" on the phone's route screen sends the place to the head unit, which starts it the next time it's on (within 12 hours). Places go through ntfy.sh, a free message relay, scrambled with your code so only your phone and car can read them.") {
+    SGroup(L.t("Send places from your phone"), footer = L.t("Pair once: on the head unit, tap Pair a phone and type its code into Horizon Nav on your phone (in this same place). Then \"Send to car\" on the phone's route screen sends the place to the head unit, which starts it the next time it's on (within 12 hours). Places go through ntfy.sh, a free message relay, scrambled with your code so only your phone and car can read them.")) {
         when {
             code.isNotBlank() && role == "car" -> {
-                SItem("This is the car", "Paired. Code ${com.headunit.launcher.CarLink.pretty(code)}: type it on another phone to add it too") {
-                    SButton("Unpair", danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, ""); prefs.put(PreferenceKeys.LINK_LAST, "") }
+                SItem(L.t("This is the car"), L.t("Paired. Code {0}: type it on another phone to add it too", com.headunit.launcher.CarLink.pretty(code))) {
+                    SButton(L.t("Unpair"), danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, ""); prefs.put(PreferenceKeys.LINK_LAST, "") }
                 }
                 val qr = remember(code) { donateQr(com.headunit.launcher.CarLink.pretty(code), 300) }
                 if (qr != null) Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Box(Modifier.size(110.dp).clip(RoundedCornerShape(12.dp)).background(Color.White).padding(6.dp)) {
-                        androidx.compose.foundation.Image(qr, "The pairing code as a QR code", Modifier.size(98.dp), filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
+                        androidx.compose.foundation.Image(qr, L.t("The pairing code as a QR code"), Modifier.size(98.dp), filterQuality = androidx.compose.ui.graphics.FilterQuality.None)
                     }
                     Text(com.headunit.launcher.CarLink.pretty(code), color = LocalVw.current.text, fontSize = 26.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
                 }
             }
-            code.isNotBlank() && role == "phone" -> SItem("This is your phone", "Paired with your car (${com.headunit.launcher.CarLink.pretty(code)}). \"Send to car\" is on the route screen, next to Save") {
-                SButton("Unpair", danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, "") }
+            code.isNotBlank() && role == "phone" -> SItem(L.t("This is your phone"), L.t("Paired with your car ({0}). \"Send to car\" is on the route screen, next to Save", com.headunit.launcher.CarLink.pretty(code))) {
+                SButton(L.t("Unpair"), danger = true) { prefs.put(PreferenceKeys.LINK_CODE, ""); prefs.put(PreferenceKeys.LINK_ROLE, "") }
             }
             else -> {
-                SItem("On the head unit", "Makes a code to type on your phone") {
-                    SButton("Pair a phone", primary = true) { prefs.put(PreferenceKeys.LINK_CODE, com.headunit.launcher.CarLink.newCode()); prefs.put(PreferenceKeys.LINK_ROLE, "car"); prefs.put(PreferenceKeys.LINK_LAST, "") }
+                SItem(L.t("On the head unit"), L.t("Makes a code to type on your phone")) {
+                    SButton(L.t("Pair a phone"), primary = true) { prefs.put(PreferenceKeys.LINK_CODE, com.headunit.launcher.CarLink.newCode()); prefs.put(PreferenceKeys.LINK_ROLE, "car"); prefs.put(PreferenceKeys.LINK_LAST, "") }
                 }
-                SItem("On your phone", "Type the code the head unit shows") { SButton("Enter code") { typing = true } }
-                if (typing) SFieldItem("Car's code", "", "Like K7P-4QX-M2D", placeholder = "K7P-4QX-M2D") { t ->
+                SItem(L.t("On your phone"), L.t("Type the code the head unit shows")) { SButton(L.t("Enter code")) { typing = true } }
+                if (typing) SFieldItem(L.t("Car's code"), "", L.t("Like K7P-4QX-M2D"), placeholder = L.t("K7P-4QX-M2D")) { t ->
                     val ok = com.headunit.launcher.CarLink.clean(t)
                     if (ok != null) { prefs.put(PreferenceKeys.LINK_CODE, ok); prefs.put(PreferenceKeys.LINK_ROLE, "phone"); typing = false }
                 }
@@ -842,16 +850,16 @@ private fun PhoneLinkGroup(prefs: Prefs) {
 private fun SharingGroups(prefs: Prefs) {
     val ctx = LocalContext.current
     val pkg = android.net.Uri.parse("package:" + ctx.packageName)
-    SGroup("Share your ETA", footer = "The share button on the trip card texts your arrival time and a map link. On a head unit without a SIM it opens your messaging app instead.") {
+    SGroup(L.t("Share your ETA"), footer = L.t("The share button on the trip card texts your arrival time and a map link. On a head unit without a SIM it opens your messaging app instead.")) {
         val pickEta = rememberEtaContactPicker(prefs)
-        SItem("Send it to", prefs.s(PreferenceKeys.ETA_NAME, "").ifBlank { "No one chosen yet" }) {
-            SButton(if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isBlank()) "Choose" else "Change") { pickEta() }
-            if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isNotBlank()) SButton("Clear", danger = true) { prefs.put(PreferenceKeys.ETA_NUMBER, ""); prefs.put(PreferenceKeys.ETA_NAME, "") }
+        SItem(L.t("Send it to"), prefs.s(PreferenceKeys.ETA_NAME, "").ifBlank { L.t("No one chosen yet") }) {
+            SButton(if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isBlank()) L.t("Choose") else L.t("Change")) { pickEta() }
+            if (prefs.s(PreferenceKeys.ETA_NUMBER, "").isNotBlank()) SButton(L.t("Clear"), danger = true) { prefs.put(PreferenceKeys.ETA_NUMBER, ""); prefs.put(PreferenceKeys.ETA_NAME, "") }
         }
     }
-    SGroup("Places from other apps", footer = "Share a place to Horizon Nav from Google Maps, WhatsApp, Contacts or a web page and it plans the route. To open Google Maps links here straight away, tap Open by default and add the links.") {
-        SItem("Google Maps links") {
-            SButton("Open by default") {
+    SGroup(L.t("Places from other apps"), footer = L.t("Share a place to Horizon Nav from Google Maps, WhatsApp, Contacts or a web page and it plans the route. To open Google Maps links here straight away, tap Open by default and add the links.")) {
+        SItem(L.t("Google Maps links")) {
+            SButton(L.t("Open by default")) {
                 if (android.os.Build.VERSION.SDK_INT >= 31) openSystemSettings(ctx, Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, pkg)
                 else openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg)
             }
@@ -869,17 +877,17 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
     fun fmt1(v: Double) = if (v == Math.floor(v)) v.toLong().toString() else String.format(java.util.Locale.US, "%.1f", v)
     val ctx = LocalContext.current
     val sc = rememberCoroutineScope()
-    SGroup("Fuel prices", footer = "Live prices come from the government's Fuel Finder scheme. It's free: on gov.uk search \"Fuel Finder\", register as an information recipient with a GOV.UK One Login, then paste the client ID and secret here. Without them the fuel list still works, just without prices.") {
-        SChoice("Your fuel", listOf("E10" to "Unleaded", "E5" to "Super", "B7" to "Diesel", "E85" to "Bioethanol (E85)", "EV" to "Electric"), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
-        SToggle(prefs, "Suggest a fuel stop on long trips", "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") (if (mi) "Over about 95 miles" else "Over about 150 km") + ", a charging point along the way with the shortest detour" else (if (mi) "Over about 95 miles" else "Over about 150 km") + ", the best-value station along the way")
-        SFieldItem("Client ID", prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
-        SFieldItem("Client secret", prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
+    SGroup(L.t("Fuel prices"), footer = L.t("Live prices come from the government's Fuel Finder scheme. It's free: on gov.uk search \"Fuel Finder\", register as an information recipient with a GOV.UK One Login, then paste the client ID and secret here. Without them the fuel list still works, just without prices.")) {
+        SChoice(L.t("Your fuel"), listOf("E10" to L.t("Unleaded"), "E5" to L.t("Super"), "B7" to L.t("Diesel"), "E85" to L.t("Bioethanol (E85)"), "EV" to L.t("Electric")), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
+        SToggle(prefs, L.t("Suggest a fuel stop on long trips"), "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") (if (mi) L.t("Over about 95 miles") else L.t("Over about 150 km")) + L.t(", a charging point along the way with the shortest detour") else (if (mi) L.t("Over about 95 miles") else L.t("Over about 150 km")) + L.t(", the best-value station along the way"))
+        SFieldItem(L.t("Client ID"), prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
+        SFieldItem(L.t("Client secret"), prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
         var st by remember { mutableStateOf(FuelFinder.status) }
         var busy by remember { mutableStateOf(false) }
-        SItem("Prices", st.ifBlank { if (FuelFinder.configured(prefs)) "Not downloaded yet" else "Add your details first" }) {
-            SButton(if (busy) "Updating…" else "Update now", primary = true) {
+        SItem(L.t("Prices"), st.ifBlank { if (FuelFinder.configured(prefs)) L.t("Not downloaded yet") else L.t("Add your details first") }) {
+            SButton(if (busy) L.t("Updating…") else L.t("Update now"), primary = true) {
                 if (!busy && FuelFinder.configured(prefs)) {
-                    busy = true; st = "Downloading stations and prices (the first time takes a minute)…"
+                    busy = true; st = L.t("Downloading stations and prices (the first time takes a minute)…")
                     sc.launch {
                         try { withContext(Dispatchers.IO) { FuelFinder.refresh(ctx, prefs, force = true) } } catch (e: Exception) { }
                         st = FuelFinder.status; busy = false
@@ -887,29 +895,29 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
                 }
             }
         }
-        SItem("Spotted a wrong price?") { SButton("Report it") { openSystemSettings(ctx, android.content.Intent.ACTION_VIEW, android.net.Uri.parse(FuelFinder.REPORT_URL)) } }
+        SItem(L.t("Spotted a wrong price?")) { SButton(L.t("Report it")) { openSystemSettings(ctx, android.content.Intent.ACTION_VIEW, android.net.Uri.parse(FuelFinder.REPORT_URL)) } }
     }
-    SGroup("Fuel prices outside the UK", footer = "France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Australia (NSW and Tasmania) needs a free API key and secret from api.nsw.gov.au (Fuel API). Prices show in cents a litre, e.g. 189.9c. Elsewhere the fuel list still works, without prices.") {
-        SFieldItem("Tankerkönig key (Germany)", prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = "Paste the key", password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
-        SFieldItem("FuelCheck API key (Australia)", prefs.s(PreferenceKeys.NSW_FUEL_KEY, ""), sub = "New South Wales and Tasmania", placeholder = "Paste the API key", password = true) { prefs.put(PreferenceKeys.NSW_FUEL_KEY, it.trim()) }
-        SFieldItem("FuelCheck API secret", prefs.s(PreferenceKeys.NSW_FUEL_SECRET, ""), placeholder = "Paste the API secret", password = true) { prefs.put(PreferenceKeys.NSW_FUEL_SECRET, it.trim()) }
+    SGroup(L.t("Fuel prices outside the UK"), footer = L.t("France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Australia (NSW and Tasmania) needs a free API key and secret from api.nsw.gov.au (Fuel API). Prices show in cents a litre, e.g. 189.9c. Elsewhere the fuel list still works, without prices.")) {
+        SFieldItem(L.t("Tankerkönig key (Germany)"), prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = L.t("Paste the key"), password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
+        SFieldItem(L.t("FuelCheck API key (Australia)"), prefs.s(PreferenceKeys.NSW_FUEL_KEY, ""), sub = L.t("New South Wales and Tasmania"), placeholder = L.t("Paste the API key"), password = true) { prefs.put(PreferenceKeys.NSW_FUEL_KEY, it.trim()) }
+        SFieldItem(L.t("FuelCheck API secret"), prefs.s(PreferenceKeys.NSW_FUEL_SECRET, ""), placeholder = L.t("Paste the API secret"), password = true) { prefs.put(PreferenceKeys.NSW_FUEL_SECRET, it.trim()) }
     }
-    if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup("Your electric car", footer = "With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).") {
-        SToggle(prefs, "Battery estimate on the trip card", PreferenceKeys.EV_PCT_CARD, true, "Roughly how much battery you'll arrive with, on the phone and Android Auto. It's worked out from your settings, not read from the car")
-        SToggle(prefs, "Show petrol stations too", PreferenceKeys.EV_SHOW_FUEL, false, "The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place")
-        if (mi) SFieldItem("Efficiency (miles per kWh)", prefs.s(PreferenceKeys.EVMPK, ""), placeholder = "e.g. 3.5", number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
-        else SFieldItem("Efficiency (km per kWh)", prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = "e.g. 5.6", number = true) { s ->
+    if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup(L.t("Your electric car"), footer = L.t("With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).")) {
+        SToggle(prefs, L.t("Battery estimate on the trip card"), PreferenceKeys.EV_PCT_CARD, true, L.t("Roughly how much battery you'll arrive with, on the phone and Android Auto. It's worked out from your settings, not read from the car"))
+        SToggle(prefs, L.t("Show petrol stations too"), PreferenceKeys.EV_SHOW_FUEL, false, L.t("The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place"))
+        if (mi) SFieldItem(L.t("Efficiency (miles per kWh)"), prefs.s(PreferenceKeys.EVMPK, ""), placeholder = L.t("e.g. 3.5"), number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
+        else SFieldItem(L.t("Efficiency (km per kWh)"), prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = L.t("e.g. 5.6"), number = true) { s ->
             prefs.put(PreferenceKeys.EVMPK, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.3f", it / 1.609344) } ?: "")
         }
-        SFieldItem("Usable battery (kWh)", prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), "For the battery estimate and charging stops (60 if left blank)", placeholder = "e.g. 64", number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
-        SFieldItem(if (mi) "Electricity price (pence per kWh)" else "Electricity price (cents per kWh)", prefs.s(PreferenceKeys.EVPPK, ""), placeholder = "e.g. 28", number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
-    } else SGroup("Fuel cost on the route options", footer = "With both filled in, each route shows roughly what it will cost in fuel.") {
-        if (mi) SFieldItem("Fuel economy (miles per gallon)", prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = "e.g. 45", number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, num(s).take(5)) }
+        SFieldItem(L.t("Usable battery (kWh)"), prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), L.t("For the battery estimate and charging stops (60 if left blank)"), placeholder = L.t("e.g. 64"), number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
+        SFieldItem(if (mi) L.t("Electricity price (pence per kWh)") else L.t("Electricity price (cents per kWh)"), prefs.s(PreferenceKeys.EVPPK, ""), placeholder = L.t("e.g. 28"), number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
+    } else SGroup(L.t("Fuel cost on the route options"), footer = L.t("With both filled in, each route shows roughly what it will cost in fuel.")) {
+        if (mi) SFieldItem(L.t("Fuel economy (miles per gallon)"), prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = L.t("e.g. 45"), number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, num(s).take(5)) }
         // litres per 100 km: 282.48 / UK miles per gallon
-        else SFieldItem("Fuel use (litres per 100 km)", prefs.s(PreferenceKeys.FUELMPG, "").toDoubleOrNull()?.takeIf { it > 0 }?.let { fmt1(282.481 / it) } ?: "", placeholder = "e.g. 6.3", number = true) { s ->
+        else SFieldItem(L.t("Fuel use (litres per 100 km)"), prefs.s(PreferenceKeys.FUELMPG, "").toDoubleOrNull()?.takeIf { it > 0 }?.let { fmt1(282.481 / it) } ?: "", placeholder = L.t("e.g. 6.3"), number = true) { s ->
             prefs.put(PreferenceKeys.FUELMPG, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.2f", 282.481 / it) } ?: "")
         }
-        SFieldItem(if (mi) "Fuel price (pence per litre)" else "Fuel price (cents per litre)", prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = "e.g. 139.9", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
+        SFieldItem(if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = L.t("e.g. 139.9"), number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
     }
 }
 
@@ -922,22 +930,22 @@ private fun OfflinePlacesGroup(engine: NavEngine) {
     // the country of the chosen pack, else the one you're in
     val cc = engine.chosenPack().country.ifBlank { engine.detectedCountry }.ifBlank { "GB" }
     val where = countryName(cc)
-    var state by remember { mutableStateOf(if (OfflinePlaces.installed(ctx)) "Installed (%.1f MB)".format(OfflinePlaces.sizeMb(ctx)) else "Not downloaded") }
+    var state by remember { mutableStateOf(if (OfflinePlaces.installed(ctx)) L.t("Installed (%.1f MB)").format(OfflinePlaces.sizeMb(ctx)) else L.t("Not downloaded")) }
     var busy by remember { mutableStateOf(false) }
-    SGroup("Place names", footer = "A small download of towns and villages in $where, so you can search for them without signal even without the full pack.") {
-        SItem("Towns and villages", state) {
-            SButton(if (busy) "Downloading…" else if (OfflinePlaces.installed(ctx)) "Update" else "Download", primary = !OfflinePlaces.installed(ctx)) {
+    SGroup(L.t("Place names"), footer = L.t("A small download of towns and villages in {0}, so you can search for them without signal even without the full pack.", where)) {
+        SItem(L.t("Towns and villages"), state) {
+            SButton(if (busy) L.t("Downloading…") else if (OfflinePlaces.installed(ctx)) L.t("Update") else L.t("Download"), primary = !OfflinePlaces.installed(ctx)) {
                 if (!busy) {
-                    busy = true; state = "Downloading (needs signal)…"
+                    busy = true; state = L.t("Downloading (needs signal)…")
                     sc.launch {
                         try {
                             val n = withContext(Dispatchers.IO) { OfflinePlaces.download(ctx, cc) }
-                            state = "Installed: $n places"; engine.toast("Offline places ready", 3000)
-                        } catch (e: Exception) { state = "Failed: ${e.message}" } finally { busy = false }
+                            state = L.t("Installed: {0} places", n); engine.toast(L.t("Offline places ready"), 3000)
+                        } catch (e: Exception) { state = L.t("Failed: {0}", e.message) } finally { busy = false }
                     }
                 }
             }
-            if (OfflinePlaces.installed(ctx) && !busy) SButton("Remove", danger = true) { OfflinePlaces.delete(ctx); state = "Not downloaded" }
+            if (OfflinePlaces.installed(ctx) && !busy) SButton(L.t("Remove"), danger = true) { OfflinePlaces.delete(ctx); state = L.t("Not downloaded") }
         }
     }
 }
@@ -946,22 +954,22 @@ private fun OfflinePlacesGroup(engine: NavEngine) {
 
 @Composable
 private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Screen") {
-        SToggle(prefs, "Full screen", PreferenceKeys.FULLSCREEN, true, "Hides the status and navigation bars. Turn off if your head unit has its own bar (climate, home button) that the map covers")
-        SSlider("Brightness", prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = "100% leaves it to the system", live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
-        SToggle(prefs, "Dim the screen at night", "dimnight", false)
-        SToggle(prefs, "Keep the screen on", "keepon", true)
-        SToggle(prefs, "Glass panels", "glass", true, "See-through cards tinted by the map. Off gives solid cards")
-        SChoice("Mapbox logo position", listOf("tl" to "Top left", "tr" to "Top right", "bl" to "Bottom left", "br" to "Bottom right"), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
-            "Mapbox requires their logo on the map; pick the corner that suits your layout") { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
+    SGroup(L.t("Screen")) {
+        SToggle(prefs, L.t("Full screen"), PreferenceKeys.FULLSCREEN, true, L.t("Hides the status and navigation bars. Turn off if your head unit has its own bar (climate, home button) that the map covers"))
+        SSlider(L.t("Brightness"), prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = L.t("100% leaves it to the system"), live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
+        SToggle(prefs, L.t("Dim the screen at night"), "dimnight", false)
+        SToggle(prefs, L.t("Keep the screen on"), "keepon", true)
+        SToggle(prefs, L.t("Glass panels"), "glass", true, L.t("See-through cards tinted by the map. Off gives solid cards"))
+        SChoice(L.t("Mapbox logo position"), listOf("tl" to L.t("Top left"), "tr" to L.t("Top right"), "bl" to L.t("Bottom left"), "br" to L.t("Bottom right")), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
+            L.t("Mapbox requires their logo on the map; pick the corner that suits your layout")) { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }
-    SGroup("Sizes") {
+    SGroup(L.t("Sizes")) {
         val screenConfig = androidx.compose.ui.platform.LocalConfiguration.current
         val autoPercent = recommendedMainUiScale(screenConfig.screenWidthDp, screenConfig.screenHeightDp)
         val autoScale = prefs.b(PreferenceKeys.UI_AUTO_SCALE, prefs.s(PreferenceKeys.UI_SCALE, "").isBlank())
         SItem(
-            "Automatically scale UI",
-            if (autoScale) "Uses screen size and shape (currently $autoPercent%)" else "Manual text and button size is enabled"
+            L.t("Automatically scale UI"),
+            if (autoScale) L.t("Uses screen size and shape (currently {0}%)", autoPercent) else L.t("Manual text and button size is enabled")
         ) {
             Switch(checked = autoScale, onCheckedChange = { enabled ->
                 if (!enabled) prefs.put(PreferenceKeys.UI_SCALE, autoPercent)
@@ -969,51 +977,51 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
             })
         }
         SSlider(
-            "Text and button size",
+            L.t("Text and button size"),
             (if (autoScale) autoPercent else prefs.i(PreferenceKeys.UI_SCALE, autoPercent)).toFloat(),
-            60f..140f, "%", sub = if (autoScale) "Move the slider to switch to a manual size" else "Adjust manually, or turn automatic scaling back on", steps = 15, reset = 100f
+            60f..140f, "%", sub = if (autoScale) L.t("Move the slider to switch to a manual size") else L.t("Adjust manually, or turn automatic scaling back on"), steps = 15, reset = 100f
         ) {
             prefs.put(PreferenceKeys.UI_AUTO_SCALE, false)
             prefs.put(PreferenceKeys.UI_SCALE, it)
         }
         var mainAdvanced by rememberSaveable { mutableStateOf(false) }
-        SItem(if (mainAdvanced) "Advanced display sizes" else "Advanced display sizes", "Adjust individual elements without changing the overall scale") {
-            SButton(if (mainAdvanced) "Hide" else "Show") { mainAdvanced = !mainAdvanced }
+        SItem(if (mainAdvanced) L.t("Advanced display sizes") else L.t("Advanced display sizes"), L.t("Adjust individual elements without changing the overall scale")) {
+            SButton(if (mainAdvanced) L.t("Hide") else L.t("Show")) { mainAdvanced = !mainAdvanced }
         }
         if (mainAdvanced) {
-            SSlider("Card size", prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Turn, trip and route cards", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_CARD_SIZE, it) }
-            SSlider("Button size", prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "On-screen controls", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_BUTTON_SIZE, it) }
-            SSlider("Text size", prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent text scaling", steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
-            SSlider("Navigation arrow size", prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", sub = "Map position arrow", steps = 11, reset = 100f) { prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, it) }
-            SSlider("Road name size", prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
+            SSlider(L.t("Card size"), prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_CARD_SIZE, it) }
+            SSlider(L.t("Button size"), prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("On-screen controls"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_BUTTON_SIZE, it) }
+            SSlider(L.t("Text size"), prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent text scaling"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
+            SSlider(L.t("Navigation arrow size"), prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", sub = L.t("Map position arrow"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, it) }
+            SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
         }
 
     }
-    SGroup("Speed display") {
-        SToggle(prefs, "Your speed next to the limit", "mapspeed", true)
-        SToggle(prefs, "Speedometer ring", "speedring", true, "Fills towards the limit, turning amber then red")
-        SSlider("Speed limit and speedometer size", prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = "On this screen (Android Auto has its own size, under Android Auto)", steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
-        SPictureChoice("Speed position", "On the side away from the cards, so it never covers them. Move it up if your hand covers it",
-            listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS, "bottom"), { id, c -> speedPicture(id, c) },
+    SGroup(L.t("Speed display")) {
+        SToggle(prefs, L.t("Your speed next to the limit"), "mapspeed", true)
+        SToggle(prefs, L.t("Speedometer ring"), "speedring", true, L.t("Fills towards the limit, turning amber then red"))
+        SSlider(L.t("Speed limit and speedometer size"), prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = L.t("On this screen (Android Auto has its own size, under Android Auto)"), steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
+        SPictureChoice(L.t("Speed position"), L.t("On the side away from the cards, so it never covers them. Move it up if your hand covers it"),
+            listOf("bottom" to L.t("Bottom"), "middle" to L.t("Middle"), "top" to L.t("Top")), prefs.s(PreferenceKeys.SPEED_POS, "bottom"), { id, c -> speedPicture(id, c) },
         ) { prefs.put(PreferenceKeys.SPEED_POS, it) }
     }
-    SGroup("While driving") {
-        SToggle(prefs, "Road and heading when driving without a route", "cruise", true)
-        SToggle(prefs, "Keep the arrow on the road with no route", "snaproad", true)
-        SToggle(prefs, "Dim the map in tunnels", "tunneldim", true)
-        SToggle(prefs, "Fewer buttons while driving", "drivesimple", true)
-        SToggle(prefs, "Lock typing while driving", "drivelock", true, "Voice search still works")
+    SGroup(L.t("While driving")) {
+        SToggle(prefs, L.t("Road and heading when driving without a route"), "cruise", true)
+        SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
+        SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
+        SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
+        SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
     }
-    SGroup("Units") {
-        SChoice("Distance and speed", listOf("mi" to "Miles", "km" to "Kilometres"), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
-        SChoice("Clock", listOf("auto" to "Automatic", "24" to "24-hour", "12" to "12-hour"), prefs.s(PreferenceKeys.CLOCK, "auto"),
-            "Automatic follows the phone's or head unit's own 12 / 24-hour setting") { prefs.put(PreferenceKeys.CLOCK, it) }
-        SChoice("Temperature", listOf("C" to "°C", "F" to "°F"), if (isImperial(prefs)) "F" else "C") { prefs.put(PreferenceKeys.TEMPERATURE_UNIT, it) }
-        SChoice("Driving side", listOf("" to "Automatic", "rhd" to "Right-hand drive", "lhd" to "Left-hand drive"), prefs.s(PreferenceKeys.DRIVE, ""),
+    SGroup(L.t("Units")) {
+        SChoice(L.t("Distance and speed"), listOf("mi" to L.t("Miles"), "km" to L.t("Kilometres")), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
+        SChoice(L.t("Clock"), listOf("auto" to L.t("Automatic"), "24" to "24-hour", "12" to "12-hour"), prefs.s(PreferenceKeys.CLOCK, "auto"),
+            L.t("Automatic follows the phone's or head unit's own 12 / 24-hour setting")) { prefs.put(PreferenceKeys.CLOCK, it) }
+        SChoice(L.t("Temperature"), listOf("C" to "°C", "F" to "°F"), if (isImperial(prefs)) "F" else "C") { prefs.put(PreferenceKeys.TEMPERATURE_UNIT, it) }
+        SChoice(L.t("Driving side"), listOf("" to L.t("Automatic"), "rhd" to L.t("Right-hand drive"), "lhd" to L.t("Left-hand drive")), prefs.s(PreferenceKeys.DRIVE, ""),
             when (prefs.s(PreferenceKeys.DRIVE, "")) {
-                "rhd" -> "Driver on the right (UK): cards on the left, buttons on the right"
-                "lhd" -> "Driver on the left (US, Europe): the screen is mirrored, cards on the right"
-                else -> "Follows the country you're in" + (if (engine.mirrored) ": left-hand drive, screen mirrored" else ": right-hand drive")
+                "rhd" -> L.t("Driver on the right (UK): cards on the left, buttons on the right")
+                "lhd" -> L.t("Driver on the left (US, Europe): the screen is mirrored, cards on the right")
+                else -> L.t("Follows the country you're in") + (if (engine.mirrored) L.t(": left-hand drive, screen mirrored") else L.t(": right-hand drive"))
             }) { prefs.put(PreferenceKeys.DRIVE, it) }
     }
 }
@@ -1033,50 +1041,50 @@ private fun AndroidAutoSection(prefs: Prefs) {
             val inst = if (android.os.Build.VERSION.SDK_INT >= 30) ctx.packageManager.getInstallSourceInfo(ctx.packageName).installingPackageName
                 else @Suppress("DEPRECATION") ctx.packageManager.getInstallerPackageName(ctx.packageName)
             when (inst) {
-                "com.android.vending" -> "Google Play (Android Auto lists it without any extra steps)"
-                null -> "Unknown (installed from a file): needs Unknown sources in Android Auto"
-                ctx.packageName -> "Horizon Nav's own updater: needs Unknown sources in Android Auto"
-                else -> "$inst: needs Unknown sources in Android Auto"
+                "com.android.vending" -> L.t("Google Play (Android Auto lists it without any extra steps)")
+                null -> L.t("Unknown (installed from a file): needs Unknown sources in Android Auto")
+                ctx.packageName -> L.t("Horizon Nav's own updater: needs Unknown sources in Android Auto")
+                else -> L.t("{0}: needs Unknown sources in Android Auto", inst)
             }
-        } catch (e: Exception) { "Unknown" }
+        } catch (e: Exception) { L.t("Unknown") }
     }
-    SGroup("Sizes on the car screen") {
-        SSlider("Overall size on the car screen", prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = "Base scale for the whole overlay", steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
-        SSlider("Speedometer and speed-limit sign size", prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = "Automatically shrinks further if the available screen area is too small", reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
-        SChoice("Speed position on the car screen", listOf("bottom" to "Bottom", "middle" to "Middle", "top" to "Top"), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
-            "On the side away from the cards. Separate from this screen's own setting") { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
+    SGroup(L.t("Sizes on the car screen")) {
+        SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay"), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
+        SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
+        SChoice(L.t("Speed position on the car screen"), listOf("bottom" to L.t("Bottom"), "middle" to L.t("Middle"), "top" to L.t("Top")), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
+            L.t("On the side away from the cards. Separate from this screen's own setting")) { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
-        SItem("Advanced car-screen sizes", "Fine-tune individual elements independently") {
-            SButton(if (carAdvanced) "Hide" else "Show") { carAdvanced = !carAdvanced }
+        SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
+            SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }
         }
         if (carAdvanced) {
-            SSlider("Card size", prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Turn, trip and route cards", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_CARD_SIZE, it) }
-            SSlider("Button size", prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Round controls and tappable buttons", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
-            SSlider("Text size", prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = "Independent of card and button sizing", steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
-            SSlider("Navigation arrow size", prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 30f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
-            SSlider("Road name size", prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = "The name of the road you're on, under your arrow", steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
+            SSlider(L.t("Card size"), prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_CARD_SIZE, it) }
+            SSlider(L.t("Button size"), prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Round controls and tappable buttons"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
+            SSlider(L.t("Text size"), prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent of card and button sizing"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
+            SSlider(L.t("Navigation arrow size"), prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 30f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
+            SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
         }
     }
-    SGroup("Setting it up", footer = "If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).") {
-        SItem("Installed by", source)
-        SItem("Android Auto settings", if (hasAa) null else "Android Auto isn't installed on this phone") {
-            if (hasAa) SButton("Open") {
+    SGroup(L.t("Setting it up"), footer = L.t("If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).")) {
+        SItem(L.t("Installed by"), source)
+        SItem(L.t("Android Auto settings"), if (hasAa) null else L.t("Android Auto isn't installed on this phone")) {
+            if (hasAa) SButton(L.t("Open")) {
                 val i = ctx.packageManager.getLaunchIntentForPackage(gh)
                 try {
                     if (i != null) ctx.startActivity(i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) else openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri)
                 } catch (e: Exception) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri) }
             }
         }
-        if (hasAa) SItem("Android Auto app info", "To force stop it after changing its settings") {
-            SButton("App info") { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri) }
+        if (hasAa) SItem(L.t("Android Auto app info"), L.t("To force stop it after changing its settings")) {
+            SButton(L.t("App info")) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri) }
         }
         // the most asked question: Android Auto only lists apps from Google Play unless told otherwise
-        if (hasAa) SItem("Not showing in Android Auto?", "1. In Android Auto's settings, tap Version repeatedly to unlock Developer settings, then turn on Unknown sources. " +
-            "2. Force stop Android Auto (App info above) and reconnect. 3. If it still isn't listed, install Horizon Nav with the free AAEnabler app, which most people need. " +
-            "Voice requests through Android Auto's own microphone may not reach apps from outside Google Play: use the app's search button instead.") {
-            SButton("AAEnabler") {
+        if (hasAa) SItem(L.t("Not showing in Android Auto?"), L.t("1. In Android Auto's settings, tap Version repeatedly to unlock Developer settings, then turn on Unknown sources. ") +
+            L.t("2. Force stop Android Auto (App info above) and reconnect. 3. If it still isn't listed, install Horizon Nav with the free AAEnabler app, which most people need. ") +
+            L.t("Voice requests through Android Auto's own microphone may not reach apps from outside Google Play: use the app's search button instead.")) {
+            SButton(L.t("AAEnabler")) {
                 try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/malebuffy/AAEnabler")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                catch (e: Exception) { android.widget.Toast.makeText(ctx, "No browser on this device: search for AAEnabler on GitHub", android.widget.Toast.LENGTH_LONG).show() }
+                catch (e: Exception) { android.widget.Toast.makeText(ctx, L.t("No browser on this device: search for AAEnabler on GitHub"), android.widget.Toast.LENGTH_LONG).show() }
             }
         }
     }
@@ -1086,16 +1094,16 @@ private fun AndroidAutoSection(prefs: Prefs) {
 
 @Composable
 private fun PerformanceSection(prefs: Prefs) {
-    SGroup("Smoothness", footer = "Lower these if the map feels slow or the head unit gets warm. Sharpness and fast drawing apply after restarting the app.") {
-        SChoice("Map sharpness", listOf("100" to "Full", "80" to "Balanced", "65" to "Light", "50" to "Lowest"), prefs.s(PreferenceKeys.MAP_RESOLUTION, "80")) { prefs.put(PreferenceKeys.MAP_RESOLUTION, it) }
-        SChoice("Frame rate", listOf("auto" to "Auto", "20" to "20", "30" to "30", "45" to "45", "60" to "60"), prefs.s(PreferenceKeys.MAP_FPS, "auto"),
-            if (prefs.s(PreferenceKeys.MAP_FPS, "auto") == "auto") "Starts at 30 and steps down when the head unit can't keep up, so the map moves evenly" else "Lower is lighter on the head unit") { prefs.put(PreferenceKeys.MAP_FPS, it) }
-        SToggle(prefs, "Fast map drawing", "mapfast", true)
+    SGroup(L.t("Smoothness"), footer = L.t("Lower these if the map feels slow or the head unit gets warm. Sharpness and fast drawing apply after restarting the app.")) {
+        SChoice(L.t("Map sharpness"), listOf("100" to L.t("Full"), "80" to L.t("Balanced"), "65" to L.t("Light"), "50" to L.t("Lowest")), prefs.s(PreferenceKeys.MAP_RESOLUTION, "80")) { prefs.put(PreferenceKeys.MAP_RESOLUTION, it) }
+        SChoice(L.t("Frame rate"), listOf("auto" to L.t("Auto"), "20" to "20", "30" to "30", "45" to "45", "60" to "60"), prefs.s(PreferenceKeys.MAP_FPS, "auto"),
+            if (prefs.s(PreferenceKeys.MAP_FPS, "auto") == "auto") L.t("Starts at 30 and steps down when the head unit can't keep up, so the map moves evenly") else L.t("Lower is lighter on the head unit")) { prefs.put(PreferenceKeys.MAP_FPS, it) }
+        SToggle(prefs, L.t("Fast map drawing"), "mapfast", true)
         // (the old "Light map" switch is now Settings > Map > Map detail)
-        SToggle(prefs, "Performance meter", "perfmeter", false, "A line at the top of the map: frames drawn, camera moves and pauses. Handy for finding what slows the map")
+        SToggle(prefs, L.t("Performance meter"), "perfmeter", false, L.t("A line at the top of the map: frames drawn, camera moves and pauses. Handy for finding what slows the map"))
     }
-    SGroup("Demo") {
-        SToggle(prefs, "Demo drive button", "demo", false, "Plays a route back so you can try the guidance while parked")
+    SGroup(L.t("Demo")) {
+        SToggle(prefs, L.t("Demo drive button"), "demo", false, L.t("Plays a route back so you can try the guidance while parked"))
     }
 }
 
@@ -1103,20 +1111,20 @@ private fun PerformanceSection(prefs: Prefs) {
 
 @Composable
 private fun KeysSection(prefs: Prefs, engine: NavEngine) {
-    SGroup("Search") {
-        SChoice("Search results", searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
-        if (engine.hasKey && engine.hasMapbox) SChoice("Search with", listOf("auto" to "TomTom", "mapbox" to "Mapbox"), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
-            "TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers") { prefs.put(PreferenceKeys.SEARCHWITH, it) }
-        else if (!engine.hasKey) SNote("For the most accurate address search, add a free TomTom key below.")
+    SGroup(L.t("Search")) {
+        SChoice(L.t("Search results"), searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
+        if (engine.hasKey && engine.hasMapbox) SChoice(L.t("Search with"), listOf("auto" to L.t("TomTom"), "mapbox" to L.t("Mapbox")), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
+            L.t("TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers")) { prefs.put(PreferenceKeys.SEARCHWITH, it) }
+        else if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
     }
-    SGroup("Map accounts", footer = "Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.") {
-        SFieldItem("TomTom API key", prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) "Using the key built into this app unless you paste another" else "Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com",
-            placeholder = "Paste a key") { prefs.setApiKey(it) }
-        SFieldItem("Mapbox access token", prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), "Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions.",
-            placeholder = "Paste a token") { prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }
+    SGroup(L.t("Map accounts"), footer = L.t("Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.")) {
+        SFieldItem(L.t("TomTom API key"), prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) L.t("Using the key built into this app unless you paste another") else L.t("Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com"),
+            placeholder = L.t("Paste a key")) { prefs.setApiKey(it) }
+        SFieldItem(L.t("Mapbox access token"), prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""), L.t("Use an active public token starting pk. (never sk.). If the map reports 401, open account.mapbox.com > Tokens, copy an active token, and check it has styles:read and fonts:read permissions."),
+            placeholder = L.t("Paste a token")) { prefs.put(PreferenceKeys.MAPBOX_TOKEN, com.headunit.launcher.MapboxRest.clean(it)) }
     }
-    if (engine.hasKey && engine.hasMapbox) SGroup("Routes, search and traffic", footer = "Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.") {
-        SChoice("Use", listOf("auto" to "Auto", "tomtom" to "TomTom", "mapbox" to "Mapbox"), prefs.s(PreferenceKeys.DATAPROV, "auto")) { prefs.put(PreferenceKeys.DATAPROV, it) }
+    if (engine.hasKey && engine.hasMapbox) SGroup(L.t("Routes, search and traffic"), footer = L.t("Auto uses Mapbox while the Mapbox map is showing, and TomTom otherwise. If the one in use stops working (its daily limit, a refused key, an outage), the other takes over by itself for a while.")) {
+        SChoice(L.t("Use"), listOf("auto" to L.t("Auto"), "tomtom" to L.t("TomTom"), "mapbox" to L.t("Mapbox")), prefs.s(PreferenceKeys.DATAPROV, "auto")) { prefs.put(PreferenceKeys.DATAPROV, it) }
     }
 }
 
@@ -1131,30 +1139,30 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     // (here so the crash report further down can open it too)
     var feedback by remember { mutableStateOf(false) }
     if (feedback) FeedbackDialog(engine) { feedback = false }
-    SGroup("Feedback", footer = "Ideas and bug reports are very welcome, here or on GitHub and Reddit.") {
-        SItem("Feedback or a problem", "Sends a report with the app version, your unit and the last crash, so it's quick to fix") { SButton("Report", primary = true) { feedback = true } }
+    SGroup(L.t("Feedback"), footer = L.t("Ideas and bug reports are very welcome, here or on GitHub and Reddit.")) {
+        SItem(L.t("Feedback or a problem"), L.t("Sends a report with the app version, your unit and the last crash, so it's quick to fix")) { SButton(L.t("Report"), primary = true) { feedback = true } }
     }
-    SGroup("Support Horizon Nav") {
-        SItem("Donate", "Free, no ads. Donations help keep it going (PayPal)") { SButton("Donate", primary = true) { donating = true } }
+    SGroup(L.t("Support Horizon Nav")) {
+        SItem(L.t("Donate"), L.t("Free, no ads. Donations help keep it going (PayPal)")) { SButton(L.t("Donate"), primary = true) { donating = true } }
     }
-    SGroup("Horizon Nav") {
-        SItem("Version", BuildConfig.VERSION_NAME)
+    SGroup(L.t("Horizon Nav")) {
+        SItem(L.t("Version"), BuildConfig.VERSION_NAME)
         if (com.headunit.launcher.Updater.enabled) {
-            SItem("Check for updates", engine.updateStatus.ifBlank { null }) {
+            SItem(L.t("Check for updates"), engine.updateStatus.ifBlank { null }) {
                 val u = engine.appUpdate
-                if (u != null && !engine.updateBusy) SButton("Update to ${u.version}", primary = true) { engine.installAppUpdate() }
-                else SButton(if (engine.updateBusy) "Updating…" else "Check now") { engine.checkForUpdate(manual = true) }
+                if (u != null && !engine.updateBusy) SButton(L.t("Update to {0}", u.version), primary = true) { engine.installAppUpdate() }
+                else SButton(if (engine.updateBusy) L.t("Updating…") else L.t("Check now")) { engine.checkForUpdate(manual = true) }
             }
-            SToggle(prefs, "Look for updates by itself", "updcheck", true, "When the app opens and there's a connection (at most every half hour)")
+            SToggle(prefs, L.t("Look for updates by itself"), "updcheck", true, L.t("When the app opens and there's a connection (at most every half hour)"))
         }
-        SItem("Setup", "Go through the first-run steps again: map key, home and work, offline maps, permissions") { SButton("Run setup") { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
+        SItem(L.t("Setup"), L.t("Go through the first-run steps again: map key, home and work, offline maps, permissions")) { SButton(L.t("Run setup")) { prefs.put(PreferenceKeys.SETUP_DONE, false); prefs.put(PreferenceKeys.FORCESETUP, true) } }
     }
-    SGroup("Permissions", footer = "While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.") {
+    SGroup(L.t("Permissions"), footer = L.t("While a route is running, guidance carries on when you switch apps and a notification shows. Allow notifications so it can appear.")) {
         val hasLoc = ctx.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        SItem("Location", if (hasLoc) "Allowed" else "Not allowed: navigation needs it") {
-            SButton("App permissions", primary = !hasLoc) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg) }
+        SItem(L.t("Location"), if (hasLoc) L.t("Allowed") else L.t("Not allowed: navigation needs it")) {
+            SButton(L.t("App permissions"), primary = !hasLoc) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, pkg) }
         }
-        SItem("Location services") { SButton("Open") { openSystemSettings(ctx, Settings.ACTION_LOCATION_SOURCE_SETTINGS) } }
+        SItem(L.t("Location services")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_LOCATION_SOURCE_SETTINGS) } }
     }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
@@ -1162,34 +1170,34 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
                 ctx.contentResolver.openOutputStream(uri)?.use { it.write(prefs.exportJson().toByteArray()) }
                 true
             } catch (e: Exception) { false }
-            android.widget.Toast.makeText(ctx, if (ok) "Backup saved" else "Could not save the backup", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(ctx, if (ok) L.t("Backup saved") else L.t("Could not save the backup"), android.widget.Toast.LENGTH_SHORT).show()
         }
     }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             val msg = try {
                 val text = ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
-                "Restored ${prefs.importJson(text)} settings"
-            } catch (e: Exception) { "That file is not a valid backup" }
+                L.t("Restored {0} settings", prefs.importJson(text))
+            } catch (e: Exception) { L.t("That file is not a valid backup") }
             android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show()
         }
     }
-    SGroup("Backup", footer = "Includes settings and saved places, not the API key or the offline pack. A backup from Horizon Launcher can be restored here too.") {
-        SItem("Settings and saved places") {
-            SButton("Back up") { exporter.launch("horizon-nav-backup.json") }
-            SButton("Restore") { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }
+    SGroup(L.t("Backup"), footer = L.t("Includes settings and saved places, not the API key or the offline pack. A backup from Horizon Launcher can be restored here too.")) {
+        SItem(L.t("Settings and saved places")) {
+            SButton(L.t("Back up")) { exporter.launch("horizon-nav-backup.json") }
+            SButton(L.t("Restore")) { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }
         }
     }
     val cf = java.io.File(ctx.filesDir, "lastcrash.txt")
     var rep by remember { mutableStateOf(if (cf.exists()) cf.readText() else "") }
     // a report from before the last update (older reports have no version line, or another version's): it may well be fixed already
     val oldRep = rep.isNotBlank() && !rep.startsWith("Horizon Nav ${BuildConfig.VERSION_NAME} ")
-    if (rep.isNotBlank()) SGroup("Problem report", footer = if (oldRep) "This is from an older version of the app, before your last update, so it may already be fixed. Clear it, and send a photo if it comes back." else "The app closed unexpectedly last time. Send a photo of this so it can be fixed.") {
+    if (rep.isNotBlank()) SGroup(L.t("Problem report"), footer = if (oldRep) L.t("This is from an older version of the app, before your last update, so it may already be fixed. Clear it, and send a photo if it comes back.") else L.t("The app closed unexpectedly last time. Send a photo of this so it can be fixed.")) {
         Text(rep.take(900), color = LocalVw.current.text, fontSize = 10.sp, modifier = Modifier.padding(vertical = 6.dp))
         // sent the same way as Feedback (the report includes this crash and the unit's details)
-        SItem("This crash", "Sends it with your unit's details, the same as Feedback") {
-            SButton("Send report", primary = true) { feedback = true }
-            SButton("Clear") { cf.delete(); rep = "" }
+        SItem(L.t("This crash"), L.t("Sends it with your unit's details, the same as Feedback")) {
+            SButton(L.t("Send report"), primary = true) { feedback = true }
+            SButton(L.t("Clear")) { cf.delete(); rep = "" }
         }
     }
 }
@@ -1203,7 +1211,7 @@ internal fun countryName(cc: String): String = when (cc.uppercase()) {
 /** Search limited to the country you're in (followed as you travel) or anywhere. */
 internal fun searchCountryOptions(engine: NavEngine): List<Pair<String, String>> {
     val here = engine.detectedCountry
-    return listOf("auto" to (if (here.isNotBlank()) "${countryName(here)} only" else "My country only"), "" to "Anywhere")
+    return listOf("auto" to (if (here.isNotBlank()) "${countryName(here)} only" else L.t("My country only")), "" to L.t("Anywhere"))
 }
 
 internal fun searchCountryValue(prefs: Prefs): String = if (prefs.s(PreferenceKeys.COUNTRY, "auto").isBlank()) "" else "auto"
@@ -1219,24 +1227,24 @@ private fun FeedbackDialog(engine: NavEngine, onClose: () -> Unit) {
     var note by remember { mutableStateOf("") }
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Feedback or a problem", color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            Text("What happened, or what would you like? Where you were and what you tapped helps.", color = c.sub, fontSize = 14.sp)
-            SField(note, { note = it.take(600) }, placeholder = "e.g. Rerouted the wrong way near Southampton", width = 516.dp, fill = true)
-            Text("Sent with it: the app version, your head unit, the main settings, your downloaded areas and the last crash (no places or API keys).", color = c.sub, fontSize = 12.sp)
+            Text(L.t("Feedback or a problem"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(L.t("What happened, or what would you like? Where you were and what you tapped helps."), color = c.sub, fontSize = 14.sp)
+            SField(note, { note = it.take(600) }, placeholder = L.t("e.g. Rerouted the wrong way near Southampton"), width = 516.dp, fill = true)
+            Text(L.t("Sent with it: the app version, your head unit, the main settings, your downloaded areas and the last crash (no places or API keys)."), color = c.sub, fontSize = 12.sp)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                SButton("Close") { onClose() }
-                SButton("Copy") {
+                SButton(L.t("Close")) { onClose() }
+                SButton(L.t("Copy")) {
                     val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                    cm?.setPrimaryClip(android.content.ClipData.newPlainText("Horizon Nav report", engine.feedbackReport(note)))
-                    engine.toast("Report copied: paste it into a message or a Reddit comment", 3500)
+                    cm?.setPrimaryClip(android.content.ClipData.newPlainText(L.t("Horizon Nav report"), engine.feedbackReport(note)))
+                    engine.toast(L.t("Report copied: paste it into a message or a Reddit comment"), 3500)
                 }
-                SButton("Send on GitHub", primary = true) {
-                    val title = note.lineSequence().firstOrNull()?.take(80)?.ifBlank { null } ?: "Report from Horizon Nav ${com.headunit.launcher.BuildConfig.VERSION_NAME}"
+                SButton(L.t("Send on GitHub"), primary = true) {
+                    val title = note.lineSequence().firstOrNull()?.take(80)?.ifBlank { null } ?: L.t("Report from Horizon Nav {0}", com.headunit.launcher.BuildConfig.VERSION_NAME)
                     // a link has a length limit, so a very long report is cut down (Copy always has all of it)
                     val body = engine.feedbackReport(note).take(5000)
                     val url = "https://github.com/${BuildConfig.UPDATE_REPO}/issues/new?title=" + android.net.Uri.encode(title) + "&body=" + android.net.Uri.encode(body)
                     try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                    catch (e: Exception) { engine.toast("No browser on this unit: use Copy instead", 3500) }
+                    catch (e: Exception) { engine.toast(L.t("No browser on this unit: use Copy instead"), 3500) }
                     onClose()
                 }
             }
@@ -1253,24 +1261,24 @@ private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
     val c = LocalVw.current
     // land, water, park, road, building
     val sets = listOf(
-        Triple("mapbox", "Mapbox", listOf(0xFFEDEFE9, 0xFF9CCBF0, 0xFFC6E4B4, 0xFFFFFFFF, 0xFFDCDCE0)),
-        Triple("horizon", "Horizon", listOf(0xFFF4F2EE, 0xFFAADAF5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE7E5E1)),
-        Triple("twilight", "Twilight", listOf(0xFFF1F0F5, 0xFFAAD4F5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE5E3EA)),
-        Triple("faded", "Faded", listOf(0xFFF1F1F1, 0xFFD9E2EA, 0xFFE2E8DE, 0xFFFFFFFF, 0xFFE6E6E6)),
-        Triple("grey", "Grey", listOf(0xFFE8E8E8, 0xFFCFCFCF, 0xFFDADADA, 0xFFFFFFFF, 0xFFD4D4D4)),
-        Triple("ember", "Ember", listOf(0xFFF3EEE6, 0xFFB8D0DC, 0xFFD6E4C4, 0xFFFFFFFF, 0xFFE6DDD0)),
-        Triple("mono", "Mono Night", listOf(0xFFEFEFEF, 0xFFD4D4D4, 0xFFDEDEDE, 0xFFFFFFFF, 0xFFE2E2E2)),
-        Triple("forest", "Forest", listOf(0xFFEEF0E6, 0xFFA8CFC8, 0xFFBCDCAE, 0xFFFFFFFF, 0xFFE0E2D4)),
-        Triple("arctic", "Arctic", listOf(0xFFF2F6FA, 0xFFBFE0F5, 0xFFD8ECEA, 0xFFFFFFFF, 0xFFE4ECF4)),
-        Triple("contrast", "High Contrast", listOf(0xFFFFFFFF, 0xFF7CC4F0, 0xFFB4E0A4, 0xFF222222, 0xFFD8D8D8)),
-        Triple("sepia", "Sepia", listOf(0xFFEFE4CF, 0xFFC8D2C0, 0xFFD8DCB4, 0xFFFAF4E6, 0xFFE2D4B8)),
-        Triple("neon", "Neon", listOf(0xFFECEBF4, 0xFFA8E4F4, 0xFFC8ECD4, 0xFFFFFFFF, 0xFFE2E0EE)),
-        Triple("pastel", "Pastel", listOf(0xFFF6F3F0, 0xFFCFE4F2, 0xFFDCECD6, 0xFFFFFFFF, 0xFFECE8E6)),
-        Triple("car", "Match my car", listOf(0xFF1A1424, 0xFF14182C, 0xFF232C30, 0xFF5A4A6E, 0xFF2A2240)),
-        Triple("custom", "Custom", listOf(0xFF26304C, 0xFF2F6FB0, 0xFF3F7A5A, 0xFF8A93AE, 0xFFE0A84A)),
+        Triple("mapbox", L.t("Mapbox"), listOf(0xFFEDEFE9, 0xFF9CCBF0, 0xFFC6E4B4, 0xFFFFFFFF, 0xFFDCDCE0)),
+        Triple("horizon", L.t("Horizon"), listOf(0xFFF4F2EE, 0xFFAADAF5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE7E5E1)),
+        Triple("twilight", L.t("Twilight"), listOf(0xFFF1F0F5, 0xFFAAD4F5, 0xFFCDEBC4, 0xFFFFFFFF, 0xFFE5E3EA)),
+        Triple("faded", L.t("Faded"), listOf(0xFFF1F1F1, 0xFFD9E2EA, 0xFFE2E8DE, 0xFFFFFFFF, 0xFFE6E6E6)),
+        Triple("grey", L.t("Grey"), listOf(0xFFE8E8E8, 0xFFCFCFCF, 0xFFDADADA, 0xFFFFFFFF, 0xFFD4D4D4)),
+        Triple("ember", L.t("Ember"), listOf(0xFFF3EEE6, 0xFFB8D0DC, 0xFFD6E4C4, 0xFFFFFFFF, 0xFFE6DDD0)),
+        Triple("mono", L.t("Mono Night"), listOf(0xFFEFEFEF, 0xFFD4D4D4, 0xFFDEDEDE, 0xFFFFFFFF, 0xFFE2E2E2)),
+        Triple("forest", L.t("Forest"), listOf(0xFFEEF0E6, 0xFFA8CFC8, 0xFFBCDCAE, 0xFFFFFFFF, 0xFFE0E2D4)),
+        Triple("arctic", L.t("Arctic"), listOf(0xFFF2F6FA, 0xFFBFE0F5, 0xFFD8ECEA, 0xFFFFFFFF, 0xFFE4ECF4)),
+        Triple("contrast", L.t("High Contrast"), listOf(0xFFFFFFFF, 0xFF7CC4F0, 0xFFB4E0A4, 0xFF222222, 0xFFD8D8D8)),
+        Triple("sepia", L.t("Sepia"), listOf(0xFFEFE4CF, 0xFFC8D2C0, 0xFFD8DCB4, 0xFFFAF4E6, 0xFFE2D4B8)),
+        Triple("neon", L.t("Neon"), listOf(0xFFECEBF4, 0xFFA8E4F4, 0xFFC8ECD4, 0xFFFFFFFF, 0xFFE2E0EE)),
+        Triple("pastel", L.t("Pastel"), listOf(0xFFF6F3F0, 0xFFCFE4F2, 0xFFDCECD6, 0xFFFFFFFF, 0xFFECE8E6)),
+        Triple("car", L.t("Match my car"), listOf(0xFF1A1424, 0xFF14182C, 0xFF232C30, 0xFF5A4A6E, 0xFF2A2240)),
+        Triple("custom", L.t("Custom"), listOf(0xFF26304C, 0xFF2F6FB0, 0xFF3F7A5A, 0xFF8A93AE, 0xFFE0A84A)),
     )
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        SItem("Colours", "Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Mono Night: greys, with only the route and warnings in colour. Match my car: a hint of your car's interior lighting colour. Custom: your own colours. Day colours shown (Match my car at night); each has a night version")
+        SItem(L.t("Colours"), L.t("Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Mono Night: greys, with only the route and warnings in colour. Match my car: a hint of your car's interior lighting colour. Custom: your own colours. Day colours shown (Match my car at night); each has a night version"))
         Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             for ((id, name, cols) in sets) {
                 val sel = id == value
@@ -1389,10 +1397,10 @@ private fun SettingsMapPreview(engine: NavEngine, heightDp: Int) {
         MapHost(engine.map, Modifier.fillMaxSize(), cornerDp = 20)
         // (touches stop here: the preview only shows)
         Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } } })
-        Text("Live preview", color = Color.White, fontSize = 12.sp,
+        Text(L.t("Live preview"), color = Color.White, fontSize = 12.sp,
             modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x99000000)).padding(horizontal = 10.dp, vertical = 4.dp))
         Row(Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x99000000))) {
-            for ((id, label) in listOf("day" to "Day", "night" to "Night", "now" to "Now")) {
+            for ((id, label) in listOf("day" to L.t("Day"), "night" to L.t("Night"), "now" to L.t("Now"))) {
                 val sel = id == mode
                 Box(Modifier.background(if (sel) c.accent else Color.Transparent).pressClick { mode = id }.padding(horizontal = 14.dp, vertical = 7.dp)) {
                     Text(label, color = Color.White, fontSize = 13.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal)

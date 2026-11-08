@@ -1,6 +1,7 @@
 package com.headunit.launcher.car
 
 import com.headunit.launcher.PreferenceKeys
+import com.headunit.launcher.L
 import android.app.Presentation
 import android.content.Intent
 import android.content.res.Configuration
@@ -128,11 +129,11 @@ class CarNavSession : Session() {
                 val p = t?.pos
                 val q = t?.query?.trim().orEmpty()
                 when {
-                    p != null -> e.startRoute(Place(t?.name ?: "Destination", "From Google Assistant", p))
+                    p != null -> e.startRoute(Place(t?.name ?: L.t("Destination"), L.t("From Google Assistant"), p))
                     q.equals("home", true) && e.places.slot("home") != null -> e.startRoute(e.places.slot("home")!!)
                     q.equals("work", true) && e.places.slot("work") != null -> e.startRoute(e.places.slot("work")!!)
                     q.isNotEmpty() -> ms.screenManager.push(SearchScreen(carContext, holder, q, autoGo = true))
-                    else -> try { androidx.car.app.CarToast.makeText(carContext, "Couldn't read a place from that", androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
+                    else -> try { androidx.car.app.CarToast.makeText(carContext, L.t("Couldn't read a place from that"), androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
                 }
             }
         }.apply { isDaemon = true; name = "car-nav-intent" }
@@ -218,7 +219,7 @@ class CarNavSession : Session() {
         engine.isCar = true
         ClusterLink.engine = engine
         // (the app's own short messages don't show on the car screen: a tapped number-plate camera says what it is with Android Auto's)
-        map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, "Number-plate camera" + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }
+        map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }
         // back in the car: the "Your car" spot on the phone isn't needed any more
         try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine
@@ -501,7 +502,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             try {
                 if (guiding) {
                     nav?.navigationStarted()
-                    try { NavService.start(holder.carContext.applicationContext, "Navigating to ${e.dest?.name ?: "your destination"}") } catch (x: Exception) { }
+                    try { NavService.start(holder.carContext.applicationContext, L.t("Navigating to {0}", e.dest?.name ?: L.t("your destination"))) } catch (x: Exception) { }
                 } else {
                     nav?.navigationEnded()
                     // (the phone may still be guiding a trip of its own: then its background GPS service stays on)
@@ -527,7 +528,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
     private fun icon(res: Int) = CarIcon.Builder(IconCompat.createWithResource(carContext, res)).build()
 
     /** Report (police, crash, hazard...): opens the "Report here" screen. It has the Search button's place. */
-    private fun reportAction(): Action = Action.Builder().setTitle("Report")
+    private fun reportAction(): Action = Action.Builder().setTitle(L.t("Report"))
         .setOnClickListener { screenManager.push(ReportScreen(carContext, holder)) }.build()
 
     override fun onGetTemplate(): Template {
@@ -537,11 +538,11 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val previewing = e != null && e.route != null && e.previewing
         if (previewing) {
             // the route choice (drawn by the app on the map): start, try the next route, or cancel
-            strip.addAction(Action.Builder().setTitle("Start").setOnClickListener { e?.beginNavigation(); invalidate() }.build())
-            if ((e?.routes?.size ?: 0) > 1) strip.addAction(Action.Builder().setTitle("Next route").setOnClickListener {
+            strip.addAction(Action.Builder().setTitle(L.t("Start")).setOnClickListener { e?.beginNavigation(); invalidate() }.build())
+            if ((e?.routes?.size ?: 0) > 1) strip.addAction(Action.Builder().setTitle(L.t("Next route")).setOnClickListener {
                 e?.let { en -> en.selectRoute((en.active + 1) % en.routes.size.coerceAtMost(3)) }; invalidate()
             }.build())
-            strip.addAction(Action.Builder().setTitle("Cancel").setOnClickListener { e?.endRoute(); invalidate() }.build())
+            strip.addAction(Action.Builder().setTitle(L.t("Cancel")).setOnClickListener { e?.endRoute(); invalidate() }.build())
             return NavigationTemplate.Builder().setActionStrip(strip.build()).build()
         }
         // voice guidance: all / alerts only / off (the same as the app's sound button)
@@ -553,12 +554,12 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val fr = e?.faster
         if (guiding && fr != null) {
             // a faster route turned up: switch or keep (also on the map card, for cars that pass taps on)
-            strip.addAction(Action.Builder().setTitle("Switch −${fr.savedMin} min").setOnClickListener { e?.acceptFaster(); invalidate() }.build())
-            strip.addAction(Action.Builder().setTitle("Keep").setOnClickListener { e?.dismissFaster(); invalidate() }.build())
+            strip.addAction(Action.Builder().setTitle(L.t("Switch −{0} min", fr.savedMin)).setOnClickListener { e?.acceptFaster(); invalidate() }.build())
+            strip.addAction(Action.Builder().setTitle(L.t("Keep")).setOnClickListener { e?.dismissFaster(); invalidate() }.build())
             strip.addAction(sound)
         } else if (guiding) {
             // only four fit: Settings stays while navigating (2D / 3D is the first row in it)
-            strip.addAction(Action.Builder().setTitle("Stop").setOnClickListener { e?.endRoute(); invalidate() }.build())
+            strip.addAction(Action.Builder().setTitle(L.t("Stop")).setOnClickListener { e?.endRoute(); invalidate() }.build())
             // the demo drive (for trying it out parked; only with Demo switched on in Settings, as in the app): starts it, speeds it
             // up, stops it. It has Report's place while it's on
             if (demoOn) strip.addAction(Action.Builder().setTitle(when (e?.simMode ?: 0) { 0 -> "Demo"; 1 -> "Faster"; else -> "End demo" })
@@ -571,7 +572,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             // the car's buttons can only reach Android Auto's own buttons, never the search bar and chips the app draws on the map
             // (cars that pass taps on still have those too)
             strip.addAction(reportAction())
-            strip.addAction(Action.Builder().setTitle("Places").setOnClickListener { screenManager.push(PlacesScreen(carContext, holder)) }.build())
+            strip.addAction(Action.Builder().setTitle(L.t("Places")).setOnClickListener { screenManager.push(PlacesScreen(carContext, holder)) }.build())
             strip.addAction(view)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_settings)).setOnClickListener { openSettings() }.build())
         }
@@ -592,7 +593,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val est = estimate(eta.dist, eta.secs, e.imperial)
         val tb = Trip.Builder().addStep(step(e, t, carContext), estimate(t.dist, 0.0, e.imperial))
         val d = e.dest
-        tb.addDestination(Destination.Builder().setName(d?.name ?: "Destination").setAddress(d?.sub ?: "").build(), est)
+        tb.addDestination(Destination.Builder().setName(d?.name ?: L.t("Destination")).setAddress(d?.sub ?: "").build(), est)
         if (e.roadNow.isNotBlank()) tb.setCurrentRoad(e.roadNow)
         return tb.build()
     }
@@ -742,10 +743,10 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
             if (type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW) mb.setRoundaboutExitNumber(t.exit.coerceAtLeast(1))
             val what = when {
-                type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW -> "Take exit ${t.exit}"
-                m.startsWith("ARRIVE") -> "Arrive"
+                type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW -> L.t("Take exit {0}", t.exit)
+                m.startsWith("ARRIVE") -> L.t("Arrive")
                 t.tag.isNotBlank() -> t.tag
-                else -> m.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                else -> com.headunit.launcher.Geo.maneuverText(m, t.exit).replaceFirstChar { it.uppercase() }
             }
             val cue = if (t.street.isNotBlank()) "$what · ${t.street}" else what
             val sb = Step.Builder(cue).setManeuver(mb.build())
@@ -794,11 +795,11 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
     override fun onGetTemplate(): Template {
         val e = holder.engine
         val limit = try { carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST) } catch (x: Exception) { 6 }
-        val list = ItemList.Builder().setNoItemsMessage(if (e == null) "Starting the map…" else "No saved or recent places yet")
+        val list = ItemList.Builder().setNoItemsMessage(L.t(if (e == null) "Starting the map…" else "No saved or recent places yet"))
         // Search first: on cars that don't pass taps on to the map, this is the way in to it (the Search button is Report now)
         var shownRows = 0
         if (e != null) {
-            list.addItem(Row.Builder().setTitle("Search").addText("Type or say where to")
+            list.addItem(Row.Builder().setTitle(L.t("Search")).addText(L.t("Type or say where to"))
                 .setImage(rowIcon(carContext, R.drawable.ic_car_search, 0xFF9CA4BF.toInt()))
                 .setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
             shownRows = 1
@@ -806,8 +807,8 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
         if (e != null) {
             // (label, place, icon, colour) in the app's colours: Home blue, Work amber, saved teal, favourites gold, recent grey
             val all = ArrayList<Triple<String, Place, Pair<Int, Int>>>()
-            e.places.slot("home")?.let { all += Triple("Home", it, R.drawable.ic_car_home to 0xFF4C8DFF.toInt()) }
-            e.places.slot("work")?.let { all += Triple("Work", it, R.drawable.ic_car_work to 0xFFF29900.toInt()) }
+            e.places.slot("home")?.let { all += Triple(L.t("Home"), it, R.drawable.ic_car_home to 0xFF4C8DFF.toInt()) }
+            e.places.slot("work")?.let { all += Triple(L.t("Work"), it, R.drawable.ic_car_work to 0xFFF29900.toInt()) }
             for (c in e.places.customs()) all += Triple(c.label, c.place, R.drawable.ic_car_star to 0xFF12A4B4.toInt())
             for (p in e.places.favourites()) all += Triple(p.name, p, R.drawable.ic_car_star to 0xFFF2C230.toInt())
             for (p in e.places.recents()) all += Triple(p.name, p, R.drawable.ic_car_history to 0xFF9CA4BF.toInt())
@@ -824,7 +825,7 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
                 list.addItem(r.build())
             }
         }
-        return ListTemplate.Builder().setTitle("Places").setHeaderAction(Action.BACK).setSingleList(list.build()).build()
+        return ListTemplate.Builder().setTitle(L.t("Places")).setHeaderAction(Action.BACK).setSingleList(list.build()).build()
     }
 
     private fun go(e: NavEngine, p: Place) {
@@ -855,18 +856,18 @@ class AltRoutesScreen(carContext: CarContext, private val holder: CarHolder) : S
     override fun onGetTemplate(): Template {
         val e = holder.engine
         val alts = e?.liveAlts ?: emptyList()
-        val b = ListTemplate.Builder().setTitle("Other routes").setHeaderAction(Action.BACK)
+        val b = ListTemplate.Builder().setTitle(L.t("Other routes")).setHeaderAction(Action.BACK)
         if (alts.isEmpty()) {
             if (System.currentTimeMillis() - asked < 20_000L) return b.setLoading(true).build()
-            return b.setSingleList(ItemList.Builder().setNoItemsMessage("No other routes right now").build()).build()
+            return b.setSingleList(ItemList.Builder().setNoItemsMessage(L.t("No other routes right now")).build()).build()
         }
         val list = ItemList.Builder()
         for ((i, a) in alts.withIndex()) {
-            val diff = when { a.diffMin > 0 -> "${a.diffMin} min slower"; a.diffMin < 0 -> "${-a.diffMin} min faster"; else -> "About the same time" }
+            val diff = when { a.diffMin > 0 -> L.t("{0} min slower", a.diffMin); a.diffMin < 0 -> L.t("{0} min faster", -a.diffMin); else -> L.t("About the same time") }
             // (the first named road after it leaves your route)
             val split = a.route.cum.getOrNull(a.divIdx) ?: 0.0
             val via = a.route.steps.firstOrNull { it.off > split && it.street.isNotBlank() }?.street
-            list.addItem(Row.Builder().setTitle(diff).apply { if (via != null) addText("Via $via") }
+            list.addItem(Row.Builder().setTitle(diff).apply { if (via != null) addText(L.t("Via {0}", via)) }
                 .setOnClickListener { e?.switchToAlt(i); screenManager.pop() }.build())
         }
         return b.setSingleList(list.build()).build()
@@ -876,11 +877,11 @@ class AltRoutesScreen(carContext: CarContext, private val holder: CarHolder) : S
 class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Screen(carContext) {
     override fun onGetTemplate(): Template {
         val kinds = listOf(
-            Triple("police", "Police", R.drawable.ic_car_police to 0xFF8AB4F8.toInt()),
-            Triple("accident", "Crash", R.drawable.ic_car_crash to 0xFFF28B82.toInt()),
-            Triple("hazard", "Hazard", R.drawable.ic_car_report to 0xFFFBBC04.toInt()),
-            Triple("breakdown", "Broken down", R.drawable.ic_car_breakdown to 0xFFFCAD70.toInt()),
-            Triple("mobilecam", "Mobile camera", R.drawable.ic_car_mobilecam to 0xFF8AB4F8.toInt()),
+            Triple("police", L.t("Police"), R.drawable.ic_car_police to 0xFF8AB4F8.toInt()),
+            Triple("accident", L.t("Crash"), R.drawable.ic_car_crash to 0xFFF28B82.toInt()),
+            Triple("hazard", L.t("Hazard"), R.drawable.ic_car_report to 0xFFFBBC04.toInt()),
+            Triple("breakdown", L.t("Broken down"), R.drawable.ic_car_breakdown to 0xFFFCAD70.toInt()),
+            Triple("mobilecam", L.t("Mobile camera"), R.drawable.ic_car_mobilecam to 0xFF8AB4F8.toInt()),
         )
         val list = ItemList.Builder()
         for ((kind, label, ic) in kinds) list.addItem(
@@ -888,16 +889,16 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
                 .setOnClickListener { send(kind) }.build()
         )
         // Search here too: Report has the Search button's place, and this is the way to search while navigating (a stop on the way)
-        list.addItem(GridItem.Builder().setTitle("Search").setImage(rowIcon(carContext, R.drawable.ic_car_search, 0xFFE8EAED.toInt()), GridItem.IMAGE_TYPE_LARGE)
+        list.addItem(GridItem.Builder().setTitle(L.t("Search")).setImage(rowIcon(carContext, R.drawable.ic_car_search, 0xFFE8EAED.toInt()), GridItem.IMAGE_TYPE_LARGE)
             .setOnClickListener { screenManager.push(SearchScreen(carContext, holder)) }.build())
-        return GridTemplate.Builder().setTitle("Report here").setHeaderAction(Action.BACK).setSingleList(list.build()).build()
+        return GridTemplate.Builder().setTitle(L.t("Report here")).setHeaderAction(Action.BACK).setSingleList(list.build()).build()
     }
 
     private fun send(kind: String) {
         val e = holder.engine
         val msg = when {
-            e == null -> "The map is still starting"
-            e.fix == null -> "Waiting for GPS"
+            e == null -> L.t("The map is still starting")
+            e.fix == null -> L.t("Waiting for GPS")
             else -> null
         }
         if (msg != null || e == null) {
@@ -933,7 +934,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                     autoGo = false
                     val p = r.first()
                     e.startRoute(p)
-                    try { androidx.car.app.CarToast.makeText(carContext, "Going to ${p.name}", androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
+                    try { androidx.car.app.CarToast.makeText(carContext, L.t("Going to {0}", p.name), androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
                     try { screenManager.popToRoot() } catch (x: Exception) { }
                     return
                 }
@@ -956,7 +957,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
     override fun onGetTemplate(): Template {
         val e = holder.engine
         val limit = try { carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST) } catch (x: Exception) { 6 }
-        val list = ItemList.Builder().setNoItemsMessage(if (query.length < 3) "Type a place, address or postcode" else "Searching…")
+        val list = ItemList.Builder().setNoItemsMessage(L.t(if (query.length < 3) "Type a place, address or postcode" else "Searching…"))
         if (query.length >= 3) for (p in shown.take(limit.coerceIn(1, 12))) {
             // a red pin, the name, and how far it is with the address under it (as in the app's results)
             val r = Row.Builder().setTitle(p.name).setImage(rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
@@ -973,7 +974,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                 if (searchText.length >= 3) handler.postDelayed(typed, 500)
             }
             override fun onSearchSubmitted(searchText: String) { query = searchText; handler.removeCallbacks(typed); e?.search(searchText) }
-        }).setHeaderAction(Action.BACK).setSearchHint("Search for a place").setInitialSearchText(query)
+        }).setHeaderAction(Action.BACK).setSearchHint(L.t("Search for a place")).setInitialSearchText(query)
             .setShowKeyboardByDefault(query.isEmpty()).setItemList(list.build()).build()
     }
 }
@@ -1003,7 +1004,7 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
         })
     }
 
-    private val title = when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; else -> "Nearby" }
+    private val title = L.t(when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; else -> "Nearby" })
     private val iconRes = when (kind) { "fuel" -> R.drawable.ic_car_fuel; "charging" -> R.drawable.ic_car_charging; "food" -> R.drawable.ic_car_food; "coffee" -> R.drawable.ic_car_coffee; "parking" -> R.drawable.ic_car_parking; else -> R.drawable.ic_car_pin }
     private val tint = when (kind) { "fuel" -> 0xFFEA4335.toInt(); "charging" -> 0xFF34A853.toInt(); "food" -> 0xFFF29900.toInt(); "coffee" -> 0xFFA56BFF.toInt(); else -> 0xFF4C8DFF.toInt() }
 
@@ -1014,7 +1015,7 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
         val b = ListTemplate.Builder().setTitle(title).setHeaderAction(Action.BACK)
         if (busy && items.isEmpty()) return b.setLoading(true).build()
         val limit = try { carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST) } catch (x: Exception) { 6 }
-        val list = ItemList.Builder().setNoItemsMessage("Nothing found nearby")
+        val list = ItemList.Builder().setNoItemsMessage(L.t("Nothing found nearby"))
         for (n in items.take(limit.coerceIn(1, 12))) {
             val r = Row.Builder().setTitle(n.place.name).setImage(rowIcon(carContext, iconRes, tint))
             val bits = ArrayList<String>()
@@ -1046,8 +1047,8 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
     private val prefs = Prefs(carContext.applicationContext)
 
     private fun toggleRow(title: String, key: String, def: Boolean, sub: String?, after: (Boolean) -> Unit = {}): Row {
-        val r = Row.Builder().setTitle(title)
-        if (sub != null) r.addText(sub)
+        val r = Row.Builder().setTitle(L.t(title))
+        if (sub != null) r.addText(L.t(sub))
         r.setToggle(Toggle.Builder { on -> prefs.put(key, on); after(on); invalidate() }.setChecked(prefs.b(key, def)).build())
         return r.build()
     }
@@ -1059,30 +1060,30 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         // rather than being left off (the last rows used to be cut off altogether on those cars)
         val rows = ArrayList<Row>()
         // the whole route at a glance (back to following you after a while)
-        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle("Route overview")
-            .addText("See the whole route")
+        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle(L.t("Route overview"))
+            .addText(L.t("See the whole route"))
             .setOnClickListener { e.overview(); screenManager.pop() }.build()
         // other ways to go while navigating: shown on the map in grey with how they compare (tap one, or Switch on the card)
-        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle("Other routes")
-            .addText("Show other ways to go on the map")
+        if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle(L.t("Other routes"))
+            .addText(L.t("Show other ways to go on the map"))
             .setOnClickListener { screenManager.push(AltRoutesScreen(carContext, holder)) }.build()
         // 2D / 3D (its button gives way to Settings while navigating)
-        if (e != null) rows += Row.Builder().setTitle(if (e.tilt3d) "View: 3D" else "View: 2D")
-            .addText(if (e.tilt3d) "Tap to switch to 2D" else "Tap to switch to 3D")
+        if (e != null) rows += Row.Builder().setTitle(L.t(if (e.tilt3d) "View: 3D" else "View: 2D"))
+            .addText(L.t(if (e.tilt3d) "Tap to switch to 2D" else "Tap to switch to 3D"))
             .setOnClickListener { e.toggleTilt(); invalidate() }.build()
         val sm = e?.soundMode ?: prefs.i(PreferenceKeys.SOUND_MODE, 0)
-        rows += Row.Builder().setTitle("Voice guidance")
-            .addText(listOf("All directions and alerts", "Alerts only (cameras, limits, hazards)", "Off")[sm.coerceIn(0, 2)])
+        rows += Row.Builder().setTitle(L.t("Voice guidance"))
+            .addText(L.t(listOf("All directions and alerts", "Alerts only (cameras, limits, hazards)", "Off")[sm.coerceIn(0, 2)]))
             .setImage(CarIcon.Builder(IconCompat.createWithResource(carContext, when (sm) { 0 -> R.drawable.ic_car_sound_on; 1 -> R.drawable.ic_car_sound_alerts; else -> R.drawable.ic_car_sound_off })).build())
             .setOnClickListener { if (e != null) e.cycleSound() else prefs.put(PreferenceKeys.SOUND_MODE, (sm + 1) % 3); invalidate() }.build()
         // north up or turning with you (GitHub #39)
         val nu = e?.northUp ?: prefs.b(PreferenceKeys.NORTH_UP_CAR, false)
-        rows += Row.Builder().setTitle("Map direction")
-            .addText(if (nu) "North up · tap to turn with you" else "Turns with you · tap for North up")
+        rows += Row.Builder().setTitle(L.t("Map direction"))
+            .addText(L.t(if (nu) "North up · tap to turn with you" else "Turns with you · tap for North up"))
             .setOnClickListener { if (e != null) e.toggleNorthUp() else prefs.put(PreferenceKeys.NORTH_UP_CAR, !nu); invalidate() }.build()
         val th = prefs.s(PreferenceKeys.CARTHEME, "car")
-        rows += Row.Builder().setTitle("Day and night")
-            .addText(when (th) { "day" -> "Always day"; "night" -> "Always night"; else -> "Follows the car" })
+        rows += Row.Builder().setTitle(L.t("Day and night"))
+            .addText(L.t(when (th) { "day" -> "Always day"; "night" -> "Always night"; else -> "Follows the car" }))
             .setOnClickListener {
                 prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "day"; "day" -> "night"; else -> "car" })
                 onTheme(); invalidate()
@@ -1096,8 +1097,8 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         // Android Auto's templated UI does not expose a native continuous slider here,
         // so these step through sensible values on each tap (the same settings as the app's Settings > Android Auto)
         val uiScale = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300)
-        rows += Row.Builder().setTitle("Overall size")
-            .addText("${uiScale}% · tap to cycle from 40% to 300%")
+        rows += Row.Builder().setTitle(L.t("Overall size"))
+            .addText(L.t("{0}% · tap to cycle from 40% to 300%", uiScale))
             .setOnClickListener {
                 val levels = listOf(40, 60, 80, 100, 120, 140, 160, 180, 200, 225, 250, 275, 300)
                 val next = levels[(levels.indexOf(uiScale).takeIf { it >= 0 } ?: 3).let { (it + 1) % levels.size }]
@@ -1106,8 +1107,8 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             }.build()
         // the car screen's own arrow size (it used to change the phone's arrow size too)
         val arrowSize = prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180)
-        rows += Row.Builder().setTitle("Arrow size")
-            .addText("${arrowSize}% · tap to change (30% to 180%)")
+        rows += Row.Builder().setTitle(L.t("Arrow size"))
+            .addText(L.t("{0}% · tap to change (30% to 180%)", arrowSize))
             .setOnClickListener {
                 val levels = listOf(30, 45, 60, 80, 100, 120, 140, 160, 180)
                 val next = levels[(levels.indexOf(arrowSize).takeIf { it >= 0 } ?: 2).let { (it + 1) % levels.size }]
@@ -1117,18 +1118,18 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             }.build()
         // where the speed sign sits on the car screen (the same setting as the app's Settings > Android Auto)
         val spPos = prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
-        rows += Row.Builder().setTitle("Speed sign position")
-            .addText(when (spPos) { "middle" -> "Middle"; "top" -> "Top"; else -> "Bottom" } + " · tap to change")
+        rows += Row.Builder().setTitle(L.t("Speed sign position"))
+            .addText(L.t(when (spPos) { "middle" -> "Middle"; "top" -> "Top"; else -> "Bottom" }) + L.t(" · tap to change"))
             .setOnClickListener { prefs.put(PreferenceKeys.SPEED_POS_CAR, when (spPos) { "bottom" -> "middle"; "middle" -> "top"; else -> "bottom" }); invalidate() }.build()
         // 12 or 24-hour times (the same setting as the app's Settings > Units)
         val clock = prefs.s(PreferenceKeys.CLOCK, "auto")
-        rows += Row.Builder().setTitle("Clock")
-            .addText(when (clock) { "24" -> "24-hour"; "12" -> "12-hour"; else -> "Automatic (as the phone)" } + " · tap to change")
+        rows += Row.Builder().setTitle(L.t("Clock"))
+            .addText(L.t(when (clock) { "24" -> "24-hour"; "12" -> "12-hour"; else -> "Automatic (as the phone)" }) + L.t(" · tap to change"))
             .setOnClickListener { prefs.put(PreferenceKeys.CLOCK, when (clock) { "auto" -> "24"; "24" -> "12"; else -> "auto" }); invalidate() }.build()
         // the map on the screen behind the steering wheel, on cars that offer it (a second map for the phone to draw)
         val cluster = prefs.b(PreferenceKeys.CLUSTER_MAP, true)
-        rows += Row.Builder().setTitle("Map on the driver's display")
-            .addText(if (cluster) "On (on cars that offer it) · tap to turn off" else "Off · tap to turn on")
+        rows += Row.Builder().setTitle(L.t("Map on the driver's display"))
+            .addText(L.t(if (cluster) "On (on cars that offer it) · tap to turn off" else "Off · tap to turn on"))
             .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_MAP, !cluster); invalidate() }.build()
         val max = limit.coerceIn(2, 12)
         val list = ItemList.Builder()
@@ -1136,9 +1137,9 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         val rest = rows.drop(start)
         if (rest.size > max) {
             for (r in rest.take(max - 1)) list.addItem(r)
-            list.addItem(Row.Builder().setTitle("More settings").addText("${rest.size - (max - 1)} more")
+            list.addItem(Row.Builder().setTitle(L.t("More settings")).addText(L.t("{0} more", rest.size - (max - 1)))
                 .setBrowsable(true).setOnClickListener { screenManager.push(CarSettingsScreen(carContext, holder, page + 1, onTheme)) }.build())
         } else for (r in rest) list.addItem(r)
-        return ListTemplate.Builder().setTitle(if (page == 0) "Settings" else "More settings").setHeaderAction(Action.BACK).setSingleList(list.build()).build()
+        return ListTemplate.Builder().setTitle(L.t(if (page == 0) "Settings" else "More settings")).setHeaderAction(Action.BACK).setSingleList(list.build()).build()
     }
 }

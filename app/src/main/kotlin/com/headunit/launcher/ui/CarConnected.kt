@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,27 +47,27 @@ internal fun CarConnectedScreen(engine: NavEngine, onShowMap: () -> Unit, onSett
             Box(Modifier.size(84.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.DirectionsCar, null, tint = c.accent, modifier = Modifier.size(44.dp))
             }
-            Text(if (guiding) "Navigating on your car screen" else "Horizon Nav is on your car screen", color = c.text, fontSize = 24.sp,
+            Text(if (guiding) L.t("Navigating on your car screen") else L.t("Horizon Nav is on your car screen"), color = c.text, fontSize = 24.sp,
                 fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
             if (guiding && e != null) {
                 val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
                 Column(Modifier.panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(horizontal = 22.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(engine.dest?.name ?: "Your destination", color = c.text, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(engine.dest?.name ?: L.t("Your destination"), color = c.text, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Row(horizontalArrangement = Arrangement.spacedBy(26.dp), verticalAlignment = Alignment.CenterVertically) {
-                        ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) "+${e.delayMin} min traffic" else "time left", dc)
+                        ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) L.t("+{0} min traffic", e.delayMin) else L.t("time left"), dc)
                         ImmStat(e.arrive, "arrival", c.text)
-                        ImmStat(Geo.fmtDist(e.dist, engine.imperial), "to go", c.text)
+                        ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text)
                     }
                 }
-                ImmPill("End route", { engine.endRoute() }, icon = Icons.Rounded.Close)
+                ImmPill(L.t("End route"), { engine.endRoute() }, icon = Icons.Rounded.Close)
             } else {
-                Text("Pick where to go on the car screen, or share a place to Horizon Nav from any app and it appears there.",
+                Text(L.t("Pick where to go on the car screen, or share a place to Horizon Nav from any app and it appears there."),
                     color = c.sub, fontSize = 15.sp, textAlign = TextAlign.Center)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmPill("Show the map here", onShowMap, icon = Icons.Rounded.Map)
-                ImmPill("Settings", onSettings, icon = Icons.Rounded.Settings)
+                ImmPill(L.t("Show the map here"), onShowMap, icon = Icons.Rounded.Map)
+                ImmPill(L.t("Settings"), onSettings, icon = Icons.Rounded.Settings)
             }
         }
     }

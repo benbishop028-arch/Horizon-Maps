@@ -125,6 +125,7 @@ internal val settingsIndex = listOf(
     SettingRef("Warn about reports ahead", "", "Your reports", 6),
     SettingRef("Reports still active", "How many reports are still showing", "Your reports", 6),
     SettingRef("Spoken guidance", "", "Directions", 7),
+    SettingRef("Language", "Spoken directions in English, Dutch, German, French or Spanish (taal, Sprache, langue, idioma)", "Directions", 7),
     SettingRef("Say road names", "Just the direction, without the road or the places on the signs", "Directions", 7),
     SettingRef("Smarter directions", "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot", "Directions", 7),
     SettingRef("Voice channel", "If you hear the beeps but not the spoken directions", "Voice and volume", 7),

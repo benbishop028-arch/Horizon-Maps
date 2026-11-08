@@ -19,7 +19,7 @@ class HabitStore(private val prefs: Prefs) {
     }
 
     fun record(p: Place) {
-        if (p.name == "Dropped pin" || p.name == "My car") return
+        if (p.name == "Dropped pin" || p.name == L.t("Dropped pin") || p.name == "My car") return
         val list = (all() + Rec(p.name, p.sub, p.pos.lat, p.pos.lon, System.currentTimeMillis())).takeLast(250)
         val a = JSONArray()
         list.forEach { a.put(JSONObject().put("n", it.name).put("s", it.sub).put("a", it.lat).put("o", it.lon).put("t", it.t)) }

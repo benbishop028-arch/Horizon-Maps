@@ -1,5 +1,7 @@
 package com.headunit.launcher.ui
 
+import com.headunit.launcher.L
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -59,8 +61,8 @@ import com.headunit.launcher.NavEngine
 @Composable
 internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
     val c = LocalVw.current
-    val dropped = h.place.name == "Dropped pin"
-    val title = if (!dropped) h.place.name else h.road.ifBlank { if (h.loading) "Looking…" else "This spot" }
+    val dropped = h.place.name == L.t("Dropped pin")
+    val title = if (!dropped) h.place.name else h.road.ifBlank { if (h.loading) L.t("Looking…") else L.t("This spot") }
     val accent = landColour(h.landClass, h.roadClass)
     Column(
         Modifier.widthIn(max = 480.dp).fillMaxWidth().padding(horizontal = 16.dp).panel(12.dp, RoundedCornerShape(24.dp), c.surface),
@@ -87,7 +89,7 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
                     if (h.limitEstimated) Text("usual", color = c.sub, fontSize = 10.sp, modifier = Modifier.padding(top = 2.dp))
                 }
                 Box(Modifier.size(40.dp).clip(CircleShape).pressClick { engine.here = null }, contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.Close, "Close", tint = c.sub, modifier = Modifier.size(22.dp))
+                    Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(22.dp))
                 }
             }
             // what the land is, and how far it is
@@ -106,7 +108,7 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
                 ) {
                     Icon(Icons.Rounded.Navigation, null, tint = Color.White, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text(if (driving) "Go here instead" else "Go", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (driving) L.t("Go here instead") else L.t("Go"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
                 if (driving) Row(
                     Modifier.clip(RoundedCornerShape(24.dp)).background(c.tile).pressClick { engine.hereGo(true) }.padding(horizontal = 16.dp, vertical = 11.dp),
@@ -114,14 +116,14 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
                 ) {
                     Icon(Icons.Rounded.AddLocationAlt, null, tint = c.text, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Add as a stop", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(L.t("Add as a stop"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Spacer(Modifier.weight(1f))
                 var saved by remember(h.place) { mutableStateOf(engine.places.favourites().any { Geo.dist(it.pos, h.place.pos) < 15.0 }) }
                 Box(
                     Modifier.size(46.dp).clip(CircleShape).background(if (saved) Color(0x33FFC83D) else c.tile).pressClick { saved = engine.hereSave() },
                     contentAlignment = Alignment.Center,
-                ) { Icon(if (saved) Icons.Rounded.Star else Icons.Rounded.StarBorder, "Save", tint = if (saved) Color(0xFFFFC83D) else c.text, modifier = Modifier.size(24.dp)) }
+                ) { Icon(if (saved) Icons.Rounded.Star else Icons.Rounded.StarBorder, L.t("Save"), tint = if (saved) Color(0xFFFFC83D) else c.text, modifier = Modifier.size(24.dp)) }
             }
         }
     }

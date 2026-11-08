@@ -272,6 +272,7 @@ internal object PreferenceKeys {
     const val ZONEWARN = "zonewarn"
     const val TT_MAP_FIX = "ttmapfix"
     const val VOICE_CHANNEL = "voicechan"
+    const val APP_LANG = "applang"
     const val TANKERKOENIG_KEY = "tkkey"
     /** NSW FuelCheck (Australia: New South Wales and Tasmania): the API key and secret from api.nsw.gov.au. */
     const val NSW_FUEL_KEY = "nswkey"
