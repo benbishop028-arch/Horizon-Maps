@@ -55,8 +55,12 @@ object CarLink {
     } catch (e: Exception) { null }
 
     /** Sends [p] to the car paired with [code]. Throws when it can't. */
-    fun send(code: String, p: Place) {
-        val body = JSONObject().put("n", p.name).put("s", p.sub).put("la", p.pos.lat).put("lo", p.pos.lon).put("t", System.currentTimeMillis()).toString()
+    fun send(code: String, p: Place, stops: List<Place> = emptyList(), via: String = "") {
+        val o = JSONObject().put("n", p.name).put("s", p.sub).put("la", p.pos.lat).put("lo", p.pos.lon).put("t", System.currentTimeMillis())
+        // the whole planned trip: the stops on the way and the road picked (older head units just ignore these and go to the place)
+        if (stops.isNotEmpty()) o.put("v", org.json.JSONArray().apply { stops.forEach { put(JSONObject().put("n", it.name).put("s", it.sub).put("la", it.pos.lat).put("lo", it.pos.lon)) } })
+        if (via.isNotBlank()) o.put("r", via)
+        val body = o.toString()
         val c = URL(HOST + topic(code)).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000; c.readTimeout = 10000
         c.requestMethod = "POST"; c.doOutput = true
@@ -67,7 +71,7 @@ object CarLink {
         } finally { c.disconnect() }
     }
 
-    class Sent(val id: String, val place: Place, val at: Long)
+    class Sent(val id: String, val place: Place, val at: Long, val stops: List<Place> = emptyList(), val via: String = "")
 
     /** The newest place sent since [lastId] (or in the last 12 hours), or null. */
     fun latest(code: String, lastId: String): Sent? {
@@ -88,7 +92,11 @@ object CarLink {
                     if (System.currentTimeMillis() - at > 12 * 3600_000L) continue
                     val pl = Place(j.optString("n").ifBlank { "Destination" }, j.optString("s"), LL(j.optDouble("la"), j.optDouble("lo")))
                     if (pl.pos.lat.isNaN() || pl.pos.lon.isNaN()) continue
-                    if (best == null || at >= best!!.at) best = Sent(o.optString("id"), pl, at)
+                    val vs = j.optJSONArray("v")
+                    val stops = if (vs == null) emptyList() else (0 until vs.length()).mapNotNull { i ->
+                        try { val q = vs.getJSONObject(i); Place(q.optString("n"), q.optString("s"), LL(q.getDouble("la"), q.getDouble("lo"))) } catch (e: Exception) { null }
+                    }
+                    if (best == null || at >= best!!.at) best = Sent(o.optString("id"), pl, at, stops, j.optString("r"))
                 }
             }
             return best

@@ -62,6 +62,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var stoppedSince = 0L
     /** A place sent from your phone, waiting to be started (head unit). */
     var phoneDest by mutableStateOf<Place?>(null)
+    /** The stops and road picked on the phone for [phoneDest] (empty when only the place was sent). */
+    var phoneStops: List<Place> = emptyList()
+    var phoneVia = ""
     /** Additional auto-zoom adjustment for Android Auto's usable viewport. Negative values zoom out
      * on compact or narrow displays, where the same camera zoom shows too little road ahead. */
     @Volatile private var carViewportZoomOffset = 0.0
@@ -582,7 +585,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (!isCar && code.isNotBlank() && prefs.s(PreferenceKeys.LINK_ROLE, "") == "car" && appVisible && route == null && phoneDest == null && online()) {
                         val last = prefs.s(PreferenceKeys.LINK_LAST, "")
                         val got = withContext(Dispatchers.IO) { try { CarLink.latest(code, last) } catch (e: Exception) { null } }
-                        if (got != null && got.id != last) { prefs.put(PreferenceKeys.LINK_LAST, got.id); if (route == null) phoneDest = got.place }
+                        if (got != null && got.id != last) { prefs.put(PreferenceKeys.LINK_LAST, got.id); if (route == null) { phoneStops = got.stops; phoneVia = got.via; phoneDest = got.place } }
                     }
                 } catch (e: Exception) { }
                 delay(60_000)
@@ -963,6 +966,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (theme == "day") return "day"
         if (theme == "night") return "night"
         if (theme == "times") return if (dark) "night" else "day"
+        // Headlights (and the car screen following the car): only the lights decide, so a tunnel at midday goes properly dark and
+        // coming out goes straight back to day. The sun's dawn and dusk light is left out, as it would tint the map whatever the
+        // lights say. (Until the head unit has been seen switching with the lights, sun times stand in, so dark already follows them.)
+        if (theme == "lights" || (isCar && prefs.s(PreferenceKeys.CARTHEME, "car") == "car")) return if (dark) "night" else "day"
         val pos = fix?.pos ?: prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull()?.let { la -> prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull()?.let { lo -> LL(la, lo) } }
         val ph = pos?.let { Sun.phase(it.lat, it.lon, System.currentTimeMillis()) } ?: ""
         return when {
@@ -1923,7 +1930,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').map { it.trim().uppercase() }.filter { it.length == 2 }.toSet()
     }
 
-    fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false) {
+    fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false, preferVia: String = "") {
         syncRoutePrefs(fix?.pos ?: map.center(), to.pos)
         resume = null
         if (!keepVia) via = emptyList()
@@ -1962,7 +1969,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 results = emptyList()
                 stopSim()
                 if (TomTomRest.avoidDropped && !usedOffline) toast(L.t("Couldn't find a way round the areas you're avoiding, so the route goes through them"), 5000)
-                dest = to; routes = rs; active = 0
+                dest = to; routes = rs
+                // a saved (or sent) route: the choice that goes the same way as before, when one does
+                active = if (preferVia.isBlank()) 0 else rs.indexOfFirst { com.headunit.launcher.ui.viaOf(it) == preferVia }.coerceAtLeast(0)
                 prediction = null; predictionAt = 0L
                 updateRouteZones()
                 said.clear(); offCount = 0; lastIdx = 0; trustProg = -1.0
@@ -1977,7 +1986,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // (on long routes the fly-through has to load map tiles all along the way, which made the start of a trip stutter;
                 // those go straight to the overview)
                 if (!startNow && prefs.b(PreferenceKeys.CINEMATIC, true) && rs[0].len < 40_000.0) {
-                    val r0 = rs[0]
+                    val r0 = rs[active.coerceIn(0, rs.size - 1)]
                     map.flyRoute(r0.pts, r0.cum, r0.len, 50.0) { if (previewing && routes === rs) map.fit(allPts) }
                 } else map.fit(allPts)
                 waitingFor = null; waitJob?.cancel()
@@ -2691,18 +2700,84 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (code.isBlank()) { toast(L.t("Pair with your car first: Settings > Places & trips"), 4000); return }
         scope.launch {
             try {
-                withContext(Dispatchers.IO) { CarLink.send(code, p) }
+                // the planned trip goes along when it's to this place: the stops and the road picked
+                val trip = route != null && dest?.let { Geo.dist(it.pos, p.pos) < 30.0 } == true
+                val stops = if (trip) via else emptyList()
+                val road = if (trip) route?.let { com.headunit.launcher.ui.viaOf(it) }.orEmpty() else ""
+                withContext(Dispatchers.IO) { CarLink.send(code, p, stops, road) }
                 toast(L.t("Sent to your car: {0}", p.name), 3500)
                 if (previewing) endRoute()
             } catch (e: Exception) { toast(L.t("Couldn't send it: ") + (e.message ?: "no signal"), 4500) }
         }
     }
 
+    // ---- saved routes: a destination with its stops and the road picked, to plan again later (with that day's traffic) ----
+    class SavedRoute(val name: String, val dest: Place, val stops: List<Place>, val via: String)
+
+    private fun placeJson(p: Place) = org.json.JSONObject().put("n", p.name).put("s", p.sub).put("la", p.pos.lat).put("lo", p.pos.lon)
+    private fun placeOf(q: org.json.JSONObject) = Place(q.optString("n"), q.optString("s"), LL(q.getDouble("la"), q.getDouble("lo")))
+
+    fun savedRoutes(): List<SavedRoute> = try {
+        val a = org.json.JSONArray(prefs.s(PreferenceKeys.PLACES_ROUTES, "[]"))
+        (0 until a.length()).mapNotNull { i ->
+            try {
+                val o = a.getJSONObject(i)
+                val vs = o.optJSONArray("v")
+                SavedRoute(o.optString("name"), placeOf(o.getJSONObject("d")),
+                    if (vs == null) emptyList() else (0 until vs.length()).map { placeOf(vs.getJSONObject(it)) }, o.optString("r"))
+            } catch (e: Exception) { null }
+        }
+    } catch (e: Exception) { emptyList() }
+
+    private fun writeRoutes(list: List<SavedRoute>) {
+        val a = org.json.JSONArray()
+        list.forEach { r ->
+            a.put(org.json.JSONObject().put("name", r.name).put("d", placeJson(r.dest)).put("r", r.via)
+                .put("v", org.json.JSONArray().apply { r.stops.forEach { put(placeJson(it)) } }))
+        }
+        prefs.put(PreferenceKeys.PLACES_ROUTES, a.toString())
+    }
+
+    private fun sameRoute(a: SavedRoute, d: Place, stops: List<Place>, road: String) =
+        Geo.dist(a.dest.pos, d.pos) < 30.0 && a.via == road && a.stops.size == stops.size && a.stops.zip(stops).all { Geo.dist(it.first.pos, it.second.pos) < 30.0 }
+
+    /** The route being planned now is already among the saved routes. */
+    fun routeIsSaved(): Boolean {
+        val d = dest ?: return false
+        val road = route?.let { com.headunit.launcher.ui.viaOf(it) }.orEmpty()
+        return savedRoutes().any { sameRoute(it, d, via, road) }
+    }
+
+    /** Saves the route being planned (destination, stops and the road picked), or takes it off again if it's saved already. */
+    fun toggleSaveRoute() {
+        val d = dest ?: return
+        val road = route?.let { com.headunit.launcher.ui.viaOf(it) }.orEmpty()
+        val cur = savedRoutes()
+        if (cur.any { sameRoute(it, d, via, road) }) {
+            writeRoutes(cur.filterNot { sameRoute(it, d, via, road) })
+            toast(L.t("Removed from saved routes"), 2000)
+            return
+        }
+        val name = if (road.isNotBlank()) L.t("{0} via {1}", d.name, road) else d.name
+        writeRoutes(listOf(SavedRoute(name, d, via, road)) + cur.take(19))
+        toast(L.t("Route saved: {0}", name), 2500)
+    }
+
+    /** Plans a saved route again: the same stops, and the choice that goes the same way (with today's traffic). */
+    fun startSavedRoute(r: SavedRoute) {
+        via = r.stops
+        startRoute(r.dest, keepVia = true, preferVia = r.via)
+    }
+
+    fun deleteSavedRoute(r: SavedRoute) {
+        writeRoutes(savedRoutes().filterNot { sameRoute(it, r.dest, r.stops, r.via) })
+    }
+
     /** Head unit: the place sent from the phone has been started or turned down. */
     fun takePhoneDest(go: Boolean) {
         val p = phoneDest ?: return
         phoneDest = null
-        if (go) startRoute(p)
+        if (go) { via = phoneStops; startRoute(p, keepVia = true, preferVia = phoneVia) }
     }
 
     /** A search failure in plain words (it used to show the servers' own errors, like "HTTP 429" or "HTTP 502"). */
@@ -3823,7 +3898,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val place: Place, val loading: Boolean, val road: String = "", val roadKind: String = "", val roadClass: String = "", val ref: String = "",
         val limitMs: Double = 0.0, val limitEstimated: Boolean = false, val land: String = "", val landClass: String = "", val area: String = "", val distM: Double = -1.0,
     )
-    var here by mutableStateOf<HereCard?>(null)
+    private var hereState by mutableStateOf<HereCard?>(null)
+    /** The What's here card; while it's open, a red pin marks the spot on the map. */
+    var here: HereCard?
+        get() = hereState
+        set(v) { hereState = v; try { map.setTapPin(v?.place?.pos) } catch (e: Exception) { } }
 
     private fun showHere(place: Place) {
         val p = place.pos

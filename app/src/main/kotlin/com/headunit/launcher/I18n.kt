@@ -1622,6 +1622,19 @@ object L {
         "Quickest" to listOf("Snelst", "Am schnellsten", "La plus rapide", "La más rápida"),
         "On my route" to listOf("Op mijn route", "Auf meiner Route", "Sur mon trajet", "En mi ruta"),
         "Search this area" to listOf("In dit gebied zoeken", "In diesem Bereich suchen", "Rechercher dans cette zone", "Buscar en esta zona"),
+        "on" to listOf("aan", "an", "allumés", "encendidas"),
+        "off" to listOf("uit", "aus", "éteints", "apagadas"),
+        "1 stop" to listOf("1 stop", "1 Stopp", "1 arrêt", "1 parada"),
+        "{0} stops" to listOf("{0} stops", "{0} Stopps", "{0} arrêts", "{0} paradas"),
+        "Save route" to listOf("Route opslaan", "Route speichern", "Enregistrer l'itinéraire", "Guardar ruta"),
+        "{0} via {1}" to listOf("{0} via {1}", "{0} über {1}", "{0} par {1}", "{0} por {1}"),
+        "Saved route" to listOf("Opgeslagen route", "Gespeicherte Route", "Itinéraire enregistré", "Ruta guardada"),
+        "Saved route · 1 stop" to listOf("Opgeslagen route · 1 stop", "Gespeicherte Route · 1 Stopp", "Itinéraire enregistré · 1 arrêt", "Ruta guardada · 1 parada"),
+        "Saved route · {0} stops" to listOf("Opgeslagen route · {0} stops", "Gespeicherte Route · {0} Stopps", "Itinéraire enregistré · {0} arrêts", "Ruta guardada · {0} paradas"),
+        "Route saved: {0}" to listOf("Route opgeslagen: {0}", "Route gespeichert: {0}", "Itinéraire enregistré : {0}", "Ruta guardada: {0}"),
+        "Removed from saved routes" to listOf("Verwijderd uit opgeslagen routes", "Aus gespeicherten Routen entfernt", "Retiré des itinéraires enregistrés", "Quitada de las rutas guardadas"),
+        "Only your lights decide, in tunnels too. Lights signal now: {0}" to listOf("Alleen je lichten bepalen het, ook in tunnels. Lichtsignaal nu: {0}", "Nur dein Licht entscheidet, auch in Tunneln. Lichtsignal jetzt: {0}", "Seuls vos phares décident, même dans les tunnels. Signal des phares : {0}", "Solo deciden tus luces, también en túneles. Señal de luces ahora: {0}"),
+        "Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check" to listOf("Je head-unit is nog niet met de lichten omgeschakeld, dus tot dan worden zonsopkomst en zonsondergang gebruikt. Zet de koplamp- of verlichtingsoptie voor nachtmodus aan en doe dan je lichten aan om het te testen", "Dein Radio hat noch nicht mit dem Licht umgeschaltet, daher gelten bis dahin Sonnenauf- und -untergang. Schalte dort die Scheinwerfer- bzw. Beleuchtungs-Nachtmodus-Option ein und dann dein Licht, um es zu prüfen", "Votre autoradio n'a pas encore basculé avec les phares, donc le lever et le coucher du soleil servent en attendant. Activez son option de mode nuit liée aux phares ou à l'éclairage, puis allumez vos phares pour vérifier", "Tu radio aún no ha cambiado con las luces, así que se usan el amanecer y el atardecer hasta entonces. Activa su opción de modo noche con los faros o la iluminación y enciende las luces para comprobarlo"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3036,5 +3049,18 @@ object L {
         "Quickest" to listOf("Più veloce", "Mais rápido", "Najszybciej"),
         "On my route" to listOf("Sul mio percorso", "No meu percurso", "Na mojej trasie"),
         "Search this area" to listOf("Cerca in quest'area", "Pesquisar nesta área", "Szukaj w tym obszarze"),
+        "on" to listOf("accese", "ligados", "włączone"),
+        "off" to listOf("spente", "desligados", "wyłączone"),
+        "1 stop" to listOf("1 sosta", "1 paragem", "1 przystanek"),
+        "{0} stops" to listOf("{0} soste", "{0} paragens", "{0} przystanki"),
+        "Save route" to listOf("Salva percorso", "Guardar percurso", "Zapisz trasę"),
+        "{0} via {1}" to listOf("{0} via {1}", "{0} pela {1}", "{0} przez {1}"),
+        "Saved route" to listOf("Percorso salvato", "Percurso guardado", "Zapisana trasa"),
+        "Saved route · 1 stop" to listOf("Percorso salvato · 1 sosta", "Percurso guardado · 1 paragem", "Zapisana trasa · 1 przystanek"),
+        "Saved route · {0} stops" to listOf("Percorso salvato · {0} soste", "Percurso guardado · {0} paragens", "Zapisana trasa · {0} przystanki"),
+        "Route saved: {0}" to listOf("Percorso salvato: {0}", "Percurso guardado: {0}", "Trasa zapisana: {0}"),
+        "Removed from saved routes" to listOf("Rimosso dai percorsi salvati", "Removido dos percursos guardados", "Usunięto z zapisanych tras"),
+        "Only your lights decide, in tunnels too. Lights signal now: {0}" to listOf("Decidono solo le luci, anche nelle gallerie. Segnale luci ora: {0}", "Só as luzes decidem, também nos túneis. Sinal das luzes agora: {0}", "Decydują tylko światła, także w tunelach. Sygnał świateł teraz: {0}"),
+        "Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check" to listOf("L'autoradio non ha ancora cambiato con le luci, quindi fino ad allora si usano alba e tramonto. Attiva la sua opzione modalità notte con fari o illuminazione, poi accendi le luci per provare", "O rádio ainda não mudou com as luzes, por isso usa-se o nascer e o pôr do sol até lá. Ative a opção de modo noturno com faróis ou iluminação e ligue as luzes para testar", "Radio jeszcze nie przełączyło się ze światłami, więc do tego czasu używany jest wschód i zachód słońca. Włącz w nim opcję trybu nocnego od świateł lub podświetlenia, a potem włącz światła, aby sprawdzić"),
     )
 }

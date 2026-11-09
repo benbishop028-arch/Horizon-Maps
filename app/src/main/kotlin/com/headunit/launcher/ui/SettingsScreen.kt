@@ -264,6 +264,16 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Day and night")) {
         SChoice(L.t("Day and night"), listOf("auto" to L.t("Auto"), "lights" to L.t("Headlights"), "sun" to L.t("Sun times"), "times" to L.t("My times"), "day" to L.t("Day"), "night" to L.t("Night")), prefs.s(PreferenceKeys.THEME, "auto"),
             L.t("Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set")) { prefs.put(PreferenceKeys.THEME, it) }
+        // Headlights: whether this head unit has been seen switching with the lights yet (until then sun times stand in), and what the
+        // lights signal says right now, so it's easy to check it works (lights on: it should say on within a couple of seconds)
+        if (prefs.s(PreferenceKeys.THEME, "auto") == "lights") {
+            val lightsOn = rememberSystemNight()
+            val seen = prefs.b(PreferenceKeys.SYSDARKSEEN, false) || lightsOn
+            SNote(
+                if (seen) L.t("Only your lights decide, in tunnels too. Lights signal now: {0}", if (lightsOn) L.t("on") else L.t("off"))
+                else L.t("Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check")
+            )
+        }
         if (prefs.s(PreferenceKeys.THEME, "auto") == "times") {
             SFieldItem(L.t("Night starts at"), prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), L.t("24-hour clock, for example 19:30"), placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }
             SFieldItem(L.t("Day starts at"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"), L.t("24-hour clock, for example 06:45"), placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }

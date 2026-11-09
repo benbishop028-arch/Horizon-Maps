@@ -601,13 +601,24 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
     }
 
     companion object {
+        // the same steps as the app's own screen (Geo.fmtDist): feet under a tenth of a mile, then miles. The car's dashboard and
+        // head-up display show whatever unit is sent here, so this is what keeps them matching the app (they showed yards before)
         fun distance(m: Double, imperial: Boolean): Distance = if (imperial) {
+            val ft = m * 3.28084
             val mi = m / 1609.344
-            if (mi >= 0.25) Distance.create(Math.round(mi * 10) / 10.0, Distance.UNIT_MILES)
-            else Distance.create((Math.round(m * 1.09361 / 10.0) * 10).toDouble(), Distance.UNIT_YARDS)
+            when {
+                ft < 100 -> Distance.create(Math.max(10L, Math.round(ft / 10) * 10).toDouble(), Distance.UNIT_FEET)
+                ft < 528 -> Distance.create(Math.max(100L, Math.round(ft / 50) * 50).toDouble(), Distance.UNIT_FEET)
+                mi < 10 -> Distance.create(Math.round(mi * 10) / 10.0, Distance.UNIT_MILES_P1)
+                else -> Distance.create(Math.round(mi).toDouble(), Distance.UNIT_MILES)
+            }
         } else {
-            if (m >= 1000) Distance.create(Math.round(m / 100.0) / 10.0, Distance.UNIT_KILOMETERS)
-            else Distance.create((Math.round(m / 10.0) * 10).toDouble(), Distance.UNIT_METERS)
+            when {
+                m < 100 -> Distance.create(Math.max(10L, Math.round(m / 10) * 10).toDouble(), Distance.UNIT_METERS)
+                m < 1000 -> Distance.create((Math.round(m / 50) * 50).toDouble(), Distance.UNIT_METERS)
+                m < 10_000 -> Distance.create(Math.round(m / 100.0) / 10.0, Distance.UNIT_KILOMETERS_P1)
+                else -> Distance.create(Math.round(m / 1000.0).toDouble(), Distance.UNIT_KILOMETERS)
+            }
         }
 
         fun estimate(m: Double, secs: Double, imperial: Boolean): TravelEstimate {
@@ -853,6 +864,15 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             for (c in e.places.customs()) all += Triple(c.label, c.place, R.drawable.ic_car_star to 0xFF12A4B4.toInt())
             for (p in e.places.favourites()) all += Triple(p.name, p, R.drawable.ic_car_star to 0xFFF2C230.toInt())
             for (p in e.places.recents()) all += Triple(p.name, p, R.drawable.ic_car_history to 0xFF9CA4BF.toInt())
+            // saved routes (planned on the phone with Save route): the same stops and the same way, with today's traffic
+            for (sr in e.savedRoutes().take(3)) {
+                if (shownRows >= limit.coerceIn(1, 12) - 2) break
+                val r = Row.Builder().setTitle(sr.name).setImage(rowIcon(carContext, R.drawable.ic_car_route, 0xFF4C8DFF.toInt()))
+                r.addText(when (sr.stops.size) { 0 -> L.t("Saved route"); 1 -> L.t("Saved route · 1 stop"); else -> L.t("Saved route · {0} stops", sr.stops.size) })
+                r.setOnClickListener { e.startSavedRoute(sr); screenManager.popToRoot() }
+                list.addItem(r.build())
+                shownRows++
+            }
             val seen = HashSet<String>()
             for ((label, p, ic) in all) {
                 if (!seen.add("%.4f,%.4f".format(p.pos.lat, p.pos.lon))) continue

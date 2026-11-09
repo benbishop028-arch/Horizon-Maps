@@ -1906,6 +1906,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addS(st, GeoJsonSource.Builder("dl-flags").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-chain").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-chain-line").featureCollection(empty()).build())
+        addS(st, GeoJsonSource.Builder("dl-tap").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-hazards").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-me").featureCollection(empty()).build())
         // the arrow at the next turn, drawn on the route; no simplification, so small shapes keep their corners
@@ -2114,6 +2115,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .symbolSortKey(Expression.get("z")))
         pushChain()
+        // the spot you tapped or held on the map (while its card is open): the destination's red pin, a little smaller
+        addImg(st, "dl-tap-pin", pinBitmap())
+        addL(st, SymbolLayer("dl-tap-l", "dl-tap").iconImage("dl-tap-pin").iconAnchor(IconAnchor.BOTTOM)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconSize(0.48))
+        pushTap()
         flatArrow = if (im) arrowBitmapImmersive() else arrowBitmap()
         addImg(st, "dl-arrow", flatArrow!!)
         addL(st, SymbolLayer("dl-me-arrow", "dl-me")
@@ -4151,6 +4158,17 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var chainPins: List<ChainPin> = emptyList()
     private var chainYou: LL? = null
     var onChainTap: ((Int) -> Unit)? = null
+
+    private var tapAt: LL? = null
+
+    /** Shows the red pin where you tapped ([p]), or takes it away (null). */
+    fun setTapPin(p: LL?) { if (p == tapAt) return; tapAt = p; pushTap() }
+
+    private fun pushTap() {
+        val s = src("dl-tap") ?: return
+        val p = tapAt
+        s.featureCollection(if (p == null) empty() else FeatureCollection.fromFeatures(listOf(Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)))))
+    }
 
     fun showChain(pins: List<ChainPin>, you: LL?) { chainPins = pins; chainYou = you; pushChain() }
 

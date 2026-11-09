@@ -78,6 +78,7 @@ internal object PreferenceKeys {
     const val TRIPS = "trips"
     const val PLACES_CUSTOM = "places_custom"
     const val PLACES_FAVOURITES = "places_fav"
+    const val PLACES_ROUTES = "places_routes"
     const val PLACES_RECENT = "places_recent"
     const val PLACES_SEEN = "places_seen"
     const val PLACE_PARKED = "place_parked"

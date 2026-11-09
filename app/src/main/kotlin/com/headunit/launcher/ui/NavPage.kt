@@ -38,7 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BookmarkAdd
+import androidx.compose.material.icons.rounded.AddRoad
 import androidx.compose.foundation.layout.widthIn
 import com.headunit.launcher.LaneSec
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -232,13 +232,13 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     modifier = Modifier.size(26.dp).clickable { engine.places.setSlot("home", d); engine.toast(L.t("Home set to {0}", d.name), 2500) })
                 Icon(Icons.Rounded.Work, L.t("Set as work"), tint = c.sub,
                     modifier = Modifier.size(26.dp).clickable { engine.places.setSlot("work", d); engine.toast(L.t("Work set to {0}", d.name), 2500) })
-                var saving by remember { mutableStateOf(false) }
-                val mine = engine.places.customAt(d) != null
-                Icon(Icons.Rounded.BookmarkAdd, L.t("Save with a name"), tint = if (mine) c.accent else c.sub, modifier = Modifier.size(26.dp).clickable { saving = true })
+                // Save route: the destination, the stops and the road picked, to plan again later (the star already saves the place)
+                val rawRoutes = engine.prefs.s(PreferenceKeys.PLACES_ROUTES, "[]")
+                val routeSaved = remember(rawRoutes, engine.active, engine.routes, engine.via) { engine.routeIsSaved() }
+                Icon(Icons.Rounded.AddRoad, L.t("Save route"), tint = if (routeSaved) c.accent else c.sub, modifier = Modifier.size(26.dp).clickable { engine.toggleSaveRoute() })
                 // paired with your car (Settings > Places & trips): send it there instead of driving it from here
                 if (engine.prefs.s(PreferenceKeys.LINK_ROLE, "") == "phone" && engine.prefs.s(PreferenceKeys.LINK_CODE, "").isNotBlank())
                     Icon(Icons.Rounded.DirectionsCar, L.t("Send to car"), tint = c.accent, modifier = Modifier.size(26.dp).clickable { engine.sendToCar(d) })
-                if (saving) AddPlaceDialog(engine, d) { saving = false }
             }
         }
     }

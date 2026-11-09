@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Dashboard and head-up display in feet: on Android Auto, the car's own dashboard and head-up display now show feet close to a turn (then miles), the same as the app, instead of yards.
 - Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
 - Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.
 - Missed-turn detection: made safer against GPS drift in town. It only triggers beyond the GPS's own error and at a sharper angle, so approaching a turn never sets off a reroute.
@@ -104,6 +105,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Save route: the bookmark on the route options is now Save route. It keeps the destination, your stops and the road you picked ("Croke Park via M9"). Saved routes show under the search bar (and in Places on Android Auto); tap one to plan the same way again with that day's traffic, swipe it away to delete.
+- Red pin where you tap: tapping or holding the map drops a red pin on the exact spot while its card is open.
 - See all locations: search for a shop or chain (Lidl, Sainsbury's, Costa…) and, when there are several nearby, "See all N locations" shows them all. A panel lists them by Quickest (drive time with today's traffic), Nearest or On my route, and the map zooms out to show each as its logo with the drive time. Tap a pin or a row, then Go or Add as a stop. "Search this area" looks again wherever you move the map. On Android Auto it's a list.
 - Logos in search results: shops and brands show their own logo (taken from their website, or a built-in list of common chains). Logos are kept on the unit after the first time, and the usual pin shows without a signal or in offline mode.
 - Your own shortcuts: choose which round "find nearby" buttons show under the search bar (up to 5, in your order) from Fuel, Charging, Food, Coffee, Parking, Toilets and Services, in Settings › Places & trips. Reset brings back the usual ones.
@@ -161,6 +164,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Send to car sends the whole trip: from the route options it now sends your stops and the road you picked too, not just the destination. The car's card says how many stops are coming.
+- Headlights mode follows only the lights: with Day and night set to Headlights, the map goes dark in tunnels and back to day straight after, without the sunset and sunrise tint. Settings shows whether your head unit has been seen switching with the lights, and what the lights signal says right now. The Android Auto screen works the same way when it follows the car.
 - Custom theme live preview: every change shows on the preview at the top as you make it, even while a slider is still moving. Nothing is kept until you press Save. Leave without saving (or press Undo changes) and the map goes back to how it was. Giving it a name also keeps it under Your themes.
 - Traffic from both services: on a Mapbox route with a TomTom key, TomTom also times the same road at every traffic refresh. Each stretch of the route line shows whichever service says it's worse, and the time left and arrival time use the longer of the two, so a jam either one knows about is counted.
 - Time left in queues: traffic is refreshed every 2 minutes instead of 3 while you're crawling along, so the arrival time catches up with a jam sooner.
