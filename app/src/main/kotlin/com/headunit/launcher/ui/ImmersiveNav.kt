@@ -256,7 +256,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // the panels' outlines (as parts of the screen) go to the camera, so your arrow is moved clear of whatever is beside it
         val boxW = constraints.maxWidth.toFloat().coerceAtLeast(1f); val boxH = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) { engine.setPanel(i, r.left / boxW, r.top / boxH, r.right / boxW, r.bottom / boxH) }
-        Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        // the "all locations" panel sits in the same corner and lets the map show through, so the search and its results step aside while it's open
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
