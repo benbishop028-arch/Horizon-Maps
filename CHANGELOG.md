@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
 - Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.
 - Missed-turn detection: made safer against GPS drift in town. It only triggers beyond the GPS's own error and at a sharper angle, so approaching a turn never sets off a reroute.
 - Postcode district search: a district on its own ("M25", "B1") is also how roads are named, so it now shows third, and a search for the M25 still shows the motorway first.

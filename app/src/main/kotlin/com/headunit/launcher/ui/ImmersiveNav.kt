@@ -406,7 +406,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- What's here (holding on the map): the road, its limit and the area, with Go / Add as a stop
         engine.here?.let { h ->
-            Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 96.dp)) { HereCardView(engine, h) }
+            // above everything else, so the route options (which reach up this far on a phone) can't cover its buttons
+            Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(bottom = 96.dp)) { HereCardView(engine, h) }
         }
 
         // ---- the routes box, folded out beside the buttons by Other routes (as in Google Maps): your route and the other ways, with
