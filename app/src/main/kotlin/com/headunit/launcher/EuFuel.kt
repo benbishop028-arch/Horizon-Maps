@@ -60,7 +60,7 @@ object EuFuel {
     }
 
     private fun get(url: String): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000; c.readTimeout = 12000
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
         c.setRequestProperty("Accept", "application/json")
@@ -186,7 +186,7 @@ object EuFuel {
     }
 
     private fun nswHttp(method: String, url: String, body: String?, headers: Map<String, String>): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000; c.readTimeout = 15000
         c.requestMethod = method
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")

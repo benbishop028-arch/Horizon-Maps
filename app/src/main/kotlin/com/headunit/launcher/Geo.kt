@@ -209,7 +209,7 @@ object TomTomRest {
     })
 
     private fun get(url: String, connectMs: Int = 15000, readMs: Int = 25000): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
@@ -287,7 +287,7 @@ object TomTomRest {
     @Volatile var avoidDropped = false
 
     private fun post(url: String, body: String, connectMs: Int, readMs: Int): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.requestMethod = "POST"
@@ -532,7 +532,7 @@ object TomTomRest {
 
     fun incidents(key: String, minLon: Double, minLat: Double, maxLon: Double, maxLat: Double): List<Incident> {
         val url = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&bbox=$minLon,$minLat,$maxLon,$maxLat"
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 15000; c.readTimeout = 25000
         c.setRequestProperty("TomTom-Api-Key", key)
         c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,magnitudeOfDelay,delay,from,to,roadNumbers,events(description)))")
@@ -692,7 +692,7 @@ object Weather {
 
     fun fetch(p: LL): Now? = try {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code"
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 10000; c.readTimeout = 10000
         val cur = JSONObject(c.inputStream.bufferedReader().readText()).getJSONObject("current")
         Now(cur.getDouble("temperature_2m"), cur.getInt("weather_code"))
@@ -710,7 +710,7 @@ object Weather {
             "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m" +
             "&hourly=temperature_2m,weather_code,precipitation_probability" +
             "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&forecast_days=6&timezone=auto"
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 10000; c.readTimeout = 15000
         val j = JSONObject(c.inputStream.bufferedReader().readText())
         val cur = j.getJSONObject("current")
@@ -753,7 +753,7 @@ object Weather {
  */
 object OsmSearch {
     private fun get(url: String): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 10000; c.readTimeout = 15000
         // both services ask apps to say who they are
         c.setRequestProperty("User-Agent", "HorizonNav/1.0 (Android navigation app)")

@@ -762,6 +762,7 @@ private fun PlacesSection(engine: NavEngine) {
         }
         if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
     }
+    ShortcutsGroup(engine)
     SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
         SToggle(engine.prefs, L.t("Saved & recent under the search bar"), "quicklist", true, L.t("The list of favourites and recent places on the map"))
         SItem(L.t("Recent destinations"), L.t("{0} recent, plus places remembered for searching without signal", pl.recents().size)) {

@@ -1142,18 +1142,11 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
                 if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast(L.t("Search for your work address"), 3500); focusSearch() }
             }
         }
-        // things to find nearby: always all five on show, no scrolling sideways to find them
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            // (an electric car: Charging first, and Toilets where Fuel was, unless petrol stations are wanted too)
-            val noFuel = engine.hideFuel
-            if (!noFuel) FindButton(Icons.Rounded.LocalGasStation, Color(0xFFEA4335), L.t("Fuel nearby")) { engine.loadNearby("fuel", false) }
-            FindButton(Icons.Rounded.EvStation, Color(0xFF34A853), L.t("Charging nearby")) { engine.loadNearby("charging", false) }
-            FindButton(Icons.Rounded.Restaurant, Color(0xFFF29900), L.t("Food nearby")) { engine.loadNearby("food", false) }
-            FindButton(Icons.Rounded.LocalCafe, Color(0xFFA56BFF), L.t("Coffee nearby")) { engine.loadNearby("coffee", false) }
-            // (a lorry: lorry parks instead of car parks)
-            if (engine.prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry") FindButton(Icons.Rounded.LocalShipping, Color(0xFF4C8DFF), L.t("Lorry parks nearby")) { engine.loadNearby("lorrypark", false) }
-            else FindButton(Icons.Rounded.LocalParking, Color(0xFF4C8DFF), L.t("Parking nearby")) { engine.loadNearby("parking", false) }
-            if (noFuel) FindButton(Icons.Rounded.Wc, Color(0xFF4C8DFF), L.t("Toilets nearby")) { engine.loadNearby("toilets", false) }
+        // things to find nearby: the ones picked in Settings › Places & trips (up to five, all on show, no scrolling sideways);
+        // as before when none are picked (Charging and Toilets in place of Fuel for an electric car, lorry parks for a lorry)
+        val picks = chosenShortcuts(engine)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (picks.size >= 4) Arrangement.SpaceBetween else Arrangement.spacedBy(14.dp)) {
+            for (s in picks) FindButton(s.icon, s.color, L.t(s.desc)) { engine.loadNearby(s.kind, false) }
         }
     }
 }

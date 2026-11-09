@@ -53,7 +53,7 @@ object ExternalLinks {
         repeat(5) {
             val host = try { URL(u).host.lowercase() } catch (e: Exception) { return u }
             if (!(host.endsWith("goo.gl") || host == "g.co")) return u
-            val c = URL(u).openConnection() as HttpURLConnection
+            val c = URL(u).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
             c.instanceFollowRedirects = false
             c.connectTimeout = 8000; c.readTimeout = 8000
             c.setRequestProperty("User-Agent", "Mozilla/5.0 (Android) HorizonNav/1.0")

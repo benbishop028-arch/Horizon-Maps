@@ -137,6 +137,10 @@ internal fun OfflineMapsContent(prefs: Prefs, engine: NavEngine) {
         if (engine.packStatus.isNotBlank()) SNote((engine.packDownloading?.let { PackRegions.byId(it).name + ": " } ?: "") + engine.packStatus + if (engine.packBusy) L.t(" · you can leave this page") else "")
     }
     SGroup(L.t("Without signal")) {
+        SToggle(prefs, L.t("Offline mode"), PreferenceKeys.OFFLINE_MODE, false,
+            L.t("Nothing goes online: no traffic, weather or online search, and the app stops looking for a signal. Routes, search, limits and cameras come from your downloaded pack. Downloads you start still work"))
+        val offlineOn = prefs.b(PreferenceKeys.OFFLINE_MODE, false)
+        androidx.compose.runtime.LaunchedEffect(offlineOn) { engine.setOfflineMode(offlineOn) }
         SChoice(L.t("Which map to draw"), listOf("auto" to L.t("Auto"), "always" to L.t("Downloaded"), "never" to L.t("Online")), prefs.s(PreferenceKeys.OFF_MAP, "auto"),
             L.t("Auto: with no signal Mapbox's map carries on with the areas it has stored (where you've been recently, and saved Mapbox areas); the downloaded pack's map takes over only where Mapbox has nothing, and the online map comes back with signal")) { prefs.put(PreferenceKeys.OFF_MAP, it); engine.restyle() }
     }

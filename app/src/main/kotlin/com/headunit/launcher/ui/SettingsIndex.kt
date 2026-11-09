@@ -126,6 +126,7 @@ internal val settingsIndex = listOf(
     SettingRef("Reports still active", "How many reports are still showing", "Your reports", 6),
     SettingRef("Spoken guidance", "", "Directions", 7),
     SettingRef("Language", "Spoken directions in English, Dutch, German, French or Spanish (taal, Sprache, langue, idioma)", "Directions", 7),
+    SettingRef("Shortcuts under the search bar", "Fuel, charging, food, coffee, parking, toilets, services buttons", "", 8),
     SettingRef("Missing your language?", "Request a language on GitHub, translation", "Directions", 7),
     SettingRef("Say road names", "Just the direction, without the road or the places on the signs", "Directions", 7),
     SettingRef("Smarter directions", "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot", "Directions", 7),

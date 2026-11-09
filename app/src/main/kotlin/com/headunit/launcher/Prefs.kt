@@ -68,6 +68,8 @@ internal object PreferenceKeys {
     const val DAY_FROM = "dayfrom"
     const val SETUP_DONE = "setupdone"
     const val OFF_MAP = "offmap"
+    const val OFFLINE_MODE = "offlinemode"
+    const val SHORTCUTS = "shortcuts"
     const val LIVE_ALTERNATIVES = "livealts"
     const val ALT_ROUTE_COLOUR = "altroutecolour"
     const val FASTER_ROUTE = "fasterroute"

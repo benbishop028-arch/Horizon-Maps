@@ -57,7 +57,7 @@ object CarLink {
     /** Sends [p] to the car paired with [code]. Throws when it can't. */
     fun send(code: String, p: Place) {
         val body = JSONObject().put("n", p.name).put("s", p.sub).put("la", p.pos.lat).put("lo", p.pos.lon).put("t", System.currentTimeMillis()).toString()
-        val c = URL(HOST + topic(code)).openConnection() as HttpURLConnection
+        val c = URL(HOST + topic(code)).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000; c.readTimeout = 10000
         c.requestMethod = "POST"; c.doOutput = true
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
@@ -72,7 +72,7 @@ object CarLink {
     /** The newest place sent since [lastId] (or in the last 12 hours), or null. */
     fun latest(code: String, lastId: String): Sent? {
         val since = if (lastId.isNotBlank()) lastId else "12h"
-        val c = URL(HOST + topic(code) + "/json?poll=1&since=" + since).openConnection() as HttpURLConnection
+        val c = URL(HOST + topic(code) + "/json?poll=1&since=" + since).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000; c.readTimeout = 10000
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
         try {

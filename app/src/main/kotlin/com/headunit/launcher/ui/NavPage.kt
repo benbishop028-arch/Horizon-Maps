@@ -647,7 +647,7 @@ internal object JunctionPics {
         if (url in failed || token.isBlank()) return@withContext null
         try {
             val full = url + (if ('?' in url) "&" else "?") + "access_token=" + java.net.URLEncoder.encode(token, "UTF-8")
-            val c = java.net.URL(full).openConnection() as java.net.HttpURLConnection
+            val c = java.net.URL(full).also { com.headunit.launcher.Net.check() }.openConnection() as java.net.HttpURLConnection
             c.connectTimeout = 8000; c.readTimeout = 10000
             if (c.responseCode !in 200..299) { failed += url; return@withContext null }
             val b = c.inputStream.use { android.graphics.BitmapFactory.decodeStream(it) } ?: run { failed += url; return@withContext null }

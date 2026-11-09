@@ -47,7 +47,7 @@ object Overpass {
             val ep = endpoints[idx]
             val host = ep.removePrefix("https://").substringBefore('/')
             try {
-                val c = URL(ep).openConnection() as HttpURLConnection
+                val c = URL(ep).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
                 c.connectTimeout = connectMs
                 c.readTimeout = readMs
                 c.requestMethod = "POST"

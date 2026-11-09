@@ -31,7 +31,7 @@ object Updater {
     /** Asks GitHub for the published app. Returns it when it's newer than this one, null when it isn't (or can't be checked). */
     fun check(): Update? {
         if (!enabled) return null
-        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/app").openConnection() as HttpURLConnection
+        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/app").also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 15000; c.readTimeout = 20000
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
         c.setRequestProperty("Accept", "application/vnd.github+json")
@@ -128,7 +128,7 @@ object Updater {
         // For multi-version upgrades, collect all available version-tag notes. If the list request fails,
         // fall back to the installed tag instead of showing the generic empty-notes message.
         val releases = try {
-            val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").openConnection() as HttpURLConnection
+            val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases?per_page=100").also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
             c.connectTimeout = 7000; c.readTimeout = 12000
             c.setRequestProperty("User-Agent", "HorizonNav/$version")
             c.setRequestProperty("Accept", "application/vnd.github+json")
@@ -163,7 +163,7 @@ object Updater {
 
     /** Fetches a single immutable GitHub release tag; returns null for network/API failures. */
     private fun fetchReleaseBody(tag: String): String? {
-        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/$tag").openConnection() as HttpURLConnection
+        val c = URL("https://api.github.com/repos/${BuildConfig.UPDATE_REPO}/releases/tags/$tag").also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 7000; c.readTimeout = 12000
         c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
         c.setRequestProperty("Accept", "application/vnd.github+json")

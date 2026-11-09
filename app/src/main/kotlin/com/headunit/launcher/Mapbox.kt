@@ -44,7 +44,7 @@ object MapboxRest {
      * "TokenExpired" or "TokenRevoked", with the account it belongs to. Null when Mapbox couldn't be asked (no signal).
      */
     fun checkToken(t: String): Pair<String, String>? = try {
-        val c = URL("$API/tokens/v2?access_token=" + enc(t)).openConnection() as HttpURLConnection
+        val c = URL("$API/tokens/v2?access_token=" + enc(t)).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 8000
         c.readTimeout = 10000
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
@@ -71,7 +71,7 @@ object MapboxRest {
     })
 
     private fun get(url: String, connectMs: Int = 12000, readMs: Int = 20000): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")

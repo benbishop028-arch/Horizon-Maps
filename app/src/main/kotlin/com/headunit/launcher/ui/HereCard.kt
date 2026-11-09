@@ -95,13 +95,15 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
             // what the land is, and how far it is
             Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (h.land.isNotBlank()) Fact(landIcon(h.landClass, false), h.land, accent)
-                if (h.distM >= 0) Fact(Icons.Rounded.NearMe, Geo.fmtDist(h.distM, engine.imperial) + " away", c.accent)
+                if (h.distM >= 0) Fact(Icons.Rounded.NearMe, L.t("{0} away", Geo.fmtDist(h.distM, engine.imperial)), c.accent)
             }
             Text(String.format(java.util.Locale.US, "%.5f, %.5f", h.place.pos.lat, h.place.pos.lon), color = c.sub.copy(alpha = 0.8f), fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace, modifier = Modifier.padding(top = 8.dp))
             // Go, Add as a stop, Save
             Row(Modifier.padding(top = 12.dp, end = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                val driving = engine.route != null && !engine.previewing
+                // a route being driven or being planned: "Go here instead" and "Add as a stop" (holding on the map while
+                // choosing a route adds a stop on the way, as asked for on Reddit)
+                val driving = engine.route != null && engine.dest != null
                 Row(
                     Modifier.clip(RoundedCornerShape(24.dp)).background(c.accent).pressClick { engine.hereGo(false) }.padding(horizontal = 18.dp, vertical = 11.dp),
                     verticalAlignment = Alignment.CenterVertically,

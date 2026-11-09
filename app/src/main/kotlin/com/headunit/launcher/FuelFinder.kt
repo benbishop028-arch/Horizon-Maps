@@ -38,7 +38,7 @@ object FuelFinder {
     private fun pricesFile(ctx: Context) = File(ctx.filesDir, "ff_prices.tsv")
 
     private fun http(method: String, url: String, body: String?, auth: String?): String {
-        val c = URL(url).openConnection() as HttpURLConnection
+        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 12000; c.readTimeout = 30000
         c.requestMethod = method
         c.setRequestProperty("Accept", "application/json")

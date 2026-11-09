@@ -562,6 +562,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     init {
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
         try { L.set(prefs.s(PreferenceKeys.APP_LANG, "auto")) } catch (e: Exception) { }
+        // offline mode (Settings > Offline maps): set before anything goes online
+        Net.offline = prefs.b(PreferenceKeys.OFFLINE_MODE, false)
+        mapboxOffline(Net.offline)
         // 12 or 24-hour clock times: the device's own setting unless Settings picks one
         try { Clock.init(ctx, prefs) } catch (e: Exception) { }
         // an older pack on the unit goes into its own area folder (it's the area that was chosen then)
@@ -657,7 +660,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
         map.onAlprTap = { who -> toast(L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), 3500) }
-        map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(if (route != null && !previewing) "$name: hold on it to add it as a stop" else "$name: hold on it to go there", 3000) }
+        map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
         map.onUserGesture = { if (following) { following = false }; scheduleRecentre(12_000) }
         map.onAltTap = { i -> switchToAlt(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
@@ -879,6 +882,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             toast(L.t("The map couldn't make a secure connection. Check the head unit's date and time are right."), 9000)
             return
         }
+        // offline mode: the map isn't meant to reach the network, so there's nothing to report or retry
+        if (Net.offline) return
         val network = m.contains("resolve") || m.contains("host") || m.contains("timeout") || m.contains("timed out") || m.contains("connect") || m.contains("network") || m.contains("unreachable")
         if (!network) { toast(L.t("Map: {0}", msg), 5000); return }
         styleRetry++
@@ -907,6 +912,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun useOfflineMap(): Boolean {
         if (!OfflineMap.installed(ctx) || !OfflineMap.hasFonts(ctx)) return false
+        if (Net.offline) return true
         return when (prefs.s(PreferenceKeys.OFF_MAP, "auto")) {
             "always" -> true
             "never" -> false
@@ -1393,6 +1399,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     // ---- search + routing ----
     /** True when the device has a network that claims internet access (it can still be too weak to use). */
     fun online(): Boolean {
+        // offline mode: as if there were never a signal (nothing tries the network, so nothing waits on it)
+        if (Net.offline) return false
         return try {
             val cm = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
             val n = cm.activeNetwork
@@ -3719,7 +3727,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun hereGo(asStop: Boolean) {
         val h = here ?: return
         here = null
-        if (asStop && route != null && !previewing && dest != null) addStop(h.place) else startRoute(h.place)
+        // (while choosing a route too: a stop held on the map goes on the route being planned)
+        if (asStop && route != null && dest != null) addStop(h.place) else startRoute(h.place)
     }
 
     /** Road closures the route is being kept off this trip (id to the closed road's points). */
@@ -4416,7 +4425,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             while (true) {
                 val url = withContext(Dispatchers.IO) {
                     try {
-                        val c = java.net.URL("https://api.rainviewer.com/public/weather-maps.json").openConnection() as java.net.HttpURLConnection
+                        val c = java.net.URL("https://api.rainviewer.com/public/weather-maps.json").also { com.headunit.launcher.Net.check() }.openConnection() as java.net.HttpURLConnection
                         c.connectTimeout = 10_000; c.readTimeout = 15_000
                         val body = c.inputStream.bufferedReader().use { it.readText() }
                         val o = org.json.JSONObject(body)
@@ -5221,6 +5230,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             via = stops
             startRoute(to, keepVia = true, startNow = true)
         }
+    }
+
+    /** Mapbox's own map engine kept off the network too (it then draws only what it has stored). */
+    private fun mapboxOffline(on: Boolean) {
+        try { com.mapbox.common.OfflineSwitch.getInstance().setMapboxStackConnected(!on) } catch (e: Throwable) { }
+    }
+
+    /**
+     * Offline mode switched on or off: nothing goes online while it's on, and the map is drawn from the downloaded pack (or what
+     * Mapbox has stored) without trying for a signal. Switching it off picks the online map and live data straight back up.
+     */
+    fun setOfflineMode(on: Boolean) {
+        if (Net.offline == on) return
+        Net.offline = on
+        mapboxOffline(on)
+        styleRetry = 0
+        try { applyStyle(lastDark) } catch (e: Exception) { }
     }
 
     /** The language setting changed: the directions and the voice switch to it (the voice says so if it has no voice for it). */
