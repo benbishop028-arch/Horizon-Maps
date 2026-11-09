@@ -1610,6 +1610,18 @@ object L {
         "Pick up to 5. They show in this order. Tap one to add or take it off" to listOf("Kies er maximaal 5. Ze staan in deze volgorde. Tik om toe te voegen of weg te halen", "Bis zu 5 wählen. Sie erscheinen in dieser Reihenfolge. Tippen zum Hinzufügen oder Entfernen", "Choisissez-en jusqu'à 5. Ils s'affichent dans cet ordre. Touchez pour ajouter ou retirer", "Elija hasta 5. Aparecen en este orden. Toque para añadir o quitar"),
         "Up to 5: take one off first" to listOf("Maximaal 5: haal er eerst een weg", "Höchstens 5: zuerst eine entfernen", "5 maximum : retirez-en un d'abord", "Máximo 5: quite uno primero"),
         "Services nearby" to listOf("Wegrestaurants in de buurt", "Raststätten in der Nähe", "Aires de services à proximité", "Áreas de servicio cerca"),
+        "No other branches found nearby" to listOf("Geen andere vestigingen in de buurt gevonden", "Keine weiteren Filialen in der Nähe gefunden", "Aucune autre enseigne trouvée à proximité", "No se encontraron otras sucursales cerca"),
+        "{0} min" to listOf("{0} min", "{0} Min.", "{0} min", "{0} min"),
+        " · nearest" to listOf(" · dichtstbij", " · am nächsten", " · le plus proche", " · la más cercana"),
+        "See all {0} locations" to listOf("Alle {0} locaties bekijken", "Alle {0} Standorte ansehen", "Voir les {0} emplacements", "Ver las {0} ubicaciones"),
+        "Within 10 miles" to listOf("Binnen 10 mijl", "Im Umkreis von 10 Meilen", "Dans un rayon de 10 miles", "A menos de 10 millas"),
+        "Within 15 km" to listOf("Binnen 15 km", "Im Umkreis von 15 km", "Dans un rayon de 15 km", "A menos de 15 km"),
+        "nearest {0}" to listOf("dichtstbij {0}", "nächster {0}", "le plus proche à {0}", "la más cercana a {0}"),
+        "{0} within 10 miles" to listOf("{0} binnen 10 mijl", "{0} im Umkreis von 10 Meilen", "{0} dans un rayon de 10 miles", "{0} a menos de 10 millas"),
+        "{0} within 15 km" to listOf("{0} binnen 15 km", "{0} im Umkreis von 15 km", "{0} dans un rayon de 15 km", "{0} a menos de 15 km"),
+        "Quickest" to listOf("Snelst", "Am schnellsten", "La plus rapide", "La más rápida"),
+        "On my route" to listOf("Op mijn route", "Auf meiner Route", "Sur mon trajet", "En mi ruta"),
+        "Search this area" to listOf("In dit gebied zoeken", "In diesem Bereich suchen", "Rechercher dans cette zone", "Buscar en esta zona"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3012,5 +3024,17 @@ object L {
         "Pick up to 5. They show in this order. Tap one to add or take it off" to listOf("Scegline fino a 5. Compaiono in quest'ordine. Tocca per aggiungere o togliere", "Escolha até 5. Aparecem por esta ordem. Toque para adicionar ou retirar", "Wybierz do 5. Pojawiają się w tej kolejności. Dotknij, aby dodać lub usunąć"),
         "Up to 5: take one off first" to listOf("Massimo 5: togline prima una", "Máximo 5: retire um primeiro", "Maksymalnie 5: najpierw usuń jeden"),
         "Services nearby" to listOf("Aree di servizio vicine", "Áreas de serviço perto", "MOP-y w pobliżu"),
+        "No other branches found nearby" to listOf("Nessun'altra sede trovata nelle vicinanze", "Nenhuma outra loja encontrada perto", "Nie znaleziono innych placówek w pobliżu"),
+        "{0} min" to listOf("{0} min", "{0} min", "{0} min"),
+        " · nearest" to listOf(" · più vicino", " · mais perto", " · najbliżej"),
+        "See all {0} locations" to listOf("Vedi tutte le {0} sedi", "Ver as {0} localizações", "Zobacz wszystkie lokalizacje ({0})"),
+        "Within 10 miles" to listOf("Entro 10 miglia", "Num raio de 10 milhas", "W promieniu 10 mil"),
+        "Within 15 km" to listOf("Entro 15 km", "Num raio de 15 km", "W promieniu 15 km"),
+        "nearest {0}" to listOf("più vicino a {0}", "mais perto a {0}", "najbliższa {0}"),
+        "{0} within 10 miles" to listOf("{0} entro 10 miglia", "{0} num raio de 10 milhas", "{0} w promieniu 10 mil"),
+        "{0} within 15 km" to listOf("{0} entro 15 km", "{0} num raio de 15 km", "{0} w promieniu 15 km"),
+        "Quickest" to listOf("Più veloce", "Mais rápido", "Najszybciej"),
+        "On my route" to listOf("Sul mio percorso", "No meu percurso", "Na mojej trasie"),
+        "Search this area" to listOf("Cerca in quest'area", "Pesquisar nesta área", "Szukaj w tym obszarze"),
     )
 }

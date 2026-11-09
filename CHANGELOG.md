@@ -103,6 +103,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- See all locations: search for a shop or chain (Lidl, Sainsbury's, Costa…) and, when there are several nearby, "See all N locations" shows them all. A panel lists them by Quickest (drive time with today's traffic), Nearest or On my route, and the map zooms out to show each as its logo with the drive time. Tap a pin or a row, then Go or Add as a stop. "Search this area" looks again wherever you move the map. On Android Auto it's a list.
+- Logos in search results: shops and brands show their own logo (taken from their website, or a built-in list of common chains). Logos are kept on the unit after the first time, and the usual pin shows without a signal or in offline mode.
 - Your own shortcuts: choose which round "find nearby" buttons show under the search bar (up to 5, in your order) from Fuel, Charging, Food, Coffee, Parking, Toilets and Services, in Settings › Places & trips. Reset brings back the usual ones.
 - Offline mode: a master switch in Settings › Offline maps. Nothing goes online and the app stops looking for a signal, so there is no more flickering and retrying with a weak or missing connection. Everything comes from the downloaded pack. Downloads you start yourself still work.
 - Add a stop while planning: hold on the map on the route options screen, then tap "Add as a stop" on the card. It goes on the route being planned, and you can add as many as you like.

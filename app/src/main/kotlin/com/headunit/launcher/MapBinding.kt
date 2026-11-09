@@ -1904,6 +1904,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addS(st, GeoJsonSource.Builder("dl-done").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-dest").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-flags").featureCollection(empty()).build())
+        addS(st, GeoJsonSource.Builder("dl-chain").featureCollection(empty()).build())
+        addS(st, GeoJsonSource.Builder("dl-chain-line").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-hazards").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-me").featureCollection(empty()).build())
         // the arrow at the next turn, drawn on the route; no simplification, so small shapes keep their corners
@@ -2103,6 +2105,15 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .iconSize(zoomed(1.0, 9 to 0.6, 14 to 0.68, 18 to 0.76)))
+        // "See all locations": a dotted line from you to the one picked, and every branch as its logo with the drive time
+        addL(st, LineLayer("dl-chain-line", "dl-chain-line").lineColor("#4C8DFF").lineWidth(5.0).lineOpacity(0.9)
+            .lineCap(LineCap.ROUND).lineDasharray(listOf(0.1, 2.2)).lineEmissiveStrength(1.0))
+        addL(st, SymbolLayer("dl-chain-pins", "dl-chain")
+            .iconImage(Expression.get("img")).iconAnchor(IconAnchor.CENTER)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
+            .symbolSortKey(Expression.get("z")))
+        pushChain()
         flatArrow = if (im) arrowBitmapImmersive() else arrowBitmap()
         addImg(st, "dl-arrow", flatArrow!!)
         addL(st, SymbolLayer("dl-me-arrow", "dl-me")
@@ -4134,7 +4145,110 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * alternative route by its card or line. True when it did something. Worked out from where the cards and lines are on screen,
      * so it never has to wait for the map.
      */
+    // ---- "See all locations" ----
+    /** One branch on the map: where, its drive time (or distance), its logo if there is one, and whether it's the one picked. */
+    class ChainPin(val pos: LL, val label: String, val logo: Bitmap?, val selected: Boolean)
+    private var chainPins: List<ChainPin> = emptyList()
+    private var chainYou: LL? = null
+    var onChainTap: ((Int) -> Unit)? = null
+
+    fun showChain(pins: List<ChainPin>, you: LL?) { chainPins = pins; chainYou = you; pushChain() }
+
+    fun clearChain() { chainPins = emptyList(); chainYou = null; pushChain() }
+
+    private fun pushChain() {
+        val st = style ?: return
+        val s = src("dl-chain") ?: return
+        val line = src("dl-chain-line")
+        if (chainPins.isEmpty()) { s.featureCollection(empty()); line?.featureCollection(empty()); return }
+        val fs = ArrayList<Feature>()
+        chainPins.forEachIndexed { i, p ->
+            val id = "dl-chain-$i-" + (if (p.selected) "s" else "n") + "-" + (p.label.hashCode() and 0xffff) + (if (p.logo != null) "L" else "")
+            try { if (!st.hasStyleImage(id)) addImg(st, id, chainPinBitmap(p)) } catch (e: Throwable) { }
+            val f = Feature.fromGeometry(Point.fromLngLat(p.pos.lon, p.pos.lat))
+            f.addStringProperty("img", id); f.addNumberProperty("i", i); f.addNumberProperty("z", if (p.selected) 1 else 0)
+            fs += f
+        }
+        s.featureCollection(FeatureCollection.fromFeatures(fs))
+        val sel = chainPins.firstOrNull { it.selected }
+        val you = chainYou
+        line?.featureCollection(if (sel != null && you != null)
+            FeatureCollection.fromFeature(Feature.fromGeometry(com.mapbox.geojson.LineString.fromLngLats(listOf(Point.fromLngLat(you.lon, you.lat), Point.fromLngLat(sel.pos.lon, sel.pos.lat)))))
+        else empty())
+    }
+
+    /** A branch's pin: its logo in a white circle (a blue ring and a blue time tag when picked), the drive time underneath. */
+    private fun chainPinBitmap(p: ChainPin): Bitmap {
+        val dm = mapView.resources.displayMetrics
+        val d = dm.density
+        val r = (if (p.selected) 29f else 20f) * d
+        val text = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 14f * d; typeface = android.graphics.Typeface.DEFAULT_BOLD; color = android.graphics.Color.WHITE
+        }
+        val tw = text.measureText(p.label)
+        val tagH = 24f * d
+        val w = maxOf(2 * r + 12 * d, tw + 24 * d)
+        val h = 2 * r + 8 * d + tagH + 6 * d
+        val b = Bitmap.createBitmap(w.toInt() + 2, (h * 2).toInt(), Bitmap.Config.ARGB_8888)
+        b.density = dm.densityDpi
+        val cv = android.graphics.Canvas(b)
+        val cx = b.width / 2f
+        // (the circle sits in the middle of the picture, so the pin's middle is the place itself; the label hangs below)
+        val cy = b.height / 2f
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        paint.color = android.graphics.Color.argb(110, 0, 0, 0)
+        cv.drawCircle(cx, cy + 2 * d, r + 1.5f * d, paint)
+        paint.color = if (p.selected) android.graphics.Color.parseColor("#4C8DFF") else android.graphics.Color.WHITE
+        cv.drawCircle(cx, cy, r, paint)
+        paint.color = android.graphics.Color.WHITE
+        cv.drawCircle(cx, cy, r - (if (p.selected) 4f * d else 0f), paint)
+        val inner = r - (if (p.selected) 4f * d else 0f)
+        val logo = p.logo
+        if (logo != null) {
+            val s = inner * 1.25f
+            val save = cv.save()
+            val clip = android.graphics.Path().apply { addCircle(cx, cy, inner - 2 * d, android.graphics.Path.Direction.CW) }
+            cv.clipPath(clip)
+            cv.drawBitmap(logo, null, android.graphics.RectF(cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2), android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG))
+            cv.restoreToCount(save)
+        } else {
+            // no logo: a red pin dot, like the usual search pin
+            paint.color = android.graphics.Color.parseColor("#EA4335")
+            cv.drawCircle(cx, cy, inner * 0.42f, paint)
+        }
+        // the label under the circle
+        val ty = cy + r + 6 * d
+        if (p.selected) {
+            paint.color = android.graphics.Color.parseColor("#4C8DFF")
+            cv.drawRoundRect(android.graphics.RectF(cx - tw / 2 - 10 * d, ty, cx + tw / 2 + 10 * d, ty + tagH), 12 * d, 12 * d, paint)
+            cv.drawText(p.label, cx - tw / 2, ty + tagH / 2 + text.textSize * 0.35f, text)
+        } else {
+            val outline = android.graphics.Paint(text).apply { style = android.graphics.Paint.Style.STROKE; strokeWidth = 4f * d; color = android.graphics.Color.argb(230, 10, 14, 22) }
+            cv.drawText(p.label, cx - tw / 2, ty + tagH / 2 + text.textSize * 0.35f, outline)
+            cv.drawText(p.label, cx - tw / 2, ty + tagH / 2 + text.textSize * 0.35f, text)
+        }
+        return b
+    }
+
+    /** All the branches fitted into the part of the map beside the list (on the driver's side: left, or right when [mirrored]). */
+    fun fitChain(points: List<LL>, mirrored: Boolean) {
+        val side = if (mapView.width > mapView.height) 0.40 else 0.06
+        fitFrac(points, if (mirrored) 0.06 else side, 0.12, if (mirrored) side else 0.06, if (mapView.width > mapView.height) 0.10 else 0.55)
+    }
+
+    /** A tap near a branch's pin (within about 30 dp). */
+    private fun chainAt(sp: android.graphics.PointF): Int? {
+        if (chainPins.isEmpty()) return null
+        val px = pixels(chainPins.map { it.pos })
+        if (px.size != chainPins.size) return null
+        val r = 30.0 * mapView.resources.displayMetrics.density
+        var best: Int? = null; var bd = r
+        px.forEachIndexed { i, p -> val dd = Math.hypot(p.x - sp.x, p.y - sp.y); if (dd < bd) { bd = dd; best = i } }
+        return best
+    }
+
     fun tapAt(sp: android.graphics.PointF): Boolean {
+        chainAt(sp)?.let { i -> onChainTap?.invoke(i); return true }
         // a tap during the route fly-through skips straight to the overview
         flyDone?.let { d -> flyDone = null; flyToken++; try { mapView.camera.cancelAllAnimators() } catch (e: Throwable) { }; d(); return true }
         // a number-plate camera: say what it is
@@ -4232,7 +4346,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     /** Smoothly zooms out (flat, north-up) so every point sits in the area above the route-preview panel. */
     /** [panel]: the bottom of the screen is covered by the route preview panel (false: only the turn card and trip card are in the way). */
-    fun fit(points: List<LL>, panel: Boolean = true) {
+    fun fit(points: List<LL>, panel: Boolean = true) =
+        fitFrac(points, 0.07, if (panel) 0.10 else 0.16, 0.07, if (panel) 0.60 else 0.20)
+
+    /** Fits [points] into the map with these parts of it (fractions of its width and height) kept clear on each side. */
+    fun fitFrac(points: List<LL>, plF: Double, ptF: Double, prF: Double, pbF: Double) {
         if (points.size < 2) return
         val d = mapView.resources.displayMetrics.density.toDouble()
         val w = mapView.width / d
@@ -4246,7 +4364,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val xs = points.map { mx(it.lon) }; val ys = points.map { my(it.lat) }
         val x0 = xs.min(); val x1 = xs.max(); val y0 = ys.min(); val y1 = ys.max()
         // visible area (dp): the bottom half is covered by the preview panel
-        val pl = w * 0.07; val pr = w * 0.07; val pt = h * (if (panel) 0.10 else 0.16); val pb = h * (if (panel) 0.60 else 0.20)
+        val pl = w * plF; val pr = w * prF; val pt = h * ptF; val pb = h * pbF
         val aw = w - pl - pr; val ah = h - pt - pb
         val fx = max(x1 - x0, 1e-7); val fy = max(y1 - y0, 1e-7)
         // (zoom in this formula is for a map drawn at the screen's own density; a lower render scale shows more map, so it's corrected)
