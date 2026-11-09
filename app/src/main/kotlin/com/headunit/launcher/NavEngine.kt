@@ -1818,7 +1818,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    fun setChainSort(s: String) { chainSort = s; chainSel = chainSorted().firstOrNull(); drawChain(fit = false) }
+    fun sortChainBy(s: String) { chainSort = s; chainSel = chainSorted().firstOrNull(); drawChain(fit = false) }
 
     fun selectChain(s: ChainSpot) { chainSel = s; drawChain(fit = false) }
 

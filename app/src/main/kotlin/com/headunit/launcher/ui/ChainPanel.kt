@@ -143,7 +143,7 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
         if (sorts.size > 1) Row(Modifier.padding(top = 12.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.tile).padding(4.dp)) {
             for ((id, label) in sorts) {
                 val on = engine.chainSort == id
-                Box(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(if (on) ChainBlue else Color.Transparent).clickable { engine.setChainSort(id) }.padding(vertical = 8.dp),
+                Box(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(if (on) ChainBlue else Color.Transparent).clickable { engine.sortChainBy(id) }.padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center) {
                     Text(label, color = if (on) Color.White else c.sub, fontSize = 15.sp, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
                 }
