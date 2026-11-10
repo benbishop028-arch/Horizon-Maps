@@ -1435,5 +1435,11 @@ object I18nC {
         "Removed from saved routes" to listOf("ลบออกจากเส้นทางที่บันทึกแล้ว", "保存したルートから削除しました", "Dihapus dari rute tersimpan"),
         "Only your lights decide, in tunnels too. Lights signal now: {0}" to listOf("ไฟของคุณเท่านั้นที่ตัดสิน รวมถึงในอุโมงค์ สัญญาณไฟตอนนี้: {0}", "ライトだけで切り替わります（トンネル内も）。現在のライト信号：{0}", "Hanya lampu Anda yang menentukan, termasuk di terowongan. Sinyal lampu sekarang: {0}"),
         "Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check" to listOf("เครื่องเสียงรถของคุณยังไม่เคยเปลี่ยนตามไฟ จึงใช้เวลาพระอาทิตย์ขึ้นและตกไปก่อน เปิดตัวเลือกโหมดกลางคืนตามไฟหน้าหรือไฟส่องสว่างของเครื่อง แล้วเปิดไฟรถเพื่อตรวจสอบ", "ヘッドユニットがまだライト連動で切り替わったことがないため、それまでは日の出・日の入りを使います。ヘッドユニットのヘッドライト／イルミネーション連動の夜モード設定をオンにして、ライトをつけて確認してください", "Head unit Anda belum pernah beralih dengan lampu, jadi matahari terbit dan terbenam dipakai sampai itu terjadi. Aktifkan opsi mode malam lampu depan atau iluminasi di head unit, lalu nyalakan lampu Anda untuk memeriksa"),
+        "Buttons on the trip card" to listOf("ปุ่มบนการ์ดทริป", "ルートカードのボタン", "Tombol di kartu perjalanan"),
+        "Tap to show or hide. Fewer buttons make the card narrower" to listOf("แตะเพื่อแสดงหรือซ่อน ปุ่มน้อยลงทำให้การ์ดแคบลง", "タップで表示・非表示。ボタンを減らすとカードが細くなります", "Ketuk untuk menampilkan atau menyembunyikan. Lebih sedikit tombol membuat kartu lebih sempit"),
+        "End" to listOf("จบ", "終了", "Akhiri"),
+        "Normal" to listOf("ปกติ", "標準", "Normal"),
+        "Large" to listOf("ใหญ่", "大", "Besar"),
+        "Extra large" to listOf("ใหญ่พิเศษ", "特大", "Sangat besar"),
     )
 }

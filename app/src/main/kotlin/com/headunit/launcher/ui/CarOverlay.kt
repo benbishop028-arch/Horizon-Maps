@@ -189,6 +189,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
             minOf(if (maxWidth < 1050.dp) 380.dp else 440.dp, maxWidth * 0.38f)
         }
         var turnH by remember { mutableStateOf(0) }
+        // the turn card and what's under it, without the lane picture, and the cards along the bottom on the same side: the lane
+        // picture gets the room left between them
+        var aboveH by remember { mutableStateOf(0) }
+        var bottomColH by remember { mutableStateOf(0) }
         var topBlockH by remember { mutableStateOf(0) }
 
         // where the cards are, for placing your arrow the way the app does: on wide screens it moves sideways clear of the cards on
@@ -219,10 +223,13 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // one slim line while the turn is far off (about 2 km), the full card as it comes up (a little either side, so it can't flicker)
         val slimHold = remember { booleanArrayOf(false) }
         if (t != null) slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
+        // (worked out here: the screen's height can't be read from inside the column below)
+        val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH).toDp() } - 28.dp).coerceAtLeast(0.dp)
         if (showTurn && t != null) Box(Modifier.padding(start = left, top = top).width(if (portrait) topW else minOf(420.dp, maxWidth * 0.36f))
             .onSizeChanged { turnH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
+              Column(Modifier.onSizeChanged { aboveH = it.height }, verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
                 // (the car's "Navigation arrow size" is the arrow on the map, as on the phone: CarNav applies it there)
                 CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
                     ImmTurnCard(engine, t, compact = compact, car = true, slim = slimHold[0],
@@ -236,7 +243,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 if (!tiny) engine.advice?.let { AdvicePill(it) }
                 // a low bridge or weight limit the lorry is over: shown even on a small car screen
                 LorryWarnCard(engine)
-                if (!tiny) JunctionCloseup(engine)
+              }
+                // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
+                // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
+                if (!tiny) JunctionCloseup(engine, maxH = laneRoom)
             }
         }
 
@@ -291,7 +301,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 }
                 Column(
                     Modifier.align(Alignment.BottomStart).padding(start = left, bottom = bottom)
-                        .width((maxWidth - left - rightBottom).coerceAtLeast(0.dp).coerceAtMost(620.dp))
+                        .width((maxWidth - left - rightBottom).coerceAtLeast(0.dp).coerceAtMost(620.dp)).onSizeChanged { bottomColH = it.height }
                         .onGloballyPositioned { engine.bottomCover = ((vT + vH - it.boundsInRoot().top) / vH).coerceIn(0f, 0.6f).toDouble() },
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -308,7 +318,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 var leftColH by remember { mutableStateOf(0) }
                 var speedW by remember { mutableStateOf(0) }
                 Column(
-                    Modifier.align(Alignment.BottomStart).padding(start = left, bottom = bottom).onSizeChanged { leftColW = it.width; leftColH = it.height }
+                    Modifier.align(Alignment.BottomStart).padding(start = left, bottom = bottom).onSizeChanged { leftColW = it.width; leftColH = it.height; bottomColH = it.height }
                         .onGloballyPositioned { report(1, it.boundsInRoot()) },
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -453,17 +463,24 @@ private fun TripCard(engine: NavEngine, fill: Boolean) {
                 androidx.compose.material3.Icon(icon, null, tint = c.text, modifier = Modifier.size(sz * 0.52f))
             }
         }
-        val extra: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
-            small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
-            small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
+        // only the buttons chosen (Settings > Android Auto > Buttons on the trip card), at the size chosen there; with fewer of them
+        // the card is narrower and leaves more of the map clear
+        val on = carTripButtonsOn(engine.prefs)
+        val grow = when (engine.prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) { "large" -> 1.25f; "xl" -> 1.5f; else -> 1f }
+        val buttons: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { base ->
+            val sz = base * grow
+            if ("overview" in on) small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
+            if ("routes" in on) small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
+            if ("sound" in on) sound(sz)
+            if ("end" in on) end(sz)
         }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
-            Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { extra(36.dp); sound(36.dp); end(36.dp) }
-        } else Row(Modifier.widthIn(min = 400.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
+            if (on.isNotEmpty()) Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(36.dp) }
+        } else Row(Modifier.widthIn(min = if (on.size >= 3) 400.dp else 0.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
-            Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { extra(40.dp); sound(40.dp); end(40.dp) }
+            if (on.isNotEmpty()) Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(40.dp) }
         }
     }
 }

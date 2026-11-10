@@ -1692,6 +1692,12 @@ object L {
         "Removed from saved routes" to listOf("Verwijderd uit opgeslagen routes", "Aus gespeicherten Routen entfernt", "Retiré des itinéraires enregistrés", "Quitada de las rutas guardadas"),
         "Only your lights decide, in tunnels too. Lights signal now: {0}" to listOf("Alleen je lichten bepalen het, ook in tunnels. Lichtsignaal nu: {0}", "Nur dein Licht entscheidet, auch in Tunneln. Lichtsignal jetzt: {0}", "Seuls vos phares décident, même dans les tunnels. Signal des phares : {0}", "Solo deciden tus luces, también en túneles. Señal de luces ahora: {0}"),
         "Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check" to listOf("Je head-unit is nog niet met de lichten omgeschakeld, dus tot dan worden zonsopkomst en zonsondergang gebruikt. Zet de koplamp- of verlichtingsoptie voor nachtmodus aan en doe dan je lichten aan om het te testen", "Dein Radio hat noch nicht mit dem Licht umgeschaltet, daher gelten bis dahin Sonnenauf- und -untergang. Schalte dort die Scheinwerfer- bzw. Beleuchtungs-Nachtmodus-Option ein und dann dein Licht, um es zu prüfen", "Votre autoradio n'a pas encore basculé avec les phares, donc le lever et le coucher du soleil servent en attendant. Activez son option de mode nuit liée aux phares ou à l'éclairage, puis allumez vos phares pour vérifier", "Tu radio aún no ha cambiado con las luces, así que se usan el amanecer y el atardecer hasta entonces. Activa su opción de modo noche con los faros o la iluminación y enciende las luces para comprobarlo"),
+        "Buttons on the trip card" to listOf("Knoppen op de ritkaart", "Tasten auf der Fahrtkarte", "Boutons de la carte de trajet", "Botones de la tarjeta de viaje"),
+        "Tap to show or hide. Fewer buttons make the card narrower" to listOf("Tik om te tonen of te verbergen. Minder knoppen maken de kaart smaller", "Zum Ein- oder Ausblenden tippen. Weniger Tasten machen die Karte schmaler", "Touchez pour afficher ou masquer. Moins de boutons rendent la carte plus étroite", "Toca para mostrar u ocultar. Menos botones hacen la tarjeta más estrecha"),
+        "End" to listOf("Stoppen", "Beenden", "Terminer", "Terminar"),
+        "Normal" to listOf("Normaal", "Normal", "Normal", "Normal"),
+        "Large" to listOf("Groot", "Groß", "Grand", "Grande"),
+        "Extra large" to listOf("Extra groot", "Sehr groß", "Très grand", "Muy grande"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3119,5 +3125,11 @@ object L {
         "Removed from saved routes" to listOf("Rimosso dai percorsi salvati", "Removido dos percursos guardados", "Usunięto z zapisanych tras"),
         "Only your lights decide, in tunnels too. Lights signal now: {0}" to listOf("Decidono solo le luci, anche nelle gallerie. Segnale luci ora: {0}", "Só as luzes decidem, também nos túneis. Sinal das luzes agora: {0}", "Decydują tylko światła, także w tunelach. Sygnał świateł teraz: {0}"),
         "Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check" to listOf("L'autoradio non ha ancora cambiato con le luci, quindi fino ad allora si usano alba e tramonto. Attiva la sua opzione modalità notte con fari o illuminazione, poi accendi le luci per provare", "O rádio ainda não mudou com as luzes, por isso usa-se o nascer e o pôr do sol até lá. Ative a opção de modo noturno com faróis ou iluminação e ligue as luzes para testar", "Radio jeszcze nie przełączyło się ze światłami, więc do tego czasu używany jest wschód i zachód słońca. Włącz w nim opcję trybu nocnego od świateł lub podświetlenia, a potem włącz światła, aby sprawdzić"),
+        "Buttons on the trip card" to listOf("Pulsanti sulla scheda del viaggio", "Botões no cartão da viagem", "Przyciski na karcie podróży"),
+        "Tap to show or hide. Fewer buttons make the card narrower" to listOf("Tocca per mostrare o nascondere. Meno pulsanti rendono la scheda più stretta", "Toque para mostrar ou ocultar. Menos botões tornam o cartão mais estreito", "Dotknij, aby pokazać lub ukryć. Mniej przycisków to węższa karta"),
+        "End" to listOf("Termina", "Terminar", "Zakończ"),
+        "Normal" to listOf("Normale", "Normal", "Normalny"),
+        "Large" to listOf("Grande", "Grande", "Duży"),
+        "Extra large" to listOf("Molto grande", "Muito grande", "Bardzo duży"),
     )
 }

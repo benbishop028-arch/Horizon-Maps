@@ -102,3 +102,54 @@ internal fun ShortcutsGroup(engine: NavEngine) {
         }
     }
 }
+
+/** The buttons on the Android Auto trip card, in their order: id, name, icon, colour. */
+internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color>>> = listOf(
+    Triple("overview", "Overview", androidx.compose.material.icons.Icons.Rounded.ZoomOutMap to Color(0xFF4C8DFF)),
+    Triple("routes", "Other routes", androidx.compose.material.icons.Icons.Rounded.AltRoute to Color(0xFF4C8DFF)),
+    Triple("sound", "Sound", androidx.compose.material.icons.Icons.Rounded.VolumeUp to Color(0xFF4C8DFF)),
+    Triple("end", "End", androidx.compose.material.icons.Icons.Rounded.Close to Color(0xFFE5484D)),
+)
+
+/** Which trip card buttons are switched on (all of them unless changed). */
+internal fun carTripButtonsOn(prefs: com.headunit.launcher.Prefs): Set<String> {
+    val raw = prefs.s(PreferenceKeys.CAR_TRIP_BTNS, "*")
+    return if (raw == "*") carTripButtons.map { it.first }.toSet() else raw.split(',').filter { it.isNotBlank() }.toSet()
+}
+
+/** Settings > Android Auto: which buttons the trip card has, and how big they are (a narrower card leaves more of the map clear). */
+@Composable
+internal fun CarTripButtonsGroup(prefs: com.headunit.launcher.Prefs) {
+    val c = LocalVw.current
+    val on = carTripButtonsOn(prefs)
+    SGroup(L.t("Buttons on the trip card"), footer = L.t("Tap to show or hide. Fewer buttons make the card narrower")) {
+        Column(Modifier.padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            for (line in carTripButtons.chunked(2)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    for ((id, name, look) in line) {
+                        val sel = id in on
+                        val col = look.second
+                        Row(
+                            Modifier.clip(RoundedCornerShape(22.dp))
+                                .background(if (sel) col.copy(alpha = 0.2f) else c.tile)
+                                .border(2.dp, if (sel) col else Color.Transparent, RoundedCornerShape(22.dp))
+                                .pressClick {
+                                    val next = if (sel) on - id else on + id
+                                    prefs.put(PreferenceKeys.CAR_TRIP_BTNS, carTripButtons.map { it.first }.filter { it in next }.joinToString(","))
+                                }
+                                .padding(horizontal = 14.dp, vertical = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(look.first, null, tint = if (sel) col else c.sub, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(L.t(name), color = if (sel) c.text else c.sub, fontSize = 15.sp)
+                        }
+                    }
+                }
+            }
+        }
+        SChoice(L.t("Button size"), listOf("normal" to L.t("Normal"), "large" to L.t("Large"), "xl" to L.t("Extra large")), prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) {
+            prefs.put(PreferenceKeys.CAR_TRIP_BTN_SIZE, it)
+        }
+    }
+}

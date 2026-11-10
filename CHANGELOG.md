@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Lane picture under the turn card on Android Auto: on a short car screen it ran on underneath the trip card. It now shrinks to fit the gap, and is left out when even a small one wouldn't fit (the lanes still show in the turn card).
 - Slip-road turns count down to the slip road: when the turn is at the far end of a slip road (common where a main road has no exit numbers), the turn card, the lit lane and the voice now count down to where the slip road leaves the main road ("take the exit on the left"), then to the turn at the end of it. They used to count down to the far end, past where you had to move over.
 - Dashboard and head-up display in feet: on Android Auto, the car's own dashboard and head-up display now show feet close to a turn (then miles), the same as the app, instead of yards.
 - Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
@@ -106,6 +107,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Choose the trip card buttons on Android Auto: Settings › Android Auto › Buttons on the trip card turns Overview, Other routes, Sound and End on or off, with a Normal, Large or Extra large button size. Fewer buttons make the card narrower, so more of the map stays clear.
 - Thai, Japanese and Indonesian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in all three too. Directions are spoken with the phone's or head unit's own voice for that language, so it needs a Thai, Japanese or Indonesian text-to-speech voice installed.
 - Save route: the bookmark on the route options is now Save route. It keeps the destination, your stops and the road you picked ("Croke Park via M9"). Saved routes show under the search bar (and in Places on Android Auto); tap one to plan the same way again with that day's traffic, swipe it away to delete.
 - Red pin where you tap: tapping or holding the map drops a red pin on the exact spot while its card is open.
