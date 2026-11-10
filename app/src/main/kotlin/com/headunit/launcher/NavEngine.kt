@@ -2084,13 +2084,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.showJams(out)
     }
 
-    /** The route segment a distance along it falls in. */
-    private fun idxAt(r: Route, off: Double): Int {
-        var lo = 0; var hi = r.cum.size - 1
-        while (lo < hi) { val m = (lo + hi + 1) / 2; if (r.cum[m] <= off) lo = m else hi = m - 1 }
-        return lo
-    }
-
     private fun drawRoutes() {
         val r = route ?: return
         try { pushJams() } catch (e: Exception) { }
