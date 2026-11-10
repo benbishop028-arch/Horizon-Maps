@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.EvStation
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.AltRoute
+import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.LocalConvenienceStore
 import androidx.compose.material.icons.rounded.LocalGasStation
@@ -104,11 +108,11 @@ internal fun ShortcutsGroup(engine: NavEngine) {
 }
 
 /** The buttons on the Android Auto trip card, in their order: id, name, icon, colour. */
-internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color>>> = listOf(
-    Triple("overview", "Overview", androidx.compose.material.icons.Icons.Rounded.ZoomOutMap to Color(0xFF4C8DFF)),
-    Triple("routes", "Other routes", androidx.compose.material.icons.Icons.Rounded.AltRoute to Color(0xFF4C8DFF)),
-    Triple("sound", "Sound", androidx.compose.material.icons.Icons.Rounded.VolumeUp to Color(0xFF4C8DFF)),
-    Triple("end", "End", androidx.compose.material.icons.Icons.Rounded.Close to Color(0xFFE5484D)),
+internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color>>> = listOf<Triple<String, String, Pair<ImageVector, Color>>>(
+    Triple("overview", "Overview", Icons.Rounded.ZoomOutMap to Color(0xFF4C8DFF)),
+    Triple("routes", "Other routes", Icons.Rounded.AltRoute to Color(0xFF4C8DFF)),
+    Triple("sound", "Sound", Icons.Rounded.VolumeUp to Color(0xFF4C8DFF)),
+    Triple("end", "End", Icons.Rounded.Close to Color(0xFFE5484D)),
 )
 
 /** Which trip card buttons are switched on (all of them unless changed). */
