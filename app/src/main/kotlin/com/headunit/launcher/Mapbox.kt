@@ -289,7 +289,8 @@ object MapboxRest {
         val pts = listOf(from) + via + listOf(to)
         val coords = pts.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }
         val ex = listOf(excludes(TomTomRest.avoid), enc(pointEx)).filter { it.isNotEmpty() }.joinToString(",")
-        val lang = L.lang
+        // (Mapbox's directions have no Thai: an unknown language would fail the route, so English instructions are asked for there)
+        val lang = if (L.lang == "th") "en" else L.lang
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on

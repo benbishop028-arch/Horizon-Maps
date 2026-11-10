@@ -725,7 +725,7 @@ private fun PlacesSection(engine: NavEngine) {
     val mine = remember(raw) { pl.customs() }
     var renaming by remember { mutableStateOf<String?>(null) }
     var adding by remember { mutableStateOf(false) }
-    SGroup(L.t("Your places"), footer = L.t("Shown as pills under the search bar, after Home and Work. Add one with the + pill there, or the bookmark on the route options.")) {
+    SGroup(L.t("Your places"), footer = L.t("Shown as pills under the search bar, after Home and Work. Add one with the + pill there.")) {
         if (mine.isEmpty()) SNote(L.t("No places of your own yet."))
         mine.forEachIndexed { i, lp ->
             if (renaming == lp.label) {

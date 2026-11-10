@@ -5,13 +5,13 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French or Spanish. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese or Indonesian. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
 object L {
     val supported = listOf("en" to "English", "nl" to "Nederlands", "de" to "Deutsch", "fr" to "Français", "es" to "Español",
-        "it" to "Italiano", "pt" to "Português", "pl" to "Polski")
+        "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -21,13 +21,15 @@ object L {
     val locale: Locale get() = when (lang) {
         "nl" -> Locale("nl", "NL"); "de" -> Locale.GERMANY; "fr" -> Locale.FRANCE; "es" -> Locale("es", "ES")
         "it" -> Locale.ITALY; "pl" -> Locale("pl", "PL")
+        "th" -> Locale("th", "TH"); "ja" -> Locale.JAPAN; "id" -> Locale("id", "ID")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
         "pt" -> Locale.getDefault().takeIf { it.language == "pt" } ?: Locale("pt", "PT")
         else -> Locale.getDefault().takeIf { it.language == "en" } ?: Locale.UK
     }
 
     fun pick(setting: String): String {
-        val want = if (setting.isBlank() || setting == "auto") Locale.getDefault().language else setting
+        // (Android still reports Indonesian by its old code, "in")
+        val want = (if (setting.isBlank() || setting == "auto") Locale.getDefault().language else setting).let { if (it == "in") "id" else it }
         return if (supported.any { it.first == want }) want else "en"
     }
 
@@ -56,6 +58,11 @@ object L {
     fun voiceToEnglish(text: String): String {
         val rules = voiceRules[lang] ?: return text
         var t = " " + text.lowercase(locale).trim() + " "
+        // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
+        if (lang == "ja") Regex("(に|へ|まで)\\s*(行って|行く|行きたい|向かって|ナビして|ナビ|案内して|案内)(ください|下さい)?\\s*$").find(t.trimEnd())?.let { m ->
+            val place = t.trimEnd().substring(0, m.range.first).trim()
+            if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(" $place ") && !Regex(rules[1].first).containsMatchIn(" $place ")) return "go to $place"
+        }
         // "navigate to …" (the last rule) first: the place's name is kept as it was said, so a name with a word like
         // "restaurant" in it is searched for, not turned into a nearby search
         val home = rules.take(2).any { Regex(it.first).containsMatchIn(t) }
@@ -159,6 +166,46 @@ object L {
                 "przybliż" to "zoom in", "oddal" to "zoom out", "północ u góry" to "north up", "która godzina" to "what time",
                 "^\\s*(jedź do|zabierz mnie do|nawiguj do|prowadź do)\\s" to "go to",
             ),
+            // (Thai and Japanese don't put spaces between words, so their words are matched anywhere in what was said)
+            "th" to r(
+                "(กลับ|ไป)บ้าน" to "go home", "ไป(ที่)?(ทำงาน|ที่ทำงาน|ออฟฟิศ)" to "go to work",
+                "^\\s*(แจ้ง|รายงาน)" to "report", "อุบัติเหตุ" to "accident", "ตำรวจ|ด่าน" to "police", "รถเสีย" to "breakdown", "กล้องจับความเร็ว|กล้อง" to "camera",
+                "ปั๊มน้ำมัน|ปั๊ม|เติมน้ำมัน|น้ำมัน" to "fuel", "ที่ชาร์จ|ชาร์จ|สถานีชาร์จ" to "charging", "ห้องน้ำ|สุขา" to "toilet", "กาแฟ|ร้านกาแฟ" to "coffee",
+                "ร้านอาหาร|กินข้าว|อาหาร" to "food", "จุดพักรถ" to "services", "ที่จอดรถ|จอดรถ" to "parking",
+                "^\\s*(ค้นหา|หา)|ใกล้ที่สุด|ใกล้ๆ|อยู่ที่ไหน" to "find", "ถูกที่สุด|ราคาถูก|ถูก" to "cheap",
+                "เลี่ยง(ทาง)?ด่วน|ไม่ขึ้นทางด่วน|เลี่ยงค่าผ่านทาง" to "avoid toll", "เลี่ยงมอเตอร์เวย์|ไม่ใช้มอเตอร์เวย์" to "avoid motorway",
+                "เลี่ยงถนนนี้" to "avoid this road", "ถึงกี่โมง|อีกนานไหม|อีกไกลไหม|อีกนานแค่ไหน|อีกไกลแค่ไหน" to "eta", "แชร์" to "share",
+                "เปิดเสียง" to "voice on", "เฉพาะการแจ้งเตือน" to "alerts only", "ปิดเสียง|เงียบ" to "mute",
+                "(หยุด|ยกเลิก|จบ)(การ)?นำทาง|ยกเลิกเส้นทาง" to "end route", "ภาพรวม" to "overview",
+                "ซูมเข้า|ขยาย" to "zoom in", "ซูมออก|ย่อ" to "zoom out", "ทิศเหนืออยู่ด้านบน|เหนือขึ้นบน" to "north up", "กี่โมงแล้ว|กี่โมง" to "what time",
+                "^\\s*(ไปที่|พาไป|นำทางไป(ที่)?|ไป)\\s*" to "go to",
+            ),
+            "ja" to r(
+                "(家|自宅|うち)(に|へ)(帰る|帰って|帰りたい|行って|戻って)|(家|自宅)まで" to "go home", "(職場|会社|仕事)(に|へ|まで)(行って|向かって|行く)?" to "go to work",
+                "^\\s*(報告|通報)" to "report", "事故" to "accident", "警察|取り締まり" to "police", "故障" to "breakdown", "オービス|速度取締|カメラ" to "camera",
+                "ガソリンスタンド|ガソリン|給油" to "fuel", "充電スタンド|充電" to "charging", "トイレ|お手洗い" to "toilet", "コーヒー|カフェ" to "coffee",
+                "食事|ご飯|レストラン|飲食店" to "food", "サービスエリア|パーキングエリア|道の駅" to "services", "駐車場|駐車" to "parking",
+                "(探して|検索|一番近い|近くの|どこ)" to "find", "一番安い|安い" to "cheap",
+                "有料道路を避けて|有料(道路)?なし" to "avoid toll", "高速(道路)?を避けて|高速(道路)?なし|一般道" to "avoid motorway",
+                "この道を避けて" to "avoid this road", "到着時刻|あと何分|あとどれくらい|何時に着く" to "eta", "共有" to "share",
+                "音声オン|音声をオン|声を出して" to "voice on", "警告のみ" to "alerts only", "ミュート|消音|静かに|音声オフ" to "mute",
+                "(案内|ナビ|ルート)(を)?(終了|中止|やめて)" to "end route", "全体(表示)?|ルート全体" to "overview",
+                "ズームイン|拡大" to "zoom in", "ズームアウト|縮小" to "zoom out", "北を上" to "north up", "今何時|何時" to "what time",
+                "^\\s*(ナビ|案内して|行き先)\\s*" to "go to",
+            ),
+            "id" to r(
+                "\\s(pulang|ke rumah|pulang ke rumah|antar saya pulang)\\s" to "go home", "\\s(pergi |antar saya )?ke (kantor|tempat kerja)\\s" to "go to work",
+                "^\\s*laporkan\\s" to "report", "kecelakaan" to "accident", "polisi|razia" to "police", "mogok" to "breakdown", "kamera tilang|kamera" to "camera",
+                "pom bensin|spbu|bensin|isi bensin|bbm" to "fuel", "pengisian daya|charger|cas mobil|spklu" to "charging", "toilet|wc|kamar kecil" to "toilet", "kopi|kafe" to "coffee",
+                "makanan|makan|restoran|rumah makan" to "food", "rest area" to "services", "parkir|tempat parkir" to "parking",
+                "\\s(cari|carikan|terdekat|di mana|dimana|butuh)\\s" to "find", "termurah|murah" to "cheap",
+                "hindari (jalan )?tol|tanpa tol" to "avoid toll", "hindari jalan bebas hambatan" to "avoid motorway",
+                "hindari jalan ini" to "avoid this road", "kapan sampai|berapa lama lagi|seberapa jauh lagi|masih jauh" to "eta", "bagikan" to "share",
+                "nyalakan suara|suara aktif" to "voice on", "hanya peringatan" to "alerts only", "matikan suara|bisukan|diam" to "mute",
+                "(hentikan|akhiri|batalkan) (navigasi|rute)" to "end route", "ikhtisar|lihat seluruh rute" to "overview",
+                "perbesar" to "zoom in", "perkecil" to "zoom out", "utara di atas" to "north up", "jam berapa" to "what time",
+                "^\\s*(pergi ke|antar saya ke|navigasi ke|arahkan ke|ke)\\s" to "go to",
+            ),
         )
     }
 
@@ -168,6 +215,9 @@ object L {
         "de", "pl" -> "$n."
         "es", "pt" -> "$n.ª"
         "it" -> "${n}ª"
+        "th" -> "ที่ $n"
+        "ja" -> "${n}番目"
+        "id" -> "ke-$n"
         else -> when {
             n % 100 in 11..13 -> "${n}th"
             n % 10 == 1 -> "${n}st"; n % 10 == 2 -> "${n}nd"; n % 10 == 3 -> "${n}rd"
@@ -185,6 +235,8 @@ object L {
             "it" -> listOf("prima", "seconda", "terza", "quarta", "quinta", "sesta", "settima", "ottava", "nona", "decima")
             "pt" -> listOf("primeira", "segunda", "terceira", "quarta", "quinta", "sexta", "sétima", "oitava", "nona", "décima")
             "pl" -> listOf("pierwszy", "drugi", "trzeci", "czwarty", "piąty", "szósty", "siódmy", "ósmy", "dziewiąty", "dziesiąty")
+            "id" -> listOf("pertama", "kedua", "ketiga", "keempat", "kelima", "keenam", "ketujuh", "kedelapan", "kesembilan", "kesepuluh")
+            // (Thai and Japanese voices read "ที่ 2" and "2番目" well)
             else -> return ordShort(n)
         }
         return words.getOrNull(n - 1) ?: ordShort(n)
@@ -196,9 +248,11 @@ object L {
     private val table: Map<String, Map<String, String>> by lazy {
         val keys = listOf("nl", "de", "fr", "es")
         val keys2 = listOf("it", "pt", "pl")
-        val m = (keys + keys2).associateWith { HashMap<String, String>() }
+        val keys3 = listOf("th", "ja", "id")
+        val m = (keys + keys2 + keys3).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
+        for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         m
     }
 
@@ -209,6 +263,9 @@ object L {
 
     // English, then Italian, Portuguese, Polish
     private val rows2: List<Pair<String, List<String>>> get() = rowsB0() + rowsB1() + rowsB2() + rowsB3() + rowsB4() + rowsB5() + rowsB6()
+
+    // English, then Thai, Japanese, Indonesian (in their own file, I18nC.kt)
+    private val rows3: List<Pair<String, List<String>>> get() = I18nC.rows()
 
     private fun rowsA0(): List<Pair<String, List<String>>> = listOf(
         "arrive, destination on the left" to listOf("aankomen, bestemming aan de linkerkant", "ankommen, Ziel auf der linken Seite", "arrivée, destination sur la gauche", "llegada, destino a la izquierda"),
@@ -1127,7 +1184,7 @@ object L {
         "Saved places" to listOf("Opgeslagen plaatsen", "Gespeicherte Orte", "Lieux enregistrés", "Lugares guardados"),
         "Home and Work can also be set from the pills under the search bar, or the house or briefcase on the route options." to listOf("Thuis en Werk kunt u ook instellen via de knoppen onder de zoekbalk, of het huisje of koffertje bij de routeopties.", "Zuhause und Arbeit lassen sich auch über die Knöpfe unter der Suchleiste oder das Haus bzw. die Aktentasche in den Routenoptionen festlegen.", "Domicile et Travail se définissent aussi via les boutons sous la barre de recherche, ou la maison ou la mallette dans les options d'itinéraire.", "Casa y Trabajo también se pueden definir con los botones bajo la barra de búsqueda, o la casa o el maletín en las opciones de ruta."),
         "Your places" to listOf("Uw plaatsen", "Ihre Orte", "Vos lieux", "Sus lugares"),
-        "Shown as pills under the search bar, after Home and Work. Add one with the + pill there, or the bookmark on the route options." to listOf("Weergegeven als knoppen onder de zoekbalk, na Thuis en Werk. Voeg er een toe met de + daar, of de bladwijzer bij de routeopties.", "Als Knöpfe unter der Suchleiste angezeigt, nach Zuhause und Arbeit. Fügen Sie einen mit dem + dort oder dem Lesezeichen in den Routenoptionen hinzu.", "Affichés en boutons sous la barre de recherche, après Domicile et Travail. Ajoutez-en un avec le + ou le signet des options d'itinéraire.", "Se muestran como botones bajo la barra de búsqueda, tras Casa y Trabajo. Añada uno con el + o el marcador de las opciones de ruta."),
+        "Shown as pills under the search bar, after Home and Work. Add one with the + pill there." to listOf("Weergegeven als knoppen onder de zoekbalk, na Thuis en Werk. Voeg er een toe met de + daar.", "Als Knöpfe unter der Suchleiste angezeigt, nach Zuhause und Arbeit. Fügen Sie einen mit dem + dort hinzu.", "Affichés en boutons sous la barre de recherche, après Domicile et Travail. Ajoutez-en un avec le + là-bas.", "Se muestran como botones bajo la barra de búsqueda, tras Casa y Trabajo. Añada uno con el + de ahí."),
         "No places of your own yet." to listOf("Nog geen eigen plaatsen.", "Noch keine eigenen Orte.", "Pas encore de lieux à vous.", "Aún no tiene lugares propios."),
         "Rename {0}" to listOf("{0} hernoemen", "{0} umbenennen", "Renommer {0}", "Renombrar {0}"),
         "Rename" to listOf("Hernoemen", "Umbenennen", "Renommer", "Renombrar"),
@@ -2554,7 +2611,7 @@ object L {
         "Saved places" to listOf("Luoghi salvati", "Locais guardados", "Zapisane miejsca"),
         "Home and Work can also be set from the pills under the search bar, or the house or briefcase on the route options." to listOf("Casa e Lavoro si impostano anche dai pulsanti sotto la barra di ricerca, o dalla casa o valigetta nelle opzioni del percorso.", "Casa e Trabalho também se definem com os botões sob a barra de pesquisa, ou a casa ou pasta nas opções do percurso.", "Dom i Pracę możesz też ustawić przyciskami pod paskiem wyszukiwania albo domkiem lub teczką w opcjach trasy."),
         "Your places" to listOf("I tuoi luoghi", "Os seus locais", "Twoje miejsca"),
-        "Shown as pills under the search bar, after Home and Work. Add one with the + pill there, or the bookmark on the route options." to listOf("Mostrati come pulsanti sotto la barra di ricerca, dopo Casa e Lavoro. Aggiungine uno col + o col segnalibro nelle opzioni del percorso.", "Mostrados como botões sob a barra de pesquisa, depois de Casa e Trabalho. Adicione com o + ou o marcador nas opções do percurso.", "Pokazywane jako przyciski pod paskiem wyszukiwania, po Domu i Pracy. Dodaj przyciskiem + lub zakładką w opcjach trasy."),
+        "Shown as pills under the search bar, after Home and Work. Add one with the + pill there." to listOf("Mostrati come pulsanti sotto la barra di ricerca, dopo Casa e Lavoro. Aggiungine uno col +.", "Mostrados como botões sob a barra de pesquisa, depois de Casa e Trabalho. Adicione com o +.", "Pokazywane jako przyciski pod paskiem wyszukiwania, po Domu i Pracy. Dodaj przyciskiem +."),
         "No places of your own yet." to listOf("Ancora nessun luogo tuo.", "Ainda sem locais seus.", "Brak własnych miejsc."),
         "Rename {0}" to listOf("Rinomina {0}", "Mudar o nome de {0}", "Zmień nazwę {0}"),
         "Rename" to listOf("Rinomina", "Mudar o nome", "Zmień nazwę"),

@@ -373,7 +373,8 @@ object TomTomRest {
         val base = "$API/routing/calculateRoute/$loc/json?key=$k&apiVersion=2&maxAlternatives=$n"
         val iso = if (departAtMs > 0) java.net.URLEncoder.encode(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", java.util.Locale.US).format(java.util.Date(departAtMs)), "UTF-8") else ""
         val dep = if (iso.isNotEmpty()) "&departAt=$iso" else ""
-        val lang = "&language=" + URLEncoder.encode(L.locale.toLanguageTag(), "UTF-8")
+        // (TomTom's routing has no Japanese: an unknown language would fail the route, so British English is asked for there)
+        val lang = "&language=" + URLEncoder.encode(if (L.lang == "ja") "en-GB" else L.locale.toLanguageTag(), "UTF-8")
         // The classic routing API is tried first: it returns turn-by-turn instructions, roundabout exits and lane data.
         // The newer Orbis routing API does not return any guidance, so it is only a fallback for the line itself.
         val prefs = avoid.joinToString("") { "&avoid=$it" } + (if (routeType != "fastest") "&routeType=$routeType" else "")
