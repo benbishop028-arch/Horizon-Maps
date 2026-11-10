@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Slip-road turns count down to the slip road: when the turn is at the far end of a slip road (common where a main road has no exit numbers), the turn card, the lit lane and the voice now count down to where the slip road leaves the main road ("take the exit on the left"), then to the turn at the end of it. They used to count down to the far end, past where you had to move over.
 - Dashboard and head-up display in feet: on Android Auto, the car's own dashboard and head-up display now show feet close to a turn (then miles), the same as the app, instead of yards.
 - Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
 - Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.

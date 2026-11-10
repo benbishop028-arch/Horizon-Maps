@@ -4515,11 +4515,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         var k = ins.indexOfFirst { it.off > progress + 4 }
         if (k < 0) k = ins.size - 1
         if (k >= 0) {
-            val cur = ins[k]
+            val realCur = ins[k]
+            // a turn at the end of a slip road (the route data puts it where the slip road meets the next road): until you're on
+            // the slip road, the card, the voice and the lanes are for leaving the main road where the slip road splits off, so the
+            // countdown runs to there (the start of the slip road), not to the far end of it. The turn itself comes after.
+            val split = slipSplit(r, k, realCur, progress)
+            val onApproach = split != null && progress < split - 3.0
+            val cur = if (onApproach) realCur.copy(off = split!!, maneuver = if (splitLeft) "MOTORWAY_EXIT_LEFT" else "MOTORWAY_EXIT_RIGHT", roundExit = 0, exitNo = "") else realCur
+            // (its own keys, so the turn at the end of the slip road still gets its spoken call-outs and arrow afterwards)
+            val sk = if (onApproach) "s$k" else "$k"
             val d = max(0.0, cur.off - progress)
             val arriving = cur.maneuver.uppercase().startsWith("ARRIVE")
             val side = if (arriving) arrivalSide(r, cur.maneuver) else ""
-            val nxt = ins.getOrNull(k + 1)
+            val nxt = if (onApproach) realCur else ins.getOrNull(k + 1)
             val street = if (arriving) (dest?.name ?: L.t("Destination")) + (if (side.isNotEmpty()) L.t(" · on the $side") else "") else cur.street.ifBlank { Geo.maneuverText(cur.maneuver, cur.roundExit).replaceFirstChar { it.uppercase() } }
             // several lane sections can touch one junction (the road often widens on the approach): use the one with the most lanes, then the nearest to the junction
             // on motorways and dual carriageways the lanes are looked at (and shown, and spoken) much earlier, as there's further to move over
@@ -4545,7 +4553,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 speak(L.t(if (imperial) "In about a mile, {0}" else "In about one and a half kilometres, {0}", laneMove ?: laneAdv))
             }
             updateLaneMarks(r, cur, laneSec, d)
-            updateTurnArrow(r, k, cur, d, arriving)
+            updateTurnArrow(r, if (onApproach) k + 100_000 else k, cur, d, arriving)
             // (after an unnamed slip road the step's "street" is the exit sign's text, not a road: the map's own name is used then)
             onRoad = ins.getOrNull(k - 1)?.let { st -> if (st.exitNo.isNotBlank() || st.maneuver.uppercase().contains("RAMP")) "" else st.street } ?: ""
             refreshRoad()
@@ -4578,11 +4586,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val familiar = prefs.b(PreferenceKeys.SMARTVOICE, true) && onRoad.isNotBlank() && (roadFam[onRoad] ?: 0) >= 6
             val fFrom = if (familiar) 330.0 else 520.0
             // a heads-up well ahead on fast roads, then the main call-out, then the final one at the junction
-            if (!familiar && d <= 1700 && d > 1100 && p0Speed() > 18.0 && !arriving && said.add("${k}e"))
+            if (!familiar && d <= 1700 && d > 1100 && p0Speed() > 18.0 && !arriving && said.add("${sk}e"))
                 speak(L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase))
-            if (d <= fFrom && d > 200 && said.add("${k}f"))
+            if (d <= fFrom && d > 200 && said.add("${sk}f"))
                 speak(if (arriving) L.t("In {0}, you will arrive", Geo.spoken(d, imperial)) + (if (side.isNotEmpty()) ". " + L.t("Your destination is on the $side") else "") else L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase) + lane)
-            if (d <= 120 && said.add("${k}n"))
+            if (d <= 120 && said.add("${sk}n"))
                 speak(if (arriving) (if (side.isNotEmpty()) L.t("Your destination is on the $side") else L.t("You have arrived")) else phrase.replaceFirstChar { it.uppercase() })
         }
         // a route that stops short of the destination (the downloaded map ran out): at its end, plan on from here instead
@@ -4733,6 +4741,58 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var turnArrowKey = -1
 
     /** Draws a white arrow on the route through the next junction once it's within ~700 m (not for "carry straight on"). */
+    // ---- slip roads: where the route leaves the main road for a slip road that ends at the next turn ----
+    private var splitFor = -1.0
+    private var splitAt: Double? = null
+    private var splitDone = false
+    private var splitAskAt = 0L
+    /** The slip road leaves to the left (true) or right. */
+    private var splitLeft = true
+
+    /**
+     * Where the slip road leading to step [k] splits off the main road (a distance along the route), when that step is a turn at the
+     * far end of a slip road and no step of its own covers leaving the main road. Read from the map's road types (a "link" road is
+     * a slip road) along the route, looking back from the turn. Null when it isn't one, or the map hasn't shown it yet (asked again
+     * every 2 seconds while the turn is within a kilometre).
+     */
+    private fun slipSplit(r: Route, k: Int, cur: Step, progress: Double): Double? {
+        if (splitFor != cur.off) { splitFor = cur.off; splitAt = null; splitDone = false }
+        if (splitDone) return splitAt
+        val m = cur.maneuver.uppercase()
+        if (m.startsWith("ARRIVE") || m.startsWith("ROUNDABOUT") || m.contains("EXIT") || m.contains("RAMP") || m.startsWith("DEPART")) { splitDone = true; return null }
+        val d = cur.off - progress
+        if (d > 1000.0) return null
+        // too late to matter once you're nearly there
+        if (d < 120.0) { splitDone = true; return null }
+        val now = android.os.SystemClock.uptimeMillis()
+        if (now - splitAskAt < 2000L) return null
+        splitAskAt = now
+        fun cls(off: Double): String? {
+            val (p, b) = pointAt(r, off)
+            return try { map.roadAt(p, b, maxDistance = 8.0, headingTolerance = 30.0)?.cls } catch (e: Throwable) { null }
+        }
+        // just before the turn the route has to be on a slip road; if the map says it isn't, it's an ordinary turn
+        val last = cls(cur.off - 25.0) ?: return null
+        if (!last.endsWith("_link")) { splitDone = true; return null }
+        val prevOff = r.steps.getOrNull(k - 1)?.off ?: 0.0
+        val stopAt = max(prevOff + 5.0, max(progress - 50.0, cur.off - 700.0))
+        var o = cur.off - 25.0
+        var start: Double? = null
+        while (o - 10.0 > stopAt) {
+            o -= 10.0
+            val c = cls(o) ?: return null   // (not on the map yet: asked again shortly)
+            if (!c.endsWith("_link")) { start = o + 10.0; break }
+        }
+        // no main road found before the turn (or a step of its own already covers it): nothing to change
+        if (start == null || cur.off - start < 60.0) { splitDone = true; return null }
+        // which side it leaves to: the route's direction just before the split against just after it
+        val b0 = pointAt(r, max(0.0, start - 30.0)).second
+        val b1 = pointAt(r, min(r.len, start + 40.0)).second
+        splitLeft = ((b1 - b0 + 540.0) % 360.0) - 180.0 < 0.0
+        splitAt = start; splitDone = true
+        return start
+    }
+
     private fun updateTurnArrow(r: Route, k: Int, cur: Step, d: Double, arriving: Boolean) {
         val m = cur.maneuver.uppercase()
         val wanted = prefs.b(PreferenceKeys.TURNARROWS, true) && !previewing && !arriving && d < 700.0 &&
