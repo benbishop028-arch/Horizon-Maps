@@ -1180,16 +1180,25 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         try {
             mbMap.addInteraction(com.mapbox.maps.ClickInteraction.standardBuildings { f, _ ->
                 if (!tapSelectOn) return@standardBuildings false
-                clearSelection()
-                selectAt = android.os.SystemClock.uptimeMillis()
-                mbMap.setFeatureState(f, com.mapbox.maps.interactions.standard.generated.StandardBuildingsState { select(true) })
+                // (these run straight from the map's own tap handling, outside any try above: anything that went wrong in here
+                // would close the app)
+                try {
+                    clearSelection()
+                    selectAt = android.os.SystemClock.uptimeMillis()
+                    mbMap.setFeatureState(f, com.mapbox.maps.interactions.standard.generated.StandardBuildingsState { select(true) })
+                } catch (e: Throwable) { }
                 // (not "handled": the app's own tap handling, like the route cards, still gets the tap)
                 false
             })
             mbMap.addInteraction(com.mapbox.maps.ClickInteraction.standardPoi { f, _ ->
                 if (!tapSelectOn) return@standardPoi false
-                val g = f.geometry
-                f.name?.let { n -> onPoiTap?.invoke(n, LL(g.latitude(), g.longitude())) }
+                // a place with no name in Mapbox's data has a "null" name, which Mapbox's own name lookup can't read and throws on
+                // (it closed the app when tapped): read safely, and a nameless place is just ignored
+                try {
+                    val g = f.geometry
+                    val n = try { f.name } catch (e: Throwable) { null }
+                    if (!n.isNullOrBlank()) onPoiTap?.invoke(n, LL(g.latitude(), g.longitude()))
+                } catch (e: Throwable) { android.util.Log.w("MapBinding", "place tap: ${e.message}") }
                 false
             })
         } catch (e: Throwable) { android.util.Log.w("MapBinding", "tap highlight: ${e.message}") }
