@@ -307,10 +307,11 @@ object MapboxRest {
         // (the same without the free-flow speeds, should Mapbox ever refuse them: the route matters more than the delay)
         attempts += base.replace(",freeflow_speed", "")
         var body: String? = null
+        var usedUrl = ""
         var last: IOException? = null
         departApplied = false
         for (u in attempts) {
-            try { body = get(u, if (quick) 8000 else 12000, if (quick) 12000 else 25000); departApplied = u.contains("depart_at="); break }
+            try { body = get(u, if (quick) 8000 else 12000, if (quick) 12000 else 25000); departApplied = u.contains("depart_at="); usedUrl = u; break }
             catch (e: IOException) {
                 last = e
                 val m = e.message ?: ""
@@ -332,7 +333,34 @@ object MapboxRest {
             } catch (e: IOException) { /* keep the route with the toll rather than none */ }
         }
         val arr = o.optJSONArray("routes") ?: JSONArray()
-        return (0 until arr.length()).mapNotNull { try { parse(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+        val got = (0 until arr.length()).mapNotNull { try { parse(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+        // arriving on your side can mean going round the block (left, right, right) to come back along the other side of the road,
+        // when going straight on and turning across into the drive is the obvious way. When the end of the route looks like such a
+        // loop, it's asked again without that: if that's clearly quicker or shorter, it's used instead
+        val r0 = got.firstOrNull()
+        if (curbSide && r0 != null && !quick && usedUrl.contains("&approaches=") && looksLikeLoop(r0)) {
+            try {
+                val plain = usedUrl.replace(Regex("&approaches=[^&]*"), "")
+                val o3 = JSONObject(get(plain, 8000, 15000))
+                if (o3.optString("code") == "Ok") {
+                    val a3 = o3.optJSONArray("routes") ?: JSONArray()
+                    val alt = (0 until a3.length()).mapNotNull { try { parse(a3.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+                    val p0 = alt.firstOrNull()
+                    if (p0 != null && (p0.time <= r0.time - 40.0 || p0.len <= r0.len - 300.0)) return alt
+                }
+            } catch (e: Exception) { /* keep the kerb-side route */ }
+        }
+        return got
+    }
+
+    /** Two or more turns in the last 700 m before arriving: perhaps a loop round the block just to arrive on the kerb side. */
+    private fun looksLikeLoop(r: Route): Boolean {
+        val end = r.len
+        val turns = r.steps.count { st ->
+            val m = st.maneuver
+            st.off > end - 700.0 && st.off < end - 5.0 && (m.startsWith("TURN_") || m.startsWith("SHARP_") || m == "MAKE_UTURN")
+        }
+        return turns >= 2
     }
 
     private fun maneuverOf(type: String, mod: String, leftHand: Boolean): String {

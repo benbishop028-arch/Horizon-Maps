@@ -1444,5 +1444,9 @@ object I18nC {
         "Simplest" to listOf("ง่ายที่สุด", "最もシンプル", "Paling sederhana"),
         "Prefer simpler routes" to listOf("เลือกเส้นทางที่ง่ายกว่า", "シンプルなルートを優先", "Utamakan rute yang lebih sederhana"),
         "When a route is only a minute or so slower but has far fewer turns, it's picked first (labelled Simplest). Off always picks the fastest" to listOf("เมื่อเส้นทางช้ากว่าเพียงประมาณหนึ่งนาทีแต่เลี้ยวน้อยกว่ามาก จะถูกเลือกก่อน (ระบุว่า ง่ายที่สุด) ปิดจะเลือกเส้นทางที่เร็วที่สุดเสมอ", "1分ほど遅いだけで曲がる回数がずっと少ないルートは、先に選ばれます（「最もシンプル」と表示）。オフにすると常に最速を選びます", "Jika suatu rute hanya sekitar semenit lebih lambat tetapi beloknya jauh lebih sedikit, rute itu dipilih lebih dulu (berlabel Paling sederhana). Mati selalu memilih yang tercepat"),
+        "How" to listOf("แบบ", "方法", "Cara"),
+        "Chime and voice" to listOf("เสียงเตือนและเสียงพูด", "チャイムと音声", "Bunyi dan suara"),
+        "Voice only" to listOf("เสียงพูดเท่านั้น", "音声のみ", "Suara saja"),
+        "Chime only" to listOf("เสียงเตือนเท่านั้น", "チャイムのみ", "Bunyi saja"),
     )
 }

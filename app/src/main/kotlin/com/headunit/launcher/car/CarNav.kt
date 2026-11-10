@@ -194,9 +194,10 @@ class CarNavSession : Session() {
         val prefs = Prefs(app)
         map.setTheme("immersive")
         map.setArrowScale((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f)
-        // the same map look and locator as on the phone (your own picture isn't used on the car screen: the 3D arrow instead)
+        // the same map look and locator as on the phone, your own picture included (it's read from the same app's files; with
+        // none saved the map falls back to the 3D arrow by itself)
         val (loc, locCol) = prefs.locatorSpec()
-        if (loc == "custom") map.setLocator("arrow", prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) else map.setLocator(loc, locCol)
+        map.setLocator(loc, locCol)
         // Keep the locator proportionate to the more compact Android Auto overlay sizing.
         // Android Auto uses a smaller map surface than the main head-unit app. Keep the
         // user preference, but normalise it so the 240% main-app default doesn't create an enormous car-screen locator.

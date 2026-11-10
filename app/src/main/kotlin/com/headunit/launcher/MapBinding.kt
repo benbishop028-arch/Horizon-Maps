@@ -1312,6 +1312,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         private set
     /** What the lamps are doing now, for Settings. */
     @Volatile var lampStage = "waiting for the map"
+    /** Real lamps and lit / unlit roads from OpenStreetMap online (never in offline mode: OsmLamps checks). */
+    @Volatile var lampsOsmOn = true
     fun lampInfo(): String = if (!lampsOn) "off" else lampStage
 
     /** Streets lamps stand along (not motorways or tunnels), from the last look at the roads on screen. */
@@ -1398,18 +1400,81 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      */
     private fun placeLamps(c: LL, roads: List<List<Point>>, gap: Double): Triple<List<Feature>, List<Feature>, String> {
         val dLat = 0.008; val dLon = dLat / Math.cos(Math.toRadians(c.lat))
-        val mapped = if (OfflineRouter.hasLamps(ctx)) OfflineRouter.lamps(ctx, c.lat - dLat, c.lon - dLon, c.lat + dLat, c.lon + dLon, maxTiles = 64) else emptyList()
+        val packed = if (OfflineRouter.hasLamps(ctx)) OfflineRouter.lamps(ctx, c.lat - dLat, c.lon - dLon, c.lat + dLat, c.lon + dLon, maxTiles = 64) else emptyList()
+        // OpenStreetMap online for the same area (without an offline pack too): its lamps, and the roads it says are lit or unlit.
+        // Not there yet: fetched in the background and the lamps placed again when it arrives
+        val areas = if (lampsOsmOn) OsmLamps.around(ctx, c.lat - dLat, c.lon - dLon, c.lat + dLat, c.lon + dLon) {
+            main0.post { lampsCentre = null; refreshLamps(true) }
+        } else emptyList()
+        val kx = 111320.0 * Math.cos(Math.toRadians(c.lat)); val ky = 111320.0
+        // every mapped lamp once (the pack and the online list overlap), within the area
+        val mapped = ArrayList<DoubleArray>()
+        run {
+            val seen = HashSet<Long>()
+            fun add(q: DoubleArray) {
+                if (Math.abs(q[0] - c.lat) > dLat || Math.abs(q[1] - c.lon) > dLon) return
+                if (seen.add(Math.floor(q[0] * ky / 3.0).toLong() * 1000003L + Math.floor(q[1] * kx / 3.0).toLong())) mapped += q
+            }
+            packed.forEach { add(it) }
+            for (a in areas) a.lamps.forEach { add(it) }
+        }
         // spots: lat, lon, bearing of the arm
         val spots = ArrayList<DoubleArray>()
         val near = mapped.sortedBy { Geo.dist(LL(it[0], it[1]), c) }.take(90)
         for (q in near) spots += doubleArrayOf(q[0], q[1], armTowardsRoad(q[0], q[1], roads))
-        val guessing = mapped.size < 15
-        if (guessing && roads.isNotEmpty()) {
+        // where lamps are mapped thoroughly (a city that's had its lamp list added), guessed ones only go on roads marked lit that
+        // have no mapped lamp near; elsewhere on any road not marked unlit, away from the mapped ones
+        val thorough = mapped.size >= 40
+        val clearOf = if (thorough) 45.0 else 28.0
+        // the mapped lamps and the lit / unlit roads in a grid of 30 m squares, to look up quickly
+        val cellM = 30.0
+        fun cell(lat: Double, lon: Double) = Math.floor(lat * ky / cellM).toLong() * 1000003L + Math.floor(lon * kx / cellM).toLong()
+        val lampGrid = HashMap<Long, MutableList<DoubleArray>>()
+        for (q in mapped) lampGrid.getOrPut(cell(q[0], q[1])) { ArrayList() } += q
+        // each road piece as lit flag, then the two ends (x, y in metres)
+        val litGrid = HashMap<Long, MutableList<DoubleArray>>()
+        var litWays = 0
+        for (a in areas) for ((lit, g) in a.ways) {
+            litWays++
+            var i = 0
+            while (i + 3 < g.size) {
+                val ax = g[i + 1] * kx; val ay = g[i] * ky; val bx = g[i + 3] * kx; val by = g[i + 2] * ky
+                val piece = doubleArrayOf(if (lit) 1.0 else 0.0, ax, ay, bx, by)
+                // filed under every square the piece passes through (pieces are short; long ones are sampled)
+                val len = Math.hypot(bx - ax, by - ay)
+                val n = Math.max(1, Math.ceil(len / cellM).toInt())
+                val keys = HashSet<Long>()
+                for (t in 0..n) keys += cell((g[i] + (g[i + 2] - g[i]) * t / n), (g[i + 1] + (g[i + 3] - g[i + 1]) * t / n))
+                for (kk in keys) litGrid.getOrPut(kk) { ArrayList() } += piece
+                i += 2
+            }
+        }
+        fun cellsNear(grid: HashMap<Long, MutableList<DoubleArray>>, lat: Double, lon: Double): List<DoubleArray> {
+            val ci = Math.floor(lat * ky / cellM).toLong(); val cj = Math.floor(lon * kx / cellM).toLong()
+            val out = ArrayList<DoubleArray>()
+            for (di in -1L..1L) for (dj in -1L..1L) grid[(ci + di) * 1000003L + (cj + dj)]?.let { out += it }
+            return out
+        }
+        /** OpenStreetMap's word on the road at this point: true lit, false unlit, null not said (nearest marked road within 12 m). */
+        fun litAt(lat: Double, lon: Double): Boolean? {
+            val px = lon * kx; val py = lat * ky
+            var best = 12.0; var res: Boolean? = null
+            for (q in cellsNear(litGrid, lat, lon)) {
+                val dx = q[3] - q[1]; val dy = q[4] - q[2]
+                val l2 = dx * dx + dy * dy
+                val t = if (l2 < 1e-6) 0.0 else (((px - q[1]) * dx + (py - q[2]) * dy) / l2).coerceIn(0.0, 1.0)
+                val d = Math.hypot(px - (q[1] + dx * t), py - (q[2] + dy * t))
+                if (d < best) { best = d; res = q[0] > 0.5 }
+            }
+            return res
+        }
+        fun mappedNear(lat: Double, lon: Double): Boolean = cellsNear(lampGrid, lat, lon).any { Geo.dist(LL(it[0], it[1]), LL(lat, lon)) < clearOf }
+        var skippedUnlit = 0
+        if (roads.isNotEmpty()) {
             val taken = HashSet<Long>()
             val cell = Math.max(8.0, gap * 0.6)
             fun key(lat: Double, lon: Double) = Math.floor(lat * 111320.0 / cell).toLong() * 1000003L + Math.floor(lon * 111320.0 * Math.cos(Math.toRadians(lat)) / cell).toLong()
             for (q in spots) taken += key(q[0], q[1])
-            val kx = 111320.0 * Math.cos(Math.toRadians(c.lat)); val ky = 111320.0
             for (line in roads) {
                 if (line.size < 2) continue
                 var carry = gap / 2
@@ -1424,11 +1489,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                         val t = d / len
                         val lat = a.latitude() + (b.latitude() - a.latitude()) * t
                         val lon = a.longitude() + (b.longitude() - a.longitude()) * t
+                        d += gap
+                        val lit = litAt(lat, lon)
+                        if (lit == false || (thorough && lit != true)) { skippedUnlit++; continue }
+                        if (mappedNear(lat, lon)) continue
                         val dir = Math.toDegrees(Math.atan2(bx - ax, by - ay))
                         // at the left kerb, about 5.5 m from the middle of the road, arm reaching back over it
                         val at = Furniture.offset(LL(lat, lon), dir - 90.0, 5.5)
                         if (taken.add(key(at.lat, at.lon)) && Geo.dist(at, c) < 900.0) spots += doubleArrayOf(at.lat, at.lon, dir + 90.0)
-                        d += gap
                     }
                     carry = d - len
                 }
@@ -1438,14 +1506,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val posts = kept.map { Furniture.point(it[0], it[1], it[2]) }
         // the lamp hangs about 2.5 m out along the arm
         val pools = kept.map { val h = Furniture.offset(LL(it[0], it[1]), it[2], 2.5); Feature.fromGeometry(Point.fromLngLat(h.lon, h.lat)) }
-        val placedOnRoads = kept.size - minOf(kept.size, near.size)
+        val realShown = minOf(kept.size, near.size)
+        val placedOnRoads = kept.size - realShown
+        val litNote = if (litWays > 0) ", $litWays roads marked lit or unlit" + (if (skippedUnlit > 0) " (dark ones left dark)" else "") else ""
         val note = when {
             kept.isEmpty() && roads.isEmpty() -> "no streets read from the map here yet"
-            kept.isEmpty() -> "none here"
-            mapped.isNotEmpty() && placedOnRoads > 0 -> "${kept.size} shown (${near.size} mapped, $placedOnRoads placed along the streets)"
-            mapped.isNotEmpty() -> "${kept.size} shown, from your offline pack"
-            !OfflineRouter.hasLamps(ctx) -> "${kept.size} placed along the streets (your offline pack has no lamp list)"
-            else -> "${kept.size} placed along the streets (none mapped here)"
+            kept.isEmpty() -> "none here" + litNote
+            mapped.isNotEmpty() -> "${kept.size} shown: $realShown mapped in OpenStreetMap, $placedOnRoads placed along the streets$litNote"
+            else -> "${kept.size} placed along the streets (none mapped here)$litNote"
         }
         return Triple(posts, pools, note)
     }
@@ -1916,6 +1984,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addS(st, GeoJsonSource.Builder("dl-chain").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-chain-line").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-tap").featureCollection(empty()).build())
+        addS(st, GeoJsonSource.Builder("dl-jam").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-hazards").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-me").featureCollection(empty()).build())
         // the arrow at the next turn, drawn on the route; no simplification, so small shapes keep their corners
@@ -2124,6 +2193,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .symbolSortKey(Expression.get("z")))
         pushChain()
+        // how long each queue on the route holds you up ("+8 min"), at its start, in its own colour; other routes' ones dimmed
+        addL(st, SymbolLayer("dl-jam-l", "dl-jam").iconImage(Expression.get("img")).iconAnchor(IconAnchor.BOTTOM)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).symbolSortKey(Expression.get("z"))
+            .iconSize(zoomed(1.0, 9 to 0.75, 13 to 0.9, 16 to 1.0)))
+        pushJams()
         // the spot you tapped or held on the map (while its card is open): the destination's red pin, a little smaller
         addImg(st, "dl-tap-pin", pinBitmap())
         addL(st, SymbolLayer("dl-tap-l", "dl-tap").iconImage("dl-tap-pin").iconAnchor(IconAnchor.BOTTOM)
@@ -4167,6 +4242,58 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var chainPins: List<ChainPin> = emptyList()
     private var chainYou: LL? = null
     var onChainTap: ((Int) -> Unit)? = null
+
+    /** A queue's delay label: where it starts, the minutes it adds, heavy (red) or slow (amber), and dimmed for another route. */
+    class JamPin(val pos: LL, val mins: Int, val heavy: Boolean, val dim: Boolean)
+    private var jamPins: List<JamPin> = emptyList()
+
+    /** Shows the delay labels on the queues (empty: none). */
+    fun showJams(pins: List<JamPin>) { jamPins = pins; pushJams() }
+
+    private fun pushJams() {
+        val st = style ?: return
+        val s = src("dl-jam") ?: return
+        if (jamPins.isEmpty()) { s.featureCollection(empty()); return }
+        val fs = ArrayList<Feature>()
+        for (p in jamPins) {
+            val id = "dl-jam-${p.mins}-" + (if (p.heavy) "h" else "s") + (if (p.dim) "d" else "")
+            try { if (!st.hasStyleImage(id)) addImg(st, id, jamBitmap(p)) } catch (e: Throwable) { }
+            val f = Feature.fromGeometry(Point.fromLngLat(p.pos.lon, p.pos.lat))
+            f.addStringProperty("img", id); f.addNumberProperty("z", if (p.dim) 0 else 1)
+            fs += f
+        }
+        s.featureCollection(FeatureCollection.fromFeatures(fs))
+    }
+
+    /** A rounded pill with a white edge, "+N min" in white, red for heavy traffic and amber for slow (dimmer for another route). */
+    private fun jamBitmap(p: JamPin): Bitmap {
+        val dm = mapView.resources.displayMetrics
+        val d = dm.density
+        val label = L.t("+{0} min", p.mins)
+        val text = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 15f * d; typeface = android.graphics.Typeface.DEFAULT_BOLD; color = android.graphics.Color.WHITE
+        }
+        val w = text.measureText(label) + 22f * d
+        val h = 27f * d
+        val b = Bitmap.createBitmap((w + 6 * d).toInt(), (h + 7 * d).toInt(), Bitmap.Config.ARGB_8888)
+        b.density = dm.densityDpi
+        val cv = android.graphics.Canvas(b)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        val box = android.graphics.RectF(3 * d, 2 * d, 3 * d + w, 2 * d + h)
+        val rad = h / 2
+        paint.color = android.graphics.Color.argb(if (p.dim) 60 else 110, 0, 0, 0)
+        cv.drawRoundRect(android.graphics.RectF(box.left, box.top + 2 * d, box.right, box.bottom + 2 * d), rad, rad, paint)
+        paint.color = android.graphics.Color.WHITE
+        cv.drawRoundRect(box, rad, rad, paint)
+        val fill = if (p.heavy) (if (p.dim) "#B0484B" else "#E5484D") else (if (p.dim) "#9A6A1C" else "#E08A00")
+        paint.color = android.graphics.Color.parseColor(fill)
+        val inset = 2f * d
+        cv.drawRoundRect(android.graphics.RectF(box.left + inset, box.top + inset, box.right - inset, box.bottom - inset), rad - inset, rad - inset, paint)
+        if (p.dim) text.alpha = 215
+        val fm = text.fontMetrics
+        cv.drawText(label, box.centerX() - text.measureText(label) / 2, box.centerY() - (fm.ascent + fm.descent) / 2, text)
+        return b
+    }
 
     private var tapAt: LL? = null
 

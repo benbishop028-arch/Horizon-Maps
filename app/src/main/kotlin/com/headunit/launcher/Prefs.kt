@@ -147,6 +147,8 @@ internal object PreferenceKeys {
     const val LASTLAT = "lastlat"
     const val LASTLON = "lastlon"
     const val LIMITCHANGE = "limitchange"
+    /** How a limit change is told: "both" chime then voice, "voice", "chime" (LIMITCHANGE off: not at all). */
+    const val LIMITCHANGE_HOW = "limitchange_how"
     const val LIMITEST = "limitest"
     const val LIVECARD = "livecard"
     const val MAPFAST = "mapfast"

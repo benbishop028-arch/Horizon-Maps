@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Your own locator picture on Android Auto: the car screen now shows your picture too, instead of the arrow.
 - Crash tapping a place on the map: tapping a place that has no name in Mapbox's data closed the app. Nameless places are now ignored, and anything else going wrong in a map tap can no longer close the app.
 - Lane picture under the turn card on Android Auto: on a short car screen it ran on underneath the trip card. It now shrinks to fit the gap, and is left out when even a small one wouldn't fit (the lanes still show in the turn card).
 - Slip-road turns count down to the slip road: when the turn is at the far end of a slip road (common where a main road has no exit numbers), the turn card, the lit lane and the voice now count down to where the slip road leaves the main road ("take the exit on the left"), then to the turn at the end of it. They used to count down to the far end, past where you had to move over.
@@ -108,6 +109,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Delay labels on queues: each queue of a minute or more ahead on your route gets a small "+8 min" pill where it starts, red for heavy traffic and amber for slow. While choosing a route, the other routes' queues show too, dimmed. Each one goes once you're past it.
+- Speed limit changes, your way: Settings › Alerts › Speed › How: chime and voice, voice only, or chime only. With both, the voice now waits for the chime to finish so it isn't lost under it.
 - Prefer simpler routes switch: Settings › Routes › Choosing a route. When a route is only a minute or so slower but has far fewer turns, it's picked first, and it's now labelled Simplest (it used to say Shortest, which made it look like the app defaulted to the shortest route). Switch it off to always start on the fastest.
 - Choose the trip card buttons on Android Auto: Settings › Android Auto › Buttons on the trip card turns Overview, Other routes, Sound and End on or off, with a Normal, Large or Extra large button size. Fewer buttons make the card narrower, so more of the map stays clear.
 - Thai, Japanese and Indonesian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in all three too. Directions are spoken with the phone's or head unit's own voice for that language, so it needs a Thai, Japanese or Indonesian text-to-speech voice installed.
@@ -170,6 +173,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).
+- Street lamps where they really are: the lamps on the map now come from OpenStreetMap online too (not only from an offline pack), so real lamp positions show wherever people have mapped them. Guessed lamps fill in only the gaps, and roads OpenStreetMap marks as unlit stay dark. In cities with every lamp mapped, guessed ones only go on roads marked lit. Fetched once per area, kept for a month, never in offline mode.
 - Send to car sends the whole trip: from the route options it now sends your stops and the road you picked too, not just the destination. The car's card says how many stops are coming.
 - Headlights mode follows only the lights: with Day and night set to Headlights, the map goes dark in tunnels and back to day straight after, without the sunset and sunrise tint. Settings shows whether your head unit has been seen switching with the lights, and what the lights signal says right now. The Android Auto screen works the same way when it follows the car.
 - Custom theme live preview: every change shows on the preview at the top as you make it, even while a slider is still moving. Nothing is kept until you press Save. Leave without saving (or press Undo changes) and the map goes back to how it was. Giving it a name also keeps it under Your themes.

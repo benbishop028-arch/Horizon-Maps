@@ -1701,6 +1701,10 @@ object L {
         "Simplest" to listOf("Eenvoudigst", "Einfachste", "La plus simple", "Más sencilla"),
         "Prefer simpler routes" to listOf("Eenvoudigere routes voorkeur geven", "Einfachere Routen bevorzugen", "Préférer les itinéraires plus simples", "Preferir rutas más sencillas"),
         "When a route is only a minute or so slower but has far fewer turns, it's picked first (labelled Simplest). Off always picks the fastest" to listOf("Als een route maar een minuut of zo langzamer is maar veel minder afslagen heeft, wordt die eerst gekozen (aangeduid als Eenvoudigst). Uit kiest altijd de snelste", "Ist eine Route nur etwa eine Minute langsamer, hat aber deutlich weniger Abbiegungen, wird sie zuerst gewählt (als Einfachste markiert). Aus wählt immer die schnellste", "Quand un itinéraire n'est qu'environ une minute plus lent mais a bien moins de virages, il est choisi en premier (indiqué La plus simple). Désactivé choisit toujours le plus rapide", "Si una ruta es solo un minuto o así más lenta pero tiene muchos menos giros, se elige primero (marcada como Más sencilla). Desactivado elige siempre la más rápida"),
+        "How" to listOf("Hoe", "Wie", "Comment", "Cómo"),
+        "Chime and voice" to listOf("Signaal en stem", "Ton und Stimme", "Bip et voix", "Sonido y voz"),
+        "Voice only" to listOf("Alleen stem", "Nur Stimme", "Voix seule", "Solo voz"),
+        "Chime only" to listOf("Alleen signaal", "Nur Ton", "Bip seul", "Solo sonido"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3137,5 +3141,9 @@ object L {
         "Simplest" to listOf("Più semplice", "Mais simples", "Najprostsza"),
         "Prefer simpler routes" to listOf("Preferisci percorsi più semplici", "Preferir percursos mais simples", "Preferuj prostsze trasy"),
         "When a route is only a minute or so slower but has far fewer turns, it's picked first (labelled Simplest). Off always picks the fastest" to listOf("Se un percorso è solo un minuto circa più lento ma ha molte meno svolte, viene scelto per primo (indicato come Più semplice). Disattivato sceglie sempre il più veloce", "Quando um percurso é só cerca de um minuto mais lento mas tem muito menos viragens, é escolhido primeiro (indicado como Mais simples). Desligado escolhe sempre o mais rápido", "Gdy trasa jest tylko o około minutę wolniejsza, ale ma znacznie mniej skrętów, jest wybierana jako pierwsza (oznaczona Najprostsza). Wyłączone zawsze wybiera najszybszą"),
+        "How" to listOf("Come", "Como", "Jak"),
+        "Chime and voice" to listOf("Segnale e voce", "Sinal e voz", "Sygnał i głos"),
+        "Voice only" to listOf("Solo voce", "Só voz", "Tylko głos"),
+        "Chime only" to listOf("Solo segnale", "Só sinal", "Tylko sygnał"),
     )
 }
