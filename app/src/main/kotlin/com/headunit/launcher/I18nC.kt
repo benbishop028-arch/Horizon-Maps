@@ -1448,5 +1448,6 @@ object I18nC {
         "Chime and voice" to listOf("เสียงเตือนและเสียงพูด", "チャイムと音声", "Bunyi dan suara"),
         "Voice only" to listOf("เสียงพูดเท่านั้น", "音声のみ", "Suara saja"),
         "Chime only" to listOf("เสียงเตือนเท่านั้น", "チャイムのみ", "Bunyi saja"),
+        "in {0}" to listOf("อีก {0}", "{0}先", "dalam {0}"),
     )
 }

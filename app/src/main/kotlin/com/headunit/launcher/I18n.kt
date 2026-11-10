@@ -1705,6 +1705,7 @@ object L {
         "Chime and voice" to listOf("Signaal en stem", "Ton und Stimme", "Bip et voix", "Sonido y voz"),
         "Voice only" to listOf("Alleen stem", "Nur Stimme", "Voix seule", "Solo voz"),
         "Chime only" to listOf("Alleen signaal", "Nur Ton", "Bip seul", "Solo sonido"),
+        "in {0}" to listOf("over {0}", "in {0}", "dans {0}", "en {0}"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3145,5 +3146,6 @@ object L {
         "Chime and voice" to listOf("Segnale e voce", "Sinal e voz", "Sygnał i głos"),
         "Voice only" to listOf("Solo voce", "Só voz", "Tylko głos"),
         "Chime only" to listOf("Solo segnale", "Só sinal", "Tylko sygnał"),
+        "in {0}" to listOf("tra {0}", "em {0}", "za {0}"),
     )
 }

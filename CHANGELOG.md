@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Wrong side on arrival: "your destination is on the right" for a place on the left. The side is now worked out from where the place actually is against the way you're driving, and the route service's own left / right is only used when that's too close to call.
+- Speed limit sign squashed on Android Auto: the US and Canadian board's words are sized from the sign itself, so a larger car-screen text size can't squash them; the board is a little bigger next to the speedometer; and the next-limit tag above no longer overlaps it, and shows the board instead of a round sign in the US and Canada.
 - Your own locator picture on Android Auto: the car screen now shows your picture too, instead of the arrow.
 - Crash tapping a place on the map: tapping a place that has no name in Mapbox's data closed the app. Nameless places are now ignored, and anything else going wrong in a map tap can no longer close the app.
 - Lane picture under the turn card on Android Auto: on a short car screen it ran on underneath the trip card. It now shrinks to fit the gap, and is left out when even a small one wouldn't fit (the lanes still show in the turn card).

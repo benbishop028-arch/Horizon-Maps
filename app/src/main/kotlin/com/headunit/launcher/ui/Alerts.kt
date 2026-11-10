@@ -294,15 +294,21 @@ private fun LimitBoard(n: Int, canada: Boolean, over: Boolean, estimated: Boolea
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
     ) {
+        // (text sized from the sign itself, ignoring the screen's text-size setting: on the car screen a larger text size made the
+        // words overflow the board and squashed it; no extra space above and below the letters either)
+        val dens = androidx.compose.ui.platform.LocalDensity.current
+        fun sz(f: Float) = with(dens) { (size * f).toSp() }
+        val tight = androidx.compose.ui.text.TextStyle(platformStyle = androidx.compose.ui.text.PlatformTextStyle(includeFontPadding = false),
+            lineHeightStyle = androidx.compose.ui.text.style.LineHeightStyle(androidx.compose.ui.text.style.LineHeightStyle.Alignment.Center, androidx.compose.ui.text.style.LineHeightStyle.Trim.Both))
         androidx.compose.foundation.layout.Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
-            val head = (size.value * 0.12f).sp
-            if (canada) Text("MAXIMUM", color = Color(0xFF151515), fontSize = (size.value * 0.105f).sp, fontWeight = FontWeight.Bold, maxLines = 1, lineHeight = head)
+            val head = sz(0.12f)
+            if (canada) Text("MAXIMUM", color = Color(0xFF151515), fontSize = sz(0.105f), fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, lineHeight = head, style = tight)
             else {
-                Text("SPEED", color = Color(0xFF151515), fontSize = head, fontWeight = FontWeight.Bold, maxLines = 1, lineHeight = head)
-                Text("LIMIT", color = Color(0xFF151515), fontSize = head, fontWeight = FontWeight.Bold, maxLines = 1, lineHeight = head)
+                Text("SPEED", color = Color(0xFF151515), fontSize = head, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, lineHeight = head, style = tight)
+                Text("LIMIT", color = Color(0xFF151515), fontSize = head, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, lineHeight = head, style = tight)
             }
-            Text("$n", color = if (estimated) Color(0xFF4A4A4A) else Color(0xFF111111), fontSize = (size.value * (if (n >= 100) 0.3f else 0.38f)).sp,
-                fontWeight = FontWeight.Black, maxLines = 1, lineHeight = (size.value * 0.4f).sp)
+            Text("$n", color = if (estimated) Color(0xFF4A4A4A) else Color(0xFF111111), fontSize = sz(if (n >= 100) 0.3f else 0.38f),
+                fontWeight = FontWeight.Black, maxLines = 1, softWrap = false, lineHeight = sz(0.4f), style = tight)
         }
     }
 }

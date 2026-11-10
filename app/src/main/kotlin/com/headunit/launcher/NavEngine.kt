@@ -4971,14 +4971,24 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** "left" or "right" for the side of the road the destination is on, from the route's own instruction or from where the pin is. */
     private fun arrivalSide(r: Route, maneuver: String): String {
         val m = maneuver.uppercase()
-        if (m.endsWith("LEFT")) return "left"
-        if (m.endsWith("RIGHT")) return "right"
-        val d = dest?.pos ?: return ""
-        if (r.pts.size < 2) return ""
-        val a = r.pts[r.pts.size - 2]; val b = r.pts.last()
-        if (Geo.dist(a, b) < 2.0 || Geo.dist(b, d) < 8.0) return ""
-        val kx = cos(Geo.rad(b.lat)) * 111320.0
-        val cross = ((b.lon - a.lon) * kx) * ((d.lat - a.lat) * 110574.0) - ((b.lat - a.lat) * 110574.0) * ((d.lon - a.lon) * kx)
+        val said = if (m.endsWith("LEFT")) "left" else if (m.endsWith("RIGHT")) "right" else ""
+        // worked out from where the place itself is against the way you drive the last stretch of road, which is trusted over the
+        // route service's own left / right when it's clear-cut (the service's could be the wrong way round: "on the right" for an
+        // office on the left). The service's is used when the place is too close to the road, or almost straight ahead, to tell
+        val d = dest?.pos ?: return said
+        if (r.pts.size < 2) return said
+        val b = r.pts.last()
+        // the direction over the last 25 m or so (a single last segment can be a stub of a metre or two)
+        val (a, _) = pointAt(r, max(0.0, r.len - 25.0))
+        if (Geo.dist(a, b) < 5.0) return said
+        val kx = cos(Geo.rad(b.lat)) * 111320.0; val ky = 110574.0
+        val vx = (b.lon - a.lon) * kx; val vy = (b.lat - a.lat) * ky
+        val wx = (d.lon - b.lon) * kx; val wy = (d.lat - b.lat) * ky
+        val vl = Math.hypot(vx, vy); val wl = Math.hypot(wx, wy)
+        if (wl < 6.0) return said
+        val cross = (vx * wy - vy * wx) / vl
+        // sideways by at least 5 m, and not within about 25° of dead ahead or behind
+        if (Math.abs(cross) < 5.0 || Math.abs(cross) / wl < 0.42) return said
         return if (cross > 0) "left" else "right"
     }
 

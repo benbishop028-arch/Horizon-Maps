@@ -831,15 +831,25 @@ private fun SpeedWithNext(engine: NavEngine) {
     if (nx == null || !engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true)) { SpeedBlock(engine); return }
     val c = LocalVw.current
     val k = if (engine.imperial) 2.23694 else 3.6
-    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    // with the speedometer ring, the limit sign pokes up above the ring's top corner: the gap leaves room for it, so the two
+    // don't overlap (on the car screen they did)
+    val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true)
+    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign) 26.dp else 6.dp)) {
         Row(
             Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(Modifier.size(34.dp).clip(CircleShape).background(Color.White).border(4.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
-                Text("${(Math.round(nx.first * k / 5.0) * 5)}", color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+            val num = "${(Math.round(nx.first * k / 5.0) * 5)}"
+            val numSize = with(androidx.compose.ui.platform.LocalDensity.current) { 13.dp.toSp() }
+            // the same kind of sign as the main one: the red ring, or the black-bordered board in the US and Canada
+            if (engine.limitSignStyle != "round") Box(Modifier.size(width = 28.dp, height = 34.dp).clip(RoundedCornerShape(4.dp)).background(Color.White)
+                .border(2.5.dp, Color(0xFF151515), RoundedCornerShape(4.dp)), contentAlignment = Alignment.Center) {
+                Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
             }
-            Text("in " + Geo.fmtDist(nx.second, engine.imperial), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            else Box(Modifier.size(34.dp).clip(CircleShape).background(Color.White).border(4.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
+                Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
+            }
+            Text(L.t("in {0}", Geo.fmtDist(nx.second, engine.imperial)), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         SpeedBlock(engine)
     }
@@ -925,7 +935,8 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
             Modifier.align(if (!show) Alignment.Center else if (signRight) Alignment.TopEnd else Alignment.TopStart)
                 .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (show) (-18).dp else 0.dp)
         ) {
-            SpeedLimitSign(engine, if (show) 50.dp else 70.dp)
+            // (the upright North American board is narrower than the round sign, so it gets a little more height to stay readable)
+            SpeedLimitSign(engine, if (!show) 70.dp else if (engine.limitSignStyle != "round") 58.dp else 50.dp)
         }
     }
 }
