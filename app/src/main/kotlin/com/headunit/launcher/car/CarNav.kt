@@ -332,6 +332,7 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             } catch (e: Throwable) { }
             // drawn straight to its own surface (no extra copy each frame, which a texture view would cost)
             val m = MapBinding(p.context, true, 1f, ratio)
+            m.onCar = true; m.placeBranding(null)
             // Android Auto: keep street-lamp models and their light pools off to reduce visual clutter
             // and rendering work on the car display. This is scoped to the car map; the phone app's
             // Street lamps preference remains unchanged.

@@ -222,6 +222,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         installTapSelect()
     }
 
+    /** This map is the car screen's (Android Auto): no app top bar there to keep the logo clear of. */
+    @Volatile var onCar = false
+
     /** Puts Mapbox's logo and the (i) credits button top right, inside the visible part of the screen ([inset], null = whole view). */
     fun placeBranding(inset: android.graphics.Rect?) {
         brandInset = inset
@@ -231,7 +234,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val v = if (top) android.view.Gravity.TOP else android.view.Gravity.BOTTOM
         val h = if (left) android.view.Gravity.START else android.view.Gravity.END
         // a little in from the edge (further down at the top, clear of the app's top bar), inside the visible part of the screen
-        val vEdge = (if (top) (inset?.top ?: 0) else (inset?.bottom ?: 0)) + (if (top) 64f else 12f) * d
+        // (on the car screen there's no top bar to clear, and its high-density display made that gap a big one: the logo ended
+        // up well down the screen instead of in the corner)
+        val vEdge = (if (top) (inset?.top ?: 0) else (inset?.bottom ?: 0)) + (if (top && !onCar) 64f else 10f) * d
         val hEdge = (if (left) (inset?.left ?: 0) else (inset?.right ?: 0)) + 10f * d
         try {
             mapView.logo.position = v or h
