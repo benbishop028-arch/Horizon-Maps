@@ -48,6 +48,8 @@ class Route(
     @Volatile var lorry: String = ""
     /** Which service planned it ("mapbox", "tomtom"; "" offline). */
     @Volatile var from: String = ""
+    /** Picked first for having far fewer turns than the quickest (Prefer simpler routes): labelled "Simplest" on the route choice. */
+    @Volatile var simpler: Boolean = false
 }
 
 /** The posted limit [ms] (m/s) from [off] to [end] metres along a route. */

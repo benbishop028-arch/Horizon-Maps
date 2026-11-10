@@ -487,6 +487,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Choosing a route")) {
         SToggle(prefs, L.t("Eco routes"), "route_eco", false, L.t("Fuel-efficient instead of fastest"))
+        SToggle(prefs, L.t("Prefer simpler routes"), "prefer_simple", true, L.t("When a route is only a minute or so slower but has far fewer turns, it's picked first (labelled Simplest). Off always picks the fastest"))
         SToggle(prefs, L.t("Offer faster routes"), "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, L.t("Keep other routes on the map"), "livealts", true, L.t("Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead"))
         SToggle(prefs, L.t("Suggest where you're going"), "predict", true, L.t("With the live journey time, including home and work at your usual times"))

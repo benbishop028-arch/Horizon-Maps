@@ -76,6 +76,7 @@ internal val settingsIndex = listOf(
     SettingRef("Avoid unpaved roads", "", "Avoid", 4),
     SettingRef("Avoid Clean Air Zones and ULEZ", "A zone you start or finish in can't be avoided", "Avoid", 4),
     SettingRef("Eco routes", "Fuel-efficient instead of fastest", "Choosing a route", 4),
+    SettingRef("Prefer simpler routes", "Fastest first when off", "Choosing a route", 4),
     SettingRef("Arrive on your side of the road", "The kerb side of where you're going", "Choosing a route", 4),
     SettingRef("Offer faster routes", "", "Choosing a route", 4),
     SettingRef("Keep other routes on the map", "Grey lines with +/− minutes you can tap any time. Off shows a Faster route found card instead", "Choosing a route", 4),

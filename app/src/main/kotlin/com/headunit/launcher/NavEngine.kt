@@ -410,7 +410,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun netRoutes(from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(), headingDeg: Double = -1.0, quick: Boolean = false,
                           askBoth: Boolean = false, simple: Boolean = false): List<Route> {
         val rs = netRoutesRaw(from, to, alternatives, departAtMs, via, headingDeg, quick, askBoth)
-        if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false)) return rs
+        // (Settings > Routes > Prefer simpler routes off: the quickest always comes first)
+        if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false) || !prefs.b(PreferenceKeys.PREFER_SIMPLE, true)) return rs
         val out = simplerFirst(rs)
         if (out.first() !== rs.first() && out.first().from.isNotBlank()) lastRouteProvider = out.first().from
         return out
@@ -436,6 +437,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val t = turnCount(r)
             r.time <= top.time + slack && t0 - t >= 3 && t <= t0 * 0.8
         }.minWithOrNull(compareBy<Route> { turnCount(it) }.thenBy { it.time }) ?: return rs
+        pick.simpler = true
         return listOf(pick) + rs.filter { it !== pick }
     }
 

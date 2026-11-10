@@ -245,6 +245,7 @@ internal object PreferenceKeys {
     const val RESUME = "resume"
     const val ROADFAM = "roadfam"
     const val ROUTE_ECO = "route_eco"
+    const val PREFER_SIMPLE = "prefer_simple"
     const val ROUTEBACK = "routeback"
     const val ROUTEBAR = "routebar"
     const val ROUTECHEVRONS = "routechevrons"
