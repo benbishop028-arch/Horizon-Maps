@@ -1333,7 +1333,8 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             }
             Text(L.t("Go"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
-        val suggestion = remember { engine.habits.suggest(System.currentTimeMillis()) }
+        // (Settings "Suggest where you're going" switches this one off too: it used to stay on regardless, GitHub #73)
+        val suggestion = remember { engine.habits.suggest(System.currentTimeMillis()) }?.takeIf { engine.prefs.b(PreferenceKeys.PREDICT, true) }
         if (pr == null && suggestion != null) Row(
             Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(22.dp)).clip(RoundedCornerShape(22.dp)).background(Teal).clickable { engine.startRoute(suggestion) }.padding(horizontal = 16.dp, vertical = 13.dp),
             verticalAlignment = Alignment.CenterVertically,

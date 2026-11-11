@@ -1737,6 +1737,9 @@ object L {
         "{0} ahead" to listOf("over {0}", "in {0}", "dans {0}", "a {0}"),
         "See them along your route" to listOf("Bekijk ze langs je route", "Entlang der Route anzeigen", "Les voir sur votre itinéraire", "Verlos en tu ruta"),
         "On the map, with the time each adds" to listOf("Op de kaart, met de extra tijd per plek", "Auf der Karte, mit der Zusatzzeit für jede", "Sur la carte, avec le temps ajouté par chacun", "En el mapa, con el tiempo que añade cada una"),
+        "Same as your phone" to listOf("Zelfde als je telefoon", "Wie Ihr Handy", "Comme votre téléphone", "Igual que tu móvil"),
+        "Driver's display zoom" to listOf("Zoom bestuurdersscherm", "Zoom Fahrerdisplay", "Zoom de l'écran conducteur", "Zoom de la pantalla del conductor"),
+        "Furthest out" to listOf("Verst uit", "Am weitesten heraus", "Le plus éloigné", "Lo más lejos"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3186,5 +3189,8 @@ object L {
         "{0} ahead" to listOf("tra {0}", "daqui a {0}", "za {0}"),
         "See them along your route" to listOf("Vedili lungo il percorso", "Ver ao longo do percurso", "Pokaż na trasie"),
         "On the map, with the time each adds" to listOf("Sulla mappa, con il tempo che aggiunge ciascuna", "No mapa, com o tempo que cada uma acrescenta", "Na mapie, z czasem, który dodaje każde"),
+        "Same as your phone" to listOf("Come il telefono", "Igual ao telemóvel", "Jak w telefonie"),
+        "Driver's display zoom" to listOf("Zoom del display del conducente", "Zoom do ecrã do condutor", "Powiększenie ekranu kierowcy"),
+        "Furthest out" to listOf("Il più lontano", "O mais afastado", "Najdalej"),
     )
 }

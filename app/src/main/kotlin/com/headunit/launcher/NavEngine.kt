@@ -979,7 +979,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Headlights (and the car screen following the car): only the lights decide, so a tunnel at midday goes properly dark and
         // coming out goes straight back to day. The sun's dawn and dusk light is left out, as it would tint the map whatever the
         // lights say. (Until the head unit has been seen switching with the lights, sun times stand in, so dark already follows them.)
-        if (theme == "lights" || (isCar && prefs.s(PreferenceKeys.CARTHEME, "car") == "car")) return if (dark) "night" else "day"
+        if (theme == "lights" || (isCar && prefs.s(PreferenceKeys.CARTHEME, "car").let { it == "car" || it == "phone" })) return if (dark) "night" else "day"
         val pos = fix?.pos ?: prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull()?.let { la -> prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull()?.let { lo -> LL(la, lo) } }
         val ph = pos?.let { Sun.phase(it.lat, it.lon, System.currentTimeMillis()) } ?: ""
         return when {
@@ -5256,7 +5256,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- wrong way ----
     private fun checkWrongWay(p: Fix) {
-        if (simMode != 0 || !prefs.b(PreferenceKeys.WRONGWAY, true) || p.speed < 4.0 || (p.acc > 0 && p.acc > 20.0)) { wrongCount = 0; return }
+        // only with a sharp GPS fix, and not while the arrow is on your route (a route never sends you the wrong way down a road)
+        if (simMode != 0 || !prefs.b(PreferenceKeys.WRONGWAY, true) || p.speed < 4.0 || (p.acc > 0 && p.acc > 12.0) || (route != null && glideOnRoute)) { wrongCount = 0; return }
         // the check runs through every nearby road, so it's done in the background (it used to stall the screen once a second)
         if (wrongBusy) return
         wrongBusy = true
@@ -5271,7 +5272,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun wrongResult() {
         val now = System.currentTimeMillis()
-        if (wrongCount >= 3 && now - wrongAt > 60_000L) {
+        if (wrongCount >= 4 && now - wrongAt > 60_000L) {
             wrongAt = now
             chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
             raiseAlert("wrongway", L.t("Wrong way! This is a one-way road"), 7000)

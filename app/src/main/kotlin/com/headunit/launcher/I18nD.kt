@@ -1448,5 +1448,8 @@ object I18nD {
         "{0} ahead" to listOf("след {0}"),
         "See them along your route" to listOf("Вижте ги по маршрута"),
         "On the map, with the time each adds" to listOf("На картата, с времето, което добавя всяко"),
+        "Same as your phone" to listOf("Като телефона ви"),
+        "Driver's display zoom" to listOf("Мащаб на дисплея на водача"),
+        "Furthest out" to listOf("Най-отдалечено"),
     )
 }

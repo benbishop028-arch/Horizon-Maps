@@ -1457,5 +1457,8 @@ object I18nC {
         "{0} ahead" to listOf("อีก {0}", "{0}先", "{0} lagi"),
         "See them along your route" to listOf("ดูตามเส้นทาง", "ルート沿いで見る", "Lihat di sepanjang rute"),
         "On the map, with the time each adds" to listOf("บนแผนที่ พร้อมเวลาที่แต่ละแห่งเพิ่ม", "地図上に、それぞれの追加時間付きで", "Di peta, dengan tambahan waktu masing-masing"),
+        "Same as your phone" to listOf("เหมือนโทรศัพท์ของคุณ", "スマホと同じ", "Sama seperti ponsel Anda"),
+        "Driver's display zoom" to listOf("การซูมจอแสดงผลผู้ขับ", "運転席ディスプレイのズーム", "Zoom layar pengemudi"),
+        "Furthest out" to listOf("ไกลที่สุด", "最も遠く", "Paling jauh"),
     )
 }

@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
+- "Going to …?" suggestion: switching off "Suggest where you're going" now hides the habit suggestion too (GitHub #73).
 - Traffic pill position: the "Traffic round you" pill sits at the top between the turn card and the map buttons when there's room, and otherwise just above the arrival time card instead of over it.
 - Trip card showing through the add-a-stop panel: the time, arrival and distance card now steps aside while the add-a-stop (or all locations) panel is open, and comes back when it closes. Searching a shop also leaves out places that only mention it (a Western Union counter inside a Sainsbury's).
 - Android Auto on small screens and split screen (#67): the car screen now picks its layout from the space Android Auto leaves for the map instead of shrinking everything. On a short screen (like 800 × 480): a smaller search bar, Home and Work as slim pills, one row of shortcuts plus ⋯, icon-only Report and Places buttons, a narrower turn card with the lanes inside it, a one-line trip card and a smaller speed sign, laid out side by side so nothing overlaps. In a split-screen tile: just the turn, a one-line trip strip and the speed.
@@ -116,6 +118,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
 - Add a stop, seen along your route: when adding a stop, "See them along your route" (or the keyboard's search key) shows every match on the map along the rest of the route, each labelled with the time it adds, in a panel sorted by Least detour, Soonest or Nearest, with how far ahead and how far off the route each one is. Tap one, then Add as a stop. On Android Auto it's a list sorted by detour.
 - Bulgarian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in Bulgarian too. Spoken directions need a Bulgarian text-to-speech voice installed (Google's has one).
 - Delay labels on queues: each queue of a minute or more ahead on your route gets a small "+8 min" pill where it starts, red for heavy traffic and amber for slow. While choosing a route, the other routes' queues show too, dimmed. Each one goes once you're past it.
@@ -182,6 +185,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).
 - Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).
 - Street lamps where they really are: the lamps on the map now come from OpenStreetMap online too (not only from an offline pack), so real lamp positions show wherever people have mapped them. Guessed lamps fill in only the gaps, and roads OpenStreetMap marks as unlit stay dark. In cities with every lamp mapped, guessed ones only go on roads marked lit. Fetched once per area, kept for a month, never in offline mode.
 - Send to car sends the whole trip: from the route options it now sends your stops and the road you picked too, not just the destination. The car's card says how many stops are coming.

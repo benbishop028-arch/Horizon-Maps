@@ -293,7 +293,10 @@ object Overpass {
         if (ways.isEmpty()) return null
         val mLat = 111320.0
         val mLon = 111320.0 * Math.cos(Math.toRadians(p.lat))
-        var best: LL? = null; var bd = 24.0
+        // a road your way is looked for up to 45 m off: beyond 24 m it's only taken when the nearer road is the other carriageway of
+        // a divided road (a GPS drifting towards the middle put the arrow on the opposite side, going against the traffic)
+        var best: LL? = null; var bd = 45.0
+        var againstNear = false
         for (w in ways) {
             val b = w.box
             if (p.lat < b[0] - 0.0005 || p.lat > b[2] + 0.0005 || p.lon < b[1] - 0.0008 || p.lon > b[3] + 0.0008) continue
@@ -315,10 +318,16 @@ object Overpass {
                 var diff = Math.abs(bearingOf(a, c) - heading) % 360.0
                 if (diff > 180.0) diff = 360.0 - diff
                 if (diff > 35.0 && diff < 145.0) continue
-                if (oneway && (if (ow == "-1") diff <= 35.0 else diff >= 145.0)) continue
+                if (oneway && (if (ow == "-1") diff <= 35.0 else diff >= 145.0)) { if (d < 24.0) againstNear = true; continue }
                 bd = d
                 best = LL(p.lat + (ay + dy * t) / mLat, p.lon + (ax + dx * t) / mLon)
             }
+        }
+        if (bd > 24.0) {
+            // only the other carriageway close by and nothing your way: stay where the GPS says rather than letting the map's own
+            // road snapping (which doesn't know one-way roads) put the arrow on the wrong side
+            if (best == null) return if (againstNear) p else null
+            if (!againstNear) return null
         }
         return best
     }
@@ -345,7 +354,7 @@ object Overpass {
                 val dd = Math.hypot(ax + t * dx, ay + t * dy)
                 if (dd < d) { d = dd; brg = bearingOf(a, b) }
             }
-            if (d > 25.0) continue
+            if (d > 40.0) continue
             val ow = w.tags.optString("oneway")
             val hw = w.tags.optString("highway")
             val jn = w.tags.optString("junction")
@@ -356,7 +365,9 @@ object Overpass {
             else if (diff <= 35.0) aligned = minOf(aligned, d)
             else if (diff >= 150.0) against = minOf(against, d)
         }
-        return against < 8.0 && aligned > against + 6.0
+        // right on a one-way road going against it, with no road your way anywhere near (a divided road's own side is usually within
+        // 15-30 m: GPS drifting towards the middle used to put you "on" the other side and warn about going the wrong way)
+        return against < 6.0 && aligned > 40.0
     }
 
     /** Traffic signals inside a box (used to draw traffic lights on the map). */

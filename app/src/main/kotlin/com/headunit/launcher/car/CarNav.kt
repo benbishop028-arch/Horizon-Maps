@@ -146,11 +146,26 @@ class CarNavSession : Session() {
         worker.start()
     }
 
-    /** Night colours on the car screen: follow the car, or always day / always night (quick settings on the car). */
+    /** Night colours on the car screen: follow the car, the same as the phone, or always day / always night (quick settings on the car). */
     private fun carDark(): Boolean = when (Prefs(carContext.applicationContext).s(PreferenceKeys.CARTHEME, "car")) {
         "day" -> false
         "night" -> true
+        "phone" -> phoneDark()
         else -> carContext.isDarkMode
+    }
+
+    /** The phone's own light / dark mode (the system setting, not the car's), GitHub #69. */
+    private fun phoneDark(): Boolean = try {
+        (android.content.res.Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    } catch (e: Exception) { carContext.isDarkMode }
+
+    /** The phone switching light / dark (by hand or on its schedule) while the car screen is set to match it. */
+    private val phoneThemeWatch = object : android.content.ComponentCallbacks {
+        override fun onConfigurationChanged(newConfig: Configuration) {
+            try { if (Prefs(carContext.applicationContext).s(PreferenceKeys.CARTHEME, "car") == "phone") android.os.Handler(android.os.Looper.getMainLooper()).post { try { applyTheme() } catch (e: Exception) { } } } catch (e: Exception) { }
+        }
+        @Deprecated("Deprecated in Java")
+        override fun onLowMemory() {}
     }
 
     private fun applyTheme() {
@@ -175,6 +190,7 @@ class CarNavSession : Session() {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 screen.stop()
+                try { carContext.applicationContext.unregisterComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
                 pendingNavWaitToken++
                 pendingNavWait?.interrupt()
                 pendingNavWait = null
@@ -187,6 +203,7 @@ class CarNavSession : Session() {
                 holder.engine = null; holder.map = null
             }
         })
+        try { carContext.applicationContext.registerComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
         pendingNav = intent
         return screen
     }
@@ -1179,9 +1196,9 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             .setOnClickListener { if (e != null) e.toggleNorthUp() else prefs.put(PreferenceKeys.NORTH_UP_CAR, !nu); invalidate() }.build()
         val th = prefs.s(PreferenceKeys.CARTHEME, "car")
         rows += Row.Builder().setTitle(L.t("Day and night"))
-            .addText(L.t(when (th) { "day" -> "Always day"; "night" -> "Always night"; else -> "Follows the car" }))
+            .addText(L.t(when (th) { "day" -> "Always day"; "night" -> "Always night"; "phone" -> "Same as your phone"; else -> "Follows the car" }))
             .setOnClickListener {
-                prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "day"; "day" -> "night"; else -> "car" })
+                prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "phone"; "phone" -> "day"; "day" -> "night"; else -> "car" })
                 onTheme(); invalidate()
             }.build()
         val reroute: (Boolean) -> Unit = { holder.engine?.rerouteForSettings() }
@@ -1227,6 +1244,12 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         rows += Row.Builder().setTitle(L.t("Map on the driver's display"))
             .addText(L.t(if (cluster) "On (on cars that offer it) · tap to turn off" else "Off · tap to turn on"))
             .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_MAP, !cluster); invalidate() }.build()
+        if (cluster) {
+            val cz = prefs.i(PreferenceKeys.CLUSTER_ZOOM, 0).coerceIn(-2, 1)
+            rows += Row.Builder().setTitle(L.t("Driver's display zoom"))
+                .addText(L.t(when (cz) { 1 -> "Closer"; -1 -> "Further out"; -2 -> "Furthest out"; else -> "Normal" }) + L.t(" · tap to change"))
+                .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_ZOOM, when (cz) { 0 -> -1; -1 -> -2; -2 -> 1; else -> 0 }); invalidate() }.build()
+        }
         val max = limit.coerceIn(2, 12)
         val list = ItemList.Builder()
         val start = page * (max - 1)

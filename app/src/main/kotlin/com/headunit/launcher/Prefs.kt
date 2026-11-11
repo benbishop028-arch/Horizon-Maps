@@ -184,6 +184,8 @@ internal object PreferenceKeys {
     const val ALPR_CAMS = "alprcams"
     /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
     const val CLUSTER_MAP = "clustermap"
+    /** How close the map on the driver's display is: -2 (furthest out) to 1 (closest), 0 normal. */
+    const val CLUSTER_ZOOM = "clusterzoom"
     /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */
     const val CAM_SIZE = "camsize"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
