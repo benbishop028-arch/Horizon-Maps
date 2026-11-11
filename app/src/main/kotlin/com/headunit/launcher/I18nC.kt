@@ -1449,5 +1449,13 @@ object I18nC {
         "Voice only" to listOf("เสียงพูดเท่านั้น", "音声のみ", "Suara saja"),
         "Chime only" to listOf("เสียงเตือนเท่านั้น", "チャイムのみ", "Bunyi saja"),
         "in {0}" to listOf("อีก {0}", "{0}先", "dalam {0}"),
+        "Add a stop: {0}" to listOf("เพิ่มจุดแวะ: {0}", "経由地を追加：{0}", "Tambah perhentian: {0}"),
+        "{0} along your route" to listOf("{0} แห่งตามเส้นทาง", "ルート沿いに{0}件", "{0} di sepanjang rute"),
+        "Least detour" to listOf("อ้อมน้อยที่สุด", "寄り道が最小", "Paling sedikit memutar"),
+        "just off your route" to listOf("ติดเส้นทาง", "ルートのすぐそば", "tepat di dekat rute"),
+        "{0} off your route" to listOf("ห่างเส้นทาง {0}", "ルートから{0}", "{0} dari rute"),
+        "{0} ahead" to listOf("อีก {0}", "{0}先", "{0} lagi"),
+        "See them along your route" to listOf("ดูตามเส้นทาง", "ルート沿いで見る", "Lihat di sepanjang rute"),
+        "On the map, with the time each adds" to listOf("บนแผนที่ พร้อมเวลาที่แต่ละแห่งเพิ่ม", "地図上に、それぞれの追加時間付きで", "Di peta, dengan tambahan waktu masing-masing"),
     )
 }

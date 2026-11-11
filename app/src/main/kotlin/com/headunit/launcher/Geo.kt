@@ -236,6 +236,29 @@ object TomTomRest {
         }
     }
 
+    /**
+     * What's called [q] (a shop, a chain, "coffee") along a route line, with the seconds each detour adds: TomTom's along-route
+     * search, for adding a stop. Up to 20, none further off than [maxDetourSec].
+     */
+    fun alongText(key: String, q: String, line: List<LL>, maxDetourSec: Int = 1200): List<Pair<Place, Int>> {
+        if (line.size < 2) return emptyList()
+        val k = URLEncoder.encode(key, "UTF-8")
+        val enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20")
+        val pts = JSONArray()
+        for (p in line) pts.put(JSONObject().put("lat", p.lat).put("lon", p.lon))
+        val req = JSONObject().put("route", JSONObject().put("points", pts)).toString()
+        val body = post("https://api.tomtom.com/search/2/searchAlongRoute/$enc.json?key=$k&maxDetourTime=$maxDetourSec&limit=20&spreadingMode=auto", req, 8000, 15000)
+        val arr = JSONObject(body).optJSONArray("results") ?: JSONArray()
+        val out = ArrayList<Pair<Place, Int>>()
+        for (i in 0 until arr.length()) {
+            val x = arr.getJSONObject(i)
+            val one = ArrayList<Place>()
+            parsePlaces(JSONArray().put(x), q, one)
+            one.firstOrNull()?.let { out += it to x.optInt("detourTime", -1) }
+        }
+        return out
+    }
+
     /** Every branch of a shop or chain named [q] within [radius] metres of [near] (up to 50), for "See all locations". */
     fun chain(key: String, q: String, near: LL, radius: Int): List<Place> {
         val k = URLEncoder.encode(key, "UTF-8")

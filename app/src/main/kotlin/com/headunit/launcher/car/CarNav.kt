@@ -814,7 +814,7 @@ private class CarChainScreen(ctx: CarContext, private val holder: CarHolder) : S
     override fun onGetTemplate(): Template {
         val e = holder.engine ?: return ListTemplate.Builder().setTitle(L.t("Searching…")).setHeaderAction(Action.BACK).setLoading(true).build()
         val view = e.chain
-        val b = ListTemplate.Builder().setTitle(view?.name ?: L.t("Searching…")).setHeaderAction(Action.BACK)
+        val b = ListTemplate.Builder().setTitle(view?.let { if (it.forStop) L.t("Add a stop: {0}", it.name) else it.name } ?: L.t("Searching…")).setHeaderAction(Action.BACK)
         if (view == null) {
             if (e.chainBusy) return b.setLoading(true).build()
             return b.setSingleList(ItemList.Builder().setNoItemsMessage(L.t("No other branches found nearby")).build()).build()
@@ -822,6 +822,15 @@ private class CarChainScreen(ctx: CarContext, private val holder: CarHolder) : S
         val limit = try { carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST) } catch (x: Exception) { 6 }
         val list = ItemList.Builder()
         for (s in e.chainSorted().take(limit.coerceIn(1, 25))) {
+            // adding a stop: the name, the time it adds, and how far ahead; tapping adds it
+            if (view.forStop) {
+                val r = Row.Builder().setTitle(s.place.name)
+                    .addText(L.t("+{0} min", Math.max(1, Math.round(s.detour / 60.0).toInt())) + " · " + L.t("{0} ahead", Geo.fmtDist(s.ahead, e.imperial)))
+                    .setImage(logoIcon(s.place) ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
+                r.setOnClickListener { e.chainAddStop(s); screenManager.popToRoot() }
+                list.addItem(r.build())
+                continue
+            }
             val parts = s.place.sub.split(',').map { it.trim() }.filter { it.isNotEmpty() }
             val road = parts.firstOrNull()?.replace(Regex("^[0-9]+[A-Za-z]?(-[0-9]+)?\\s+"), "") ?: s.place.name
             val time = if (s.secs >= 0) L.t("{0} min", Math.max(1, Math.round(s.secs / 60.0).toInt())) + " · " else ""
@@ -1023,7 +1032,15 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
         val list = ItemList.Builder().setNoItemsMessage(L.t(if (query.length < 3) "Type a place, address or postcode" else "Searching…"))
         // several branches of what was searched nearby: "See all N locations" first
         val chainN = if (query.length >= 3 && e != null && shown.isNotEmpty()) try { e.chainCount(query.trim()) } catch (x: Exception) { 0 } else 0
-        if (chainN >= 2) {
+        // on a route: everything matching along the rest of it, by the time each adds (adding a stop)
+        val onRoute = query.trim().length >= 3 && e != null && e.route != null && e.dest != null
+        if (onRoute) {
+            val q = query.trim()
+            list.addItem(Row.Builder().setTitle(L.t("See them along your route")).addText(L.t("On the map, with the time each adds"))
+                .setImage(rowIcon(carContext, R.drawable.ic_car_route, 0xFF4C8DFF.toInt()))
+                .setOnClickListener { e?.openStopSearch(q); screenManager.push(CarChainScreen(carContext, holder)) }.build())
+        }
+        if (chainN >= 2 && !onRoute) {
             val first = shown.firstOrNull { Logos.norm(it.name).startsWith(Logos.norm(query)) }
             val r = Row.Builder().setTitle(L.t("See all {0} locations", chainN)).addText(L.t(if (e?.imperial == true) "Within 10 miles" else "Within 15 km"))
                 .setImage(first?.let { logoIcon(it) } ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFF4C8DFF.toInt()))
@@ -1031,7 +1048,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
             r.setOnClickListener { e?.openChain(q); screenManager.push(CarChainScreen(carContext, holder)) }
             list.addItem(r.build())
         }
-        if (query.length >= 3) for (p in shown.take((limit - (if (chainN >= 2) 1 else 0)).coerceIn(1, 12))) {
+        if (query.length >= 3) for (p in shown.take((limit - (if (onRoute || chainN >= 2) 1 else 0)).coerceIn(1, 12))) {
             // the shop's logo (once it's been loaded) or a red pin, the name, and how far it is with the address under it
             val r = Row.Builder().setTitle(p.name).setImage(logoIcon(p) ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
             val line = listOf(distFrom(e, p), p.sub).filter { it.isNotBlank() }.joinToString(" · ")

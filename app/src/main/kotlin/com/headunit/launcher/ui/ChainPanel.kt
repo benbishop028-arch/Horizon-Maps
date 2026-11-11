@@ -127,15 +127,16 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                 Box(Modifier.size(46.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Place, null, tint = Color(0xFFEA4335)) }
             }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(view.name, color = c.text, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
+                Text(if (view.forStop) L.t("Add a stop: {0}", view.name) else view.name, color = c.text, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(if (view.forStop) L.t("{0} along your route", view.spots.size) else L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
             }
             Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true) }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.text)
             }
         }
         // the order: Quickest (drive time now), Nearest, On my route (while driving somewhere)
-        val sorts = buildList {
+        // (adding a stop: least detour, soonest along the way, nearest to you)
+        val sorts = if (view.forStop) listOf("route" to L.t("Least detour"), "soon" to L.t("Soonest"), "near" to L.t("Nearest")) else buildList {
             if (view.spots.any { it.secs >= 0 }) add("quick" to L.t("Quickest"))
             add("near" to L.t("Nearest"))
             if (view.spots.any { it.detour >= 0 }) add("route" to L.t("On my route"))
@@ -156,8 +157,40 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                 val (road, area) = roadOf(s.place)
                 val time = if (s.secs >= 0) L.t("{0} min", mins(s.secs)) else null
                 val dist = Geo.fmtDist(if (s.road >= 0) s.road else s.dist, engine.imperial)
-                val extra = if (engine.chainSort == "route" && s.detour >= 0) L.t("+{0} min", mins(s.detour)) else null
-                if (sel) {
+                val extra = if ((view.forStop || engine.chainSort == "route") && s.detour >= 0) L.t("+{0} min", mins(s.detour)) else null
+                // adding a stop: the place's name, how far ahead and how far off the route it is, and the detour in green (small)
+                // to amber (big)
+                if (view.forStop) {
+                    val off = if (s.off in 0.0..150.0) L.t("just off your route") else L.t("{0} off your route", Geo.fmtDist(s.off, engine.imperial))
+                    val where = L.t("{0} ahead", Geo.fmtDist(s.ahead, engine.imperial)) + " · " + off
+                    val mn = mins(s.detour)
+                    val tint = if (mn <= 2) Color(0xFF5FBF6A) else if (mn >= 8) Color(0xFFE08A00) else c.text
+                    val body: @Composable () -> Unit = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            PlaceLogo(s.place, 38.dp) {
+                                Box(Modifier.size(38.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Place, null, tint = Color(0xFFEA4335), modifier = Modifier.size(20.dp)) }
+                            }
+                            Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                                Text(s.place.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(where, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            Text(L.t("+{0} min", mn), color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+                        }
+                    }
+                    if (sel) Column(Modifier.padding(vertical = 4.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(ChainBlue.copy(alpha = 0.12f))
+                        .border(2.dp, ChainBlue, RoundedCornerShape(20.dp)).padding(12.dp)) {
+                        body()
+                        Row(Modifier.padding(top = 10.dp).fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(ChainBlue).clickable { engine.chainAddStop(s) }.padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.Add, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(L.t("Add as a stop"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Box(Modifier.fillMaxWidth().clickable { engine.selectChain(s) }.padding(horizontal = 6.dp, vertical = 10.dp)) { body() }
+                        HorizontalDivider(color = c.tile)
+                    }
+                } else if (sel) {
                     Column(Modifier.padding(vertical = 4.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(ChainBlue.copy(alpha = 0.12f))
                         .border(2.dp, ChainBlue, RoundedCornerShape(20.dp)).padding(14.dp)) {
                         Row {

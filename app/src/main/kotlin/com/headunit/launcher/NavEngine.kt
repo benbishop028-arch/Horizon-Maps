@@ -1751,9 +1751,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- "See all locations": every branch of a shop or chain near you, on the map and in a list ----
     /** One branch: [secs]/[road] from the matrix service (or -1 when it couldn't be timed), [detour] extra seconds on the route. */
-    class ChainSpot(val place: Place, val dist: Double, val secs: Double, val road: Double, val detour: Double)
+    class ChainSpot(val place: Place, val dist: Double, val secs: Double, val road: Double, val detour: Double,
+                    /** Adding a stop: how far along the route ahead it is, and how far off the route (metres; -1 not known). */
+                    val ahead: Double = -1.0, val off: Double = -1.0)
     /** The list on show: [name] as searched, [domain] for its logo, [radius] metres looked within. */
-    class ChainView(val name: String, val domain: String?, val spots: List<ChainSpot>, val radius: Int, val centre: LL)
+    class ChainView(val name: String, val domain: String?, val spots: List<ChainSpot>, val radius: Int, val centre: LL,
+                    /** Picking a stop to add along the route (the list is about the detour, and the only button is Add as a stop). */
+                    val forStop: Boolean = false)
     var chain by mutableStateOf<ChainView?>(null)
     var chainSel by mutableStateOf<ChainSpot?>(null)
     /** "quick", "near" or "route" (On my route, only while driving somewhere). */
@@ -1822,6 +1826,67 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    /**
+     * Adding a stop: everything matching [q] along the rest of the route, laid out like "See all locations": pins on the whole
+     * route with the time each adds, and a list by least detour, soonest along the way, or nearest to you. From TomTom's
+     * along-route search (with the real detour times), or without a TomTom key the usual search round points along the route.
+     */
+    fun openStopSearch(q: String) {
+        val r = route ?: return
+        if (dest == null || q.isBlank()) return
+        chainQuery = q
+        chainJob?.cancel()
+        chainBusy = true
+        val prog = curProgress
+        chainJob = scope.launch {
+            // the rest of the route, thinned to at most ~150 points
+            val ahead = ArrayList<LL>()
+            val i0 = r.cum.indexOfFirst { it >= prog }.coerceAtLeast(0)
+            val step = maxOf(1, (r.pts.size - i0) / 150)
+            var i = i0
+            while (i < r.pts.size) { ahead += r.pts[i]; i += step }
+            if (ahead.lastOrNull() != r.pts.last()) ahead += r.pts.last()
+            val found: List<Pair<Place, Int>> = withContext(Dispatchers.IO) {
+                val all = ArrayList<Pair<Place, Int>>()
+                if (hasKey && online()) try { all += TomTomRest.alongText(apiKey, q, ahead) } catch (e: Exception) { }
+                if (all.isEmpty()) {
+                    // no TomTom: the usual search near a few points along the way (and what's already been found)
+                    val probes = listOf(0.15, 0.4, 0.65, 0.9).map { f -> ahead[((ahead.size - 1) * f).toInt()] }
+                    for (c in probes) {
+                        try { if (mbToken.isNotBlank() && online()) MapboxRest.chain(mbToken, q, c).forEach { all += it to -1 } } catch (e: Exception) { }
+                    }
+                    try { findPlaces(q).forEach { all += it to -1 } } catch (e: Exception) { }
+                }
+                val out = ArrayList<Pair<Place, Int>>()
+                for ((p, t) in all) if (out.none { Geo.dist(it.first.pos, p.pos) < 80 }) out += p to t
+                out
+            }
+            val from = fix?.pos ?: ahead.first()
+            val spots = found.mapNotNull { (p, t) ->
+                // where it is against the route: the nearest point of the route still ahead
+                var best = Double.MAX_VALUE; var at = -1
+                var j = i0
+                val st = maxOf(1, (r.pts.size - i0) / 600)
+                while (j < r.pts.size) { val d = Geo.dist(r.pts[j], p.pos); if (d < best) { best = d; at = j }; j += st }
+                if (at < 0 || best > 6000.0) return@mapNotNull null
+                val detour = if (t >= 0) t.toDouble() else best * 2.6 / 13.0
+                ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
+            }.sortedBy { it.detour }.take(25)
+            if (spots.isEmpty()) { chainBusy = false; toast(L.t("Nothing found along the route ahead"), 3000); return@launch }
+            withContext(Dispatchers.IO) { spots.mapNotNull { Logos.domainFor(it.place) }.distinct().take(6).forEach { Logos.load(ctx, it) } }
+            val domain = spots.asSequence().mapNotNull { Logos.domainFor(it.place) }.firstOrNull()
+            val n = spots.first().place.name
+            chain = ChainView(if (Logos.norm(n).startsWith(Logos.norm(q)) && n.length <= q.length + 14) n else q.replaceFirstChar { it.uppercase() },
+                domain, spots, 0, from, forStop = true)
+            chainSort = "route"
+            chainSel = chainSorted().firstOrNull()
+            chainMoved = false
+            chainBusy = false
+            following = false
+            drawChain()
+        }
+    }
+
     /** Roughly how much time a branch adds to the route being driven: there and back from the nearest point of the route. */
     private fun chainDetour(r: Route, p: LL): Double {
         var best = Double.MAX_VALUE
@@ -1836,6 +1901,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val c = chain ?: return emptyList()
         return when (chainSort) {
             "route" -> c.spots.sortedBy { if (it.detour >= 0) it.detour else Double.MAX_VALUE }
+            "soon" -> c.spots.sortedBy { if (it.ahead >= 0) it.ahead else Double.MAX_VALUE }
             "quick" -> c.spots.sortedBy { if (it.secs >= 0) it.secs else it.dist / 9.0 }
             else -> c.spots.sortedBy { it.dist }
         }
@@ -1866,11 +1932,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val sorted = chainSorted()
         val nearest = c.spots.minByOrNull { if (it.secs >= 0) it.secs else it.dist / 9.0 }
         val pins = c.spots.map { s ->
-            val label = if (s.secs >= 0) L.t("{0} min", Math.max(1, Math.round(s.secs / 60.0).toInt())) else Geo.fmtDist(s.dist, imperial)
+            val label = if (c.forStop) L.t("+{0} min", Math.max(1, Math.round(s.detour / 60.0).toInt()))
+                else if (s.secs >= 0) L.t("{0} min", Math.max(1, Math.round(s.secs / 60.0).toInt())) else Geo.fmtDist(s.dist, imperial)
             MapBinding.ChainPin(s.place.pos, label + if (s === nearest && s === chainSel) L.t(" · nearest") else "", Logos.cached(Logos.domainFor(s.place)), s === chainSel)
         }
-        try { map.showChain(pins, fix?.pos) } catch (e: Exception) { }
-        if (fit) try { map.fitChain(c.spots.map { it.place.pos } + listOfNotNull(fix?.pos), mirrored) } catch (e: Exception) { }
+        // adding a stop: the dashed line runs from the nearest point of the route to the one picked, and the whole route is shown
+        val r = route
+        val lineFrom = if (c.forStop && r != null) chainSel?.let { s -> r.pts.minByOrNull { Geo.dist(it, s.place.pos) } } else fix?.pos
+        try { map.showChain(pins, lineFrom) } catch (e: Exception) { }
+        val routePts = if (c.forStop && r != null) { val st = maxOf(1, r.pts.size / 60); r.pts.filterIndexed { i, _ -> i % st == 0 } + r.pts.last() } else emptyList()
+        if (fit) try { map.fitChain(c.spots.map { it.place.pos } + listOfNotNull(fix?.pos) + routePts, mirrored) } catch (e: Exception) { }
         if (sorted.isEmpty()) return
     }
 

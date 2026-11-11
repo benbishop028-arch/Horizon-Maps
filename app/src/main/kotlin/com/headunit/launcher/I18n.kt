@@ -5,13 +5,13 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese or Indonesian. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian or Bulgarian. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
 object L {
     val supported = listOf("en" to "English", "nl" to "Nederlands", "de" to "Deutsch", "fr" to "Français", "es" to "Español",
-        "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia")
+        "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -22,6 +22,7 @@ object L {
         "nl" -> Locale("nl", "NL"); "de" -> Locale.GERMANY; "fr" -> Locale.FRANCE; "es" -> Locale("es", "ES")
         "it" -> Locale.ITALY; "pl" -> Locale("pl", "PL")
         "th" -> Locale("th", "TH"); "ja" -> Locale.JAPAN; "id" -> Locale("id", "ID")
+        "bg" -> Locale("bg", "BG")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
         "pt" -> Locale.getDefault().takeIf { it.language == "pt" } ?: Locale("pt", "PT")
         else -> Locale.getDefault().takeIf { it.language == "en" } ?: Locale.UK
@@ -193,6 +194,19 @@ object L {
                 "ズームイン|拡大" to "zoom in", "ズームアウト|縮小" to "zoom out", "北を上" to "north up", "今何時|何時" to "what time",
                 "^\\s*(ナビ|案内して|行き先)\\s*" to "go to",
             ),
+            "bg" to r(
+                "\\s(вкъщи|у дома|към вкъщи|прибери ме)\\s" to "go home", "\\s(на работа|до работа|към работа|до офиса)\\s" to "go to work",
+                "^\\s*(докладвай|подай сигнал)\\s" to "report", "катастрофа|произшествие|инцидент" to "accident", "полиция" to "police", "авария|повреда" to "breakdown", "камера" to "camera",
+                "бензиностанция|бензин|гориво|зареждане с гориво" to "fuel", "зарядна станция|зарядна|зареждане" to "charging", "тоалетна" to "toilet", "кафе" to "coffee",
+                "храна|ресторант|хапване" to "food", "място за почивка" to "services", "паркинг|паркиране" to "parking",
+                "\\s(намери|търси|най-близк[аоия]*|къде е|къде има)\\s" to "find", "най-евтин[аоия]*|евтин[аоия]*" to "cheap",
+                "избягвай (платени|тол)|без (тол|винетка|платени)" to "avoid toll", "избягвай магистрал[аи]|без магистрал[аи]" to "avoid motorway",
+                "избягвай този път" to "avoid this road", "кога пристигам|колко остава|колко още" to "eta", "сподели" to "share",
+                "включи гласа|глас вкл" to "voice on", "само предупреждения" to "alerts only", "изключи звука|без звук|тихо" to "mute",
+                "(спри|прекрати|край на) (навигацията|маршрута)" to "end route", "преглед|целия маршрут" to "overview",
+                "приближи|увеличи" to "zoom in", "отдалечи|намали" to "zoom out", "север горе" to "north up", "колко е часът|кой час е" to "what time",
+                "^\\s*(отиди до|закарай ме до|навигирай до|води ме до|към|до)\\s" to "go to",
+            ),
             "id" to r(
                 "\\s(pulang|ke rumah|pulang ke rumah|antar saya pulang)\\s" to "go home", "\\s(pergi |antar saya )?ke (kantor|tempat kerja)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kecelakaan" to "accident", "polisi|razia" to "police", "mogok" to "breakdown", "kamera tilang|kamera" to "camera",
@@ -218,6 +232,12 @@ object L {
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
         "id" -> "ke-$n"
+        // 1-ви, 2-ри, 3-ти, 7-ми, 8-ми (11-ти to 13-ти, and the rest -ти)
+        "bg" -> when {
+            n % 100 in 11..19 -> "$n-ти"
+            n % 10 == 1 -> "$n-ви"; n % 10 == 2 -> "$n-ри"; n % 10 == 7 || n % 10 == 8 -> "$n-ми"
+            else -> "$n-ти"
+        }
         else -> when {
             n % 100 in 11..13 -> "${n}th"
             n % 10 == 1 -> "${n}st"; n % 10 == 2 -> "${n}nd"; n % 10 == 3 -> "${n}rd"
@@ -235,6 +255,7 @@ object L {
             "it" -> listOf("prima", "seconda", "terza", "quarta", "quinta", "sesta", "settima", "ottava", "nona", "decima")
             "pt" -> listOf("primeira", "segunda", "terceira", "quarta", "quinta", "sexta", "sétima", "oitava", "nona", "décima")
             "pl" -> listOf("pierwszy", "drugi", "trzeci", "czwarty", "piąty", "szósty", "siódmy", "ósmy", "dziewiąty", "dziesiąty")
+            "bg" -> listOf("първия", "втория", "третия", "четвъртия", "петия", "шестия", "седмия", "осмия", "деветия", "десетия")
             "id" -> listOf("pertama", "kedua", "ketiga", "keempat", "kelima", "keenam", "ketujuh", "kedelapan", "kesembilan", "kesepuluh")
             // (Thai and Japanese voices read "ที่ 2" and "2番目" well)
             else -> return ordShort(n)
@@ -249,10 +270,12 @@ object L {
         val keys = listOf("nl", "de", "fr", "es")
         val keys2 = listOf("it", "pt", "pl")
         val keys3 = listOf("th", "ja", "id")
-        val m = (keys + keys2 + keys3).associateWith { HashMap<String, String>() }
+        val keys4 = listOf("bg")
+        val m = (keys + keys2 + keys3 + keys4).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
+        for ((en, tr) in I18nD.rows()) for ((i, k) in keys4.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         m
     }
 
@@ -1706,6 +1729,14 @@ object L {
         "Voice only" to listOf("Alleen stem", "Nur Stimme", "Voix seule", "Solo voz"),
         "Chime only" to listOf("Alleen signaal", "Nur Ton", "Bip seul", "Solo sonido"),
         "in {0}" to listOf("over {0}", "in {0}", "dans {0}", "en {0}"),
+        "Add a stop: {0}" to listOf("Stop toevoegen: {0}", "Stopp hinzufügen: {0}", "Ajouter un arrêt : {0}", "Añadir parada: {0}"),
+        "{0} along your route" to listOf("{0} langs je route", "{0} entlang deiner Route", "{0} sur votre itinéraire", "{0} en tu ruta"),
+        "Least detour" to listOf("Minste omweg", "Kleinster Umweg", "Moins de détour", "Menor desvío"),
+        "just off your route" to listOf("vlak naast je route", "direkt an deiner Route", "juste à côté de l'itinéraire", "junto a tu ruta"),
+        "{0} off your route" to listOf("{0} van je route", "{0} von deiner Route", "à {0} de l'itinéraire", "a {0} de tu ruta"),
+        "{0} ahead" to listOf("over {0}", "in {0}", "dans {0}", "a {0}"),
+        "See them along your route" to listOf("Bekijk ze langs je route", "Entlang der Route anzeigen", "Les voir sur votre itinéraire", "Verlos en tu ruta"),
+        "On the map, with the time each adds" to listOf("Op de kaart, met de extra tijd per plek", "Auf der Karte, mit der Zusatzzeit für jede", "Sur la carte, avec le temps ajouté par chacun", "En el mapa, con el tiempo que añade cada una"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3147,5 +3178,13 @@ object L {
         "Voice only" to listOf("Solo voce", "Só voz", "Tylko głos"),
         "Chime only" to listOf("Solo segnale", "Só sinal", "Tylko sygnał"),
         "in {0}" to listOf("tra {0}", "em {0}", "za {0}"),
+        "Add a stop: {0}" to listOf("Aggiungi sosta: {0}", "Adicionar paragem: {0}", "Dodaj przystanek: {0}"),
+        "{0} along your route" to listOf("{0} lungo il percorso", "{0} ao longo do percurso", "{0} na trasie"),
+        "Least detour" to listOf("Minor deviazione", "Menor desvio", "Najmniejszy objazd"),
+        "just off your route" to listOf("appena fuori dal percorso", "mesmo ao lado do percurso", "tuż przy trasie"),
+        "{0} off your route" to listOf("a {0} dal percorso", "a {0} do percurso", "{0} od trasy"),
+        "{0} ahead" to listOf("tra {0}", "daqui a {0}", "za {0}"),
+        "See them along your route" to listOf("Vedili lungo il percorso", "Ver ao longo do percurso", "Pokaż na trasie"),
+        "On the map, with the time each adds" to listOf("Sulla mappa, con il tempo che aggiunge ciascuna", "No mapa, com o tempo que cada uma acrescenta", "Na mapie, z czasem, który dodaje każde"),
     )
 }

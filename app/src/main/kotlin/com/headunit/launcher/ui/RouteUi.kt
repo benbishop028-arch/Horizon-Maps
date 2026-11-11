@@ -49,6 +49,7 @@ import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.Navigation
 import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Speed
@@ -364,7 +365,8 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                 leadingIcon = { Icon(Icons.Rounded.Search, null, tint = c.sub) },
                 trailingIcon = { if (busy) CircularProgressIndicator(Modifier.size(20.dp), color = c.accent, strokeWidth = 2.dp) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { }),
+                // the keyboard's search key: everything matching along the route, on the map
+                keyboardActions = KeyboardActions(onSearch = { if (q.isNotBlank() && engine.route != null && engine.dest != null) { engine.openStopSearch(q.trim()); onClose() } }),
                 shape = RoundedCornerShape(50),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = c.tile, unfocusedContainerColor = c.tile, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
@@ -372,6 +374,18 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
+            // see where they all are on the route, with the time each adds (like "See all locations")
+            if (q.trim().length >= 3 && engine.route != null && engine.dest != null) Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.accent.copy(alpha = 0.13f)).border(2.dp, c.accent, RoundedCornerShape(16.dp))
+                    .clickable { engine.openStopSearch(q.trim()); onClose() }.padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Map, null, tint = c.accent, modifier = Modifier.size(22.dp))
+                Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                    Text(L.t("See them along your route"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(L.t("On the map, with the time each adds"), color = c.sub, fontSize = 12.sp)
+                }
+            }
             if (results.isNotEmpty()) LazyColumn(Modifier.heightIn(max = 200.dp).clip(RoundedCornerShape(16.dp)).background(c.tile)) {
                 itemsIndexed(results) { _, p ->
                     Row(Modifier.fillMaxWidth().clickable { stops = (stops + p).take(8); q = ""; results = emptyList() }.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
