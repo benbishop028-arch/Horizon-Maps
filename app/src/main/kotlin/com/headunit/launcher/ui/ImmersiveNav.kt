@@ -460,12 +460,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
         }
 
-        // ---- top centre: the traffic view while you're stopped (it goes back by itself when you move off)
-        AnimatedVisibility(engine.stoppedOverview && !previewing, modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
+        // ---- bottom centre: the traffic view while you're stopped (it goes back by itself when you move off, or tap it). It used
+        // to sit top centre, over the search box on a phone; down here it's where Re-centre goes (never shown at the same time)
+        AnimatedVisibility(engine.stoppedOverview && !previewing, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = if (narrow && tripPx > 0) tripH + 10.dp else 18.dp),
             enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
-            Row(Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Traffic round you · back when you move"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 8.dp).size(16.dp))
             }
         }
 

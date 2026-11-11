@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- "Traffic round you" over the search box: the stopped-in-traffic view now only comes on after you've been driving (not with the phone lying still, e.g. when sharing a place from another app), its note sits at the bottom where it can't cover the search box, and tapping it (✕) goes back to the normal view.
 - Mapbox logo halfway down the car screen: on Android Auto it was pushed down by a gap meant to clear the phone's top bar, made bigger by the car display's high density. It now sits in the corner.
 - Wrong side on arrival: "your destination is on the right" for a place on the left. The side is now worked out from where the place actually is against the way you're driving, and the route service's own left / right is only used when that's too close to call.
 - Speed limit sign squashed on Android Auto: the US and Canadian board's words are sized from the sign itself, so a larger car-screen text size can't squash them; the board is a little bigger next to the speedometer; and the next-limit tag above no longer overlaps it, and shows the board instead of a round sign in the US and Canada.

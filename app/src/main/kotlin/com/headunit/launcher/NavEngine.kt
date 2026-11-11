@@ -59,6 +59,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
     /** The flat traffic view after being stopped a while is showing. */
     var stoppedOverview by mutableStateOf(false)
+    private var lastDrivingAt = 0L
+    private var overviewDismissed = false
+
+    /** Tapped the "Traffic round you" note: back to the normal view until you've moved off and stopped again. */
+    fun dismissStoppedOverview() {
+        overviewDismissed = true
+        if (stoppedOverview) { stoppedOverview = false; fix?.let { try { onPosition(it, true) } catch (e: Exception) { } } }
+    }
     private var stoppedSince = 0L
     /** A place sent from your phone, waiting to be started (head unit). */
     var phoneDest by mutableStateOf<Place?>(null)
@@ -3444,10 +3452,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Not when you've moved the map yourself, nor in the last 400 m of a route
         run {
             val nowMs = android.os.SystemClock.elapsedRealtime()
-            if (sp < 0.8) { if (stoppedSince == 0L) stoppedSince = nowMs } else if (sp > 2.5) stoppedSince = 0L
+            if (sp < 0.8) { if (stoppedSince == 0L) stoppedSince = nowMs } else if (sp > 2.5) { stoppedSince = 0L; overviewDismissed = false }
+            if (sp > 4.0) lastDrivingAt = nowMs
             // (nor waiting at a turn: the close-up of the junction matters more then)
             val nearEnd = navigating && ((eta?.dist ?: Double.MAX_VALUE) < 400.0 || (turn?.dist ?: Double.MAX_VALUE) < 200.0)
+            // only stopped in traffic: you were driving within the last 10 minutes (not the phone lying still at home, which brought
+            // it up while sharing a place from another app), and not after you've tapped it away
             val ov = prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true) && stoppedSince > 0L && nowMs - stoppedSince > 30_000L &&
+                lastDrivingAt > 0L && nowMs - lastDrivingAt < 10 * 60_000L && !overviewDismissed &&
                 !nearEnd && arrival == null && abs(zoomOffset) < 0.01
             if (ov != stoppedOverview) stoppedOverview = ov
             if (ov) { tilt = 0.0; pad = 0.0 }
