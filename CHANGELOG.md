@@ -118,6 +118,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.
 - Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
 - Add a stop, seen along your route: when adding a stop, "See them along your route" (or the keyboard's search key) shows every match on the map along the rest of the route, each labelled with the time it adds, in a panel sorted by Least detour, Soonest or Nearest, with how far ahead and how far off the route each one is. Tap one, then Add as a stop. On Android Auto it's a list sorted by detour.
 - Bulgarian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in Bulgarian too. Spoken directions need a Bulgarian text-to-speech voice installed (Google's has one).
