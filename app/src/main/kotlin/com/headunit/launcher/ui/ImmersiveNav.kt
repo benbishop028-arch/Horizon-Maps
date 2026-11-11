@@ -461,11 +461,22 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
         }
 
-        // ---- bottom centre: the traffic view while you're stopped (it goes back by itself when you move off, or tap it). It used
-        // to sit top centre, over the search box on a phone; down here it's where Re-centre goes (never shown at the same time)
-        AnimatedVisibility(engine.stoppedOverview && !previewing, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = if (narrow && tripPx > 0) tripH + 10.dp else 18.dp),
+        // ---- the traffic view while you're stopped (it goes back by itself when you move off, or tap it). It sits at the top,
+        // in the gap between the turn card and the map buttons, when it fits there; otherwise just above the trip card
+        var trafficPillWPx by remember { mutableStateOf(0) }
+        val trafficPillW = with(dens) { trafficPillWPx.toDp() }
+        val topLeftEdge = 16.dp + 380.dp + 12.dp
+        val topRightEdge = with(dens) { buttonsWPx.toDp() } + 16.dp + 12.dp + (if (speedPos == "top") 110.dp else 0.dp)
+        val topGap = maxWidth - topLeftEdge - topRightEdge
+        val trafficOnTop = !narrow && trafficPillWPx > 0 && trafficPillW <= topGap
+        val trafficMod = when {
+            trafficOnTop -> Modifier.align(side(Alignment.TopStart)).sides(start = topLeftEdge + (topGap - trafficPillW) / 2, top = 16.dp)
+            tripPx > 0 && !narrow -> Modifier.align(side(Alignment.BottomStart)).sides(start = 16.dp, bottom = tripH + 10.dp)
+            else -> Modifier.align(Alignment.BottomCenter).padding(bottom = if (tripPx > 0) tripH + 10.dp else 18.dp)
+        }
+        AnimatedVisibility(engine.stoppedOverview && !previewing, modifier = trafficMod,
             enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
-            Row(Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Traffic round you · back when you move"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 8.dp).size(16.dp))
