@@ -1859,7 +1859,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
                 val out = ArrayList<Pair<Place, Int>>()
                 for ((p, t) in all) if (out.none { Geo.dist(it.first.pos, p.pos) < 80 }) out += p to t
-                out
+                // a shop or chain: only its own branches when there are some ("Western Union, Sainsbury's" is a counter inside one,
+                // not a Sainsbury's)
+                val own = out.filter { chainHit(it.first, q) }
+                if (own.size >= 2) own else out
             }
             val from = fix?.pos ?: ahead.first()
             val spots = found.mapNotNull { (p, t) ->

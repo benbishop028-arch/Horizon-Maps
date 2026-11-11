@@ -435,8 +435,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             CompositionLocalProvider(LocalDensity provides Density(baseSpeedDensity.density * speedSize, baseSpeedDensity.fontScale)) { ImmSpeed(engine) }
         }
 
-        // ---- bottom left: hazards and the trip card
-        if (!previewing && engine.arrival == null) {
+        // ---- bottom left: hazards and the trip card (not while the "all locations" / add-a-stop panel is open: it's in the same
+        // corner and the panel lets the map show through, so the trip card's figures showed through it)
+        if (!previewing && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
             Box(Modifier.align(side(Alignment.BottomStart)).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height }

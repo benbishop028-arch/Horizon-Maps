@@ -85,6 +85,9 @@ class CarNavService : CarAppService() {
 }
 
 /** The engine and map for one connection to the car. */
+/** The car screen's map area is short (an 800 x 480 unit, or a split-screen tile): Android Auto's buttons go icon-only (#67). */
+object CarLayout { @Volatile var short = false }
+
 class CarHolder(val carContext: CarContext) {
     var engine: NavEngine? = null
     var map: MapBinding? = null
@@ -367,6 +370,7 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
 
     override fun onVisibleAreaChanged(visibleArea: Rect) {
         lastVisible = Rect(visibleArea)
+        CarLayout.short = visibleArea.height() in 1..519 || visibleArea.width() in 1..699
         try { com.headunit.launcher.CarDiag.screen = "${width}x$height, visible ${visibleArea.left},${visibleArea.top},${visibleArea.right},${visibleArea.bottom}" } catch (e: Exception) { }
         // some head units report a visible area that can't be right (a sliver of the screen, or one off the edge): going by it put
         // the arrow under the cards on the left. Then the whole screen is used, as when nothing is reported
@@ -532,7 +536,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
     private fun icon(res: Int) = CarIcon.Builder(IconCompat.createWithResource(carContext, res)).build()
 
     /** Report (police, crash, hazard...): opens the "Report here" screen. It has the Search button's place. */
-    private fun reportAction(): Action = Action.Builder().setTitle(L.t("Report"))
+    private fun reportAction(): Action = (if (CarLayout.short) Action.Builder().setIcon(icon(R.drawable.ic_car_report)) else Action.Builder().setTitle(L.t("Report")))
         .setOnClickListener { screenManager.push(ReportScreen(carContext, holder)) }.build()
 
     override fun onGetTemplate(): Template {
@@ -576,7 +580,9 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             // the car's buttons can only reach Android Auto's own buttons, never the search bar and chips the app draws on the map
             // (cars that pass taps on still have those too)
             strip.addAction(reportAction())
-            strip.addAction(Action.Builder().setTitle(L.t("Places")).setOnClickListener { screenManager.push(PlacesScreen(carContext, holder)) }.build())
+            // (on a short car screen these are icons, so Android Auto's row of buttons takes less of the map)
+            strip.addAction((if (CarLayout.short) Action.Builder().setIcon(icon(R.drawable.ic_car_star)) else Action.Builder().setTitle(L.t("Places")))
+                .setOnClickListener { screenManager.push(PlacesScreen(carContext, holder)) }.build())
             strip.addAction(view)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_settings)).setOnClickListener { openSettings() }.build())
         }
