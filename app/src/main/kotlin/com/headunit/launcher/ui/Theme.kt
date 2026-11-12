@@ -73,24 +73,42 @@ fun isNightByClock(nowMs: Long, nightFrom: String, dayFrom: String): Boolean {
  * switch it with the headlights without telling the app it changed, so the map stayed in day mode.
  */
 @Composable
-fun rememberSystemNight(): Boolean {
+fun rememberSystemNight(useLamps: Boolean = false): Boolean {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val fromConfig = isSystemInDarkTheme()
-    var polled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(readSystemNight(ctx)) }
+    fun read() = readSystemNight(ctx) || (useLamps && readLampsNight(ctx) == true)
+    var polled by androidx.compose.runtime.remember(useLamps) { androidx.compose.runtime.mutableStateOf(read()) }
     // checked every 1.5 s (it was every 4 s), and straight away when the system's night mode setting itself changes: some units
     // set that first and only change the screen's mode later
-    androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1500L); polled = readSystemNight(ctx) } }
-    androidx.compose.runtime.DisposableEffect(Unit) {
+    androidx.compose.runtime.LaunchedEffect(useLamps) { while (true) { kotlinx.coroutines.delay(1500L); polled = read() } }
+    androidx.compose.runtime.DisposableEffect(useLamps) {
         val cr = ctx.applicationContext.contentResolver
         val obs = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
-            override fun onChange(selfChange: Boolean) { polled = readSystemNight(ctx) }
+            override fun onChange(selfChange: Boolean) { polled = read() }
         }
         try { cr.registerContentObserver(android.provider.Settings.Secure.getUriFor("ui_night_mode"), false, obs) } catch (e: Throwable) { }
+        if (useLamps) try { cr.registerContentObserver(android.provider.Settings.System.getUriFor("car_mode"), false, obs) } catch (e: Throwable) { }
         onDispose { try { cr.unregisterContentObserver(obs) } catch (e: Throwable) { } }
     }
     NightWatch.note(fromConfig, "screen")
     return fromConfig || polled
 }
+
+/**
+ * The headlight (illumination, "ILL") wire as some head units pass it on without switching Android's night mode: Teyes and FYT-type
+ * units keep it in the system setting "car_mode" (0 = lights off). Null when this unit has no such setting. A few units have it the
+ * other way round: Settings > Map > "Lights signal is reversed" swaps it.
+ */
+fun readLampsNight(ctx: android.content.Context): Boolean? = try {
+    val v = android.provider.Settings.System.getInt(ctx.applicationContext.contentResolver, "car_mode", Int.MIN_VALUE)
+    if (v == Int.MIN_VALUE || v < 0) null else {
+        val inv = com.headunit.launcher.Prefs(ctx.applicationContext).b(com.headunit.launcher.PreferenceKeys.LAMPS_INVERT, false)
+        val night = (v != 0) != inv
+        NightWatch.lamps = v
+        NightWatch.note(night, "lights")
+        night
+    }
+} catch (e: Throwable) { null }
 
 fun readSystemNight(ctx: android.content.Context): Boolean = try {
     val cfg = ctx.applicationContext.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
@@ -107,6 +125,8 @@ fun readSystemNight(ctx: android.content.Context): Boolean = try {
  */
 object NightWatch {
     @Volatile var setting = "?"
+    /** The unit's headlight setting ("car_mode") as last read, or null when it has none. */
+    @Volatile var lamps: Int? = null
     private val last = java.util.concurrent.ConcurrentHashMap<String, Pair<Boolean, Long>>()
 
     fun note(night: Boolean, what: String) {
@@ -116,7 +136,7 @@ object NightWatch {
 
     fun line(): String {
         val fmt = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.UK)
-        return "Night signals: system setting $setting · " + listOf("screen", "config", "setting").joinToString(" · ") { k ->
+        return "Night signals: system setting $setting" + (lamps?.let { " · car_mode $it" } ?: "") + " · " + listOf("screen", "config", "setting", "lights").filter { it != "lights" || last.containsKey(it) }.joinToString(" · ") { k ->
             val p = last[k]
             if (p == null) "$k ?" else "$k ${if (p.first) "night" else "day"} since ${fmt.format(java.util.Date(p.second))}"
         }

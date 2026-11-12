@@ -267,12 +267,16 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
         // Headlights: whether this head unit has been seen switching with the lights yet (until then sun times stand in), and what the
         // lights signal says right now, so it's easy to check it works (lights on: it should say on within a couple of seconds)
         if (prefs.s(PreferenceKeys.THEME, "auto") == "lights") {
-            val lightsOn = rememberSystemNight()
+            val lightsOn = rememberSystemNight(useLamps = true)
             val seen = prefs.b(PreferenceKeys.SYSDARKSEEN, false) || lightsOn
             SNote(
                 if (seen) L.t("Only your lights decide, in tunnels too. Lights signal now: {0}", if (lightsOn) L.t("on") else L.t("off"))
                 else L.t("Your head unit hasn't switched with the lights yet, so sunrise and sunset are used until it does. Turn on its headlight or illumination night-mode option, then switch your lights on to check")
             )
+            // units that pass the lights on in their own setting (Teyes, FYT-type): a few have it the other way round
+            val ctxL = androidx.compose.ui.platform.LocalContext.current
+            val hasLamps = androidx.compose.runtime.remember { readLampsNight(ctxL) != null }
+            if (hasLamps) SToggle(prefs, L.t("Lights signal is reversed"), PreferenceKeys.LAMPS_INVERT, false, L.t("Turn on if it says on with your lights off"))
         }
         if (prefs.s(PreferenceKeys.THEME, "auto") == "times") {
             SFieldItem(L.t("Night starts at"), prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), L.t("24-hour clock, for example 19:30"), placeholder = "19:00") { prefs.put(PreferenceKeys.NIGHT_FROM, it.trim()) }

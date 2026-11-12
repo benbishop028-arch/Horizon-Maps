@@ -1460,5 +1460,7 @@ object I18nC {
         "Same as your phone" to listOf("เหมือนโทรศัพท์ของคุณ", "スマホと同じ", "Sama seperti ponsel Anda"),
         "Driver's display zoom" to listOf("การซูมจอแสดงผลผู้ขับ", "運転席ディスプレイのズーム", "Zoom layar pengemudi"),
         "Furthest out" to listOf("ไกลที่สุด", "最も遠く", "Paling jauh"),
+        "Lights signal is reversed" to listOf("สัญญาณไฟกลับด้าน", "ライト信号が逆", "Sinyal lampu terbalik"),
+        "Turn on if it says on with your lights off" to listOf("เปิดหากแสดงว่าเปิดขณะที่ไฟปิดอยู่", "ライトが消えているのにオンと表示される場合はオンに", "Aktifkan jika tertulis menyala saat lampu mati"),
     )
 }

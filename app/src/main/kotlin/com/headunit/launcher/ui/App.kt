@@ -102,7 +102,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         }
     }
     // the head unit has switched to its night mode at least once (so it links night mode to the headlights): noted for "Headlights"
-    val sysDark = rememberSystemNight()
+    val sysDark = rememberSystemNight(useLamps = prefs.s(PreferenceKeys.THEME, "auto") == "lights")
     LaunchedEffect(sysDark) { if (sysDark && !prefs.b(PreferenceKeys.SYSDARKSEEN, false)) prefs.put(PreferenceKeys.SYSDARKSEEN, true) }
     val dark = resolveDark(prefs.s(PreferenceKeys.THEME, "auto"), prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull(), prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull(), nowMs, prefs.b(PreferenceKeys.SYSDARKSEEN, false), sysDark,
         prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"))

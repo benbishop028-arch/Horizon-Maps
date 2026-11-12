@@ -1451,5 +1451,7 @@ object I18nD {
         "Same as your phone" to listOf("Като телефона ви"),
         "Driver's display zoom" to listOf("Мащаб на дисплея на водача"),
         "Furthest out" to listOf("Най-отдалечено"),
+        "Lights signal is reversed" to listOf("Сигналът за светлините е обърнат"),
+        "Turn on if it says on with your lights off" to listOf("Включете, ако показва „вкл.“ при изключени светлини"),
     )
 }

@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Headlights mode on Teyes and FYT-type units: these units pass the lights on in their own setting instead of switching Android's night mode, so Headlights never went dark. It now reads that too, with a "Lights signal is reversed" switch for the few units that have it the other way round.
 - Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
 - "Going to …?" suggestion: switching off "Suggest where you're going" now hides the habit suggestion too (GitHub #73).
 - Traffic pill position: the "Traffic round you" pill sits at the top between the turn card and the map buttons when there's room, and otherwise just above the arrival time card instead of over it.
@@ -118,6 +119,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Slovenian: the whole app, spoken directions and voice commands are now in Slovenian (Settings › Sound & voice › Language, or it follows the phone) (GitHub #75).
 - Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.
 - Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
 - Add a stop, seen along your route: when adding a stop, "See them along your route" (or the keyboard's search key) shows every match on the map along the rest of the route, each labelled with the time it adds, in a panel sorted by Least detour, Soonest or Nearest, with how far ahead and how far off the route each one is. Tap one, then Add as a stop. On Android Auto it's a list sorted by detour.
