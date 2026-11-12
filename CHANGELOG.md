@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Lane arrows at back-to-back roundabouts: on the way into the first of two roundabouts close together, the lane picture showed the second one's lanes. Each turn now only shows its own lanes.
 - Headlights mode on Teyes and FYT-type units: these units pass the lights on in their own setting instead of switching Android's night mode, so Headlights never went dark. It now reads that too, with a "Lights signal is reversed" switch for the few units that have it the other way round.
 - Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
 - "Going to …?" suggestion: switching off "Suggest where you're going" now hides the habit suggestion too (GitHub #73).

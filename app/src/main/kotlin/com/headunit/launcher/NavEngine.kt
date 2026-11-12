@@ -4678,7 +4678,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter {
                 // a section has to run up to this junction: one ending well before it belongs to a junction on the way (an
                 // earlier slip road), and lit its exit lane as if that were the turn to take
-                progress < it.end + 5 && it.end > cur.off - 60 && it.end < cur.off + 200
+                progress < it.end + 5 && it.end > cur.off - 60 && it.end < cur.off + 200 &&
+                    // nor one that belongs to the turn after this (two roundabouts close together: the second one's lanes were shown
+                    // on the way into the first, Reddit)
+                    (nxt == null || nxt.off - cur.off < 15.0 || it.end < nxt.off - 10.0 || abs(it.end - cur.off) < abs(it.end - nxt.off))
             }.sortedWith(compareByDescending<LaneSec> { it.lanes.size }.thenBy { abs(it.end - cur.off) }).firstOrNull() else null
             // for the feedback report: the lane list in use, as the route data gives it (so a junction with the wrong arrows can be
             // traced to the data or the app)
