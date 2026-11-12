@@ -1234,6 +1234,8 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         rows += Row.Builder().setTitle(L.t("Speed sign position"))
             .addText(L.t(when (spPos) { "middle" -> "Middle"; "top" -> "Top"; else -> "Bottom" }) + L.t(" · tap to change"))
             .setOnClickListener { prefs.put(PreferenceKeys.SPEED_POS_CAR, when (spPos) { "bottom" -> "middle"; "middle" -> "top"; else -> "bottom" }); invalidate() }.build()
+        // the arrow stays to the side when the cards on the left fold away (GitHub), rather than moving back to the middle
+        rows += toggleRow("Keep the arrow to the side", PreferenceKeys.ARROW_SIDE, false, "When the cards fold away, instead of moving to the middle")
         // 12 or 24-hour times (the same setting as the app's Settings > Units)
         val clock = prefs.s(PreferenceKeys.CLOCK, "auto")
         rows += Row.Builder().setTitle(L.t("Clock"))

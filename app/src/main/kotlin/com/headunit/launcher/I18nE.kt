@@ -1453,5 +1453,9 @@ object I18nE {
         "Furthest out" to listOf("Najbolj oddaljeno"),
         "Lights signal is reversed" to listOf("Signal luči je obrnjen"),
         "Turn on if it says on with your lights off" to listOf("Vklopite, če kaže vklopljeno, ko so luči ugasnjene"),
+        "Keep the arrow to the side" to listOf("Puščica naj ostane ob strani"),
+        "When the cards fold away, instead of moving to the middle" to listOf("Ko se kartice zložijo, namesto da se premakne na sredino"),
+        "Chime volume" to listOf("Glasnost zvočnih signalov"),
+        "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("Piski za prekoračitev hitrosti, spremembe omejitve in radarje v primerjavi z glasom. Glasnost radia, spremenjena med govorjenjem, spremeni oboje"),
     )
 }

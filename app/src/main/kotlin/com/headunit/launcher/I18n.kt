@@ -1758,6 +1758,10 @@ object L {
         "Furthest out" to listOf("Verst uit", "Am weitesten heraus", "Le plus éloigné", "Lo más lejos"),
         "Lights signal is reversed" to listOf("Lichtsignaal is omgekeerd", "Lichtsignal ist umgekehrt", "Le signal des feux est inversé", "La señal de luces está invertida"),
         "Turn on if it says on with your lights off" to listOf("Zet dit aan als er 'aan' staat terwijl je lichten uit zijn", "Einschalten, wenn „an“ angezeigt wird, obwohl das Licht aus ist", "Activez si « allumés » s'affiche feux éteints", "Actívalo si dice encendidas con las luces apagadas"),
+        "Keep the arrow to the side" to listOf("Houd de pijl aan de zijkant", "Pfeil seitlich lassen", "Garder la flèche sur le côté", "Mantener la flecha a un lado"),
+        "When the cards fold away, instead of moving to the middle" to listOf("Als de kaarten inklappen, in plaats van naar het midden te gaan", "Wenn die Karten einklappen, statt in die Mitte zu wandern", "Quand les cartes se replient, au lieu de revenir au centre", "Cuando las tarjetas se pliegan, en vez de volver al centro"),
+        "Chime volume" to listOf("Volume van de piepjes", "Lautstärke der Signaltöne", "Volume des bips", "Volumen de los avisos sonoros"),
+        "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("De piepjes bij te hard rijden, nieuwe limieten en flitsers, vergeleken met de stem. Het volume van je radio, gedraaid terwijl hij praat, verandert beide", "Die Töne bei zu schnellem Fahren, neuen Limits und Blitzern, im Verhältnis zur Stimme. Die Lautstärke des Radios, während der Ansage gedreht, ändert beides", "Les bips d'excès de vitesse, de changement de limite et de radars, par rapport à la voix. Le volume de l'autoradio, réglé pendant qu'il parle, change les deux", "Los pitidos por exceso de velocidad, cambios de límite y radares, en relación con la voz. El volumen de la radio, ajustado mientras habla, cambia ambos"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3212,5 +3216,9 @@ object L {
         "Furthest out" to listOf("Il più lontano", "O mais afastado", "Najdalej"),
         "Lights signal is reversed" to listOf("Il segnale delle luci è invertito", "O sinal das luzes está invertido", "Sygnał świateł jest odwrócony"),
         "Turn on if it says on with your lights off" to listOf("Attivalo se indica accese con le luci spente", "Ative se indicar ligadas com as luzes desligadas", "Włącz, jeśli pokazuje „włączone” przy wyłączonych światłach"),
+        "Keep the arrow to the side" to listOf("Tieni la freccia di lato", "Manter a seta de lado", "Trzymaj strzałkę z boku"),
+        "When the cards fold away, instead of moving to the middle" to listOf("Quando le schede si chiudono, invece di tornare al centro", "Quando os cartões recolhem, em vez de voltar ao centro", "Gdy karty się zwiną, zamiast wracać na środek"),
+        "Chime volume" to listOf("Volume dei segnali acustici", "Volume dos sinais sonoros", "Głośność sygnałów"),
+        "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("I bip per eccesso di velocità, cambi di limite e autovelox, rispetto alla voce. Il volume dell'autoradio, regolato mentre parla, cambia entrambi", "Os bips de excesso de velocidade, mudança de limite e radares, em relação à voz. O volume do rádio, ajustado enquanto fala, muda ambos", "Sygnały przekroczenia prędkości, zmiany limitu i fotoradarów, w porównaniu z głosem. Głośność radia, zmieniona podczas komunikatu, zmienia oba"),
     )
 }

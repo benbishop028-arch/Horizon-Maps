@@ -119,6 +119,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Keep the arrow to the side: a new switch (Android Auto settings, and Settings › Screen & sizes › While driving) keeps the arrow off to the side on a wide screen when the cards fold away, instead of gliding back to the middle.
 - Slovenian: the whole app, spoken directions and voice commands are now in Slovenian (Settings › Sound & voice › Language, or it follows the phone) (GitHub #75).
 - Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.
 - Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
@@ -188,6 +189,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Chime volume: on the head unit the speeding, limit-change and camera chimes now play on the same channel as the spoken directions (they were on the music channel at full strength), so the head unit's volume turned during a direction turns them down too. Settings › Sound & voice › Chime volume sets them against the voice, with a sample beep.
 - Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).
 - Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).
 - Street lamps where they really are: the lamps on the map now come from OpenStreetMap online too (not only from an offline pack), so real lamp positions show wherever people have mapped them. Guessed lamps fill in only the gaps, and roads OpenStreetMap marks as unlit stay dark. In cities with every lamp mapped, guessed ones only go on roads marked lit. Fetched once per area, kept for a month, never in offline mode.

@@ -702,6 +702,9 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
             L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel")) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
         SItem(L.t("Voice and language"), L.t("Uses the system text-to-speech voice")) { SButton(L.t("Open")) { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
         SItem(L.t("Volume")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
+        SSlider(L.t("Chime volume"), prefs.i(PreferenceKeys.CHIME_VOL, 70).coerceIn(5, 100).toFloat(), 5f..100f, "%",
+            sub = L.t("The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both"),
+            reset = 70f) { prefs.put(PreferenceKeys.CHIME_VOL, it.toInt()); engine.testChime() }
     }
 }
 
@@ -1032,6 +1035,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("While driving")) {
         SToggle(prefs, L.t("Road and heading when driving without a route"), "cruise", true)
         SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
+        SToggle(prefs, L.t("Keep the arrow to the side"), PreferenceKeys.ARROW_SIDE, false, L.t("When the cards fold away, instead of moving to the middle"))
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))

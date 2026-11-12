@@ -184,6 +184,10 @@ internal object PreferenceKeys {
     const val ALPR_CAMS = "alprcams"
     /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
     const val CLUSTER_MAP = "clustermap"
+    /** Chimes (speeding, limit change, cameras) as a percentage of full strength, on the voice's channel. */
+    const val CHIME_VOL = "chimevol"
+    /** On a wide screen, the arrow stays to the side when the cards fold away (instead of moving back to the middle). */
+    const val ARROW_SIDE = "arrowside"
     /** The head unit's headlight setting (car_mode) reads the other way round on this unit. */
     const val LAMPS_INVERT = "lampsinvert"
     /** How close the map on the driver's display is: -2 (furthest out) to 1 (closest), 0 normal. */

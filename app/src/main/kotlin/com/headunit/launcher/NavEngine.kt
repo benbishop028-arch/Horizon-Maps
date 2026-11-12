@@ -1160,6 +1160,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    /** A sample beep, at the chime volume just set (Settings). */
+    fun testChime() { if (soundMode != 2) guidanceBeep(false) }
+
     // one tone generator, kept and reused: making a new one for every beep leaked audio resources and caused hiccups over time
     private var toneGen: android.media.ToneGenerator? = null
     private fun chime(tone: Int = android.media.ToneGenerator.TONE_PROP_ACK) {
@@ -1167,11 +1170,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // on Android Auto the phone's media sound only reaches the car's speakers while Android Auto is the car's sound source
         // (with the radio or the car's own music on, the speeding beep was never heard): there it goes out on the navigation
         // channel instead, like the spoken directions, which plays over whatever is on
-        if (isCar) { guidanceBeep(tone == android.media.ToneGenerator.TONE_PROP_BEEP2); return }
-        try {
-            val g = toneGen ?: android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 100).also { toneGen = it }
-            g.startTone(tone, 250)
-        } catch (e: Exception) { toneGen = null }
+        // The head unit too now (Reddit): its chimes went out on the music channel at full strength, so the head unit's volume knob
+        // only reached them while music was the thing playing, and they were too short to catch. They now go on the same channel as
+        // the spoken directions (Settings > Sound & voice > Voice channel), so turning the voice down turns them down too, and at
+        // the strength set by "Chime volume"
+        guidanceBeep(tone == android.media.ToneGenerator.TONE_PROP_BEEP2)
     }
 
     // the beep's sound, made once: a short 1 kHz tone (twice for a warning), faded in and out so it doesn't click
@@ -1193,7 +1196,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val beepDouble by lazy { beepPcm(true) }
     @Volatile private var beepBusy = false
 
-    /** A beep on the navigation channel (Android Auto), with the music lowered for it. */
+    /** A beep on the voice's channel (navigation, or media if chosen), with the music lowered for it. */
     private fun guidanceBeep(double: Boolean) {
         if (beepBusy) return
         beepBusy = true
@@ -1213,6 +1216,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     .setTransferMode(android.media.AudioTrack.MODE_STATIC).setBufferSizeInBytes(pcm.size * 2).build()
                 tr = t
                 t.write(pcm, 0, pcm.size)
+                // Settings > Sound & voice > Chime volume: compared with the spoken directions on the same channel
+                try { t.setVolume((prefs.i(PreferenceKeys.CHIME_VOL, 70).coerceIn(5, 100) / 100f)) } catch (e: Exception) { }
                 t.play()
                 delay(pcm.size * 1000L / 22050 + 250)
             } catch (e: Exception) {
@@ -2987,6 +2992,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var tZoom = 16.0
     private var tPad = 0.0
     private var tLeft = 0.0
+    /** The last sideways shift the cards called for on a wide screen (kept for "Keep the arrow to the side"). */
+    private var sideShiftSeen: Double? = null
     private var camTargetAt = 0L
     private var camReady = false
     private var camCatchUp = false
@@ -3567,6 +3574,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // (Android Auto too: there the outlines are measured within the part of the screen its own buttons leave clear)
         tLeft = if (!navigating && !previewing) idleShift(bottomCover > 0.0)
                 else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
+        // "Keep the arrow to the side" (GitHub): on a wide screen the arrow stays where the cards put it when they fold away, rather
+        // than gliding back to the middle (the side the cards were last on; at first the usual side for this screen)
+        if (bottomCover <= 0.0 && !stoppedOverview) {
+            if (abs(tLeft) > 0.06) sideShiftSeen = tLeft
+            else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
+                tLeft = sideShiftSeen ?: (if (mirrored && !isCar) -0.3 else 0.3)
+        }
         map.cardsMirrored = mirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }
