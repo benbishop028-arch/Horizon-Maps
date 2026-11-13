@@ -728,11 +728,32 @@ object Weather {
     data class Now(val tempC: Double, val code: Int)
 
     fun fetch(p: LL): Now? = try {
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}&current=temperature_2m,weather_code"
+        // the weather code alone often said "cloudy" while it was raining (it's the hour's summary): the rain and snow actually
+        // falling now, and in this quarter hour, are asked for too, and rain or snow is shown whenever any is coming down
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}" +
+            "&current=temperature_2m,weather_code,precipitation,rain,showers,snowfall&minutely_15=precipitation,snowfall&forecast_minutely_15=2&past_minutely_15=1"
         val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 10000; c.readTimeout = 10000
-        val cur = JSONObject(c.inputStream.bufferedReader().readText()).getJSONObject("current")
-        Now(cur.getDouble("temperature_2m"), cur.getInt("weather_code"))
+        val root = JSONObject(c.inputStream.bufferedReader().readText())
+        val cur = root.getJSONObject("current")
+        val code = cur.getInt("weather_code")
+        var wet = cur.optDouble("precipitation", 0.0).takeIf { !it.isNaN() } ?: 0.0
+        var snow = cur.optDouble("snowfall", 0.0).takeIf { !it.isNaN() } ?: 0.0
+        try {
+            // the quarter hours just gone and now (mm in 15 minutes): the most of them
+            val m = root.optJSONObject("minutely_15")
+            val pr = m?.optJSONArray("precipitation"); val sn = m?.optJSONArray("snowfall")
+            if (pr != null) for (i in 0 until minOf(2, pr.length())) { val v = pr.optDouble(i, 0.0); if (!v.isNaN()) wet = maxOf(wet, v * 4.0) }
+            if (sn != null) for (i in 0 until minOf(2, sn.length())) { val v = sn.optDouble(i, 0.0); if (!v.isNaN()) snow = maxOf(snow, v) }
+        } catch (e: Exception) { }
+        val falling = code in 51..67 || code in 71..77 || code in 80..86 || code in 95..99
+        val shown = when {
+            falling -> code
+            snow > 0.05 -> if (snow > 0.5) 73 else 71
+            wet >= 0.1 -> if (wet >= 2.5) 63 else if (wet >= 0.5) 61 else 51
+            else -> code
+        }
+        Now(cur.getDouble("temperature_2m"), shown)
     } catch (e: Exception) { null }
 
     class Hour(val label: String, val temp: Double, val code: Int, val rain: Int)

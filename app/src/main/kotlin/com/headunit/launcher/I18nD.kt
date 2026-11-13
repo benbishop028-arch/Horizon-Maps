@@ -1457,5 +1457,9 @@ object I18nD {
         "When the cards fold away, instead of moving to the middle" to listOf("Когато картите се свият, вместо да се връща в средата"),
         "Chime volume" to listOf("Сила на звуковите сигнали"),
         "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("Сигналите за превишена скорост, смяна на ограничението и камери, спрямо гласа. Силата на звука на уреда, променена докато говори, променя и двете"),
+        "Start demo drive" to listOf("Започни демо"),
+        "Skip to the next turn" to listOf("Към следващия завой"),
+        "Skip turn" to listOf("Следващ завой"),
+        "End demo" to listOf("Край на демото"),
     )
 }

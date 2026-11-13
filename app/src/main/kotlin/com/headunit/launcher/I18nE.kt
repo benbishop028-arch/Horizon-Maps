@@ -1457,5 +1457,9 @@ object I18nE {
         "When the cards fold away, instead of moving to the middle" to listOf("Ko se kartice zložijo, namesto da se premakne na sredino"),
         "Chime volume" to listOf("Glasnost zvočnih signalov"),
         "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("Piski za prekoračitev hitrosti, spremembe omejitve in radarje v primerjavi z glasom. Glasnost radia, spremenjena med govorjenjem, spremeni oboje"),
+        "Start demo drive" to listOf("Začni predstavitveno vožnjo"),
+        "Skip to the next turn" to listOf("Preskoči na naslednji zavoj"),
+        "Skip turn" to listOf("Preskoči zavoj"),
+        "End demo" to listOf("Končaj predstavitev"),
     )
 }

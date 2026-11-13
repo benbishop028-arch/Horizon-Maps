@@ -247,7 +247,18 @@ class CarNavSession : Session() {
         try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine
         surface.engine = engine
-        CarTicks.tick = { surface.tick(); try { holder.map?.setWeatherCode(holder.engine?.weather?.code) } catch (e: Exception) { } }
+        // the weather's light, and (Reddit) the rain and snow falling and the haze to the horizon, which were only ever put on the
+        // phone's map: each call does nothing unless the weather has changed
+        CarTicks.tick = {
+            surface.tick()
+            try {
+                val code = holder.engine?.weather?.code
+                val p = Prefs(carContext.applicationContext)
+                holder.map?.setWeatherCode(code)
+                holder.map?.setWeather(if (p.b(PreferenceKeys.RAIN_EFFECTS, false)) code else null)
+                holder.map?.setSky(if (p.b(PreferenceKeys.SKYWEATHER, true)) code else null)
+            } catch (e: Exception) { }
+        }
         applyTheme()
         try { engine.startLocation() } catch (e: Exception) { }
         mapScreen?.start()
@@ -539,7 +550,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val t = e.turn; val eta = e.eta
         // Android Auto's buttons only change with the state (rebuilding them every second while the distance counts down made the
         // host redo its layout for nothing); the turn and distance go to the car's displays through updateTrip
-        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}"
+        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}"
         if (sig != lastSig) { lastSig = sig; invalidate() }
         val tsig = "${t?.maneuver}|${t?.street}|${t?.exit}|${t?.dist?.let { Math.round(it / 10) }}|${eta?.secs?.let { Math.round(it / 30) }}|${eta?.dist?.let { Math.round(it / 100) }}|${System.identityHashCode(t?.lanes)}"
         if (guiding && t != null && eta != null && tsig != lastTrip) {
@@ -563,7 +574,10 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val previewing = e != null && e.route != null && e.previewing
         if (previewing) {
             // the route choice (drawn by the app on the map): start, try the next route, or cancel
-            strip.addAction(Action.Builder().setTitle(L.t("Start")).setOnClickListener { e?.beginNavigation(); invalidate() }.build())
+            strip.addAction(Action.Builder().setTitle(L.t(if (e?.demoNext == true) "Start demo drive" else "Start")).setOnClickListener { e?.beginNavigation(); invalidate() }.build())
+            // Demo (with the demo drive switched on): Start, or the countdown, then begins the trip as a demo drive
+            if (e != null && e.prefs.b(PreferenceKeys.DEMO, false)) strip.addAction(Action.Builder().setTitle(if (e.demoNext) "\u2713 " + L.t("Demo") else L.t("Demo"))
+                .setOnClickListener { e.toggleDemoNext(); invalidate() }.build())
             if ((e?.routes?.size ?: 0) > 1) strip.addAction(Action.Builder().setTitle(L.t("Next route")).setOnClickListener {
                 e?.let { en -> en.selectRoute((en.active + 1) % en.routes.size.coerceAtMost(3)) }; invalidate()
             }.build())
@@ -584,13 +598,20 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             strip.addAction(sound)
         } else if (guiding) {
             // only four fit: Settings stays while navigating (2D / 3D is the first row in it)
-            strip.addAction(Action.Builder().setTitle(L.t("Stop")).setOnClickListener { e?.endRoute(); invalidate() }.build())
             // the demo drive (for trying it out parked; only with Demo switched on in Settings, as in the app): starts it, speeds it
             // up, stops it. It has Report's place while it's on
-            if (demoOn) strip.addAction(Action.Builder().setTitle(when (e?.simMode ?: 0) { 0 -> "Demo"; 1 -> "Faster"; else -> "End demo" })
-                .setOnClickListener { e?.cycleSim(); invalidate() }.build())
-            strip.addAction(sound)
-            if (!demoOn) strip.addAction(reportAction())
+            // While the demo plays (four buttons only): End demo in Stop's place, its speed (1x / 2x / 4x, tap to change) and
+            // Skip turn in sound's and Report's, and Settings
+            if (e != null && e.simMode != 0) {
+                strip.addAction(Action.Builder().setTitle(L.t("End demo")).setOnClickListener { e.stopSim(); invalidate() }.build())
+                strip.addAction(Action.Builder().setTitle("${e.simMode}\u00D7").setOnClickListener { e.cycleSimSpeed(); invalidate() }.build())
+                strip.addAction(Action.Builder().setTitle(L.t("Skip turn")).setOnClickListener { e.skipTurn(); invalidate() }.build())
+            } else {
+                strip.addAction(Action.Builder().setTitle(L.t("Stop")).setOnClickListener { e?.endRoute(); invalidate() }.build())
+                if (demoOn) strip.addAction(Action.Builder().setTitle(L.t("Demo")).setOnClickListener { e?.cycleSim(); invalidate() }.build())
+                strip.addAction(sound)
+                if (!demoOn) strip.addAction(reportAction())
+            }
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_settings)).setOnClickListener { openSettings() }.build())
         } else {
             // Report has the Search button's place, and Search is the first row in Places. Every car gets Places: a rotary knob or

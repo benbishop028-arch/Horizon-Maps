@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Rain and snow on Android Auto: Weather effects now show on the car screen too (they were only ever drawn on the phone), along with the weather haze towards the horizon.
+- Rain effect missing while it rained: the effect went by the hour's weather summary, which often says "cloudy" during showers. It now also checks the rain and snow actually falling in the current quarter hour, and looks every 10 minutes instead of 20.
 - Lane arrows at back-to-back roundabouts: on the way into the first of two roundabouts close together, the lane picture showed the second one's lanes. Each turn now only shows its own lanes.
 - Headlights mode on Teyes and FYT-type units: these units pass the lights on in their own setting instead of switching Android's night mode, so Headlights never went dark. It now reads that too, with a "Lights signal is reversed" switch for the few units that have it the other way round.
 - Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
@@ -120,6 +122,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Demo drive controls: while a demo plays, the map shows its speed (tap to switch 1×, 2× and 4× without restarting), a skip-to-the-next-turn button (jumps to about 250 m before the next junction) and a stop button. On Android Auto: End demo, the speed, Skip turn and Settings.
+- Demo on the route choice: with the demo drive switched on, a Demo button sits beside Start; choose it and Start (or the countdown) begins the trip as a demo drive. On Android Auto too.
 - Keep the arrow to the side: a new switch (Android Auto settings, and Settings › Screen & sizes › While driving) keeps the arrow off to the side on a wide screen when the cards fold away, instead of gliding back to the middle.
 - Slovenian: the whole app, spoken directions and voice commands are now in Slovenian (Settings › Sound & voice › Language, or it follows the phone) (GitHub #75).
 - Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.

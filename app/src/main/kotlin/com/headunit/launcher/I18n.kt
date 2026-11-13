@@ -1762,6 +1762,10 @@ object L {
         "When the cards fold away, instead of moving to the middle" to listOf("Als de kaarten inklappen, in plaats van naar het midden te gaan", "Wenn die Karten einklappen, statt in die Mitte zu wandern", "Quand les cartes se replient, au lieu de revenir au centre", "Cuando las tarjetas se pliegan, en vez de volver al centro"),
         "Chime volume" to listOf("Volume van de piepjes", "Lautstärke der Signaltöne", "Volume des bips", "Volumen de los avisos sonoros"),
         "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("De piepjes bij te hard rijden, nieuwe limieten en flitsers, vergeleken met de stem. Het volume van je radio, gedraaid terwijl hij praat, verandert beide", "Die Töne bei zu schnellem Fahren, neuen Limits und Blitzern, im Verhältnis zur Stimme. Die Lautstärke des Radios, während der Ansage gedreht, ändert beides", "Les bips d'excès de vitesse, de changement de limite et de radars, par rapport à la voix. Le volume de l'autoradio, réglé pendant qu'il parle, change les deux", "Los pitidos por exceso de velocidad, cambios de límite y radares, en relación con la voz. El volumen de la radio, ajustado mientras habla, cambia ambos"),
+        "Start demo drive" to listOf("Demorit starten", "Demofahrt starten", "Démarrer la démo", "Iniciar demostración"),
+        "Skip to the next turn" to listOf("Naar de volgende afslag", "Zur nächsten Abbiegung springen", "Passer au prochain virage", "Saltar al siguiente giro"),
+        "Skip turn" to listOf("Volgende afslag", "Abbiegung überspringen", "Virage suivant", "Saltar giro"),
+        "End demo" to listOf("Demo stoppen", "Demo beenden", "Arrêter la démo", "Terminar demo"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3220,5 +3224,9 @@ object L {
         "When the cards fold away, instead of moving to the middle" to listOf("Quando le schede si chiudono, invece di tornare al centro", "Quando os cartões recolhem, em vez de voltar ao centro", "Gdy karty się zwiną, zamiast wracać na środek"),
         "Chime volume" to listOf("Volume dei segnali acustici", "Volume dos sinais sonoros", "Głośność sygnałów"),
         "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("I bip per eccesso di velocità, cambi di limite e autovelox, rispetto alla voce. Il volume dell'autoradio, regolato mentre parla, cambia entrambi", "Os bips de excesso de velocidade, mudança de limite e radares, em relação à voz. O volume do rádio, ajustado enquanto fala, muda ambos", "Sygnały przekroczenia prędkości, zmiany limitu i fotoradarów, w porównaniu z głosem. Głośność radia, zmieniona podczas komunikatu, zmienia oba"),
+        "Start demo drive" to listOf("Avvia la demo", "Iniciar demonstração", "Rozpocznij demo"),
+        "Skip to the next turn" to listOf("Salta alla prossima svolta", "Saltar para a próxima viragem", "Przejdź do następnego skrętu"),
+        "Skip turn" to listOf("Salta svolta", "Próxima viragem", "Pomiń skręt"),
+        "End demo" to listOf("Termina demo", "Terminar demo", "Zakończ demo"),
     )
 }

@@ -1466,5 +1466,9 @@ object I18nC {
         "When the cards fold away, instead of moving to the middle" to listOf("เมื่อการ์ดพับเก็บ แทนที่จะเลื่อนไปตรงกลาง", "カードが閉じても中央に戻らない", "Saat kartu dilipat, alih-alih pindah ke tengah"),
         "Chime volume" to listOf("ระดับเสียงสัญญาณเตือน", "チャイムの音量", "Volume bunyi peringatan"),
         "The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both" to listOf("เสียงบี๊บเมื่อขับเร็วเกิน เปลี่ยนขีดจำกัด และกล้องจับความเร็ว เทียบกับเสียงพูด การปรับระดับเสียงของเครื่องเสียงขณะที่กำลังพูดจะเปลี่ยนทั้งสองอย่าง", "速度超過、制限速度の変化、取締機のビープ音(音声との比較)。案内中にカーナビの音量を変えると両方が変わります", "Bunyi bip untuk ngebut, perubahan batas, dan kamera, dibandingkan dengan suara. Volume head unit yang diubah saat berbicara mengubah keduanya"),
+        "Start demo drive" to listOf("เริ่มการขับสาธิต", "デモ走行を開始", "Mulai demo"),
+        "Skip to the next turn" to listOf("ข้ามไปทางเลี้ยวถัดไป", "次の曲がり角へスキップ", "Lewati ke belokan berikutnya"),
+        "Skip turn" to listOf("ข้ามทางเลี้ยว", "次の曲がり角", "Lewati belokan"),
+        "End demo" to listOf("จบการสาธิต", "デモ終了", "Akhiri demo"),
     )
 }

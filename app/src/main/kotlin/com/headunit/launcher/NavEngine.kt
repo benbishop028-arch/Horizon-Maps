@@ -1121,7 +1121,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             map.cameraTo(cur, null, if (tilt3d) 55.0 else 0.0, 15.5, 0, 0.0)
         }
         // current weather is only used for the rain effect on the map, so it is only fetched when that is switched on
-        if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && now - weatherAt > 20 * 60 * 1000L) {
+        // (every 10 minutes: showers come and go quicker than the 20 it used to be)
+        if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && now - weatherAt > 10 * 60 * 1000L) {
             weatherAt = now
             scope.launch { weather = withContext(Dispatchers.IO) { Weather.fetch(cur) } ?: weather }
         }
@@ -2136,8 +2137,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         val f = fix
         if (f != null) onPosition(f, true)
-        else { updateGuidance(0.0); toast(L.t("No GPS fix yet. Use the play button for a demo drive."), 5000) }
+        else { updateGuidance(0.0); if (!demoNext) toast(L.t("No GPS fix yet. Use the play button for a demo drive."), 5000) }
         cardsForStartAlts()
+        // chosen as a demo on the route choice: off it goes
+        if (demoNext) { demoNext = false; route?.let { r -> simMode = 1; startSim(r) } }
     }
 
     // ---- delay labels on the queues ("+8 min") ----
@@ -2252,6 +2255,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun endRoute() {
         shortRoute = false
+        demoNext = false
         // (only a trip under way: cancelling a route choice leaves the other screen's trip alone)
         if (route != null && !previewing) try { RouteSync.ended(this) } catch (e: Exception) { }
         itineraryOpen = false
@@ -5693,14 +5697,33 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     // ---- demo drive ----
+    /** Demo drive: starts it, or ends it if it's playing (its speed has its own button now: [cycleSimSpeed]). */
     fun cycleSim() {
         val r = route
         if (r == null) { toast(L.t("Pick a destination first, then start the demo drive")); return }
-        when (simMode) {
-            0 -> { simMode = 1; startSim(r) }
-            1 -> simMode = 4
-            else -> stopSim()
-        }
+        if (simMode == 0) { simMode = 1; startSim(r) } else stopSim()
+    }
+
+    /** The demo's speed: 1x, 2x, 4x and back to 1x, without restarting it. */
+    fun cycleSimSpeed() { if (simMode != 0) simMode = when (simMode) { 1 -> 2; 2 -> 4; else -> 1 } }
+
+    /** "Demo" on the route choice: the countdown (or Start) then begins the trip as a demo drive. */
+    var demoNext by mutableStateOf(false)
+    fun toggleDemoNext() { demoNext = !demoNext }
+
+    /** Demo drive: jumps to about 250 m before the next turn (the one after, when you're already that close). */
+    fun skipTurn() {
+        val r = route ?: return
+        if (simMode == 0 || previewing) return
+        val next = r.steps.firstOrNull { it.off > simDist + 260.0 } ?: return
+        simDist = max(simDist, next.off - 250.0)
+        // a jump along the route on purpose: not mistaken for having left it (a far-off point on the route reads as a different
+        // road), and the arrow is put there straight away rather than gliding the whole way
+        trustProg = -1.0; offCount = 0
+        lastIdx = r.cum.indexOfFirst { it > simDist }.let { if (it <= 0) 0 else it - 1 }.coerceAtMost(max(0, r.pts.size - 2))
+        gPos = null
+        val (pt, hd) = pointAt(r, simDist)
+        onPosition(Fix(pt, hd, 13.0 * simMode, 0.0), false)
     }
 
     private fun startSim(r: Route) {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Wc
 import androidx.compose.material.icons.rounded.ZoomOutMap
@@ -598,9 +599,19 @@ private fun CarRoutePreview(engine: NavEngine) {
         Box(m.height(72.dp).clip(RoundedCornerShape(36.dp)).background(c.accent.copy(alpha = 0.30f)).carTap("start") { engine.beginNavigation() }, contentAlignment = Alignment.Center) {
             Box(Modifier.align(Alignment.CenterStart).fillMaxHeight().fillMaxWidth(progress.value).background(c.accent))
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(L.t("Start navigation"), color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text(L.t(if (engine.demoNext) "Start demo drive" else "Start navigation"), color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                 if (autoStart) Text(L.t("Starting in {0} s", kotlin.math.ceil((1f - progress.value) * countdownSeconds).toInt()), color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp) else Text(L.t("Tap to start"), color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
             }
+        }
+    }
+    // "Demo" (with the demo drive switched on in Settings): the countdown or Start then begins this trip as a demo drive
+    val demoOn = engine.prefs.b(PreferenceKeys.DEMO, false)
+    val demo: @Composable () -> Unit = {
+        val on = engine.demoNext
+        Row(Modifier.height(72.dp).clip(RoundedCornerShape(36.dp)).background(if (on) c.accent else c.accent.copy(alpha = 0.14f)).carTap("demo") { engine.toggleDemoNext() }
+            .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.DirectionsCar, null, tint = if (on) Color.White else c.accent, modifier = Modifier.size(24.dp))
+            Text(L.t("Demo"), color = if (on) Color.White else c.accent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
         }
     }
     val cancel: @Composable () -> Unit = {
@@ -617,6 +628,7 @@ private fun CarRoutePreview(engine: NavEngine) {
         ) {
             dest(Modifier.width(170.dp))
             cards()
+            if (demoOn) demo()
             start(Modifier.width(220.dp))
             cancel()
         } else Column(
@@ -625,7 +637,10 @@ private fun CarRoutePreview(engine: NavEngine) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) { dest(Modifier.weight(1f).padding(start = 6.dp)); cancel() }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { cards() }
-            start(Modifier.fillMaxWidth())
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (demoOn) demo()
+                start(Modifier.weight(1f))
+            }
         }
     }
 }
