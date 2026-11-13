@@ -3641,6 +3641,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
             if (i == 1) continue                                   // the trip card isn't up when you're not navigating
             if (i == 0 && (portrait || p[2] - p[0] > 0.6f)) continue // full-width in portrait: it's above the arrow, not beside it
+            // only along the top (the search bar on its own, with Home / Work and the rest folded away): it's above the arrow, not
+            // beside it, so the arrow stays in the middle, as in Waze (GitHub #79: it stayed off to the side)
+            if (p[3] < 0.3f) continue
             if (p[0] + p[2] < 1.0) left = max(left, p[2].toDouble()) else right = minOf(right, p[0].toDouble())
         }
         if (right - left < 0.2) return 0.0
