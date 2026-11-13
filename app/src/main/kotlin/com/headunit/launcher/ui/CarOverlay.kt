@@ -341,7 +341,16 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     // (while guiding, the sound button is on the trip card instead of a pill of its own)
                     if (!guiding && !small) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
                     hazards()
-                    if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) }
+                    if (small) {
+                        // a short screen (#67): the speed stays put in the bottom-left corner, with the one-line trip strip beside it
+                        // while navigating. Bottom right, it slid in and out with Android Auto's zoom buttons, sat on the Mapbox logo,
+                        // and went up the side whenever the trip strip needed the room
+                        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
+                            // (allowed to shrink, so on the narrowest tiles it gives way rather than pushing past the edge)
+                            if (guiding) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = true, buttonsShown = !tile) } }
+                        }
+                    } else if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) }
                 }
                 // your speed and the limit, bottom right as in the app (clear of Android Auto's zoom buttons); on a small screen where
                 // it would run into the cards on the left, it sits above them instead
@@ -368,7 +377,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     "middle" -> Modifier.align(Alignment.CenterEnd).padding(end = speedEnd, top = top + 20.dp, start = 34.dp, bottom = bottom)
                     else -> Modifier.align(Alignment.BottomEnd).padding(end = speedEnd, bottom = speedBottom, start = 34.dp, top = 20.dp)
                 }
-                BoxWithConstraints(speedMod.onSizeChanged { speedW = if (carSpeedPos == "bottom") it.width else 0 }) {
+                if (!small) BoxWithConstraints(speedMod.onSizeChanged { speedW = if (carSpeedPos == "bottom") it.width else 0 }) {
                     val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
                     val fittedScale = requestedSpeedScale * availableFit * (if (tile) 0.7f else if (short) 0.85f else 1f)
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * fittedScale, dens.fontScale)) { ImmSpeed(engine) }

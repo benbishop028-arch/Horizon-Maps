@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Speedometer on short Android Auto screens: it now stays put in the bottom-left corner, with the one-line trip strip beside it while navigating. In the bottom right it slid with Android Auto's zoom buttons, covered the Mapbox logo and moved up the side to make room for the trip strip (GitHub #67).
 - Arrow back in the middle with the cards folded: on a wide screen, with Home, Work and Saved & recent folded away (just the search bar left), the arrow now goes back to the middle, as in Waze; it stayed off to the side because the search bar on its own still counted as a card beside it (GitHub #79).
 - Rain and snow on Android Auto: Weather effects now show on the car screen too (they were only ever drawn on the phone), along with the weather haze towards the horizon.
 - Rain effect missing while it rained: the effect went by the hour's weather summary, which often says "cloudy" during showers. It now also checks the rain and snow actually falling in the current quarter hour, and looks every 10 minutes instead of 20.
