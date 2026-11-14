@@ -5,14 +5,15 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque or Traditional Chinese. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech or Finnish. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
 object L {
     val supported = listOf("en" to "English", "nl" to "Nederlands", "de" to "Deutsch", "fr" to "Français", "es" to "Español",
         "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български", "sl" to "Slovenščina",
-        "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文")
+        "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
+        "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -24,6 +25,7 @@ object L {
         "it" -> Locale.ITALY; "pl" -> Locale("pl", "PL")
         "th" -> Locale("th", "TH"); "ja" -> Locale.JAPAN; "id" -> Locale("id", "ID")
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
+        "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
@@ -269,6 +271,46 @@ object L {
                 "放大" to "zoom in", "縮小" to "zoom out", "北方朝上|北向上" to "north up", "現在幾點|而家幾點|幾點" to "what time",
                 "^\\s*(導航到|導航去|帶我去|去|到)\\s*" to "go to",
             ),
+            "el" to r(
+                "\\s(σπίτι|για σπίτι|στο σπίτι)\\s" to "go home", "\\s(στη δουλειά|για δουλειά|στο γραφείο|στην εργασία)\\s" to "go to work",
+                "^\\s*(αναφορά|ανάφερε)\\s" to "report", "ατύχημα|τροχαίο" to "accident", "αστυνομία|μπλόκο" to "police", "βλάβη|χαλασμένο" to "breakdown", "κάμερα|ραντάρ" to "camera",
+                "βενζινάδικο|πρατήριο|βενζίνη|καύσιμα|πετρέλαιο" to "fuel", "φόρτιση|φορτιστή|φορτιστής" to "charging", "τουαλέτα|τουαλέτες|wc" to "toilet", "καφές|καφέ|καφετέρια" to "coffee",
+                "φαγητό|εστιατόριο|να φάω" to "food", "σταθμός εξυπηρέτησης|χώρος στάθμευσης αυτοκινητόδρομου" to "services", "πάρκινγκ|στάθμευση|παρκάρω" to "parking",
+                "\\s(βρες|ψάξε|αναζήτησε|πλησιέστερο|πλησιέστερη|κοντινότερο|κοντινότερη|πού είναι|χρειάζομαι)\\s" to "find", "φθηνότερο|φθηνότερη|φθηνό|φτηνό" to "cheap",
+                "χωρίς διόδια|απόφυγε (τα )?διόδια" to "avoid toll", "χωρίς αυτοκινητόδρομους|απόφυγε (τους )?αυτοκινητόδρομους|χωρίς εθνική" to "avoid motorway",
+                "απόφυγε αυτόν τον δρόμο" to "avoid this road", "πότε φτάνω|πόσο ακόμα|πόσο μένει" to "eta", "κοινοποίησε|μοιράσου|στείλε" to "share",
+                "άνοιξε (τη )?φωνή|ενεργοποίησε (τη )?φωνή" to "voice on", "μόνο ειδοποιήσεις" to "alerts only", "σίγαση|σιωπή|κλείσε (τη )?φωνή" to "mute",
+                "(τέλος|σταμάτα|ακύρωσε) (τη |την )?(διαδρομή|πλοήγηση)" to "end route", "επισκόπηση|όλη η διαδρομή" to "overview",
+                "μεγέθυνση|ζουμ μέσα" to "zoom in", "σμίκρυνση|ζουμ έξω" to "zoom out", "βορράς πάνω" to "north up", "τι ώρα είναι" to "what time",
+                "^\\s*(πήγαινέ με (στο|στη|στην|σε)|πλοήγηση (προς|στο|στη)|πάμε (στο|στη|στην|σε)|πήγαινε (στο|στη|στην|σε)|προς)\\s" to "go to",
+            ),
+            "cs" to r(
+                "\\s(domů|jedu domů|jeď domů)\\s" to "go home", "\\s(do práce|do kanceláře)\\s" to "go to work",
+                "^\\s*(nahlas|nahlásit|ohlas)\\s" to "report", "nehoda|nehodu" to "accident", "policie|policii|policajti" to "police", "porucha|poruchu|porouchané" to "breakdown", "radar|kamera|kameru" to "camera",
+                "benzínka|benzínku|benzinka|benzinku|čerpací stanice|čerpačka|čerpačku|palivo|natankovat|tankování" to "fuel", "nabíječka|nabíječku|nabíjení|nabíjecí stanice" to "charging", "záchod|toaleta|toaletu|wc" to "toilet", "káva|kávu|kafe|kavárna|kavárnu" to "coffee",
+                "jídlo|restaurace|restauraci|najíst" to "food", "odpočívadlo|odpočívka|odpočívku" to "services", "parkoviště|parkování|zaparkovat" to "parking",
+                "\\s(najdi|hledej|vyhledej|nejbližší|kde je|potřebuju|potřebuji)\\s" to "find", "nejlevnější|levn[áéý]" to "cheap",
+                "bez mýta|vyhni se (placeným silnicím|mýtu)|bez dálniční známky" to "avoid toll", "bez dálnic|vyhni se dálnicím|vyhni se dálnici" to "avoid motorway",
+                "vyhni se této silnici" to "avoid this road", "kdy tam budu|kdy dorazím|jak dlouho ještě|jak daleko" to "eta", "sdílej|pošli" to "share",
+                "zapni hlas|hlas zapnout" to "voice on", "jen upozornění|pouze upozornění" to "alerts only", "ztlum|ticho|vypni hlas|ztlumit" to "mute",
+                "(ukonči|zastav|zruš) (trasu|navigaci)" to "end route", "přehled|celá trasa|celou trasu" to "overview",
+                "přibliž|zvětši" to "zoom in", "oddal|zmenši" to "zoom out", "sever nahoře" to "north up", "kolik je hodin" to "what time",
+                "^\\s*(naviguj do|naviguj na|jeď do|jeď na|vezmi mě do|vezmi mě na|do|na)\\s" to "go to",
+            ),
+            // (Finnish puts the place first, in its own case: "aja Tampereelle" is matched as "go to Tampereelle", which search still finds)
+            "fi" to r(
+                "\\s(kotiin|vie minut kotiin|aja kotiin)\\s" to "go home", "\\s(töihin|työpaikalle|toimistolle)\\s" to "go to work",
+                "^\\s*(ilmoita|raportoi)\\s" to "report", "onnettomuus|kolari" to "accident", "poliisi|poliisit" to "police", "rikkoutunut|hajonnut|vika" to "breakdown", "kamera|peltipoliisi|nopeusvalvonta" to "camera",
+                "huoltoasema|bensa-asema|bensa|polttoaine|tankkaus|tankata|diesel" to "fuel", "latauspiste|lataus|laturi|latausasema" to "charging", "vessa|wc|käymälä" to "toilet", "kahvi|kahvila|kahvia" to "coffee",
+                "ruoka|ravintola|syömään|ruokaa" to "food", "levähdysalue|palvelualue|taukopaikka" to "services", "pysäköinti|parkkipaikka|parkki|parkkeerata" to "parking",
+                "\\s(etsi|hae|lähin|lähimmän|missä on|tarvitsen)\\s" to "find", "halvin|halvimman|halpa" to "cheap",
+                "vältä tietulleja|ei tietulleja|ilman tietulleja" to "avoid toll", "vältä moottoriteitä|ei moottoriteitä|ilman moottoriteitä" to "avoid motorway",
+                "vältä tätä tietä" to "avoid this road", "milloin olen perillä|kauanko vielä|kuinka pitkä matka|paljonko on matkaa" to "eta", "jaa|lähetä" to "share",
+                "puhe päälle|ääni päälle" to "voice on", "vain varoitukset" to "alerts only", "mykistä|hiljaa|puhe pois|ääni pois" to "mute",
+                "(lopeta|keskeytä|peruuta) (reitti|navigointi|opastus)" to "end route", "yleiskuva|koko reitti" to "overview",
+                "lähennä|suurenna" to "zoom in", "loitonna|pienennä" to "zoom out", "pohjoinen ylös" to "north up", "paljonko kello on|mitä kello on" to "what time",
+                "^\\s*(navigoi kohteeseen|navigoi|vie minut|aja|mene)\\s" to "go to",
+            ),
             "id" to r(
                 "\\s(pulang|ke rumah|pulang ke rumah|antar saya pulang)\\s" to "go home", "\\s(pergi |antar saya )?ke (kantor|tempat kerja)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kecelakaan" to "accident", "polisi|razia" to "police", "mogok" to "breakdown", "kamera tilang|kamera" to "camera",
@@ -294,7 +336,8 @@ object L {
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
         "id" -> "ke-$n"
-        "eu" -> "$n."
+        "eu", "cs", "fi" -> "$n."
+        "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
         // 1-ви, 2-ри, 3-ти, 7-ми, 8-ми (11-ти to 13-ти, and the rest -ти)
@@ -324,6 +367,10 @@ object L {
             "bg" -> listOf("първия", "втория", "третия", "четвъртия", "петия", "шестия", "седмия", "осмия", "деветия", "десетия")
             "ro" -> listOf("prima", "a doua", "a treia", "a patra", "a cincea", "a șasea", "a șaptea", "a opta", "a noua", "a zecea")
             "eu" -> listOf("lehenengo", "bigarren", "hirugarren", "laugarren", "bosgarren", "seigarren", "zazpigarren", "zortzigarren", "bederatzigarren", "hamargarren")
+            // (said in the form the roundabout phrase needs: "στη δεύτερη έξοδο", "druhým výjezdem", "toisesta liittymästä")
+            "el" -> listOf("πρώτη", "δεύτερη", "τρίτη", "τέταρτη", "πέμπτη", "έκτη", "έβδομη", "όγδοη", "ένατη", "δέκατη")
+            "cs" -> listOf("prvním", "druhým", "třetím", "čtvrtým", "pátým", "šestým", "sedmým", "osmým", "devátým", "desátým")
+            "fi" -> listOf("ensimmäisestä", "toisesta", "kolmannesta", "neljännestä", "viidennestä", "kuudennesta", "seitsemännestä", "kahdeksannesta", "yhdeksännestä", "kymmenennestä")
             "id" -> listOf("pertama", "kedua", "ketiga", "keempat", "kelima", "keenam", "ketujuh", "kedelapan", "kesembilan", "kesepuluh")
             // (Thai, Japanese and Chinese voices read "ที่ 2", "2番目" and "第2個" well)
             else -> return ordShort(n)
@@ -340,14 +387,14 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in I18nD.rows()) for ((i, k) in keys4.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in I18nE.rows()) for ((i, k) in keys5.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         // (one file per language from here on)
-        for ((k, rs) in listOf("ro" to I18nRo.rows(), "eu" to I18nEu.rows(), "zh" to I18nZhHant.rows())) for ((en, tr) in rs) if (tr.isNotEmpty()) m[k]!![en] = tr
+        for ((k, rs) in listOf("ro" to I18nRo.rows(), "eu" to I18nEu.rows(), "zh" to I18nZhHant.rows(), "el" to I18nEl.rows(), "cs" to I18nCs.rows(), "fi" to I18nFi.rows())) for ((en, tr) in rs) if (tr.isNotEmpty()) m[k]!![en] = tr
         m
     }
 
