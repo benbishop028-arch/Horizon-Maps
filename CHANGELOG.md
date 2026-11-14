@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
 - Speed cameras along the route: the cameras on a planned route now show along all of it while you choose the route or start a demo, not only within 10 km of where you are. A stretch of road whose cameras couldn't be looked up (a busy server) is now tried again, instead of being skipped for the rest of the trip.
 - Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.
 - Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.

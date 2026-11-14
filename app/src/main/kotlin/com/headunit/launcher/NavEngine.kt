@@ -1341,6 +1341,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val shape = when { t.isBlank() -> "none"; !MapboxRest.looksValid(t) -> "not a token"; !MapboxRest.looksWhole(t) -> "looks incomplete"; else -> "looks whole" }
                 appendLine("Mapbox token: ${t.take(3)}… $shape" + (if (mbCheckNote.isNotBlank()) " · $mbCheckNote" else "") + (if (mbKeyRefused) " · refused" else ""))
             }
+            // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
+            appendLine("Install record: ${Updater.installRecord(ctx)}")
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
