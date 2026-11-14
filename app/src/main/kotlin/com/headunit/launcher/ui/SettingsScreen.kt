@@ -318,6 +318,8 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
         }
         DefaultZoomRow(prefs)
         SToggle(prefs, L.t("Footpaths and trails"), "paths", true, L.t("Turn off for a cleaner driving map"))
+        SChoice(L.t("HD roads"), listOf("auto" to L.t("Automatic"), "on" to L.t("On"), "off" to L.t("Off")), prefs.s(PreferenceKeys.HD_ROADS, "auto"),
+            sub = L.t("Lane markings, turn arrows and 3D overpasses where Mapbox has them (Full 3D). Automatic: on in the UK only, as in some countries they hide the ordinary streets")) { prefs.put(PreferenceKeys.HD_ROADS, it) }
     }
 }
 
@@ -1035,6 +1037,12 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
             listOf("bottom" to L.t("Bottom"), "middle" to L.t("Middle"), "top" to L.t("Top")), prefs.s(PreferenceKeys.SPEED_POS, "bottom"), { id, c -> speedPicture(id, c) },
         ) { prefs.put(PreferenceKeys.SPEED_POS, it) }
     }
+    SGroup(L.t("Card positions"), L.t("Where the turn card, trip card and speedometer sit on a wide screen (portrait screens keep the cards across the top and bottom)")) {
+        CardPositionsPreview(prefs, car = false)
+        SChoice(L.t("Turn card"), listOf("auto" to L.t("By steering wheel"), "left" to L.t("Top left"), "right" to L.t("Top right")), prefs.s(PreferenceKeys.CARDS_SIDE, "auto")) { prefs.put(PreferenceKeys.CARDS_SIDE, it) }
+        SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "left" to L.t("Bottom left"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.TRIP_POS, "auto")) { prefs.put(PreferenceKeys.TRIP_POS, it) }
+        SChoice(L.t("Speedometer"), listOf("auto" to L.t("Away from the cards"), "left" to L.t("Bottom left"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.SPEED_SIDE, "auto")) { prefs.put(PreferenceKeys.SPEED_SIDE, it) }
+    }
     SGroup(L.t("While driving")) {
         SToggle(prefs, L.t("Road and heading when driving without a route"), "cruise", true)
         SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
@@ -1080,6 +1088,11 @@ private fun AndroidAutoSection(prefs: Prefs) {
         } catch (e: Exception) { L.t("Unknown") }
     }
     CarTripButtonsGroup(prefs)
+    SGroup(L.t("Card positions on the car screen"), L.t("The turn card stays top left on Android Auto, where its own buttons leave room")) {
+        CardPositionsPreview(prefs, car = true)
+        SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto")) { prefs.put(PreferenceKeys.CAR_TRIP_POS, it) }
+        SChoice(L.t("Speedometer"), listOf("auto" to L.t("Away from the cards"), "left" to L.t("Bottom left"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_SPEED_SIDE, "auto")) { prefs.put(PreferenceKeys.CAR_SPEED_SIDE, it) }
+    }
     SGroup(L.t("Sizes on the car screen")) {
         SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay"), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
@@ -1488,5 +1501,50 @@ private fun SettingsMapPreview(engine: NavEngine, heightDp: Int) {
                 }
             }
         }
+    }
+}
+
+
+/**
+ * Card positions: a little picture of a wide screen showing where the turn card, trip card and speedometer will sit, redrawn as the
+ * choices change (resolved the same way the map screens do it).
+ */
+@Composable
+private fun CardPositionsPreview(prefs: com.headunit.launcher.Prefs, car: Boolean) {
+    val vw = LocalVw.current
+    val engineMir = prefs.s(PreferenceKeys.DRIVE, "") == "lhd" ||
+        (prefs.s(PreferenceKeys.DRIVE, "") == "" && prefs.s(PreferenceKeys.COUNTRYDETECTED, "").let { it.isNotBlank() && it.uppercase() !in com.headunit.launcher.KEEP_LEFT })
+    val mir = if (car) false else when (prefs.s(PreferenceKeys.CARDS_SIDE, "auto")) { "left" -> false; "right" -> true; else -> engineMir }
+    val trip = if (car) prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto") else prefs.s(PreferenceKeys.TRIP_POS, "auto")
+    val tripAt = if (trip == "auto") (if (mir) "right" else "left") else trip
+    val sp = if (car) prefs.s(PreferenceKeys.CAR_SPEED_SIDE, "auto") else prefs.s(PreferenceKeys.SPEED_SIDE, "auto")
+    val speedAt = if (sp == "auto") (if (car && trip == "right") "left" else if (mir) "left" else "right") else sp
+    val green = Color(0xFF1F7A57)
+    val dark = Color(0xFF1B2029)
+    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(130.dp).clip(RoundedCornerShape(12.dp))) {
+        val w = size.width; val h = size.height
+        drawRect(Color(0xFF2A3242))
+        drawLine(Color(0xFF3A4558), androidx.compose.ui.geometry.Offset(0f, h * 0.7f), androidx.compose.ui.geometry.Offset(w, h * 0.45f), strokeWidth = h * 0.06f)
+        val pad = w * 0.03f
+        // the turn card
+        val tw = w * 0.32f; val th = h * 0.26f
+        val tx = if (mir) w - pad - tw else pad
+        drawRoundRect(green, androidx.compose.ui.geometry.Offset(tx, pad), androidx.compose.ui.geometry.Size(tw, th), androidx.compose.ui.geometry.CornerRadius(10f))
+        // the speedometer
+        val r = h * 0.12f
+        val sx = if (speedAt == "left") pad + r else w - pad - r
+        // the trip strip
+        val sw = w * 0.36f; val sh = h * 0.13f
+        val sharing = speedAt == tripAt
+        val sy = h - pad - r - (if (sharing) sh + pad else 0f)
+        drawCircle(dark, r, androidx.compose.ui.geometry.Offset(sx, sy))
+        drawCircle(Color(0xFF5A9BFF), r, androidx.compose.ui.geometry.Offset(sx, sy), style = androidx.compose.ui.graphics.drawscope.Stroke(r * 0.18f))
+        val stx = when (tripAt) { "centre" -> (w - sw) / 2; "right" -> w - pad - sw; else -> pad }
+        drawRoundRect(dark, androidx.compose.ui.geometry.Offset(stx, h - pad - sh), androidx.compose.ui.geometry.Size(sw, sh), androidx.compose.ui.geometry.CornerRadius(sh / 2))
+        drawRoundRect(vw.accent, androidx.compose.ui.geometry.Offset(stx + sw * 0.08f, h - pad - sh * 0.62f), androidx.compose.ui.geometry.Size(sw * 0.3f, sh * 0.24f), androidx.compose.ui.geometry.CornerRadius(4f))
+        // your arrow
+        val ax = w * 0.5f; val ay = h * 0.55f
+        val path = androidx.compose.ui.graphics.Path().apply { moveTo(ax, ay - h * 0.07f); lineTo(ax + h * 0.05f, ay + h * 0.05f); lineTo(ax, ay + h * 0.025f); lineTo(ax - h * 0.05f, ay + h * 0.05f); close() }
+        drawPath(path, Color(0xFF9CC7FF))
     }
 }

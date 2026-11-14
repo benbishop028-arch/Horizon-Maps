@@ -43,6 +43,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
+- Speed limit rules abroad: away from the UK, the app worked out the usual limits from the phone's language region, so an English (UK) phone in France got British rules. It now uses the country you're actually in (GitHub).
 - Searching by name or address with a TomTom key: if TomTom's classic search refuses the key (newer keys can come with only the newer "Orbis" APIs), the same search is now tried on TomTom's Orbis service, so shops, places and addresses are found again instead of only postcodes. If TomTom refuses both, the app now says why once, instead of quietly showing thin results.
 - Speedometer on short Android Auto screens: it now stays put in the bottom-left corner, with the one-line trip strip beside it while navigating. In the bottom right it slid with Android Auto's zoom buttons, covered the Mapbox logo and moved up the side to make room for the trip strip (GitHub #67).
 - Arrow back in the middle with the cards folded: on a wide screen, with Home, Work and Saved & recent folded away (just the search bar left), the arrow now goes back to the middle, as in Waze; it stayed off to the side because the search bar on its own still counted as a card beside it (GitHub #79).
@@ -125,6 +127,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Card positions: Settings › Screen and sizes › Card positions puts the turn card top left or right, the trip card under it or bottom left, centre or right, and the speedometer bottom left or right, with a live picture as you choose. On Android Auto (Settings › Android Auto): the trip card and speedometer (GitHub).
+- Start from here: press and hold the map, then Start from here, and routes are planned from that spot instead of your GPS position (a "Starting from …" pill shows until you tap it, or until you drive off with a GPS fix) (GitHub #88).
 - Sharp bend warnings: bends that need slowing for are striped yellow with black chevrons on the route, and about 9 seconds before each a yellow chevron sign says "Sharp bend · take it at 25 mph" with a chime (only when you're going faster than that). Worked out from the route's shape; junction turns don't count. Settings › Warnings › Sharp bends.
 - Headlight beam: after dark, a soft cone of light lies on the road ahead of your arrow while you're moving, longer at speed. Settings › Your arrow › Headlight beam at night.
 - Destination lit up on arrival: the building stays lit while the arrival card is up, its entrance (the side nearest where you pulled up) gets a marker, and a dotted line shows the walk from the suggested parking. Settings › Arrival › Light up your destination.

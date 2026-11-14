@@ -204,6 +204,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
     val xFacades = prefs.b(PreferenceKeys.FACADES, true); val xLand = prefs.b(PreferenceKeys.LANDMARKS3D, true); val xPaths = prefs.b(PreferenceKeys.PATHS, true)
     val xTerrain = prefs.b(PreferenceKeys.TERRAIN, false); val xTap = prefs.b(PreferenceKeys.TAPSELECT, true); val xFurn = prefs.b(PreferenceKeys.FURNITURE3D, true); val xClear = prefs.b(PreferenceKeys.CLEARVIEW, true)
     LaunchedEffect(xFacades, xLand, xPaths, xTerrain, xTap, xFurn, xClear) { map.setExtras(xFacades, xLand, xPaths, xTerrain, xTap, xFurn, xClear) }
+    // Mapbox's HD roads (on by itself in the UK only: elsewhere they could leave the streets missing)
+    val xHd = com.headunit.launcher.hdRoadsWanted(prefs, engine.detectedCountry)
+    LaunchedEffect(xHd) { map.setHdRoads(xHd) }
     // real rain and snow on the map when it's raining or snowing where you are (Weather effects)
     val wxOn = prefs.b(PreferenceKeys.RAIN_EFFECTS, false)
     val wxNow = engine.weather?.code

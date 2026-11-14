@@ -784,13 +784,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         else -> detectedCountry.isNotBlank() && detectedCountry.uppercase() !in KEEP_LEFT
     }
 
+    /** The screen layout's side: the turn card and cards on the right (buttons on the left) when true. Follows the steering wheel
+     *  side unless Settings > Screen and sizes > Card positions puts the turn card on a side of its own. */
+    val layoutMirrored: Boolean get() = when (prefs.s(PreferenceKeys.CARDS_SIDE, "auto")) { "left" -> false; "right" -> true; else -> mirrored }
+
     /** The speed limit sign to draw: the white "SPEED LIMIT" board in the US, "MAXIMUM" in Canada, the red roundel elsewhere. */
     val limitSignStyle: String get() = when (detectedCountry.uppercase()) { "US", "PR", "GU", "VI", "AS", "MP" -> "us"; "CA" -> "ca"; else -> "round" }
 
     fun countryCode(): String { val v = prefs.s(PreferenceKeys.COUNTRY, "auto"); return if (v == "auto") detectedCountry else v }
 
     /** The country you're in (from the GPS), remembered between drives; blank until it's known. */
-    var detectedCountry by mutableStateOf(prefs.s(PreferenceKeys.COUNTRYDETECTED, ""))
+    var detectedCountry by mutableStateOf(prefs.s(PreferenceKeys.COUNTRYDETECTED, "").also { Overpass.knownCountry = it.uppercase() })
         private set
     private var countryChecked = false
     private var countryTryAt = 0L
@@ -811,6 +815,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             if (cc == null) { countryChecked = false; return@launch }
             val up = cc.uppercase()
+            Overpass.knownCountry = up
             if (up != detectedCountry) { detectedCountry = up; prefs.put(PreferenceKeys.COUNTRYDETECTED, up) }
         }
     }
@@ -1088,6 +1093,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     private fun handleLocationInner(l: Location, first: Boolean) {
+        // a spot chosen with "Start from here" stands in for you until you're really on the move
+        if (startFrom != null && simMode == 0) {
+            if (l.hasSpeed() && l.speed > 4f) startFrom = null else return
+        }
         run {
             val t = System.currentTimeMillis()
             // where you are exactly (and which way you're facing), for the map to open right there next time
@@ -1955,7 +1964,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val lineFrom = if (c.forStop && r != null) chainSel?.let { s -> r.pts.minByOrNull { Geo.dist(it, s.place.pos) } } else fix?.pos
         try { map.showChain(pins, lineFrom) } catch (e: Exception) { }
         val routePts = if (c.forStop && r != null) { val st = maxOf(1, r.pts.size / 60); r.pts.filterIndexed { i, _ -> i % st == 0 } + r.pts.last() } else emptyList()
-        if (fit) try { map.fitChain(c.spots.map { it.place.pos } + listOfNotNull(fix?.pos) + routePts, mirrored) } catch (e: Exception) { }
+        if (fit) try { map.fitChain(c.spots.map { it.place.pos } + listOfNotNull(fix?.pos) + routePts, layoutMirrored) } catch (e: Exception) { }
         if (sorted.isEmpty()) return
     }
 
@@ -3637,9 +3646,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (bottomCover <= 0.0 && !stoppedOverview) {
             if (abs(tLeft) > 0.06) sideShiftSeen = tLeft
             else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
-                tLeft = sideShiftSeen ?: (if (mirrored && !isCar) -0.3 else 0.3)
+                tLeft = sideShiftSeen ?: (if (layoutMirrored && !isCar) -0.3 else 0.3)
         }
-        map.cardsMirrored = mirrored && !isCar // (Android Auto always has its cards on the left)
+        map.cardsMirrored = layoutMirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }
 
@@ -4132,6 +4141,26 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** From the What's here card: go there, or add it as a stop when driving a route. */
+    /**
+     * "Start from here" (GitHub #88): the spot held on the map stands in for your position, for planning a trip from somewhere
+     * else or with no GPS. Real GPS fixes are set aside while it's on, until you're actually moving (or ✕ on its pill).
+     */
+    var startFrom by mutableStateOf<Place?>(null)
+        private set
+
+    fun hereStartFrom() {
+        val h = here ?: return
+        here = null
+        val dropped = h.place.name == L.t("Dropped pin")
+        val name = if (dropped) h.road.ifBlank { L.t("This spot") } else h.place.name
+        startFrom = Place(name, h.area, h.place.pos)
+        onPosition(Fix(h.place.pos, fix?.heading ?: 0.0, 0.0, 0.0), true)
+        try { recenter() } catch (e: Exception) { }
+    }
+
+    /** Back to the GPS: its next fix takes over. */
+    fun clearStartFrom() { startFrom = null }
+
     fun hereGo(asStop: Boolean) {
         val h = here ?: return
         here = null

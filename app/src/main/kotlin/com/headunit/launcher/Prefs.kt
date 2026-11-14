@@ -184,6 +184,17 @@ internal object PreferenceKeys {
     const val ALPR_CAMS = "alprcams"
     /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
     const val CLUSTER_MAP = "clustermap"
+    /** Card positions: the turn card's side ("auto" follows the steering wheel side, "left", "right"). */
+    const val CARDS_SIDE = "cardsside"
+    /** Card positions: the trip card ("auto" under the turn card, "left", "centre", "right"). */
+    const val TRIP_POS = "trippos"
+    /** Card positions: the speedometer's side ("auto" away from the cards, "left", "right"). */
+    const val SPEED_SIDE = "speedside"
+    /** Card positions on the Android Auto screen: the trip card and the speedometer. */
+    const val CAR_TRIP_POS = "cartrippos"
+    const val CAR_SPEED_SIDE = "carspeedside"
+    /** Mapbox's HD roads: "auto" (on in the UK only), "on" or "off". */
+    const val HD_ROADS = "hdroads"
     /** Sharp bends: the yellow chevron stretch on the route and the warning before each. */
     const val BEND_WARN = "bendwarn"
     /** The headlight beam ahead of the arrow at night. */
@@ -429,3 +440,11 @@ fun Prefs.locatorSpec(): Pair<String, String> {
 
 /** Settings > Map > Map detail: "full", "lite" or "lightest" (the old "Light map" switch counts as lite). */
 fun Prefs.mapDetail(): String = s(PreferenceKeys.MAP_DETAIL, if (b(PreferenceKeys.MAP_LITE, false)) "lite" else "full")
+
+
+/** Whether Mapbox's HD roads are wanted: the setting, or by itself only in the UK (elsewhere they could hide the ordinary streets). */
+fun hdRoadsWanted(prefs: Prefs, country: String): Boolean = when (prefs.s(PreferenceKeys.HD_ROADS, "auto")) {
+    "on" -> true
+    "off" -> false
+    else -> country.isBlank() || country.equals("GB", true)
+}

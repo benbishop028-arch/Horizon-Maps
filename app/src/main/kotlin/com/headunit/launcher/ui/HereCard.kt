@@ -2,6 +2,7 @@ package com.headunit.launcher.ui
 
 import com.headunit.launcher.L
 
+import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -119,6 +120,16 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard) {
                     Icon(Icons.Rounded.AddLocationAlt, null, tint = c.text, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(6.dp))
                     Text(L.t("Add as a stop"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+                // not driving: plan from this spot instead of where the GPS says you are (#88)
+                if (!driving) Row(
+                    Modifier.clip(RoundedCornerShape(24.dp)).background(c.accent.copy(alpha = 0.14f)).border(1.5.dp, c.accent, RoundedCornerShape(24.dp))
+                        .pressClick { engine.hereStartFrom() }.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(L.t("Start from here"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                 }
                 Spacer(Modifier.weight(1f))
                 var saved by remember(h.place) { mutableStateOf(engine.places.favourites().any { Geo.dist(it.pos, h.place.pos) < 15.0 }) }

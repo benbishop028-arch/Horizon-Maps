@@ -238,11 +238,18 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // Settings > Screen & sizes > Speed position: bottom (as it always was), middle or top of the side away from the cards.
         // Top falls back to middle on narrow screens, where the turn card spans the top
         val speedPos = engine.prefs.s(PreferenceKeys.SPEED_POS, "bottom").let { if (it == "top" && narrow) "middle" else it }
+            .let { if (!narrow && (engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") != "auto") && ((engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") == "left") != engine.layoutMirrored)) "bottom" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
         LaunchedEffect(narrow, tripPx, screenH) { engine.bottomCover = if (narrow && tripPx > 0) (tripH / screenH).coerceIn(0f, 0.5f).toDouble() else 0.0 }
-        // left-hand drive: everything swaps sides (cards on the right, round buttons on the left)
-        val mir = engine.mirrored
+        // left-hand drive: everything swaps sides (cards on the right, round buttons on the left). Settings > Screen and sizes >
+        // Card positions can put the turn card (and with it the buttons, on the other side) on either side whatever you drive
+        val mir = engine.layoutMirrored
+        // where the trip card and speedometer go (Card positions): "left", "right" (or "centre" for the trip card), on a wide screen
+        val tripAt = if (narrow) "" else engine.prefs.s(PreferenceKeys.TRIP_POS, "auto").let { if (it == "auto") (if (mir) "right" else "left") else it }
+        val speedAt = engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto").let { if (narrow || it == "auto") (if (mir) "left" else "right") else it }
+        // the speed on the cards' side can only be at the bottom (the turn card has the top)
+        val speedOnCardSide = (speedAt == "left") != mir
         // Settings > sizes > map buttons: scales the button column on the right
         val mainButtonScale = engine.prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
         fun side(a: Alignment): Alignment = if (!mir) a else when (a) {
@@ -430,11 +437,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // ---- speed limit and speedometer: bottom right, or bottom left when mirrored for left-hand drive (the cards are on the
         // right then; keeping the speed on the right too put it under the turn card on shorter screens)
         val besideButtons = with(dens) { buttonsWPx.toDp() } + 26.dp
+        // (Card positions: on the other side if chosen, and lifted above the trip card when they share a corner)
+        val speedShareTrip = !narrow && tripPx > 0 && tripAt == speedAt
         if (!previewing) Box(
-            when (speedPos) {
-                "top" -> Modifier.align(side(Alignment.TopEnd)).sides(end = besideButtons, top = 16.dp)
-                "middle" -> Modifier.align(side(Alignment.CenterEnd)).sides(end = besideButtons)
-                else -> Modifier.align(side(Alignment.BottomEnd)).sides(end = 16.dp, bottom = if (narrow && tripPx > 0) tripH + 4.dp else 16.dp)
+            when {
+                speedOnCardSide -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
+                    .padding(start = 16.dp, end = 16.dp, bottom = if (speedShareTrip) tripH + 8.dp else 16.dp)
+                speedPos == "top" -> Modifier.align(side(Alignment.TopEnd)).sides(end = besideButtons, top = 16.dp)
+                speedPos == "middle" -> Modifier.align(side(Alignment.CenterEnd)).sides(end = besideButtons)
+                else -> Modifier.align(side(Alignment.BottomEnd)).sides(end = 16.dp, bottom = if ((narrow || speedShareTrip) && tripPx > 0) tripH + if (narrow) 4.dp else 8.dp else 16.dp)
             }
                 .onGloballyPositioned { val t = it.boundsInParent().top.toInt(); if (it.size.height > 0 && t != speedTopPx) speedTopPx = t }
         ) {
@@ -449,10 +460,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         if (!previewing && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
-            Box(Modifier.align(side(Alignment.BottomStart)).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height }
+            val tripAlign = when (tripAt) { "centre" -> Alignment.BottomCenter; "right" -> Alignment.BottomEnd; "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
+            Box(Modifier.align(tripAlign).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height }
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
                 CompositionLocalProvider(LocalDensity provides Density(tripBaseDensity.density * tripCardScale, tripBaseDensity.fontScale)) {
-                    TripArea(engine, shareEta, narrow, voice)
+                    TripArea(engine, shareEta, narrow, voice, alignEnd = if (narrow || tripAt.isEmpty()) mir else tripAt == "right", centred = tripAt == "centre")
                 }
             }
         }
@@ -488,6 +500,18 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Traffic round you · back when you move"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 8.dp).size(16.dp))
+            }
+        }
+
+        // "Start from here" (#88): where routes are being planned from, until ✕ (or you set off with a GPS fix). Same spot as the
+        // traffic pill (never shown together)
+        val sf = engine.startFrom
+        AnimatedVisibility(sf != null && !engine.stoppedOverview, modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
+            Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.clearStartFrom() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(18.dp))
+                Text(L.t("Starting from {0}", sf?.name ?: ""), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp).widthIn(max = 280.dp))
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 8.dp).size(16.dp))
             }
         }
@@ -725,16 +749,16 @@ private fun WideTiles(cols: Int, tiles: List<TileSpec>, compact: Boolean = false
 
 /** Bottom left: hazard badges, then the trip card with the route bar, arrival, time and distance left, and the trip buttons. */
 @Composable
-private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = false, voice: () -> Unit = {}) {
+private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = false, voice: () -> Unit = {}, alignEnd: Boolean = engine.layoutMirrored, centred: Boolean = false) {
     val c = LocalVw.current
     val inc = engine.incidentAhead
     val cam = engine.cameraDist
     val eta = engine.eta
     val radarOn = engine.prefs.b(PreferenceKeys.HAZARDRADAR, false)
     if (inc == null && cam == null && eta == null && (!radarOn || engine.radar.isEmpty())) return
-    val mir = engine.mirrored
-    Column(Modifier.padding(start = if (mir) 0.dp else 16.dp, end = if (mir) 16.dp else 0.dp, bottom = 16.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalAlignment = if (mir) Alignment.End else Alignment.Start) {
+    val mir = alignEnd
+    Column(Modifier.padding(start = if (mir || centred) 0.dp else 16.dp, end = if (mir && !centred) 16.dp else 0.dp, bottom = 16.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = if (centred) Alignment.CenterHorizontally else if (mir) Alignment.End else Alignment.Start) {
         // hazard radar: the next two miles at a glance (replaces the separate camera and incident badges)
         if (radarOn) HazardRadar(engine)
         else if ((inc != null && engine.alert?.kind != "incident") || (cam != null && engine.alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {

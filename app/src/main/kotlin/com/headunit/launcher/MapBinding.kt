@@ -347,7 +347,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             setBase("showPointOfInterestLabels", Value.valueOf(!lite && !poiMoving))
             setBase("showTransitLabels", Value.valueOf(!lite))
             setBase("showLandmarkIcons", Value.valueOf(!lite))
-            setBase("showHdRoads", Value.valueOf(v == "full"))
+            setBase("showHdRoads", Value.valueOf(v == "full" && hdRoadsOn))
             // the real 3D arrow only shows on the full map
             if (style != null) reinstall()
         }
@@ -901,6 +901,18 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     var onRouteSignals: ((List<LL>) -> Unit)? = null
     /** A place on Mapbox's map you tapped (its name and spot): holding on it then routes there by name. */
     var onPoiTap: ((String, LL) -> Unit)? = null
+
+    /**
+     * Mapbox's HD roads (lane markings, turn arrows, 3D overpasses). Where Mapbox thinks it has them it hides its ordinary roads,
+     * and in some countries that left only the main roads on the map, with every street gone (GitHub #78, Reddit, Bulgaria and
+     * Croatia): so it's a setting, on by itself only in the UK, where it's known to work.
+     */
+    private var hdRoadsOn = true
+    fun setHdRoads(on: Boolean) {
+        if (on == hdRoadsOn) return
+        hdRoadsOn = on
+        main0.post { if (!satellite) setBase("showHdRoads", Value.valueOf(hdRoadsOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail))) }
+    }
 
     fun setExtras(facades: Boolean, landmarks: Boolean, paths: Boolean, terrain: Boolean, tapSelect: Boolean, furniture: Boolean, clear: Boolean) {
         val rebuild = terrain != terrainOn || furniture != furnitureOn || clear != clearOn
@@ -2084,7 +2096,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (!satellite) {
             setBase("show3dTrees", Value.valueOf(treesOn)); setBase("showLandmarkIcons", Value.valueOf(!lite))
             // lane markings, turn arrows, stop lines and 3D overpasses where Mapbox has them (Full 3D only)
-            setBase("showHdRoads", Value.valueOf(MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("showHdRoads", Value.valueOf(hdRoadsOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             // detailed building fronts, landmark buildings, footpaths (Settings > Map)
             setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("show3dLandmarks", Value.valueOf(landmarksOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))

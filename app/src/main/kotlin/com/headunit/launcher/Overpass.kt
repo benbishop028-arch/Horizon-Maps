@@ -79,8 +79,13 @@ object Overpass {
     fun countryAt(p: LL): String {
         val inGb = p.lat in 49.8..60.9 && p.lon in -8.7..1.8 &&
             !(p.lon < -5.4 && (p.lat < 54.0 || p.lon < -8.2 || (p.lon < -7.25 && p.lat > 54.65)))
-        return if (inGb) "GB" else java.util.Locale.getDefault().country
+        // elsewhere: the country found from your position (it used to fall back to the phone's language region, so an English (UK)
+        // phone in France got British speed-limit rules, GitHub)
+        return if (inGb) "GB" else knownCountry.ifBlank { java.util.Locale.getDefault().country }
     }
+
+    /** The country you're in, as found from your position (set by the app as soon as it knows). */
+    @Volatile var knownCountry: String = ""
 
     /** UK limits are only ever 20, 30, 40, 50, 60 or 70 mph (plus 5, 10, 15 in car parks and yards). */
     private val gbMph = intArrayOf(5, 10, 15, 20, 30, 40, 50, 60, 70)
