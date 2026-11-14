@@ -1484,5 +1484,8 @@ object I18nFi {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "Käännöskortti pysyy Android Autossa ylhäällä vasemmalla, missä sen painikkeet jättävät tilaa",
         "Start from here" to "Aloita tästä",
         "Starting from {0}" to "Lähtö paikasta {0}",
+        "Undo" to "Kumoa",
+        "Your report · {0}" to "Oma ilmoituksesi · {0}",
+        "Report removed" to "Ilmoitus poistettu",
     )
 }

@@ -2616,6 +2616,25 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     @Volatile private var alprs: List<Pair<LL, String>> = emptyList()
     /** A number-plate camera on the map was tapped: what it is. */
     var onAlprTap: ((String) -> Unit)? = null
+    /** One of your own reports (accident, police…) tapped on the map, with where it is. */
+    var onReportTap: ((LL) -> Unit)? = null
+
+    /** Your report badge nearest a tap, within about 28 dp of it. */
+    private fun reportBadgeAt(sp: android.graphics.PointF): LL? {
+        val list = hazards.filter { it.second in 3..7 }
+        if (list.isEmpty()) return null
+        val reach = 28f * mapView.resources.displayMetrics.density
+        var best: LL? = null
+        var bd = reach * reach
+        for ((p, _) in list) {
+            val px = try { mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat)) } catch (e: Throwable) { continue }
+            val dx = px.x.toFloat() - sp.x
+            val dy = px.y.toFloat() - sp.y
+            val d = dx * dx + dy * dy
+            if (d < bd) { bd = d; best = p }
+        }
+        return best
+    }
 
     fun setAlpr(list: List<Pair<LL, String>>) {
         main0.post { if (list != alprs) { alprs = list; pushAlpr() } }
@@ -4571,6 +4590,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         flyDone?.let { d -> flyDone = null; flyToken++; try { mapView.camera.cancelAllAnimators() } catch (e: Throwable) { }; d(); return true }
         // a number-plate camera: say what it is
         alprAt(sp)?.let { a -> onAlprTap?.invoke(a.second); return true }
+        // one of your own reports: offer to remove it
+        if (onReportTap != null) reportBadgeAt(sp)?.let { p -> onReportTap?.invoke(p); return true }
         if (liveLines.isEmpty()) return false
         return try {
             val dp = mapView.resources.displayMetrics.density

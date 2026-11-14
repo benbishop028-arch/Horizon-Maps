@@ -1484,5 +1484,8 @@ object I18nE {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to listOf("Kartica zavoja v Android Auto ostane zgoraj levo, kjer njegovi gumbi pustijo prostor"),
         "Start from here" to listOf("Začni tukaj"),
         "Starting from {0}" to listOf("Začetek: {0}"),
+        "Undo" to listOf("Razveljavi"),
+        "Your report · {0}" to listOf("Vaša prijava · {0}"),
+        "Report removed" to listOf("Prijava odstranjena"),
     )
 }

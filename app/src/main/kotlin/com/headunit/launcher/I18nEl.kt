@@ -1484,5 +1484,8 @@ object I18nEl {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "Η κάρτα στροφής μένει πάνω αριστερά στο Android Auto, όπου αφήνουν χώρο τα κουμπιά του",
         "Start from here" to "Έναρξη από εδώ",
         "Starting from {0}" to "Αναχώρηση από {0}",
+        "Undo" to "Αναίρεση",
+        "Your report · {0}" to "Η αναφορά σας · {0}",
+        "Report removed" to "Η αναφορά αφαιρέθηκε",
     )
 }

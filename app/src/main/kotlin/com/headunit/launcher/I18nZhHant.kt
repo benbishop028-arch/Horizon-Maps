@@ -1484,5 +1484,8 @@ object I18nZhHant {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "在Android Auto中轉彎卡片固定在左上，該處有其按鈕留下的空間",
         "Start from here" to "從這裡出發",
         "Starting from {0}" to "從{0}出發",
+        "Undo" to "復原",
+        "Your report · {0}" to "您的回報 · {0}",
+        "Report removed" to "已移除回報",
     )
 }

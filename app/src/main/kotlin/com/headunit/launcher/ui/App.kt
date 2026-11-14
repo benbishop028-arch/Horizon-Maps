@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -319,9 +320,42 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
                     enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(240)) { if (settings) it / 2 else -it / 2 },
                     exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
                 ) {
-                    Box(
-                        Modifier.shadow(10.dp, RoundedCornerShape(50)).clip(RoundedCornerShape(50)).background(navVw(c).surface).border(1.dp, navVw(c).line, RoundedCornerShape(50)).padding(horizontal = 22.dp, vertical = 11.dp),
-                    ) { Text(lastMsg.value ?: "", color = navVw(c).text, fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium) }
+                    val act = engine.msgAction
+                    Row(
+                        Modifier.shadow(10.dp, RoundedCornerShape(50)).clip(RoundedCornerShape(50)).background(navVw(c).surface).border(1.dp, navVw(c).line, RoundedCornerShape(50))
+                            .padding(start = 22.dp, end = if (act != null) 8.dp else 22.dp, top = if (act != null) 7.dp else 11.dp, bottom = if (act != null) 7.dp else 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(lastMsg.value ?: "", color = navVw(c).text, fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium)
+                        // a button on the message (Undo straight after a report)
+                        if (act != null) Box(
+                            Modifier.padding(start = 14.dp).clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.16f))
+                                .clickable { act.second() }.padding(horizontal = 16.dp, vertical = 7.dp),
+                        ) { Text(act.first, color = c.accent, fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
+                    }
+                }
+                // one of your reports tapped on the map: what it is and when you made it, with Remove / Keep
+                val rc = if (settings) null else engine.reportCard
+                // (above the trip card on a tall screen, where that card fills the bottom)
+                val tallScreen = LocalConfiguration.current.screenHeightDp > LocalConfiguration.current.screenWidthDp
+                if (rc != null) Column(
+                    Modifier.align(Alignment.BottomCenter).padding(bottom = if (tallScreen) 170.dp else 18.dp).width(300.dp)
+                        .shadow(10.dp, RoundedCornerShape(18.dp)).clip(RoundedCornerShape(18.dp)).background(navVw(c).surface).border(1.dp, navVw(c).line, RoundedCornerShape(18.dp))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    Text(L.t(engine.reportName(rc.kind)), color = navVw(c).text, fontSize = 16.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+                    Text(engine.reportAge(rc), color = navVw(c).text.copy(alpha = 0.65f), fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp, bottom = 10.dp))
+                    Row {
+                        Box(
+                            Modifier.weight(1f).clip(RoundedCornerShape(50)).background(Color(0xFFE24B4A).copy(alpha = 0.18f)).clickable { engine.removeReport(rc) }.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center,
+                        ) { Text(L.t("Remove"), color = if (c.dark) Color(0xFFFF8A8A) else Color(0xFFC62828), fontSize = 15.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold) }
+                        Box(Modifier.width(8.dp))
+                        Box(
+                            Modifier.weight(1f).clip(RoundedCornerShape(50)).background(navVw(c).line).clickable { engine.reportCard = null }.padding(vertical = 9.dp),
+                            contentAlignment = Alignment.Center,
+                        ) { Text(L.t("Keep"), color = navVw(c).text, fontSize = 15.sp) }
+                    }
                 }
                 // alerts (camera, speed limit, incident, rain, break) get a large banner that is hard to miss
                 if (!settings) {

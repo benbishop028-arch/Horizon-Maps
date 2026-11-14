@@ -48,6 +48,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var tilt3d by mutableStateOf(prefs.b(PreferenceKeys.VIEW_3D, true))
     var simMode by mutableIntStateOf(0)
     var message by mutableStateOf<String?>(null)
+    /** A button on the short message (e.g. Undo straight after a report), or null. */
+    var msgAction by mutableStateOf<Pair<String, () -> Unit>?>(null)
+    /** One of your reports, tapped on the map: a small card offers to remove it. */
+    var reportCard by mutableStateOf<Report?>(null)
     var busy by mutableStateOf(false)
     var previewing by mutableStateOf(false)
     var northUp by mutableStateOf(false)
@@ -678,6 +682,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
         map.onAlprTap = { who -> toast(L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), 3500) }
+        map.onReportTap = { p -> reportAt(p)?.let { r -> showReportCard(r) } }
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
         map.onUserGesture = { if (chain != null) chainMoved = true else { if (following) { following = false }; scheduleRecentre(12_000) } }
@@ -758,8 +763,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun toast(msg: String, ms: Long = 4000) {
         message = msg
+        msgAction = null
         val token = ++msgToken
-        scope.launch { delay(ms); if (token == msgToken) message = null }
+        scope.launch { delay(ms); if (token == msgToken) { message = null; msgAction = null } }
+    }
+
+    /** A short message with one button ([label]); tapping it runs [act] and closes the message. */
+    fun toastAction(msg: String, label: String, ms: Long, act: () -> Unit) {
+        toast(msg, ms)
+        val token = msgToken
+        msgAction = label to {
+            if (token == msgToken) { message = null; msgAction = null; msgToken++ }
+            try { act() } catch (e: Exception) { }
+        }
     }
 
     // ---- style ----
@@ -3929,8 +3945,38 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val list = keep + Report(kind, p, System.currentTimeMillis())
         prefs.put(PreferenceKeys.REPORTS, list.joinToString(";") { "${it.kind},${it.pos.lat},${it.pos.lon},${it.t}" })
         prefs.put(PreferenceKeys.POLICEREP, "")
-        toast(L.t("{0} report saved here", reportName(kind)), 3000)
+        val made = list.last()
+        // a report made by mistake can be taken back straight away
+        toastAction(L.t("{0} report saved here", L.t(reportName(kind))), L.t("Undo"), 6000) { removeReport(made) }
         pushHazards(hzProgress)
+    }
+
+    /** The report of yours nearest [p] (where the map was tapped), within about 60 m. */
+    fun reportAt(p: LL): Report? = reportsActive().minByOrNull { Geo.dist(it.pos, p) }?.takeIf { Geo.dist(it.pos, p) < 60.0 }
+
+    /** Shows the Remove / Keep card for one of your reports; it closes by itself after 10 seconds. */
+    private var reportCardToken = 0
+    fun showReportCard(r: Report) {
+        reportCard = r
+        val token = ++reportCardToken
+        scope.launch { delay(10_000); if (token == reportCardToken) reportCard = null }
+    }
+
+    /** "Your report · 12 min ago" for the card. */
+    fun reportAge(r: Report): String {
+        val min = ((System.currentTimeMillis() - r.t) / 60_000L).toInt()
+        val ago = when { min < 1 -> L.t("just now"); min < 60 -> L.t("{0} min ago", min); else -> L.t("{0} h ago", min / 60) }
+        return L.t("Your report · {0}", ago)
+    }
+
+    /** Takes one report away (the rest stay). */
+    fun removeReport(r: Report) {
+        val keep = reportsActive().filterNot { it.kind == r.kind && it.t == r.t && Geo.dist(it.pos, r.pos) < 1.0 }
+        prefs.put(PreferenceKeys.REPORTS, keep.joinToString(";") { "${it.kind},${it.pos.lat},${it.pos.lon},${it.t}" })
+        prefs.put(PreferenceKeys.POLICEREP, "")
+        if (reportCard != null) { reportCard = null; reportCardToken++ }
+        pushHazards(hzProgress)
+        toast(L.t("Report removed"), 2500)
     }
 
     fun reportPolice() = report("police")

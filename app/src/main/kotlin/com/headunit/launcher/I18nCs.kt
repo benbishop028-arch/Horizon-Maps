@@ -1484,5 +1484,8 @@ object I18nCs {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "Karta odbočení zůstává v Android Auto vlevo nahoře, kde jí jeho tlačítka nechávají místo",
         "Start from here" to "Začít odsud",
         "Starting from {0}" to "Odjezd z {0}",
+        "Undo" to "Zpět",
+        "Your report · {0}" to "Vaše hlášení · {0}",
+        "Report removed" to "Hlášení odebráno",
     )
 }

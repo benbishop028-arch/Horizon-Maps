@@ -244,6 +244,10 @@ class CarNavSession : Session() {
         ClusterLink.engine = engine
         // (the app's own short messages don't show on the car screen: a tapped number-plate camera says what it is with Android Auto's)
         map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }
+        // one of your own reports tapped: what it is, with Remove / Keep
+        map.onReportTap = { p ->
+            try { engine.reportAt(p)?.let { r -> mapScreen?.screenManager?.push(RemoveReportScreen(carContext, engine, r)) } } catch (e: Exception) { }
+        }
         // back in the car: the "Your car" spot on the phone isn't needed any more
         try { prefs.put(PreferenceKeys.PARKED_SPOT, "") } catch (e: Exception) { }
         holder.map = map; holder.engine = engine
@@ -988,6 +992,22 @@ class AltRoutesScreen(carContext: CarContext, private val holder: CarHolder) : S
                 .setOnClickListener { e?.switchToAlt(i); screenManager.pop() }.build())
         }
         return b.setSingleList(list.build()).build()
+    }
+}
+
+/** One of your reports, tapped on the car's map: Remove takes just that one away, Keep goes back to the map. */
+class RemoveReportScreen(carContext: CarContext, private val engine: NavEngine, private val r: NavEngine.Report) : Screen(carContext) {
+    override fun onGetTemplate(): Template {
+        val remove = Action.Builder().setTitle(L.t("Remove"))
+            .setBackgroundColor(androidx.car.app.model.CarColor.RED)
+            .setOnClickListener { try { engine.removeReport(r) } catch (e: Exception) { }; try { androidx.car.app.CarToast.makeText(carContext, L.t("Report removed"), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { }; screenManager.pop() }
+            .build()
+        val keep = Action.Builder().setTitle(L.t("Keep")).setOnClickListener { screenManager.pop() }.build()
+        return androidx.car.app.model.MessageTemplate.Builder(engine.reportAge(r))
+            .setTitle(L.t(engine.reportName(r.kind)))
+            .setHeaderAction(Action.BACK)
+            .addAction(remove).addAction(keep)
+            .build()
     }
 }
 

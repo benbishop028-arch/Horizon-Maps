@@ -1484,5 +1484,8 @@ object I18nEu {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "Biraketa-txartela goian ezkerrean geratzen da Android Auton, bere botoiek tokia uzten duten lekuan",
         "Start from here" to "Hasi hemendik",
         "Starting from {0}" to "{0}tik abiatuta",
+        "Undo" to "Desegin",
+        "Your report · {0}" to "Zure jakinarazpena · {0}",
+        "Report removed" to "Jakinarazpena kenduta",
     )
 }

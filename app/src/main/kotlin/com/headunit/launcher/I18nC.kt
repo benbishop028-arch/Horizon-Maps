@@ -1493,5 +1493,8 @@ object I18nC {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to listOf("การ์ดเลี้ยวอยู่มุมซ้ายบนใน Android Auto ที่ปุ่มของระบบเว้นที่ไว้", "Android Autoでは曲がり角カードは左上のまま(独自のボタンが空けている場所)", "Kartu belokan tetap di kiri atas di Android Auto, tempat tombolnya memberi ruang"),
         "Start from here" to listOf("เริ่มจากที่นี่", "ここから出発", "Mulai dari sini"),
         "Starting from {0}" to listOf("เริ่มจาก {0}", "{0}から出発", "Mulai dari {0}"),
+        "Undo" to listOf("เลิกทำ", "元に戻す", "Urungkan"),
+        "Your report · {0}" to listOf("รายงานของคุณ · {0}", "あなたの報告 · {0}", "Laporan Anda · {0}"),
+        "Report removed" to listOf("ลบรายงานแล้ว", "報告を削除しました", "Laporan dihapus"),
     )
 }

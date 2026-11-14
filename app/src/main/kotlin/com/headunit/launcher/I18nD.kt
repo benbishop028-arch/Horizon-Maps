@@ -1484,5 +1484,8 @@ object I18nD {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to listOf("Картата за завоя остава горе вляво в Android Auto, където собствените му бутони оставят място"),
         "Start from here" to listOf("Тръгване оттук"),
         "Starting from {0}" to listOf("Тръгване от {0}"),
+        "Undo" to listOf("Отмяна"),
+        "Your report · {0}" to listOf("Вашият сигнал · {0}"),
+        "Report removed" to listOf("Сигналът е премахнат"),
     )
 }

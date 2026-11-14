@@ -127,6 +127,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Simplified Chinese, Slovak and Danish: Horizon Nav can now be used in 简体中文, Slovenčina and Dansk, with spoken directions and voice commands in each. Chinese phones now pick Simplified or Traditional by themselves.
 - Greek, Czech and Finnish: Horizon Nav can now be used in Ελληνικά, Čeština and Suomi, chosen in Settings or picked up from the phone, with spoken directions and voice commands in each.
 - Romanian, Basque and Traditional Chinese: Horizon Nav can now be used in Română, Euskara and 繁體中文, chosen in Settings or picked up from the phone. Directions and voice commands work in all three, and on a Hong Kong or Macau phone the Chinese voice speaks Cantonese.
 - Card positions: Settings › Screen and sizes › Card positions puts the turn card top left or right, the trip card under it or bottom left, centre or right, and the speedometer bottom left or right, with a live picture as you choose. On Android Auto (Settings › Android Auto): the trip card and speedometer (GitHub).
@@ -206,6 +207,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Removing a report: a report made by mistake can be taken back with Undo on the "saved here" message, and tapping one of your reports on the map (phone or Android Auto) offers Remove or Keep for just that one.
 - Chime volume: on the head unit the speeding, limit-change and camera chimes now play on the same channel as the spoken directions (they were on the music channel at full strength), so the head unit's volume turned during a direction turns them down too. Settings › Sound & voice › Chime volume sets them against the voice, with a sample beep.
 - Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).
 - Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).

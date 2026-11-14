@@ -1484,5 +1484,8 @@ object I18nRo {
         "The turn card stays top left on Android Auto, where its own buttons leave room" to "Cardul de viraj rămâne în stânga sus în Android Auto, unde butoanele lui lasă loc",
         "Start from here" to "Pornește de aici",
         "Starting from {0}" to "Plecare din {0}",
+        "Undo" to "Anulează",
+        "Your report · {0}" to "Raportul dvs. · {0}",
+        "Report removed" to "Raport eliminat",
     )
 }
