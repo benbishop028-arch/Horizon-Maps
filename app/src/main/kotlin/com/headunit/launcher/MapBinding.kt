@@ -1978,6 +1978,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 if (cur.size >= 2) chunks += cur
                 var usedPack = false
                 var n = 0
+                // (a stretch that couldn't be searched is tried again later; a later stretch that worked used to clear the error, so
+                // the failed one, and its cameras, were never looked for again)
+                var anyFailed = false
                 for (ch in chunks) {
                     if (token != signalToken) return@Thread
                     n++
@@ -2017,7 +2020,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                             Thread.sleep(longArrayOf(5000L, 10000L, 20000L, 30000L, 30000L)[attempt])
                         }
                     }
-                    if (found == null) { sigFailAt = android.os.SystemClock.uptimeMillis(); continue }
+                    if (found == null) { anyFailed = true; sigFailAt = android.os.SystemClock.uptimeMillis(); continue }
+                    if (camsMissed) { anyFailed = true; sigFailAt = android.os.SystemClock.uptimeMillis() }
                     // keep only lights near this stretch (the offline search is a box, and the corridor search is a little generous)
                     val keep = found.filter { p ->
                         val k = cellKey(p.lat, p.lon)
@@ -2039,12 +2043,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                         snap = ArrayList(sigAll.values)
                     }
                     if (token != signalToken) return@Thread
-                    signalErr = ""
+                    if (!anyFailed) signalErr = ""
                     main0.post {
                         if (token == signalToken) { signalPts = snap; pushSignals() }
                         try { onRouteCameras?.invoke(camSnap) } catch (e: Throwable) { }
                     }
                 }
+                if (anyFailed && signalErr.isEmpty()) signalErr = "part of the route couldn't be searched"
                 val snap = synchronized(sigLock) { ArrayList(sigAll.values) }
                 main0.post {
                     if (token == signalToken) {

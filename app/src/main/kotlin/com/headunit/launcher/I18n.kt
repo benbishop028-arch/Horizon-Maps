@@ -5,7 +5,7 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak, Danish, Croatian or Malay. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak, Danish, Croatian, Malay or Hungarian. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
@@ -14,7 +14,7 @@ object L {
         "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български", "sl" to "Slovenščina",
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
-        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu")
+        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -27,7 +27,7 @@ object L {
         "th" -> Locale("th", "TH"); "ja" -> Locale.JAPAN; "id" -> Locale("id", "ID")
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
-        "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY")
+        "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
@@ -342,6 +342,19 @@ object L {
                 "priblíž|zväčši" to "zoom in", "oddiaľ|zmenši" to "zoom out", "sever hore" to "north up", "koľko je hodín" to "what time",
                 "^\\s*(naviguj do|naviguj na|choď do|choď na|vezmi ma do|vezmi ma na|do|na)\\s" to "go to",
             ),
+            "hu" to r(
+                "\\s(haza|hazamegyek|vigyél haza|menjünk haza)\\s" to "go home", "\\s(munkába|munkahelyre|irodába|dolgozni)\\s" to "go to work",
+                "^\\s*(bejelentés|jelentsd|jelents)\\s" to "report", "baleset" to "accident", "rendőr|rendőrség|rendőrök" to "police", "lerobban|lerobbant|műszaki hiba" to "breakdown", "traffipax|kamera" to "camera",
+                "benzinkút|benzinkutat|tankolás|tankolni|üzemanyag|benzin|dízel" to "fuel", "töltő|töltőt|töltés|töltőállomás" to "charging", "mosdó|vécé|wc" to "toilet", "kávé|kávézó" to "coffee",
+                "étel|étterem|éttermet|enni" to "food", "pihenő|pihenőhely" to "services", "parkoló|parkolót|parkolás|parkolni" to "parking",
+                "\\s(keress|keresd|keresés|legközelebbi|hol van|kell egy)\\s" to "find", "legolcsóbb|olcsó" to "cheap",
+                "fizetős utak nélkül|kerüld a fizetős|matrica nélkül|autópálya-matrica nélkül" to "avoid toll", "autópálya nélkül|kerüld az autópályát|kerüld az autópályákat" to "avoid motorway",
+                "kerüld ezt az utat" to "avoid this road", "mikor érek oda|mennyi idő még|milyen messze|mennyi van még" to "eta", "oszd meg|küldd el" to "share",
+                "hang be|kapcsold be a hangot" to "voice on", "csak figyelmeztetések" to "alerts only", "némítás|csend|hang ki|kapcsold ki a hangot" to "mute",
+                "(állítsd le|fejezd be|szakítsd meg) a (navigációt|útvonalat)|navigáció vége" to "end route", "áttekintés|teljes útvonal" to "overview",
+                "nagyítás|nagyíts" to "zoom in", "kicsinyítés|kicsinyíts" to "zoom out", "észak felül|észak fent" to "north up", "hány óra van|mennyi az idő" to "what time",
+                "^\\s*(navigálj ide|navigálj|vigyél el|menj ide|menjünk)\\s" to "go to",
+            ),
             "ms" to r(
                 "\\s(balik rumah|pulang ke rumah|pulang|bawa saya pulang)\\s" to "go home", "\\s(pergi kerja|ke tempat kerja|ke pejabat)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kemalangan|eksiden" to "accident", "polis|sekatan jalan raya" to "police", "kereta rosak|rosak" to "breakdown", "kamera had laju|kamera|perangkap laju" to "camera",
@@ -406,6 +419,8 @@ object L {
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
         "id", "ms" -> "ke-$n"
+        // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
+        "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
         "eu", "cs", "fi", "sk", "da", "hr" -> "$n."
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
@@ -459,6 +474,8 @@ object L {
         "cs" -> "prvním|druhým|třetím|čtvrtým|pátým|šestým|sedmým|osmým|devátým|desátým"
         "fi" -> "ensimmäisestä|toisesta|kolmannesta|neljännestä|viidennestä|kuudennesta|seitsemännestä|kahdeksannesta|yhdeksännestä|kymmenennestä"
         "sk" -> "prvým|druhým|tretím|štvrtým|piatym|šiestym|siedmym|ôsmym|deviatym|desiatym"
+        // (with "the", as the roundabout phrase needs: "hajtson ki a második kijáraton")
+        "hu" -> "az első|a második|a harmadik|a negyedik|az ötödik|a hatodik|a hetedik|a nyolcadik|a kilencedik|a tizedik"
         "ms" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kelapan|kesembilan|kesepuluh"
         "hr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
@@ -485,7 +502,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -503,6 +520,7 @@ object L {
         addOwn(m, "da", I18nDa.rows())
         addOwn(m, "hr", I18nHr.rows())
         addOwn(m, "ms", I18nMs.rows())
+        addOwn(m, "hu", I18nHu.rows())
         m
     }
 

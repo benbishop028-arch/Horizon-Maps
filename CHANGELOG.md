@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Speed cameras along the route: the cameras on a planned route now show along all of it while you choose the route or start a demo, not only within 10 km of where you are. A stretch of road whose cameras couldn't be looked up (a busy server) is now tried again, instead of being skipped for the rest of the trip.
 - Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.
 - Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.
 - Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
@@ -129,6 +130,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Hungarian: Horizon Nav can now be used in Magyar, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Malay: Horizon Nav can now be used in Bahasa Melayu, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Croatian: Horizon Nav can now be used in Hrvatski, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Simplified Chinese, Slovak and Danish: Horizon Nav can now be used in 简体中文, Slovenčina and Dansk, with spoken directions and voice commands in each. Chinese phones now pick Simplified or Traditional by themselves.
