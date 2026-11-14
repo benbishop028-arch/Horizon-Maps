@@ -129,6 +129,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Malay: Horizon Nav can now be used in Bahasa Melayu, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
+- Croatian: Horizon Nav can now be used in Hrvatski, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Simplified Chinese, Slovak and Danish: Horizon Nav can now be used in 简体中文, Slovenčina and Dansk, with spoken directions and voice commands in each. Chinese phones now pick Simplified or Traditional by themselves.
 - Greek, Czech and Finnish: Horizon Nav can now be used in Ελληνικά, Čeština and Suomi, chosen in Settings or picked up from the phone, with spoken directions and voice commands in each.
 - Romanian, Basque and Traditional Chinese: Horizon Nav can now be used in Română, Euskara and 繁體中文, chosen in Settings or picked up from the phone. Directions and voice commands work in all three, and on a Hong Kong or Macau phone the Chinese voice speaks Cantonese.

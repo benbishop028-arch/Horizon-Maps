@@ -5,7 +5,7 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak or Danish. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak, Danish, Croatian or Malay. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
@@ -14,7 +14,7 @@ object L {
         "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български", "sl" to "Slovenščina",
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
-        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk")
+        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -27,7 +27,7 @@ object L {
         "th" -> Locale("th", "TH"); "ja" -> Locale.JAPAN; "id" -> Locale("id", "ID")
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
-        "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK")
+        "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
@@ -342,6 +342,32 @@ object L {
                 "priblíž|zväčši" to "zoom in", "oddiaľ|zmenši" to "zoom out", "sever hore" to "north up", "koľko je hodín" to "what time",
                 "^\\s*(naviguj do|naviguj na|choď do|choď na|vezmi ma do|vezmi ma na|do|na)\\s" to "go to",
             ),
+            "ms" to r(
+                "\\s(balik rumah|pulang ke rumah|pulang|bawa saya pulang)\\s" to "go home", "\\s(pergi kerja|ke tempat kerja|ke pejabat)\\s" to "go to work",
+                "^\\s*laporkan\\s" to "report", "kemalangan|eksiden" to "accident", "polis|sekatan jalan raya" to "police", "kereta rosak|rosak" to "breakdown", "kamera had laju|kamera|perangkap laju" to "camera",
+                "stesen minyak|minyak|isi minyak|petrol" to "fuel", "pengecas|cas kereta|pengecasan|stesen cas" to "charging", "tandas" to "toilet", "kopi|kafe|kedai kopi" to "coffee",
+                "makanan|makan|restoran|kedai makan" to "food", "r ?& ?r|hentian rehat|kawasan rehat" to "services", "tempat letak kereta|parkir|letak kereta" to "parking",
+                "\\s(cari|carikan|terdekat|paling dekat|di mana|perlukan)\\s" to "find", "termurah|paling murah|murah" to "cheap",
+                "elak tol|tanpa tol|tak nak tol" to "avoid toll", "elak lebuh raya|tanpa lebuh raya" to "avoid motorway",
+                "elak jalan ini" to "avoid this road", "bila sampai|berapa lama lagi|berapa jauh lagi|jauh lagi" to "eta", "kongsi" to "share",
+                "hidupkan suara|suara hidup" to "voice on", "amaran sahaja" to "alerts only", "senyap|matikan suara|diam" to "mute",
+                "(hentikan|tamatkan|batalkan) (navigasi|laluan)" to "end route", "gambaran keseluruhan|seluruh laluan" to "overview",
+                "zum masuk|besarkan" to "zoom in", "zum keluar|kecilkan" to "zoom out", "utara di atas" to "north up", "pukul berapa" to "what time",
+                "^\\s*(pergi ke|bawa saya ke|navigasi ke|tunjukkan jalan ke|ke)\\s" to "go to",
+            ),
+            "hr" to r(
+                "\\s(kući|vozi me kući|idemo kući)\\s" to "go home", "\\s(na posao|u ured)\\s" to "go to work",
+                "^\\s*(prijavi|javi)\\s" to "report", "nesreća|nesreću|sudar" to "accident", "policija|policiju" to "police", "kvar|pokvaren[oi]" to "breakdown", "radar|kamera|kameru" to "camera",
+                "benzinska|benzinsku|benzinska postaja|pumpa|pumpu|gorivo|natočiti|točenje" to "fuel", "punionica|punionicu|punjenje|punjač" to "charging", "wc|zahod|toalet" to "toilet", "kava|kavu|kafić" to "coffee",
+                "hrana|hranu|restoran|jesti" to "food", "odmorište|odmorišta" to "services", "parking|parkiralište|parkirati" to "parking",
+                "\\s(nađi|pronađi|traži|potraži|najbliža|najbliži|najbliže|gdje je|trebam)\\s" to "find", "najjeftinij[aie]|jeftin[aoi]" to "cheap",
+                "bez cestarine|izbjegni (cestarinu|naplatu)|bez naplate" to "avoid toll", "bez autocest[ae]|izbjegni autocest[eu]" to "avoid motorway",
+                "izbjegni ovu cestu" to "avoid this road", "kad stižem|kada stižem|koliko još|koliko je još" to "eta", "podijeli|pošalji" to "share",
+                "uključi glas" to "voice on", "samo upozorenja" to "alerts only", "utišaj|tišina|isključi glas" to "mute",
+                "(završi|zaustavi|prekini|otkaži) (rutu|navigaciju)" to "end route", "pregled|cijela ruta|cijelu rutu" to "overview",
+                "povećaj|približi" to "zoom in", "smanji|udalji" to "zoom out", "sjever gore" to "north up", "koliko je sati" to "what time",
+                "^\\s*(vozi me do|vozi me u|navigiraj do|idi do|idemo u|idemo do|do)\\s" to "go to",
+            ),
             "da" to r(
                 "\\s(hjem|kør hjem|tag mig hjem)\\s" to "go home", "\\s(på arbejde|til arbejde|til kontoret)\\s" to "go to work",
                 "^\\s*(rapportér|rapporter|meld)\\s" to "report", "ulykke|uheld" to "accident", "politi|politiet" to "police", "i stykker|motorstop|nedbrud" to "breakdown", "fartkamera|kamera|fotovogn" to "camera",
@@ -379,8 +405,8 @@ object L {
         "it" -> "${n}ª"
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
-        "id" -> "ke-$n"
-        "eu", "cs", "fi", "sk", "da" -> "$n."
+        "id", "ms" -> "ke-$n"
+        "eu", "cs", "fi", "sk", "da", "hr" -> "$n."
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
@@ -433,6 +459,8 @@ object L {
         "cs" -> "prvním|druhým|třetím|čtvrtým|pátým|šestým|sedmým|osmým|devátým|desátým"
         "fi" -> "ensimmäisestä|toisesta|kolmannesta|neljännestä|viidennestä|kuudennesta|seitsemännestä|kahdeksannesta|yhdeksännestä|kymmenennestä"
         "sk" -> "prvým|druhým|tretím|štvrtým|piatym|šiestym|siedmym|ôsmym|deviatym|desiatym"
+        "ms" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kelapan|kesembilan|kesepuluh"
+        "hr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
         else -> ""
@@ -457,7 +485,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -473,6 +501,8 @@ object L {
         addOwn(m, "zhs", I18nZhHans.rows())
         addOwn(m, "sk", I18nSk.rows())
         addOwn(m, "da", I18nDa.rows())
+        addOwn(m, "hr", I18nHr.rows())
+        addOwn(m, "ms", I18nMs.rows())
         m
     }
 
