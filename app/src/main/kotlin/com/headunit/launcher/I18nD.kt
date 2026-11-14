@@ -1461,5 +1461,14 @@ object I18nD {
         "Skip to the next turn" to listOf("Към следващия завой"),
         "Skip turn" to listOf("Следващ завой"),
         "End demo" to listOf("Край на демото"),
+        "Take it at {0}" to listOf("Минете с {0}"),
+        "SHARP BEND" to listOf("ОПАСЕН ЗАВОЙ"),
+        "Sharp bends" to listOf("Опасни завои"),
+        "Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each" to listOf("Завоите, за които трябва да намалите, са на жълти ивици по маршрута, с предупреждение и удобна скорост преди всеки"),
+        "Headlight beam at night" to listOf("Светлина от фаровете нощем"),
+        "A soft cone of light on the road ahead of you after dark, while you're moving" to listOf("Мек сноп светлина по пътя пред вас на тъмно, докато се движите"),
+        "Light up your destination" to listOf("Осветяване на целта"),
+        "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to listOf("При пристигане сградата светва, входът се отбелязва, а пунктир показва пътя пеша от паркинга"),
+        "TomTom search didn't work: {0}" to listOf("Търсенето в TomTom не проработи: {0}"),
     )
 }

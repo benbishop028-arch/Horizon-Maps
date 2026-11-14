@@ -1461,5 +1461,14 @@ object I18nE {
         "Skip to the next turn" to listOf("Preskoči na naslednji zavoj"),
         "Skip turn" to listOf("Preskoči zavoj"),
         "End demo" to listOf("Končaj predstavitev"),
+        "Take it at {0}" to listOf("Peljite s {0}"),
+        "SHARP BEND" to listOf("OSTER OVINEK"),
+        "Sharp bends" to listOf("Ostri ovinki"),
+        "Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each" to listOf("Ovinki, pred katerimi je treba upočasniti, so na poti rumeno črtasti, z opozorilom in udobno hitrostjo pred vsakim"),
+        "Headlight beam at night" to listOf("Snop žarometov ponoči"),
+        "A soft cone of light on the road ahead of you after dark, while you're moving" to listOf("Mehak snop svetlobe na cesti pred vami v temi, med vožnjo"),
+        "Light up your destination" to listOf("Osvetli cilj"),
+        "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to listOf("Ob prihodu stavba zasveti, vhod je označen, črtkana črta pa pokaže pot peš s parkirišča"),
+        "TomTom search didn't work: {0}" to listOf("Iskanje TomTom ni delovalo: {0}"),
     )
 }

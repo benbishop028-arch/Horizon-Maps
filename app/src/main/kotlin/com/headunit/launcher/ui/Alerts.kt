@@ -68,6 +68,7 @@ private fun alertColor(kind: String): Color = when (kind) {
     "plan" -> NavBlue
     "rain" -> NavBlue
     "zone" -> Good
+    "bend", "bend-l" -> Color(0xFFFACC15)
     else -> Warn
 }
 
@@ -86,6 +87,7 @@ private fun alertLabel(kind: String): String = when (kind) {
     "report" -> L.t("REPORTED AHEAD")
     "wrongway" -> L.t("WRONG WAY")
     "plan" -> L.t("PLANNED TRIP")
+    "bend", "bend-l" -> L.t("SHARP BEND")
     else -> "ALERT"
 }
 
@@ -140,6 +142,20 @@ fun AlertSign(a: AlertInfo, size: Dp) {
                     drawPath(oct(r * 0.86f), Color(0xFFC8102E))
                 }
                 Text("STOP", color = Color.White, fontSize = (size.value * 0.26f).sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            }
+            "bend", "bend-l" -> {
+                // the chevron sign: yellow, with a black chevron pointing the way the road bends
+                val right = a.kind == "bend"
+                Canvas(Modifier.fillMaxSize()) {
+                    val w = this.size.width
+                    val h = this.size.height
+                    drawRoundRect(Color(0xFFFACC15), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.14f))
+                    val p = Path().apply {
+                        if (right) { moveTo(w * 0.36f, h * 0.24f); lineTo(w * 0.64f, h * 0.5f); lineTo(w * 0.36f, h * 0.76f) }
+                        else { moveTo(w * 0.64f, h * 0.24f); lineTo(w * 0.36f, h * 0.5f); lineTo(w * 0.64f, h * 0.76f) }
+                    }
+                    drawPath(p, Color.Black, style = Stroke(w * 0.13f, join = StrokeJoin.Miter))
+                }
             }
             "wrongway" -> {
                 // the no-entry sign

@@ -184,6 +184,12 @@ internal object PreferenceKeys {
     const val ALPR_CAMS = "alprcams"
     /** The map on the driver's display (Android Auto's instrument cluster), on cars that offer it. */
     const val CLUSTER_MAP = "clustermap"
+    /** Sharp bends: the yellow chevron stretch on the route and the warning before each. */
+    const val BEND_WARN = "bendwarn"
+    /** The headlight beam ahead of the arrow at night. */
+    const val BEAM = "beam"
+    /** On arrival: the building lit, its entrance marked and the walk from the car park. */
+    const val ARRIVAL_PLACE = "arrivalplace"
     /** Chimes (speeding, limit change, cameras) as a percentage of full strength, on the voice's channel. */
     const val CHIME_VOL = "chimevol"
     /** On a wide screen, the arrow stays to the side when the cards fold away (instead of moving back to the middle). */

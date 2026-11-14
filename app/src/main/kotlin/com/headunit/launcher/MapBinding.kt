@@ -1097,6 +1097,128 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    // ---- sharp bends on the route: yellow with black chevrons, like the warning sign ----
+    private var bendLines: List<List<LL>> = emptyList()
+    fun setBends(lines: List<List<LL>>) {
+        main0.post {
+            bendLines = lines
+            try { src("dl-bends")?.featureCollection(FeatureCollection.fromFeatures(lines.filter { it.size >= 2 }.map { line(it) })) } catch (e: Throwable) { }
+        }
+    }
+
+    /** The bend pattern: yellow with a black chevron pointing along the road (the line repeats it in the way you're going). */
+    private fun bendChevronBitmap(): Bitmap {
+        val w = 48; val h = 32
+        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(b)
+        c.drawColor(android.graphics.Color.parseColor("#FACC15"))
+        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.BLACK; style = android.graphics.Paint.Style.STROKE; strokeWidth = 6f
+            strokeJoin = android.graphics.Paint.Join.MITER; strokeCap = android.graphics.Paint.Cap.BUTT
+        }
+        val path = android.graphics.Path().apply { moveTo(16f, 6f); lineTo(30f, 16f); lineTo(16f, 26f) }
+        c.drawPath(path, p)
+        return b
+    }
+
+    // ---- the headlight beam: a soft cone of light ahead of the arrow at night, while moving ----
+    @Volatile private var beamOn = false
+    @Volatile private var beamSpeed = 0.0
+    fun setBeam(on: Boolean, mps: Double) {
+        val was = beamOn
+        beamOn = on; beamSpeed = mps
+        if (was && !on) main0.post { try { src("dl-beam")?.featureCollection(empty()) } catch (e: Throwable) { } }
+    }
+
+    private fun pushBeam() {
+        val s = src("dl-beam") ?: return
+        val p = me
+        val night = lightPreset == "night" || lightPreset == "dusk"
+        if (p == null || !beamOn || !night || satellite) { s.featureCollection(empty()); return }
+        val f = Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat))
+        f.addNumberProperty("h", meHeading)
+        // a little longer the faster you go (up to about 70 mph)
+        f.addNumberProperty("s", 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5)
+        s.feature(f)
+    }
+
+    /** The beam: warm light fading out from the arrow, with soft edges. */
+    private fun beamBitmap(): Bitmap {
+        val w = 256; val h = 320
+        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(b)
+        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.RadialGradient(w / 2f, h.toFloat(), h.toFloat(),
+                intArrayOf(0xC8FFF4D6.toInt(), 0x66FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
+            maskFilter = android.graphics.BlurMaskFilter(16f, android.graphics.BlurMaskFilter.Blur.NORMAL)
+        }
+        val cone = android.graphics.Path().apply {
+            moveTo(w / 2f - 6f, h.toFloat()); lineTo(22f, 40f); quadTo(w / 2f, 4f, w - 22f, 40f); lineTo(w / 2f + 6f, h.toFloat()); close()
+        }
+        c.drawPath(cone, p)
+        return b
+    }
+
+    // ---- arriving: the building lit, its entrance marked, and a dotted walk from the car park ----
+    @Volatile private var doorFrom: LL? = null
+    private var door: LL? = null
+    private var walkFrom: LL? = null
+
+    fun showArrivalPlace(dest: LL?, from: LL?, parking: LL?) {
+        main0.post {
+            try {
+                if (dest == null) { doorFrom = null; door = null; walkFrom = null; highlightDestination(null); pushDoor(); return@post }
+                doorFrom = from; walkFrom = parking
+                highlightDestination(dest)
+                pushDoor()
+            } catch (e: Throwable) { }
+        }
+    }
+
+    private fun pushDoor() {
+        val d = door
+        src("dl-door")?.let { s -> if (d != null) s.feature(Feature.fromGeometry(Point.fromLngLat(d.lon, d.lat))) else s.featureCollection(empty()) }
+        val w = walkFrom; val to = d ?: destLitFor
+        src("dl-walk")?.let { s -> if (w != null && to != null && Geo.dist(w, to) > 15.0) s.feature(line(listOf(w, to))) else s.featureCollection(empty()) }
+    }
+
+    /** The point on a building's outline nearest [from] (where you pulled up): its likely entrance. */
+    private fun nearestOnOutline(g: com.mapbox.geojson.Geometry?, from: LL): LL? {
+        val rings: List<List<Point>> = when (g) {
+            is com.mapbox.geojson.Polygon -> g.coordinates().take(1)
+            is com.mapbox.geojson.MultiPolygon -> g.coordinates().mapNotNull { it.firstOrNull() }
+            else -> return null
+        }
+        var best: LL? = null; var bd = 1e12
+        val k = Math.cos(Math.toRadians(from.lat))
+        for (ring in rings) for (i in 0 until ring.size - 1) {
+            val ax = (ring[i].longitude() - from.lon) * k; val ay = ring[i].latitude() - from.lat
+            val bx = (ring[i + 1].longitude() - from.lon) * k; val by = ring[i + 1].latitude() - from.lat
+            val dx = bx - ax; val dy = by - ay; val l2 = dx * dx + dy * dy
+            val t = if (l2 > 0) (-(ax * dx + ay * dy) / l2).coerceIn(0.0, 1.0) else 0.0
+            val px = ax + dx * t; val py = ay + dy * t
+            val dd = px * px + py * py
+            if (dd < bd) { bd = dd; best = LL(from.lat + py, from.lon + px / k) }
+        }
+        return best
+    }
+
+    /** The entrance marker: a blue disc with a white door. */
+    private fun doorBitmap(): Bitmap {
+        val dn = mapView.resources.displayMetrics.density
+        val sz = (30 * dn).toInt().coerceAtLeast(24)
+        val b = Bitmap.createBitmap(sz, sz, Bitmap.Config.ARGB_8888)
+        val c = android.graphics.Canvas(b)
+        val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        p.color = android.graphics.Color.WHITE; c.drawCircle(sz / 2f, sz / 2f, sz / 2f, p)
+        p.color = android.graphics.Color.parseColor("#2E7CF6"); c.drawCircle(sz / 2f, sz / 2f, sz / 2f - 2.5f * dn, p)
+        p.color = android.graphics.Color.WHITE
+        val dw = sz * 0.30f; val dh = sz * 0.44f
+        c.drawRoundRect(sz / 2f - dw / 2, sz / 2f - dh / 2, sz / 2f + dw / 2, sz / 2f + dh / 2, 2f * dn, 2f * dn, p)
+        p.color = android.graphics.Color.parseColor("#2E7CF6"); c.drawCircle(sz / 2f + dw * 0.22f, sz / 2f + dh * 0.05f, 1.6f * dn, p)
+        return b
+    }
+
     // ---- average speed zones on the route ----
     private var avgZoneLines: List<List<LL>> = emptyList()
     private var avgCams: List<Pair<LL, Double>> = emptyList()
@@ -1128,6 +1250,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val f = destLit
             destLit = null; destLitFor = null
             if (f != null) try { mbMap.setFeatureState(f, com.mapbox.maps.interactions.standard.generated.StandardBuildingsState { highlight(false) }) } catch (e: Throwable) { }
+            if (door != null) { door = null; try { pushDoor() } catch (e: Throwable) { } }
             return
         }
         if (!slotsOn || satellite) return
@@ -1148,6 +1271,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                     if (destLitFor == null || Geo.dist(destLitFor!!, p) >= 5.0) return@post
                     destLit = f
                     try { mbMap.setFeatureState(f, com.mapbox.maps.interactions.standard.generated.StandardBuildingsState { highlight(true) }) } catch (e: Throwable) { }
+                    // arriving: the entrance is the side of the building nearest where you pulled up
+                    val from = doorFrom
+                    if (from != null) try { door = nearestOnOutline(f.geometry, from); pushDoor() } catch (e: Throwable) { }
                 }
             }
         } catch (e: Throwable) { }
@@ -2054,6 +2180,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addS(st, GeoJsonSource.Builder("dl-tunnels").featureCollection(FeatureCollection.fromFeatures(tunnelLines.filter { it.size >= 2 }.map { line(it) })).build())
         addL(st, ln("dl-tunnel-dash", "dl-tunnels").lineCap(LineCap.BUTT).lineColor(if (dayLook) "#EEF2F7" else "#2B3150")
             .lineWidth(routeW(if (im) 1.55f else 1.3f)).lineOpacity(0.6).lineDasharray(listOf(0.9, 1.1)))
+        // sharp bends: the route goes yellow with black chevrons through them, like the warning sign (from zoom 12)
+        addImg(st, "dl-bend-chev", bendChevronBitmap())
+        addS(st, GeoJsonSource.Builder("dl-bends").featureCollection(FeatureCollection.fromFeatures(bendLines.filter { it.size >= 2 }.map { line(it) })).build())
+        addL(st, ln("dl-bend-line", "dl-bends").lineCap(LineCap.BUTT).linePattern("dl-bend-chev").lineWidth(routeW(if (im) 1.0f else 0.85f)).minZoom(12.0))
         // a band of light that runs along the route towards the destination
         val flow = ln("dl-flow-line", "dl-flow").lineWidth(routeW(if (im) 0.6f else 0.5f)).lineBlur(3.0)
             .lineGradient(flowGradient(0.5f)).visibility(vis(flowOn))
@@ -2178,6 +2308,22 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 .fillExtrusionHeight(Expression.get("top")).fillExtrusionBase(Expression.get("base"))
                 .fillExtrusionEmissiveStrength(0.85).fillExtrusionOpacity(1.0))
         } catch (e: Throwable) { }
+        // the headlight beam (under the arrow; night only, while moving)
+        addImg(st, "dl-beam", beamBitmap())
+        addS(st, GeoJsonSource.Builder("dl-beam").featureCollection(empty()).build())
+        if (!satellite) addL(st, SymbolLayer("dl-beam-l", "dl-beam").iconImage("dl-beam").iconAnchor(IconAnchor.BOTTOM)
+            .iconRotate(Expression.get("h")).iconRotationAlignment(IconRotationAlignment.MAP).iconPitchAlignment(IconPitchAlignment.MAP)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0).iconOpacity(0.9)
+            .iconSize(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],13,[\"*\",0.35,[\"get\",\"s\"]],16,[\"*\",0.75,[\"get\",\"s\"]],18,[\"*\",1.3,[\"get\",\"s\"]],20,[\"*\",2.2,[\"get\",\"s\"]]]")))
+        // arriving: a dotted walk from the car park, and the entrance marked
+        addS(st, GeoJsonSource.Builder("dl-walk").featureCollection(empty()).build())
+        addL(st, LineLayer("dl-walk-line", "dl-walk").lineColor("#2E7CF6").lineWidth(5.0).lineOpacity(0.95)
+            .lineCap(LineCap.ROUND).lineDasharray(listOf(0.1, 2.0)).lineEmissiveStrength(1.0))
+        addImg(st, "dl-door", doorBitmap())
+        addS(st, GeoJsonSource.Builder("dl-door").featureCollection(empty()).build())
+        addL(st, SymbolLayer("dl-door-l", "dl-door").iconImage("dl-door").iconAnchor(IconAnchor.CENTER)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0).iconPitchAlignment(IconPitchAlignment.VIEWPORT))
+        pushDoor()
         if (!im) {
             addL(st, CircleLayer("dl-me-halo", "dl-me")
                 .circleRadius(15.0 * 0.625 * arrowScale).circleColor("#2e8bff").circleOpacity(0.25).circleEmissiveStrength(1.0)
@@ -4039,6 +4185,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun pushMe() {
         pushModel(false)
         updateClear(false)
+        try { pushBeam() } catch (e: Throwable) { }
         // the map's own (flat) arrow only needs moving when it's the one showing; the 3D one is a view over the map
         val flat = locatorStyle == "flat"
         if (!flat && !meShownFlat) return

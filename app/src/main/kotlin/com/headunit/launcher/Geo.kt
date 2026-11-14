@@ -274,18 +274,34 @@ object TomTomRest {
      * then the Orbis geocoder, then OpenStreetMap's Nominatim, so a name that one source does not know is still found.
      * [country] is an ISO code such as GB; blank means anywhere.
      */
+    /** Why TomTom's search failed on the last try (both its searches refused), or null when it worked. */
+    @Volatile var lastSearchError: String? = null
+
     fun geocode(key: String, country: String, q: String, near: LL?): List<Place> {
         val k = URLEncoder.encode(key, "UTF-8")
         val enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20")
         val cc = country.trim().uppercase()
         val out = ArrayList<Place>()
+        lastSearchError = null
         // 1. classic fuzzy search
+        var classicErr: Exception? = null
         try {
             var url = "$SEARCH/$enc.json?key=$k&limit=15&language=en-GB&typeahead=true&minFuzzyLevel=1&maxFuzzyLevel=2&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
             if (cc.isNotEmpty()) url += "&countrySet=$cc"
             if (near != null) url += "&lat=${near.lat}&lon=${near.lon}"
             parsePlaces(JSONObject(get(url)).optJSONArray("results") ?: JSONArray(), q, out)
-        } catch (e: Exception) { /* fall through to the next source */ }
+        } catch (e: Exception) { classicErr = e }
+        // 1b. the same fuzzy search on TomTom's newer Orbis service: some newer keys are only given the Orbis APIs, and with the
+        // classic search refused, names and businesses were never found, only addresses and postcodes (Reddit)
+        if (classicErr != null || out.size < 3) try {
+            var url = "$API/places/search/$enc.json?key=$k&apiVersion=1&limit=15&language=en-GB&typeahead=true&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
+            if (cc.isNotEmpty()) url += "&countrySet=$cc"
+            if (near != null) url += "&lat=${near.lat}&lon=${near.lon}"
+            parsePlaces(JSONObject(get(url)).optJSONArray("results") ?: JSONArray(), q, out)
+        } catch (e: Exception) {
+            // both refused: said once on screen, so it isn't a silent "no matches"
+            if (classicErr != null) lastSearchError = classicErr.message ?: e.message
+        }
         // 2. Orbis geocoder
         if (out.size < 4) try {
             var url = "$API/places/geocode/$enc.json?key=$k&apiVersion=1&limit=8"

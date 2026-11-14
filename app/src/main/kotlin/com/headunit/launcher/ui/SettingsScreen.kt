@@ -449,6 +449,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             "#FF6FB5" to L.t("Pink"), "#A56BFF" to L.t("Purple"),
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
         SSlider(if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
+        SToggle(prefs, L.t("Headlight beam at night"), PreferenceKeys.BEAM, true, L.t("A soft cone of light on the road ahead of you after dark, while you're moving"))
     }
     SGroup(L.t("Route line")) {
         SToggle(prefs, L.t("3D flags"), PreferenceKeys.FLAGS_3D, true, L.t("A tall flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance"))
@@ -616,6 +617,7 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Arriving")) {
         SToggle(prefs, L.t("Arrival moment"), "arrivalfx", true, L.t("The camera swoops to your destination and shows the nearest parking"))
+        SToggle(prefs, L.t("Light up your destination"), PreferenceKeys.ARRIVAL_PLACE, true, L.t("On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking"))
         SToggle(prefs, L.t("Parking near your destination"), "parkprompt", true, (if (mi) L.t("About a mile") else L.t("About 1.5 km")) + L.t(" before you arrive, car parks close by with the walk from each"))
         SToggle(prefs, L.t("Route back"), "routeback", true, L.t("On the arrival card: one tap for the way back to where you started"))
     }
@@ -661,6 +663,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Roadworks and incidents"), "incidents", true)
         SToggle(prefs, L.t("Wrong-way warning"), "wrongway", true, L.t("If you turn the wrong way into a one-way street"))
         SToggle(prefs, L.t("Speed bumps"), "bumps", true)
+        SToggle(prefs, L.t("Sharp bends"), PreferenceKeys.BEND_WARN, true, L.t("Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each"))
         SToggle(prefs, L.t("Schools at school-run times"), "schools", true)
         SToggle(prefs, L.t("Level crossings and fords"), "railford", true, L.t("A warning sign and a spoken warning for level crossings and fords on your route"))
     }

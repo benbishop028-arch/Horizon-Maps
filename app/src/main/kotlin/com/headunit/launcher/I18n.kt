@@ -1766,6 +1766,15 @@ object L {
         "Skip to the next turn" to listOf("Naar de volgende afslag", "Zur nächsten Abbiegung springen", "Passer au prochain virage", "Saltar al siguiente giro"),
         "Skip turn" to listOf("Volgende afslag", "Abbiegung überspringen", "Virage suivant", "Saltar giro"),
         "End demo" to listOf("Demo stoppen", "Demo beenden", "Arrêter la démo", "Terminar demo"),
+        "Take it at {0}" to listOf("Neem hem met {0}", "Mit {0} durchfahren", "À prendre à {0}", "Tómala a {0}"),
+        "SHARP BEND" to listOf("SCHERPE BOCHT", "SCHARFE KURVE", "VIRAGE DANGEREUX", "CURVA PELIGROSA"),
+        "Sharp bends" to listOf("Scherpe bochten", "Scharfe Kurven", "Virages dangereux", "Curvas peligrosas"),
+        "Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each" to listOf("Bochten waarvoor je moet afremmen krijgen gele strepen op de route, met een waarschuwing en een prettige snelheid vooraf", "Kurven, vor denen man bremsen sollte, werden auf der Route gelb gestreift, mit Warnung und angenehmer Geschwindigkeit davor", "Les virages où il faut ralentir sont rayés de jaune sur l'itinéraire, avec une alerte et une vitesse confortable avant chacun", "Las curvas en las que hay que frenar se rayan de amarillo en la ruta, con un aviso y una velocidad cómoda antes de cada una"),
+        "Headlight beam at night" to listOf("Koplampbundel 's nachts", "Scheinwerferkegel bei Nacht", "Faisceau des phares la nuit", "Haz de los faros de noche"),
+        "A soft cone of light on the road ahead of you after dark, while you're moving" to listOf("Een zachte lichtbundel op de weg voor je na zonsondergang, terwijl je rijdt", "Ein sanfter Lichtkegel auf der Straße vor Ihnen bei Dunkelheit, während der Fahrt", "Un doux cône de lumière sur la route devant vous la nuit, en roulant", "Un suave cono de luz en la carretera delante de ti de noche, mientras te mueves"),
+        "Light up your destination" to listOf("Je bestemming oplichten", "Ziel hervorheben", "Mettre en lumière votre destination", "Iluminar tu destino"),
+        "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to listOf("Bij aankomst licht het gebouw op, de ingang wordt gemarkeerd en een stippellijn toont de wandeling vanaf de parkeerplaats", "Bei Ankunft leuchtet das Gebäude, der Eingang wird markiert und eine gepunktete Linie zeigt den Fußweg vom Parkplatz", "À l'arrivée, le bâtiment s'illumine, son entrée est indiquée et une ligne pointillée montre le trajet à pied depuis le parking", "Al llegar, el edificio se ilumina, se marca la entrada y una línea de puntos muestra el camino a pie desde el aparcamiento"),
+        "TomTom search didn't work: {0}" to listOf("Zoeken via TomTom werkte niet: {0}", "TomTom-Suche hat nicht funktioniert: {0}", "La recherche TomTom n'a pas fonctionné : {0}", "La búsqueda de TomTom no funcionó: {0}"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3228,5 +3237,14 @@ object L {
         "Skip to the next turn" to listOf("Salta alla prossima svolta", "Saltar para a próxima viragem", "Przejdź do następnego skrętu"),
         "Skip turn" to listOf("Salta svolta", "Próxima viragem", "Pomiń skręt"),
         "End demo" to listOf("Termina demo", "Terminar demo", "Zakończ demo"),
+        "Take it at {0}" to listOf("Affrontala a {0}", "Faça-a a {0}", "Pokonaj go z prędkością {0}"),
+        "SHARP BEND" to listOf("CURVA PERICOLOSA", "CURVA PERIGOSA", "OSTRY ZAKRĘT"),
+        "Sharp bends" to listOf("Curve pericolose", "Curvas perigosas", "Ostre zakręty"),
+        "Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each" to listOf("Le curve in cui rallentare sono a strisce gialle sul percorso, con un avviso e una velocità comoda prima di ognuna", "As curvas em que é preciso abrandar ficam riscadas a amarelo no percurso, com um aviso e uma velocidade confortável antes de cada uma", "Zakręty wymagające zwolnienia są na trasie w żółte pasy, z ostrzeżeniem i wygodną prędkością przed każdym"),
+        "Headlight beam at night" to listOf("Fascio dei fari di notte", "Feixe dos faróis à noite", "Snop świateł nocą"),
+        "A soft cone of light on the road ahead of you after dark, while you're moving" to listOf("Un tenue cono di luce sulla strada davanti a te col buio, mentre ti muovi", "Um suave cone de luz na estrada à sua frente à noite, enquanto se desloca", "Delikatny stożek światła na drodze przed tobą po zmroku, podczas jazdy"),
+        "Light up your destination" to listOf("Illumina la destinazione", "Iluminar o destino", "Podświetl cel"),
+        "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to listOf("All'arrivo l'edificio si illumina, l'ingresso viene segnato e una linea tratteggiata mostra il percorso a piedi dal parcheggio", "À chegada, o edifício ilumina-se, a entrada fica marcada e uma linha pontilhada mostra o percurso a pé desde o estacionamento", "Po dotarciu budynek się podświetla, wejście jest zaznaczone, a kropkowana linia pokazuje dojście z parkingu"),
+        "TomTom search didn't work: {0}" to listOf("La ricerca TomTom non ha funzionato: {0}", "A pesquisa TomTom não funcionou: {0}", "Wyszukiwanie TomTom nie zadziałało: {0}"),
     )
 }

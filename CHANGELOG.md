@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Searching by name or address with a TomTom key: if TomTom's classic search refuses the key (newer keys can come with only the newer "Orbis" APIs), the same search is now tried on TomTom's Orbis service, so shops, places and addresses are found again instead of only postcodes. If TomTom refuses both, the app now says why once, instead of quietly showing thin results.
 - Speedometer on short Android Auto screens: it now stays put in the bottom-left corner, with the one-line trip strip beside it while navigating. In the bottom right it slid with Android Auto's zoom buttons, covered the Mapbox logo and moved up the side to make room for the trip strip (GitHub #67).
 - Arrow back in the middle with the cards folded: on a wide screen, with Home, Work and Saved & recent folded away (just the search bar left), the arrow now goes back to the middle, as in Waze; it stayed off to the side because the search bar on its own still counted as a card beside it (GitHub #79).
 - Rain and snow on Android Auto: Weather effects now show on the car screen too (they were only ever drawn on the phone), along with the weather haze towards the horizon.
@@ -124,6 +125,9 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Sharp bend warnings: bends that need slowing for are striped yellow with black chevrons on the route, and about 9 seconds before each a yellow chevron sign says "Sharp bend · take it at 25 mph" with a chime (only when you're going faster than that). Worked out from the route's shape; junction turns don't count. Settings › Warnings › Sharp bends.
+- Headlight beam: after dark, a soft cone of light lies on the road ahead of your arrow while you're moving, longer at speed. Settings › Your arrow › Headlight beam at night.
+- Destination lit up on arrival: the building stays lit while the arrival card is up, its entrance (the side nearest where you pulled up) gets a marker, and a dotted line shows the walk from the suggested parking. Settings › Arrival › Light up your destination.
 - Demo drive controls: while a demo plays, the map shows its speed (tap to switch 1×, 2× and 4× without restarting), a skip-to-the-next-turn button (jumps to about 250 m before the next junction) and a stop button. On Android Auto: End demo, the speed, Skip turn and Settings.
 - Demo on the route choice: with the demo drive switched on, a Demo button sits beside Start; choose it and Start (or the countdown) begins the trip as a demo drive. On Android Auto too.
 - Keep the arrow to the side: a new switch (Android Auto settings, and Settings › Screen & sizes › While driving) keeps the arrow off to the side on a wide screen when the cards fold away, instead of gliding back to the middle.

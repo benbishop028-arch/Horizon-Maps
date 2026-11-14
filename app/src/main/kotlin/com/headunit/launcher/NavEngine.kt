@@ -515,6 +515,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val tomtomOk = hasKey && refusedKey != apiKey && System.currentTimeMillis() >= ttDownUntil
         if (tomtomOk && (with == "tomtom" || (with == "auto") || !hasMapbox)) {
             val tt = try { TomTomRest.geocode(apiKey, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; null }
+            // TomTom refused the search (a key without the Search API, the daily limit): said once a session, as the results
+            // otherwise just look thin
+            TomTomRest.lastSearchError?.let { err -> if (!ttSearchWarned) { ttSearchWarned = true; scope.launch { toast(L.t("TomTom search didn't work: {0}", err.take(160)), 8000) } } }
             if (tt != null && (tt.size >= 4 || !hasMapbox)) return tt
             if (!hasMapbox) return tt ?: OsmSearch.geocode(country, q, near)
             val mb = try { MapboxRest.geocode(mbToken, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList() }
@@ -530,6 +533,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // no key or token: OpenStreetMap's free search
         return OsmSearch.geocode(country, q, near)
     }
+
+    private var ttSearchWarned = false
 
     /** Places of a kind nearby from whichever service is set up. */
     private fun netPoiNearby(kind: String, c: LL, radius: Int): List<Nearby> =
@@ -2180,6 +2185,52 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.setRoute(r.pts, routes.filterIndexed { i, _ -> i != active }.map { it.pts }, r.sev)
         map.setStopFlags(via.map { it.pos })
         map.setTunnels(r.tunnels.map { (a, b) -> slice(r, a, b) })
+        drawBends(r)
+    }
+
+    // ---- sharp bends: a yellow stretch with black chevrons on the route through each, and a warning card before it ----
+    private var sharpFor: Route? = null
+    private var sharpBends: List<Bends.Bend> = emptyList()
+    private val sharpWarned = HashSet<Int>()
+
+    /** The posted limit (m/s) at [off] metres along [r], when the route came with limits. */
+    private fun limitAt(r: Route, off: Double): Double? = r.limits.firstOrNull { off >= it.off && off < it.end }?.ms
+
+    /** Whether a bend is worth a warning: its comfortable speed is well under the limit there (or under 50 mph when that's not known). */
+    private fun bendMatters(r: Route, b: Bends.Bend, lim: Double?): Boolean {
+        val l = lim ?: limitAt(r, b.start)
+        return if (l != null && l > 0) b.mps <= l - 4.4 else b.mps < 22.0
+    }
+
+    private fun drawBends(r: Route) {
+        if (sharpFor === r) return
+        sharpFor = r; sharpBends = emptyList(); sharpWarned.clear(); map.setBends(emptyList())
+        if (!prefs.b(PreferenceKeys.BEND_WARN, true)) return
+        scope.launch {
+            val found = withContext(Dispatchers.Default) { Bends.find(r) }
+            if (sharpFor !== r) return@launch
+            sharpBends = found
+            map.setBends(found.filter { bendMatters(r, it, null) }.map { it.pts })
+        }
+    }
+
+    /** Once a second while navigating: the warning for the next sharp bend, about 9 seconds before it (at least 150 m). */
+    private fun bendTick(r: Route, prog: Double) {
+        if (sharpFor !== r || sharpBends.isEmpty() || !prefs.b(PreferenceKeys.BEND_WARN, true)) return
+        val spd = fix?.speed ?: 0.0
+        val look = max(150.0, spd * 9.0)
+        for ((i, b) in sharpBends.withIndex()) {
+            if (b.apex < prog || i in sharpWarned) continue
+            if (b.start - prog > look) break
+            if (!bendMatters(r, b, speedLimit)) { sharpWarned += i; continue }
+            // already at a speed that suits it: nothing to say (looked at again next second, in case you speed up)
+            if (simMode == 0 && spd < b.mps + 1.5) continue
+            sharpWarned += i
+            val sp = if (imperial) "${(Math.round(b.mps * 2.23694 / 5.0) * 5).coerceAtLeast(10)} mph" else "${(Math.round(b.mps * 3.6 / 10.0) * 10).coerceAtLeast(20)} km/h"
+            chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
+            raiseAlert(if (b.right) "bend" else "bend-l", L.t("Take it at {0}", sp), 7000)
+            break
+        }
     }
 
     fun cycleRoute() {
@@ -2276,6 +2327,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
         jamSig = 0; map.showJams(emptyList())
+        sharpFor = null; sharpBends = emptyList(); map.setBends(emptyList())
         map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
@@ -3279,6 +3331,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // start/stop moving with a little hysteresis (the full map rests its shop labels while you drive)
         if (!movingNow && sp > 4.0) { movingNow = true; map.setMoving(true) }
         else if (movingNow && sp < 1.5) { movingNow = false; map.setMoving(false) }
+        // the headlight beam ahead of the arrow (night only, the map decides that): while you're moving, longer at speed
+        map.setBeam(movingNow && prefs.b(PreferenceKeys.BEAM, true), sp)
         val tNow = android.os.SystemClock.elapsedRealtime()
         if (newFix) {
             lastMeasured = p
@@ -5055,6 +5109,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun arrivalMoment(a: ArrivalInfo) {
         arrivalParking = null
         val d = a.place?.pos ?: return
+        arrivalPlaceLoop(a, d)
         if (prefs.b(PreferenceKeys.ARRIVALFX, true)) {
             following = false
             recentreToken++
@@ -5069,6 +5124,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             }
             if (arrival === a) arrivalParking = list?.minByOrNull { Geo.dist(d, it.place.pos) }?.let { it.copy(dist = Geo.dist(d, it.place.pos)) }
+        }
+    }
+
+    /**
+     * While the arrival card is up: your destination's building stays lit, its entrance (the side of it nearest where you pulled up)
+     * gets a marker, and a dotted walk runs from the suggested car park to it. Cleared with the card.
+     */
+    private fun arrivalPlaceLoop(a: ArrivalInfo, d: LL) {
+        val from = fix?.pos
+        scope.launch {
+            while (arrival === a) {
+                if (prefs.b(PreferenceKeys.ARRIVAL_PLACE, true)) map.showArrivalPlace(d, from, arrivalParking?.place?.pos)
+                delay(1000)
+            }
+            map.showArrivalPlace(null, null, null)
         }
     }
 
@@ -5403,8 +5473,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         run {
             val dp = dest?.pos
             val left = r.len - progress
-            map.highlightDestination(if (dp != null && left in 15.0..400.0) dp else null)
+            map.highlightDestination(if (dp != null && left <= 400.0) dp else null)
         }
+        try { bendTick(r, progress) } catch (e: Exception) { }
         val now = System.currentTimeMillis()
         barProgress = progress
         val d = dest

@@ -1470,5 +1470,14 @@ object I18nC {
         "Skip to the next turn" to listOf("ข้ามไปทางเลี้ยวถัดไป", "次の曲がり角へスキップ", "Lewati ke belokan berikutnya"),
         "Skip turn" to listOf("ข้ามทางเลี้ยว", "次の曲がり角", "Lewati belokan"),
         "End demo" to listOf("จบการสาธิต", "デモ終了", "Akhiri demo"),
+        "Take it at {0}" to listOf("ผ่านที่ {0}", "{0}で通過", "Lewati dengan {0}"),
+        "SHARP BEND" to listOf("ทางโค้งหักศอก", "急カーブ", "TIKUNGAN TAJAM"),
+        "Sharp bends" to listOf("ทางโค้งหักศอก", "急カーブ", "Tikungan tajam"),
+        "Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each" to listOf("ทางโค้งที่ต้องชะลอจะมีแถบสีเหลืองบนเส้นทาง พร้อมคำเตือนและความเร็วที่เหมาะสมก่อนถึง", "減速が必要なカーブはルート上で黄色の縞になり、手前で警告と快適な速度を表示", "Tikungan yang perlu diperlambat diberi garis kuning di rute, dengan peringatan dan kecepatan nyaman sebelumnya"),
+        "Headlight beam at night" to listOf("ลำแสงไฟหน้าตอนกลางคืน", "夜間のヘッドライト光", "Sorotan lampu malam hari"),
+        "A soft cone of light on the road ahead of you after dark, while you're moving" to listOf("ลำแสงนุ่มนวลบนถนนข้างหน้าหลังมืด ขณะเคลื่อนที่", "暗くなってから走行中に前方の道路を照らすやわらかな光", "Kerucut cahaya lembut di jalan depan Anda saat gelap, ketika bergerak"),
+        "Light up your destination" to listOf("ไฮไลต์จุดหมาย", "目的地をハイライト", "Sorot tujuan Anda"),
+        "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to listOf("เมื่อถึง อาคารจะเรืองแสง ทางเข้าจะถูกทำเครื่องหมาย และเส้นประแสดงทางเดินจากที่จอดรถ", "到着時に建物が光り、入口に印が付き、駐車場からの徒歩ルートを点線で表示", "Saat tiba, gedung menyala, pintu masuk ditandai, dan garis putus-putus menunjukkan jalan kaki dari parkir"),
+        "TomTom search didn't work: {0}" to listOf("การค้นหา TomTom ไม่ทำงาน: {0}", "TomTom検索が機能しませんでした: {0}", "Pencarian TomTom tidak berhasil: {0}"),
     )
 }
