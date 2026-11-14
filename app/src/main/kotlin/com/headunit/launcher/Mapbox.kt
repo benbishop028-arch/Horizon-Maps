@@ -289,9 +289,9 @@ object MapboxRest {
         val pts = listOf(from) + via + listOf(to)
         val coords = pts.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }
         val ex = listOf(excludes(TomTomRest.avoid), enc(pointEx)).filter { it.isNotEmpty() }.joinToString(",")
-        // (Mapbox's directions have no Thai, Bulgarian or Slovenian: an unknown language would fail the route, so English instructions are
-        // asked for there; the app speaks its own translated directions anyway)
-        val lang = if (L.lang == "th" || L.lang == "bg" || L.lang == "sl") "en" else L.lang
+        // (Mapbox's directions have no Thai, Bulgarian, Slovenian, Basque or Traditional Chinese: an unknown language would fail the
+        // route, so English instructions are asked for there, and for Romanian too; the app speaks its own translated directions anyway)
+        val lang = if (L.lang in setOf("th", "bg", "sl", "ro", "eu", "zh")) "en" else L.lang
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
@@ -653,7 +653,7 @@ object MapboxRest {
     /** Branches of a shop or chain named [q] near [near] (Mapbox gives up to 10), for "See all locations". */
     fun chain(token: String, q: String, near: LL): List<Place> {
         val t = token.trim()
-        val arr = JSONObject(get("$API/search/searchbox/v1/forward?q=${enc(q)}&types=poi&limit=10&proximity=${near.lon},${near.lat}&language=${L.lang}&access_token=${enc(t)}", 8000, 10000))
+        val arr = JSONObject(get("$API/search/searchbox/v1/forward?q=${enc(q)}&types=poi&limit=10&proximity=${near.lon},${near.lat}&language=${if (L.lang == "zh") "zh-Hant" else L.lang}&access_token=${enc(t)}", 8000, 10000))
             .optJSONArray("features") ?: return emptyList()
         return (0 until arr.length()).mapNotNull { feature(arr.optJSONObject(it) ?: return@mapNotNull null, q) }
     }
@@ -749,7 +749,7 @@ object MapboxRest {
         val t = enc(token)
         val qq = enc(q.trim())
         val cc = country.trim().lowercase()
-        val lang = L.lang
+        val lang = if (L.lang == "zh") "zh-Hant" else L.lang
         val prox = if (near != null) String.format(java.util.Locale.US, "&proximity=%.5f,%.5f", near.lon, near.lat) else ""
         val ctry = if (cc.isNotEmpty()) "&country=$cc" else ""
         val ukish = cc.isEmpty() || cc == "gb"
@@ -818,7 +818,7 @@ object MapboxRest {
      * filtered out, so the app fell back to the free OpenStreetMap servers; those are often busy ("HTTP 429", "HTTP 502").
      */
     fun poiNearby(token: String, kind: String, c: LL, radius: Int): List<Nearby> {
-        val lang = L.lang
+        val lang = if (L.lang == "zh") "zh-Hant" else L.lang
         val near = String.format(java.util.Locale.US, "&proximity=%.5f,%.5f", c.lon, c.lat)
         // a box round the point (about [radius] each way), so the results really are nearby
         val dLat = radius / 111320.0; val dLon = radius / (111320.0 * Math.cos(Math.toRadians(c.lat)).coerceAtLeast(0.2))

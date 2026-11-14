@@ -127,6 +127,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Romanian, Basque and Traditional Chinese: Horizon Nav can now be used in Română, Euskara and 繁體中文, chosen in Settings or picked up from the phone. Directions and voice commands work in all three, and on a Hong Kong or Macau phone the Chinese voice speaks Cantonese.
 - Card positions: Settings › Screen and sizes › Card positions puts the turn card top left or right, the trip card under it or bottom left, centre or right, and the speedometer bottom left or right, with a live picture as you choose. On Android Auto (Settings › Android Auto): the trip card and speedometer (GitHub).
 - Start from here: press and hold the map, then Start from here, and routes are planned from that spot instead of your GPS position (a "Starting from …" pill shows until you tap it, or until you drive off with a GPS fix) (GitHub #88).
 - Sharp bend warnings: bends that need slowing for are striped yellow with black chevrons on the route, and about 9 seconds before each a yellow chevron sign says "Sharp bend · take it at 25 mph" with a chime (only when you're going faster than that). Worked out from the route's shape; junction turns don't count. Settings › Warnings › Sharp bends.
