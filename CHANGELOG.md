@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.
 - Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.
 - Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
 - Speed limit rules abroad: away from the UK, the app worked out the usual limits from the phone's language region, so an English (UK) phone in France got British rules. It now uses the country you're actually in (GitHub).

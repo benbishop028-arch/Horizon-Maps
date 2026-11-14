@@ -1139,25 +1139,50 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun setBeam(on: Boolean, mps: Double) {
         val was = beamOn
         beamOn = on; beamSpeed = mps
-        if (was && !on) main0.post { try { src("dl-beam")?.featureCollection(empty()) } catch (e: Throwable) { } }
+        if (was && !on) main0.post { try { pushBeam() } catch (e: Throwable) { } }
     }
+
+    // The beam is a "location indicator" layer: its place and direction are set straight on the layer each time the arrow moves,
+    // the way Mapbox moves its own location puck. (It used to be a GeoJSON symbol, re-sent 15 times a second: each update rebuilt
+    // the symbol, so it flickered, sometimes vanished for a moment, and the extra work slowed the map.)
+    private var beamShown = false
+    private var beamLat = 0.0; private var beamLon = 0.0; private var beamHead = -999.0
+    private var beamScale = -1.0
 
     private fun pushBeam() {
-        val s = src("dl-beam") ?: return
+        val st = style ?: return
+        if (!st.styleLayerExists("dl-beam-l")) return
         val p = me
         val night = lightPreset == "night" || lightPreset == "dusk"
-        if (p == null || !beamOn || !night || satellite) { s.featureCollection(empty()); return }
-        val f = Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat))
-        f.addNumberProperty("h", meHeading)
-        // a little longer the faster you go (up to about 70 mph)
-        f.addNumberProperty("s", 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5)
-        s.feature(f)
+        if (p == null || !beamOn || !night || satellite) {
+            if (beamShown) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("none")); beamShown = false }
+            return
+        }
+        // a little longer the faster you go (up to about 70 mph), in steps so the size isn't reset on every fix
+        val sc = Math.round((0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5) * 10.0) / 10.0
+        if (sc != beamScale) {
+            beamScale = sc
+            Value.fromJson("[\"interpolate\",[\"linear\"],[\"zoom\"],13,${0.35 * sc},16,${0.75 * sc},18,${1.3 * sc},20,${2.2 * sc}]").value
+                ?.let { st.setStyleLayerProperty("dl-beam-l", "bearing-image-size", it) }
+        }
+        // only when it has really moved or turned (the arrow is moved up to 15 times a second)
+        val moved = Math.abs(p.lat - beamLat) > 1.5e-6 || Math.abs(p.lon - beamLon) > 1.5e-6
+        var dh = Math.abs(meHeading - beamHead) % 360.0; if (dh > 180.0) dh = 360.0 - dh
+        if (moved || dh > 0.4 || !beamShown) {
+            beamLat = p.lat; beamLon = p.lon; beamHead = meHeading
+            Value.fromJson("[${p.lat},${p.lon},0]").value?.let { st.setStyleLayerProperty("dl-beam-l", "location", it) }
+            st.setStyleLayerProperty("dl-beam-l", "bearing", Value.valueOf(meHeading))
+        }
+        if (!beamShown) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("visible")); beamShown = true }
     }
 
-    /** The beam: warm light fading out from the arrow, with soft edges. */
+    /**
+     * The beam: warm light fading out from the arrow, with soft edges. Drawn in the top half of a picture twice its height, as the
+     * location indicator centres its picture on the car (so the cone starts at the arrow and reaches ahead).
+     */
     private fun beamBitmap(): Bitmap {
         val w = 256; val h = 320
-        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val b = Bitmap.createBitmap(w, h * 2, Bitmap.Config.ARGB_8888)
         val c = android.graphics.Canvas(b)
         val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             shader = android.graphics.RadialGradient(w / 2f, h.toFloat(), h.toFloat(),
@@ -2322,11 +2347,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         } catch (e: Throwable) { }
         // the headlight beam (under the arrow; night only, while moving)
         addImg(st, "dl-beam", beamBitmap())
-        addS(st, GeoJsonSource.Builder("dl-beam").featureCollection(empty()).build())
-        if (!satellite) addL(st, SymbolLayer("dl-beam-l", "dl-beam").iconImage("dl-beam").iconAnchor(IconAnchor.BOTTOM)
-            .iconRotate(Expression.get("h")).iconRotationAlignment(IconRotationAlignment.MAP).iconPitchAlignment(IconPitchAlignment.MAP)
-            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0).iconOpacity(0.9)
-            .iconSize(Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"zoom\"],13,[\"*\",0.35,[\"get\",\"s\"]],16,[\"*\",0.75,[\"get\",\"s\"]],18,[\"*\",1.3,[\"get\",\"s\"]],20,[\"*\",2.2,[\"get\",\"s\"]]]")))
+        beamShown = false; beamScale = -1.0; beamHead = -999.0
+        try {
+            // (no movement animation: it's moved with the arrow, which is already smoothed)
+            val json = "{\"id\":\"dl-beam-l\",\"type\":\"location-indicator\",\"layout\":{\"bearing-image\":\"dl-beam\",\"visibility\":\"none\"}," +
+                "\"paint\":{\"location\":[0,0,0],\"bearing\":0,\"bearing-image-size\":0.8,\"perspective-compensation\":0," +
+                "\"accuracy-radius\":0,\"emphasis-circle-radius\":0,\"location-transition\":{\"duration\":0,\"delay\":0},\"bearing-transition\":{\"duration\":0,\"delay\":0}}}"
+            Value.fromJson(json).value?.let { st.addStyleLayer(it, null) }
+        } catch (e: Throwable) { android.util.Log.w("MapBinding", "beam: ${e.message}") }
         // arriving: a dotted walk from the car park, and the entrance marked
         addS(st, GeoJsonSource.Builder("dl-walk").featureCollection(empty()).build())
         addL(st, LineLayer("dl-walk-line", "dl-walk").lineColor("#2E7CF6").lineWidth(5.0).lineOpacity(0.95)
