@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.
 - Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
 - Speed limit rules abroad: away from the UK, the app worked out the usual limits from the phone's language region, so an English (UK) phone in France got British rules. It now uses the country you're actually in (GitHub).
 - Searching by name or address with a TomTom key: if TomTom's classic search refuses the key (newer keys can come with only the newer "Orbis" APIs), the same search is now tried on TomTom's Orbis service, so shops, places and addresses are found again instead of only postcodes. If TomTom refuses both, the app now says why once, instead of quietly showing thin results.

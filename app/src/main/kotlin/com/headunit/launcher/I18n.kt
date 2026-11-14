@@ -400,33 +400,56 @@ object L {
 
     /** The ordinal as it's said ("2nd" is read out well in English; the others as words up to tenth). */
     fun ordSpoken(n: Int): String {
-        val words = when (lang) {
-            "nl" -> listOf("eerste", "tweede", "derde", "vierde", "vijfde", "zesde", "zevende", "achtste", "negende", "tiende")
-            "de" -> listOf("erste", "zweite", "dritte", "vierte", "fünfte", "sechste", "siebte", "achte", "neunte", "zehnte")
-            "fr" -> listOf("première", "deuxième", "troisième", "quatrième", "cinquième", "sixième", "septième", "huitième", "neuvième", "dixième")
-            "es" -> listOf("primera", "segunda", "tercera", "cuarta", "quinta", "sexta", "séptima", "octava", "novena", "décima")
-            "it" -> listOf("prima", "seconda", "terza", "quarta", "quinta", "sesta", "settima", "ottava", "nona", "decima")
-            "pt" -> listOf("primeira", "segunda", "terceira", "quarta", "quinta", "sexta", "sétima", "oitava", "nona", "décima")
-            "pl" -> listOf("pierwszy", "drugi", "trzeci", "czwarty", "piąty", "szósty", "siódmy", "ósmy", "dziewiąty", "dziesiąty")
-            "sl" -> listOf("prvi", "drugi", "tretji", "četrti", "peti", "šesti", "sedmi", "osmi", "deveti", "deseti")
-            "bg" -> listOf("първия", "втория", "третия", "четвъртия", "петия", "шестия", "седмия", "осмия", "деветия", "десетия")
-            "ro" -> listOf("prima", "a doua", "a treia", "a patra", "a cincea", "a șasea", "a șaptea", "a opta", "a noua", "a zecea")
-            "eu" -> listOf("lehenengo", "bigarren", "hirugarren", "laugarren", "bosgarren", "seigarren", "zazpigarren", "zortzigarren", "bederatzigarren", "hamargarren")
-            // (said in the form the roundabout phrase needs: "στη δεύτερη έξοδο", "druhým výjezdem", "toisesta liittymästä")
-            "el" -> listOf("πρώτη", "δεύτερη", "τρίτη", "τέταρτη", "πέμπτη", "έκτη", "έβδομη", "όγδοη", "ένατη", "δέκατη")
-            "cs" -> listOf("prvním", "druhým", "třetím", "čtvrtým", "pátým", "šestým", "sedmým", "osmým", "devátým", "desátým")
-            "fi" -> listOf("ensimmäisestä", "toisesta", "kolmannesta", "neljännestä", "viidennestä", "kuudennesta", "seitsemännestä", "kahdeksannesta", "yhdeksännestä", "kymmenennestä")
-            "sk" -> listOf("prvým", "druhým", "tretím", "štvrtým", "piatym", "šiestym", "siedmym", "ôsmym", "deviatym", "desiatym")
-            "da" -> listOf("første", "anden", "tredje", "fjerde", "femte", "sjette", "syvende", "ottende", "niende", "tiende")
-            "id" -> listOf("pertama", "kedua", "ketiga", "keempat", "kelima", "keenam", "ketujuh", "kedelapan", "kesembilan", "kesepuluh")
-            // (Thai, Japanese and Chinese voices read "ที่ 2", "2番目" and "第2個" well)
-            else -> return ordShort(n)
+        // (kept as one plain string per language and cut by hand: a list per language, picked in a "when", built a method that
+        // Android 13's checker on some head units turned down, which stopped the whole app opening)
+        val all = ordWords(lang)
+        if (all.isEmpty() || n < 1) return ordShort(n)
+        var start = 0
+        for (i in 1 until n) {
+            val bar = all.indexOf('|', start)
+            if (bar < 0) return ordShort(n)
+            start = bar + 1
         }
-        return words.getOrNull(n - 1) ?: ordShort(n)
+        val end = all.indexOf('|', start)
+        return if (end < 0) all.substring(start) else all.substring(start, end)
+    }
+
+    /** The ordinals 1st to 10th as said in [l], split by "|"; blank where the figure is read out instead
+     *  (Thai, Japanese and Chinese voices read "ที่ 2", "2番目" and "第2個" well). */
+    private fun ordWords(l: String): String = when (l) {
+        "nl" -> "eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende"
+        "de" -> "erste|zweite|dritte|vierte|fünfte|sechste|siebte|achte|neunte|zehnte"
+        "fr" -> "première|deuxième|troisième|quatrième|cinquième|sixième|septième|huitième|neuvième|dixième"
+        "es" -> "primera|segunda|tercera|cuarta|quinta|sexta|séptima|octava|novena|décima"
+        "it" -> "prima|seconda|terza|quarta|quinta|sesta|settima|ottava|nona|decima"
+        "pt" -> "primeira|segunda|terceira|quarta|quinta|sexta|sétima|oitava|nona|décima"
+        "pl" -> "pierwszy|drugi|trzeci|czwarty|piąty|szósty|siódmy|ósmy|dziewiąty|dziesiąty"
+        "sl" -> "prvi|drugi|tretji|četrti|peti|šesti|sedmi|osmi|deveti|deseti"
+        "bg" -> "първия|втория|третия|четвъртия|петия|шестия|седмия|осмия|деветия|десетия"
+        "ro" -> "prima|a doua|a treia|a patra|a cincea|a șasea|a șaptea|a opta|a noua|a zecea"
+        "eu" -> "lehenengo|bigarren|hirugarren|laugarren|bosgarren|seigarren|zazpigarren|zortzigarren|bederatzigarren|hamargarren"
+        // (said in the form the roundabout phrase needs: "στη δεύτερη έξοδο", "druhým výjezdem", "toisesta liittymästä")
+        "el" -> "πρώτη|δεύτερη|τρίτη|τέταρτη|πέμπτη|έκτη|έβδομη|όγδοη|ένατη|δέκατη"
+        "cs" -> "prvním|druhým|třetím|čtvrtým|pátým|šestým|sedmým|osmým|devátým|desátým"
+        "fi" -> "ensimmäisestä|toisesta|kolmannesta|neljännestä|viidennestä|kuudennesta|seitsemännestä|kahdeksannesta|yhdeksännestä|kymmenennestä"
+        "sk" -> "prvým|druhým|tretím|štvrtým|piatym|šiestym|siedmym|ôsmym|deviatym|desiatym"
+        "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
+        "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
+        else -> ""
     }
 
     /** "two", "three" in English; a figure in the others (the voices read figures well). */
     fun count(n: Int): String = if (lang == "en") when (n) { 2 -> "two"; 3 -> "three"; else -> n.toString() } else n.toString()
+
+    /** Puts one language's own file (see I18nRo and the others) into the table. */
+    private fun addOwn(m: Map<String, HashMap<String, String>>, code: String, rows: List<Pair<String, String>>) {
+        val into: HashMap<String, String> = m[code] ?: return
+        for (row in rows) {
+            val en: String = row.first
+            val tr: String = row.second
+            if (tr.isNotEmpty()) into[en] = tr
+        }
+    }
 
     private val table: Map<String, Map<String, String>> by lazy {
         val keys = listOf("nl", "de", "fr", "es")
@@ -441,7 +464,15 @@ object L {
         for ((en, tr) in I18nD.rows()) for ((i, k) in keys4.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in I18nE.rows()) for ((i, k) in keys5.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         // (one file per language from here on)
-        for ((k, rs) in listOf("ro" to I18nRo.rows(), "eu" to I18nEu.rows(), "zh" to I18nZhHant.rows(), "el" to I18nEl.rows(), "cs" to I18nCs.rows(), "fi" to I18nFi.rows(), "zhs" to I18nZhHans.rows(), "sk" to I18nSk.rows(), "da" to I18nDa.rows())) for ((en, tr) in rs) if (tr.isNotEmpty()) m[k]!![en] = tr
+        addOwn(m, "ro", I18nRo.rows())
+        addOwn(m, "eu", I18nEu.rows())
+        addOwn(m, "zh", I18nZhHant.rows())
+        addOwn(m, "el", I18nEl.rows())
+        addOwn(m, "cs", I18nCs.rows())
+        addOwn(m, "fi", I18nFi.rows())
+        addOwn(m, "zhs", I18nZhHans.rows())
+        addOwn(m, "sk", I18nSk.rows())
+        addOwn(m, "da", I18nDa.rows())
         m
     }
 
