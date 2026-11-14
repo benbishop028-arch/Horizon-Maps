@@ -5645,7 +5645,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
                 val secs = (now - avgEnterAt) / 1000.0
                 val avg = if (secs > 4.0) (progress - avgEnterProg) / secs else sp
-                val lim = cur.def.limit ?: speedLimit
+                // the check's own limit, unless the road you're on has a lower one signed (a mapping slip shouldn't ever tell you
+                // to go faster than the sign beside you)
+                val roadLim = speedLimit?.takeIf { !limitEstimated }
+                val zoneLim = cur.def.limit
+                val lim = if (zoneLim == null) speedLimit else if (roadLim != null && roadLim < zoneLim - 1.4) roadLim else zoneLim
                 val over = lim != null && secs > 15.0 && avg > lim + 0.45
                 if (over && !avgOverWarned) {
                     avgOverWarned = true

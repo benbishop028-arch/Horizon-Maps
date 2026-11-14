@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Average speed check limits outside the UK: a check's limit was always read as British, so one mapped as "60" (km/h) showed as 95 km/h. It's now read in the units of the country the check is in, and the card never shows a limit higher than the road's own signed limit.
 - Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
 - Speed cameras along the route: the cameras on a planned route now show along all of it while you choose the route or start a demo, not only within 10 km of where you are. A stretch of road whose cameras couldn't be looked up (a busy server) is now tried again, instead of being skipped for the rest of the trip.
 - Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.

@@ -136,9 +136,11 @@ object RouteExtras {
                 when (m.optString("role")) { "from" -> from += p; "to" -> to += p; else -> dev += p }
             }
             val t = rel.optJSONObject("tags") ?: JSONObject()
-            val lim = t.optString("maxspeed").takeIf { it.isNotBlank() }?.let { Overpass.parseSpeed(it, "GB") }
             val starts = from.ifEmpty { dev }; val ends = to.ifEmpty { dev }
             if (starts.isEmpty() || ends.isEmpty()) continue
+            // read in the country the check is in: it was always read as British, where a limit with no unit is in mph, so a
+            // 60 km/h check elsewhere came out as 60 mph and showed as 95 km/h (GitHub #106)
+            val lim = t.optString("maxspeed").takeIf { it.isNotBlank() }?.let { Overpass.parseSpeed(it, Overpass.countryAt(starts.first())) }
             avgs += AvgDef(rel.optLong("id"), t.optString("name").ifBlank { "Average speed check" }, starts, ends, lim)
         }
         return pois to avgs
