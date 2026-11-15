@@ -1503,5 +1503,6 @@ object I18nDa {
         "At the stop sign, {0}" to "Ved stopskiltet, {0}",
         "Landmarks in directions" to "Kendemærker i vejledningen",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"Ved lyskrydset, drej til højre\" i stedet for afstanden, når svinget er ved et lyskryds eller et stopskilt, på svingkortet og i stemmen",
+        "Your order" to "Rækkefølge",
     )
 }

@@ -1503,5 +1503,6 @@ object I18nD {
         "At the stop sign, {0}" to listOf("На знака стоп {0}"),
         "Landmarks in directions" to listOf("Ориентири в указанията"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("„На светофара завийте надясно\" вместо разстоянието, когато завоят е на светофар или знак стоп, на картата за завой и в гласа"),
+        "Your order" to listOf("Подредба"),
     )
 }

@@ -1503,5 +1503,6 @@ object I18nHu {
         "At the stop sign, {0}" to "A stoptáblánál {0}",
         "Landmarks in directions" to "Tájékozódási pontok az utasításokban",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„A lámpánál forduljon jobbra” a távolság helyett, ha a kanyar lámpánál vagy stoptáblánál van, a kanyarkártyán és a hangban",
+        "Your order" to "Sorrend",
     )
 }

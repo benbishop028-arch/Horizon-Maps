@@ -1503,5 +1503,6 @@ object I18nTr {
         "At the stop sign, {0}" to "Dur levhasında {0}",
         "Landmarks in directions" to "Yönlendirmelerde yer işaretleri",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "Dönüş ışıklarda veya dur levhasındaysa mesafe yerine \"Trafik ışıklarında sağa dönün\"; dönüş kartında ve seste",
+        "Your order" to "Sıralama",
     )
 }

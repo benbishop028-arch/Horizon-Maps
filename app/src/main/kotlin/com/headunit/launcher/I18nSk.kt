@@ -1503,5 +1503,6 @@ object I18nSk {
         "At the stop sign, {0}" to "Pri značke stop {0}",
         "Landmarks in directions" to "Orientačné body v pokynoch",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„Na semaforoch odbočte vpravo“ namiesto vzdialenosti, keď je odbočka na semaforoch alebo pri značke stop, na karte odbočenia aj v hlase",
+        "Your order" to "Poradie",
     )
 }

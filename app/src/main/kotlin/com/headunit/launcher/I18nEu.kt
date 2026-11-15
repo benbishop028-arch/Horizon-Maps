@@ -1503,5 +1503,6 @@ object I18nEu {
         "At the stop sign, {0}" to "Stop seinalean, {0}",
         "Landmarks in directions" to "Erreferentziak jarraibideetan",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "«Semaforoan, biratu eskuinera» distantziaren ordez, bira semaforo edo stop seinale batean dagoenean, bira-txartelean eta ahotsean",
+        "Your order" to "Ordena",
     )
 }

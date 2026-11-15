@@ -1503,5 +1503,6 @@ object I18nE {
         "At the stop sign, {0}" to listOf("Pri znaku stop {0}"),
         "Landmarks in directions" to listOf("Orientirji v navodilih"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("»Na semaforju zavijte desno« namesto razdalje, ko je zavoj pri semaforju ali znaku stop, na kartici zavoja in v glasu"),
+        "Your order" to listOf("Vrstni red"),
     )
 }

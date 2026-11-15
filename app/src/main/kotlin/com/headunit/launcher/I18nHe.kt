@@ -1503,5 +1503,6 @@ object I18nHe {
         "At the stop sign, {0}" to "בתמרור העצור, {0}",
         "Landmarks in directions" to "ציוני דרך בהנחיות",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"ברמזור, פנה ימינה\" במקום המרחק כשהפנייה היא ברמזור או בתמרור עצור, בכרטיס הפנייה ובקול",
+        "Your order" to "סדר",
     )
 }

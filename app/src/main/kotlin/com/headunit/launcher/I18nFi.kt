@@ -1503,5 +1503,6 @@ object I18nFi {
         "At the stop sign, {0}" to "Stop-merkillä {0}",
         "Landmarks in directions" to "Maamerkit ohjeissa",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "”Liikennevaloissa käänny oikealle” etäisyyden sijaan, kun käännös on liikennevaloissa tai stop-merkillä, käännöskortissa ja puheessa",
+        "Your order" to "Järjestys",
     )
 }

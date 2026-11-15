@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
 - Camera alerts in France, Germany and Switzerland: the message saying they're switched off there now shows only the first time in each country instead of every time the app opens, and names the switch that keeps them on ("Off where they're banned" in Settings › Alerts)
 - Signing key: Horizon Nav updates are now signed with a new key kept only in GitHub Secrets, with Android's key rotation so it updates over the current version as normal
 - Always day on Android Auto: the car screen's own Always day / Always night now wins. With the phone set to Night (or to follow a dark phone), picking Always day on the car still left the car's map dark.
@@ -136,6 +137,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 - Arabic, Hebrew and Urdu: the whole app, the spoken directions and the voice commands, read right to left. The inside of the turn card, trip card, search and settings is laid out right to left, while where the cards sit on the map still follows your driving side
 - Turkish and Serbian: the whole app, the spoken directions and the voice commands are now in Türkçe and Srpski (Latin script). Pick them in Settings › Sound & voice › Language, or leave it on Phone's language
 - Landmarks in directions: when a turn is at traffic lights or a stop sign, the turn card says "At the lights" (with the distance and road below) and the voice says "At the traffic lights, turn right onto…", or "At the second set of lights" when there's one set before it. With more lights on the way it says the distance as before. Turn it off in Settings › Sound & voice › Landmarks in directions

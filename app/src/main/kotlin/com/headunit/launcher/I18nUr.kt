@@ -1503,5 +1503,6 @@ object I18nUr {
         "At the stop sign, {0}" to "رکنے کے نشان پر، {0}",
         "Landmarks in directions" to "ہدایات میں نشانیاں",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "جب موڑ سگنل یا رکنے کے نشان پر ہو تو فاصلے کے بجائے \"ٹریفک سگنل پر، دائیں مڑیں\"، موڑ کارڈ پر اور آواز میں",
+        "Your order" to "ترتیب",
     )
 }

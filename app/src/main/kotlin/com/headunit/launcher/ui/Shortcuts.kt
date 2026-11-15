@@ -4,14 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.EvStation
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AltRoute
@@ -66,6 +74,7 @@ internal fun chosenShortcuts(engine: NavEngine): List<Shortcut> {
 }
 
 /** Settings › Places & trips: pick up to 5 shortcuts; they show in the order they were picked. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun ShortcutsGroup(engine: NavEngine) {
     val c = LocalVw.current
@@ -73,28 +82,57 @@ internal fun ShortcutsGroup(engine: NavEngine) {
     val order = chosenShortcuts(engine).map { it.id }
     fun save(ids: List<String>) = prefs.put(PreferenceKeys.SHORTCUTS, ids.joinToString(","))
     SGroup(L.t("Shortcuts under the search bar"), footer = L.t("Pick up to 5. They show in this order. Tap one to add or take it off")) {
-        Column(Modifier.padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            for (line in allShortcuts(engine).chunked(4)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    for (s in line) {
-                        val at = order.indexOf(s.id)
-                        val on = at >= 0
-                        Row(
-                            Modifier.clip(RoundedCornerShape(22.dp))
-                                .background(if (on) s.color.copy(alpha = 0.2f) else c.tile)
-                                .border(2.dp, if (on) s.color else Color.Transparent, RoundedCornerShape(22.dp))
-                                .pressClick {
-                                    if (on) save(order - s.id)
-                                    else if (order.size < 5) save(order + s.id)
-                                    else engine.toast(L.t("Up to 5: take one off first"), 2500)
-                                }
-                                .padding(horizontal = 14.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(s.icon, null, tint = if (on) s.color else c.sub, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(L.t(s.name), color = if (on) c.text else c.sub, fontSize = 15.sp)
-                            if (on) { Spacer(Modifier.width(8.dp)); Text("${at + 1}", color = c.sub, fontSize = 13.sp) }
+        // (they wrap onto as many lines as the screen needs: in fixed rows of four, a phone squeezed the last one into a
+        // column of single letters, GitHub #121)
+        FlowRow(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                for (s in allShortcuts(engine)) {
+                    val at = order.indexOf(s.id)
+                    val on = at >= 0
+                    Row(
+                        Modifier.clip(RoundedCornerShape(22.dp))
+                            .background(if (on) s.color.copy(alpha = 0.2f) else c.tile)
+                            .border(2.dp, if (on) s.color else Color.Transparent, RoundedCornerShape(22.dp))
+                            .pressClick {
+                                if (on) save(order - s.id)
+                                else if (order.size < 5) save(order + s.id)
+                                else engine.toast(L.t("Up to 5: take one off first"), 2500)
+                            }
+                            .padding(horizontal = 14.dp, vertical = 9.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(s.icon, null, tint = if (on) s.color else c.sub, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(L.t(s.name), color = if (on) c.text else c.sub, fontSize = 15.sp, maxLines = 1, softWrap = false)
+                        if (on) { Spacer(Modifier.width(8.dp)); Text("${at + 1}", color = c.sub, fontSize = 13.sp, maxLines = 1) }
+                    }
+                }
+        }
+        // the picked ones in their order, each with arrows to move it (GitHub #121): arrows rather than dragging, as they're easy
+        // to hit on a head unit
+        if (order.size >= 2) {
+            val all = allShortcuts(engine)
+            Text(L.t("Your order").uppercase(L.locale), color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp, bottom = 6.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                order.forEachIndexed { i, id ->
+                    val s = all.firstOrNull { it.id == id } ?: return@forEachIndexed
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.tile).padding(start = 12.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("${i + 1}", color = c.sub, fontSize = 14.sp, modifier = Modifier.width(22.dp))
+                        Icon(s.icon, null, tint = s.color, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(L.t(s.name), color = c.text, fontSize = 15.sp, maxLines = 1, modifier = Modifier.weight(1f))
+                        for ((up, icon) in listOf(true to Icons.Rounded.KeyboardArrowUp, false to Icons.Rounded.KeyboardArrowDown)) {
+                            val to = if (up) i - 1 else i + 1
+                            val can = to in order.indices
+                            Box(
+                                Modifier.padding(start = 6.dp).size(44.dp).clip(CircleShape).alpha(if (can) 1f else 0.3f)
+                                    .then(if (can) Modifier.background(c.line).pressClick {
+                                        val m = order.toMutableList(); m[i] = order[to]; m[to] = order[i]; save(m)
+                                    } else Modifier),
+                                contentAlignment = Alignment.Center,
+                            ) { Icon(icon, L.t(if (up) "Earlier" else "Later"), tint = c.text, modifier = Modifier.size(26.dp)) }
                         }
                     }
                 }

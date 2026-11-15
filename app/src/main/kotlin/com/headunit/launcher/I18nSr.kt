@@ -1503,5 +1503,6 @@ object I18nSr {
         "At the stop sign, {0}" to "Kod znaka stop {0}",
         "Landmarks in directions" to "Orijentiri u uputstvima",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„Na semaforu skrenite desno\" umesto razdaljine kada je skretanje na semaforu ili kod znaka stop, na kartici skretanja i u glasu",
+        "Your order" to "Redosled",
     )
 }

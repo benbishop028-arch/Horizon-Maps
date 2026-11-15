@@ -1503,5 +1503,6 @@ object I18nMs {
         "At the stop sign, {0}" to "Di papan tanda berhenti, {0}",
         "Landmarks in directions" to "Mercu tanda dalam arahan",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"Di lampu isyarat, belok kanan\" menggantikan jarak apabila belokan berada di lampu isyarat atau papan tanda berhenti, pada kad belokan dan dalam suara",
+        "Your order" to "Susunan",
     )
 }

@@ -2134,6 +2134,7 @@ object L {
         "At the stop sign, {0}" to listOf("Bij het stopbord {0}", "Am Stoppschild {0}", "Au stop, {0}", "En la señal de stop, {0}"),
         "Landmarks in directions" to listOf("Herkenningspunten in aanwijzingen", "Orientierungspunkte in Ansagen", "Repères dans les indications", "Referencias en las indicaciones"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("\"Bij de verkeerslichten rechtsaf\" in plaats van de afstand als de afslag bij verkeerslichten of een stopbord is, op de afslagkaart en in de stem", "„An der Ampel rechts abbiegen\" statt der Entfernung, wenn die Abbiegung an einer Ampel oder einem Stoppschild ist, auf der Abbiegekarte und in der Sprachansage", "« Aux feux, tournez à droite » au lieu de la distance quand le virage est à des feux ou à un stop, sur la carte de direction et dans la voix", "\"En el semáforo, gire a la derecha\" en lugar de la distancia cuando el giro está en un semáforo o una señal de stop, en la tarjeta de giro y en la voz"),
+        "Your order" to listOf("Volgorde", "Reihenfolge", "Ordre d'affichage", "Orden"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3638,5 +3639,6 @@ object L {
         "At the stop sign, {0}" to listOf("Allo stop, {0}", "No sinal de stop, {0}", "Przy znaku stop {0}"),
         "Landmarks in directions" to listOf("Punti di riferimento nelle indicazioni", "Referências nas indicações", "Punkty orientacyjne we wskazówkach"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("\"Al semaforo, svolta a destra\" al posto della distanza quando la svolta è a un semaforo o a uno stop, sulla scheda di svolta e nella voce", "\"No semáforo, vire à direita\" em vez da distância quando a curva é num semáforo ou sinal de stop, no cartão de manobra e na voz", "„Na światłach skręć w prawo\" zamiast odległości, gdy skręt jest na światłach lub przy znaku stop, na karcie manewru i w komunikatach głosowych"),
+        "Your order" to listOf("Ordine", "Ordem", "Kolejność"),
     )
 }

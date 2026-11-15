@@ -1503,5 +1503,6 @@ object I18nZhHant {
         "At the stop sign, {0}" to "在停車標誌處，{0}",
         "Landmarks in directions" to "以地標指示方向",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "轉彎處有紅綠燈或停車標誌時，轉彎卡片和語音會說「在紅綠燈處右轉」，而不是距離",
+        "Your order" to "排列順序",
     )
 }

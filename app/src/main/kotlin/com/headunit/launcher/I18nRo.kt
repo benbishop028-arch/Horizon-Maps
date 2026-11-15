@@ -1503,5 +1503,6 @@ object I18nRo {
         "At the stop sign, {0}" to "La semnul stop, {0}",
         "Landmarks in directions" to "Repere în indicații",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„La semafor, virați la dreapta” în loc de distanță când virajul este la semafor sau la un semn stop, pe cardul de viraj și în voce",
+        "Your order" to "Ordinea",
     )
 }

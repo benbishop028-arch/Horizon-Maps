@@ -1503,5 +1503,6 @@ object I18nAr {
         "At the stop sign, {0}" to "عند علامة قف، {0}",
         "Landmarks in directions" to "معالم في الاتجاهات",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"عند إشارة المرور، انعطف يمينًا\" بدل المسافة عندما يكون الانعطاف عند إشارة أو علامة قف، على بطاقة الانعطاف وفي الصوت",
+        "Your order" to "الترتيب",
     )
 }

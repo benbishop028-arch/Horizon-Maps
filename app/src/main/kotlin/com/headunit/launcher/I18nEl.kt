@@ -1503,5 +1503,6 @@ object I18nEl {
         "At the stop sign, {0}" to "Στο σήμα STOP, {0}",
         "Landmarks in directions" to "Ορόσημα στις οδηγίες",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "«Στα φανάρια, στρίψτε δεξιά» αντί για την απόσταση όταν η στροφή είναι σε φανάρια ή σήμα STOP, στην κάρτα στροφής και στη φωνή",
+        "Your order" to "Σειρά",
     )
 }

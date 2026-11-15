@@ -1512,5 +1512,6 @@ object I18nC {
         "At the stop sign, {0}" to listOf("ที่ป้ายหยุด {0}", "一時停止の標識で、{0}", "Di rambu berhenti, {0}"),
         "Landmarks in directions" to listOf("จุดสังเกตในคำแนะนำเส้นทาง", "目印での案内", "Patokan dalam petunjuk arah"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("\"ที่สัญญาณไฟ เลี้ยวขวา\" แทนระยะทางเมื่อจุดเลี้ยวอยู่ที่สัญญาณไฟหรือป้ายหยุด บนการ์ดเลี้ยวและในเสียงนำทาง", "曲がる場所が信号や一時停止の標識のとき、距離の代わりに「信号で右折」と案内します(案内カードと音声)", "\"Di lampu merah, belok kanan\" sebagai ganti jarak saat belokan ada di lampu merah atau rambu berhenti, di kartu belokan dan dalam suara"),
+        "Your order" to listOf("ลำดับ", "並び順", "Urutan"),
     )
 }
