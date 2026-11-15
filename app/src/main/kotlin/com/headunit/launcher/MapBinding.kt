@@ -1170,15 +1170,59 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             Value.fromJson("[\"interpolate\",[\"linear\"],[\"zoom\"],13,${0.35 * sc},16,${0.75 * sc},18,${1.3 * sc},20,${2.2 * sc}]").value
                 ?.let { st.setStyleLayerProperty("dl-beam-l", "bearing-image-size", it) }
         }
+        // the cone starts at the arrow's nose, not its middle: the arrow is a picture over the map, so a cone starting at the
+        // car's spot was hidden under it, which read as light under the arrow (GitHub). Moved ahead by the arrow's front half.
+        val a = beamAhead(p)
+        val q = if (a > 0.0) Furniture.offset(p, meHeading, a) else p
         // only when it has really moved or turned (the arrow is moved up to 15 times a second)
-        val moved = Math.abs(p.lat - beamLat) > 1.5e-6 || Math.abs(p.lon - beamLon) > 1.5e-6
+        val moved = Math.abs(q.lat - beamLat) > 1.5e-6 || Math.abs(q.lon - beamLon) > 1.5e-6
         var dh = Math.abs(meHeading - beamHead) % 360.0; if (dh > 180.0) dh = 360.0 - dh
         if (moved || dh > 0.4 || !beamShown) {
-            beamLat = p.lat; beamLon = p.lon; beamHead = meHeading
-            Value.fromJson("[${p.lat},${p.lon},0]").value?.let { st.setStyleLayerProperty("dl-beam-l", "location", it) }
+            beamLat = q.lat; beamLon = q.lon; beamHead = meHeading
+            Value.fromJson("[${q.lat},${q.lon},0]").value?.let { st.setStyleLayerProperty("dl-beam-l", "location", it) }
             st.setStyleLayerProperty("dl-beam-l", "bearing", Value.valueOf(meHeading))
         }
         if (!beamShown) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("visible")); beamShown = true }
+    }
+
+    /**
+     * How far ahead of the car's spot (in metres) the arrow's nose is on the map at the current zoom and tilt: the arrow's
+     * front reach on screen, turned into metres along the way you're heading. 0 if it can't be worked out.
+     */
+    private fun beamAhead(p: LL): Double {
+        return try {
+            val tilt = try { mbMap.cameraState.pitch } catch (e: Throwable) { tiltNow }
+            val cosT = Math.cos(Math.toRadians(tilt)).coerceAtLeast(0.2)
+            val bmp = spriteBmp
+            // the arrow's front reach in screen pixels (3D arrow / car pictures stand up on screen; the flat arrow lies on the map)
+            val reachPx: Double = when {
+                modelOn -> modelPxPerUnit() * (if (carLike) 2.3 else 0.85) * cosT
+                locatorStyle != "flat" && bmp != null -> drawnRadius(bmp) * spriteSize() * 0.8
+                else -> (flatArrow?.let { drawnRadius(it) * (if (theme == "immersive") 0.25f else 0.625f) * arrowScale } ?: 0f) * cosT
+            }
+            if (reachPx <= 0.0) return 0.0
+            // screen pixels per metre straight ahead (shrinks with the tilt, as the screen sees the road at a slant)
+            val a = mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat))
+            val f = Furniture.offset(p, meHeading, 20.0)
+            val b = mbMap.pixelForCoordinate(Point.fromLngLat(f.lon, f.lat))
+            val pxPerM = Math.hypot(b.x - a.x, b.y - a.y) / 20.0
+            if (pxPerM < 1e-3) 0.0 else (reachPx / pxPerM).coerceIn(0.0, 60.0)
+        } catch (e: Throwable) { 0.0 }
+    }
+
+    /** How far from the centre a picture's drawing really reaches (its empty margin left out), in its own pixels. */
+    private val drawnReach = java.util.WeakHashMap<Bitmap, Float>()
+    private fun drawnRadius(b: Bitmap): Float = drawnReach.getOrPut(b) {
+        val w = b.width; val h = b.height; val cx = w / 2f; val cy = h / 2f
+        val row = IntArray(w); var best = 0f
+        var y = 0
+        while (y < h) {
+            b.getPixels(row, 0, w, 0, y, w, 1)
+            var x = 0
+            while (x < w) { if ((row[x] ushr 24) > 40) { val d = Math.hypot((x - cx).toDouble(), (y - cy).toDouble()).toFloat(); if (d > best) best = d }; x += 2 }
+            y += 2
+        }
+        best
     }
 
     /**
