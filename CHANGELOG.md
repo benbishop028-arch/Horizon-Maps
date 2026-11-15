@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Swedish: Horizon Nav now speaks Swedish (Svenska): directions, screens, Android Auto and voice commands. Pick it in Settings › Sound & voice › Language, or it follows a phone set to Swedish
 - Compact speedometer on Android Auto: an optional small dark pill with the limit sign and your speed side by side (Settings › Android Auto › Speedometer style on the car screen, or Speedometer style in the car's own settings). It's small enough to sit top right even on a short car screen (thanks to yurividal)
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 

@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -480,6 +480,19 @@ object L {
                 "zoom ind" to "zoom in", "zoom ud" to "zoom out", "nord op" to "north up", "hvad er klokken" to "what time",
                 "^\\s*(naviger til|kør til|tag mig til|før mig til|til)\\s" to "go to",
             ),
+            "sv" to r(
+                "\\s(hem|kör hem|ta mig hem|åk hem)\\s" to "go home", "\\s(till jobbet|till kontoret|på jobbet)\\s" to "go to work",
+                "^\\s*(rapportera|anmäl)\\s" to "report", "olycka|krock" to "accident", "polis|polisen|poliskontroll" to "police", "motorstopp|trasig bil|haveri" to "breakdown", "fartkamera|kamera|trafiksäkerhetskamera" to "camera",
+                "bensinmack|mack|bensinstation|tankstation|bensin|bränsle|diesel|tanka" to "fuel", "laddstation|laddstolpe|laddning|ladda|laddare" to "charging", "toalett|toa|wc" to "toilet", "kaffe|fika|kafé|café" to "coffee",
+                "\\smat\\s|restaurang|äta" to "food", "rastplats|rastplatsen|vägkrog" to "services", "parkering|parkeringsplats|parkera" to "parking",
+                "\\s(hitta|sök|sök efter|närmaste|var finns|jag behöver)\\s" to "find", "billigaste|billig" to "cheap",
+                "undvik avgiftsvägar|utan avgiftsvägar|undvik (tullar|avgifter|trängselskatt)" to "avoid toll", "undvik motorvägar|utan motorväg" to "avoid motorway",
+                "undvik den här vägen" to "avoid this road", "när är jag framme|hur lång tid|hur långt" to "eta", "\\s(dela|skicka) (min |ankomst)" to "share",
+                "röst på|slå på rösten" to "voice on", "bara varningar" to "alerts only", "tyst|stäng av rösten|röst av" to "mute",
+                "(avsluta|stoppa|avbryt) (rutten|navigeringen|navigering)" to "end route", "översikt|hela rutten" to "overview",
+                "zooma in" to "zoom in", "zooma ut" to "zoom out", "norr uppåt|norr upp" to "north up", "vad är klockan" to "what time",
+                "^\\s*(navigera till|kör till|ta mig till|åk till|vägbeskrivning till|till)\\s" to "go to",
+            ),
             "id" to r(
                 "\\s(pulang|ke rumah|pulang ke rumah|antar saya pulang)\\s" to "go home", "\\s(pergi |antar saya )?ke (kantor|tempat kerja)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kecelakaan" to "accident", "polisi|razia" to "police", "mogok" to "breakdown", "kamera tilang|kamera" to "camera",
@@ -508,6 +521,8 @@ object L {
         // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
         "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
         "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr" -> "$n."
+        // (1:a, 2:a, 3:e … but 11:e and 12:e)
+        "sv" -> if (n % 10 in 1..2 && n % 100 !in 11..12) "$n:a" else "$n:e"
         "ar", "he", "ur" -> "$n"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
@@ -571,6 +586,7 @@ object L {
         "ur" -> "پہلا|دوسرا|تیسرا|چوتھا|پانچواں|چھٹا|ساتواں|آٹھواں|نواں|دسواں"
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
+        "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
         else -> ""
     }
@@ -594,7 +610,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -618,6 +634,7 @@ object L {
         addOwn(m, "ar", I18nAr.rows())
         addOwn(m, "he", I18nHe.rows())
         addOwn(m, "ur", I18nUr.rows())
+        addOwn(m, "sv", I18nSv.rows())
         m
     }
 
