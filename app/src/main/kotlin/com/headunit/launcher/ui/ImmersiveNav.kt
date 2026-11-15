@@ -514,7 +514,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // "Start from here" (#88): where routes are being planned from, until ✕ (or you set off with a GPS fix). Same spot as the
         // traffic pill (never shown together)
         val sf = engine.startFrom
-        AnimatedVisibility(sf != null && !engine.stoppedOverview, modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
+        // (not over the route choice on a phone: there the bottom of the screen is the route card's buttons, and it covered them)
+        AnimatedVisibility(sf != null && !engine.stoppedOverview && !(previewing && narrow), modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.clearStartFrom() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Starting from {0}", sf?.name ?: ""), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,

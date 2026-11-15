@@ -198,9 +198,11 @@ fun Pill(
 fun MapHost(map: MapBinding, modifier: Modifier = Modifier, cornerDp: Int = 0) {
     val dens by androidx.compose.runtime.rememberUpdatedState(androidx.compose.ui.platform.LocalDensity.current.density)
     val tint = LocalVw.current.mapTint
-    Box(modifier) {
+    // (kept inside its own edges: the arrow picture laid over the map could hang over the top, which showed in the camera strip
+    // once Android 15 and newer let the app reach the top of the screen, GitHub)
+    Box(modifier.clipToBounds()) {
     AndroidView(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().clipToBounds(),
         factory = { ctx ->
             FrameLayout(ctx).apply {
                 if (cornerDp > 0) {
@@ -209,6 +211,10 @@ fun MapHost(map: MapBinding, modifier: Modifier = Modifier, cornerDp: Int = 0) {
                             outline.setRoundRect(0, 0, view.width, view.height, cornerDp * dens)
                         }
                     }
+                    clipToOutline = true
+                } else {
+                    // (square corners: still trimmed to its own edges, so nothing drawn over the map hangs outside it)
+                    outlineProvider = android.view.ViewOutlineProvider.BOUNDS
                     clipToOutline = true
                 }
                 (map.mapView.parent as? ViewGroup)?.removeView(map.mapView)

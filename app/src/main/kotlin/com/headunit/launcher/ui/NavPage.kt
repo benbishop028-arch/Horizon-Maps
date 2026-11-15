@@ -251,7 +251,9 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                 Modifier.weight(1f).inset(18.dp, if (sel) c.accent else null)
                                         .clickable { engine.selectRoute(i) }.padding(horizontal = 14.dp, vertical = 9.dp),
             ) {
-                Text(label.uppercase(), color = if (sel) c.accent else c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                // (one line: three cards across a phone squeezed "ALTERNATIVE" onto two, GitHub)
+                Text(label.uppercase(), color = if (sel) c.accent else c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = if (narrowP) 0.3.sp else 1.sp,
+                    maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                 Text(Geo.fmtDur(r.time), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Text(L.t("{0} · arrive {1}", Geo.fmtDist(r.len, engine.imperial), fmt.format(java.util.Date(baseMs + (r.time * 1000).toLong()))), color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val via = viaOf(r)
@@ -294,9 +296,19 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
             RoundBtn(Icons.Rounded.Close, { engine.endRoute() }, size = 46.dp)
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { routeCards() }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (engine.prefs.b(PreferenceKeys.FLYOVER, true)) FlyOverBtn(engine)
-            if (engine.prefs.b(PreferenceKeys.DEMO, false)) DemoChoiceBtn(engine)
+        // with both Fly over route and Demo on, they get a row of their own: three across a phone squeezed Start navigation into a
+        // narrow column of broken words (GitHub)
+        val flyOn = engine.prefs.b(PreferenceKeys.FLYOVER, true)
+        val demoOn = engine.prefs.b(PreferenceKeys.DEMO, false)
+        if (flyOn && demoOn) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlyOverBtn(engine, Modifier.weight(1f), 56.dp)
+                DemoChoiceBtn(engine, Modifier.weight(1f), 56.dp)
+            }
+            startBtn(Modifier.fillMaxWidth())
+        } else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (flyOn) FlyOverBtn(engine)
+            if (demoOn) DemoChoiceBtn(engine)
             startBtn(Modifier.weight(1f))
         }
     }
@@ -340,12 +352,12 @@ internal fun LorryCheck(engine: NavEngine, r: com.headunit.launcher.Route) {
 
 /** "Fly over route": a 3D flight along the whole drive before you set off. */
 @Composable
-private fun FlyOverBtn(engine: NavEngine) {
+private fun FlyOverBtn(engine: NavEngine, modifier: Modifier = Modifier, height: androidx.compose.ui.unit.Dp = 72.dp) {
     val c = LocalVw.current
     Row(
-        Modifier.height(72.dp).clip(RoundedCornerShape(36.dp)).background(c.accent.copy(alpha = 0.14f))
+        modifier.height(height).clip(RoundedCornerShape(height / 2)).background(c.accent.copy(alpha = 0.14f))
             .clickable(enabled = !engine.flyingOver) { engine.flyOver() }.padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
     ) {
         Icon(Icons.Rounded.PlayArrow, null, tint = c.accent, modifier = Modifier.size(24.dp))
         Text(if (engine.flyingOver) L.t("Flying…") else L.t("Fly over route"), color = c.accent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
@@ -672,14 +684,14 @@ internal object JunctionPics {
  * a demo drive, played along the route, instead of following the GPS.
  */
 @Composable
-internal fun DemoChoiceBtn(engine: NavEngine) {
+internal fun DemoChoiceBtn(engine: NavEngine, modifier: Modifier = Modifier, height: androidx.compose.ui.unit.Dp = 72.dp) {
     val c = LocalVw.current
     val on = engine.demoNext
     // (styled like Fly over route beside it; filled once chosen)
     Row(
-        Modifier.height(72.dp).clip(RoundedCornerShape(36.dp)).background(if (on) c.accent else c.accent.copy(alpha = 0.14f))
+        modifier.height(height).clip(RoundedCornerShape(height / 2)).background(if (on) c.accent else c.accent.copy(alpha = 0.14f))
             .clickable { engine.toggleDemoNext() }.padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
     ) {
         Icon(Icons.Rounded.DirectionsCar, null, tint = if (on) Color.White else c.accent, modifier = Modifier.size(24.dp))
         Text(L.t("Demo"), color = if (on) Color.White else c.accent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
