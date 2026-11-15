@@ -11,6 +11,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Android Auto speedometer position: on shorter car screens the speedometer was always kept bottom left, whatever you chose. Settings › Android Auto › Speedometer (Bottom right) and Speed position on the car screen (Middle, Top) now move it there too
 - Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
 
 ## 1.0.559 — 15 Nov 2026
