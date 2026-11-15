@@ -17,6 +17,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- What's new after skipping an update: the card no longer shows stray text like "(567, ### 1.0.567" between the notes of each version
 - Speed position on Android Auto did nothing on a short car screen, or with the trip card on the right: the speedometer stayed bottom left whatever was picked
 - Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
 
