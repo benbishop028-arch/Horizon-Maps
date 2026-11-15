@@ -14,7 +14,8 @@ object L {
         "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български", "sl" to "Slovenščina",
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
-        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar")
+        "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
+        "tr" to "Türkçe", "sr" to "Srpski")
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -28,6 +29,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
@@ -74,11 +76,18 @@ object L {
      */
     fun voiceToEnglish(text: String): String {
         val rules = voiceRules[lang] ?: return text
-        var t = " " + text.lowercase(locale).trim() + " "
+        // (a capital İ made lower-case the English way leaves a stray dot mark, so "İşe" wouldn't match "işe")
+        var t = " " + text.lowercase(locale).replace("\u0307", "").trim() + " "
         // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
         if (lang == "ja") Regex("(に|へ|まで)\\s*(行って|行く|行きたい|向かって|ナビして|ナビ|案内して|案内)(ください|下さい)?\\s*$").find(t.trimEnd())?.let { m ->
             val place = t.trimEnd().substring(0, m.range.first).trim()
             if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(" $place ") && !Regex(rules[1].first).containsMatchIn(" $place ")) return "go to $place"
+        }
+        // Turkish puts the place first too, with "to" as an ending: "Ankara'ya git", "Kadıköy'e götür"
+        if (lang == "tr") Regex("^\\s*(.+?)(['’](y?[ae]|n[ae]|[iıuü]?n[ae])|ya|ye)?\\s+(git|gidelim|gidiyoruz|götür|beni götür|sür|yol tarifi( al| ver)?|rota oluştur|navigasyon( başlat)?)\\s*$").find(t.trim())?.let { m ->
+            val place = m.groupValues[1].trim()
+            if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(" $place ") && !Regex(rules[1].first).containsMatchIn(" $place ") &&
+                !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
         }
         // "navigate to …" (the last rule) first: the place's name is kept as it was said, so a name with a word like
         // "restaurant" in it is searched for, not turned into a nearby search
@@ -355,6 +364,32 @@ object L {
                 "nagyítás|nagyíts" to "zoom in", "kicsinyítés|kicsinyíts" to "zoom out", "észak felül|észak fent" to "north up", "hány óra van|mennyi az idő" to "what time",
                 "^\\s*(navigálj ide|navigálj|vigyél el|menj ide|menjünk)\\s" to "go to",
             ),
+            "tr" to r(
+                "\\s(eve|evime|eve git|eve götür|beni eve götür)\\s" to "go home", "\\s(işe|iş yerine|işyerine|ofise)\\s" to "go to work",
+                "^\\s*(bildir|ihbar et)\\s" to "report", "kaza" to "accident", "polis|çevirme" to "police", "arıza|arızalı|bozuk araç" to "breakdown", "radar|kamera|hız kamerası" to "camera",
+                "benzinlik|benzin istasyonu|akaryakıt|yakıt|benzin|mazot|dizel|depoyu doldur" to "fuel", "şarj istasyonu|şarj noktası|şarj" to "charging", "tuvalet|wc" to "toilet", "kahve|kafe" to "coffee",
+                "yemek|restoran|lokanta" to "food", "dinlenme tesisi|tesis|mola yeri" to "services", "otopark|park yeri|park" to "parking",
+                "\\s(bul|ara|en yakın|nerede|lazım|gerek)\\s" to "find", "en ucuz|ucuz" to "cheap",
+                "ücretli yollardan kaçın|otoyol ücreti olmadan|gişesiz|köprü ve otoyol ücreti olmadan" to "avoid toll", "otoyollardan kaçın|otoyolsuz|otoyol olmadan" to "avoid motorway",
+                "bu yoldan kaçın" to "avoid this road", "ne zaman varırım|ne zaman varacağım|ne kadar kaldı|kaç dakika kaldı" to "eta", "paylaş|gönder" to "share",
+                "sesi aç|sesli yönlendirmeyi aç" to "voice on", "yalnızca uyarılar|sadece uyarılar" to "alerts only", "sessize al|sustur|sesi kapat" to "mute",
+                "(rotayı|navigasyonu) (bitir|durdur|iptal et|sonlandır)" to "end route", "genel bakış|tüm rota" to "overview",
+                "yakınlaştır" to "zoom in", "uzaklaştır" to "zoom out", "kuzey yukarı" to "north up", "saat kaç" to "what time",
+                "^\\s*(navigasyon başlat|yol tarifi al|git)\\s" to "go to",
+            ),
+            "sr" to r(
+                "\\s(kući|vozi me kući|idemo kući)\\s" to "go home", "\\s(na posao|u kancelariju)\\s" to "go to work",
+                "^\\s*(prijavi|javi)\\s" to "report", "nesreća|nesreću|sudar|udes" to "accident", "policija|policiju|murija" to "police", "kvar|pokvaren[oi]" to "breakdown", "radar|kamera|kameru" to "camera",
+                "benzinska|benzinsku|benzinska pumpa|pumpa|pumpu|gorivo|sipati gorivo|točenje" to "fuel", "punjač|punjenje|stanica za punjenje" to "charging", "wc|toalet|klozet" to "toilet", "kafa|kafu|kafić" to "coffee",
+                "hrana|hranu|restoran|jesti" to "food", "odmorište|odmorišta" to "services", "parking|parkiralište|parkirati" to "parking",
+                "\\s(nađi|pronađi|traži|potraži|najbliža|najbliži|najbliže|gde je|treba mi)\\s" to "find", "najjeftinij[aie]|jeftin[aoi]" to "cheap",
+                "bez putarine|izbegni (putarinu|naplatu)|bez naplate" to "avoid toll", "bez autoputa|izbegni autoput[e]?" to "avoid motorway",
+                "izbegni ovaj put" to "avoid this road", "kad stižem|kada stižem|koliko još|koliko je još" to "eta", "podeli|pošalji" to "share",
+                "uključi glas" to "voice on", "samo upozorenja" to "alerts only", "utišaj|tišina|isključi glas" to "mute",
+                "(završi|zaustavi|prekini|otkaži) (rutu|navigaciju)" to "end route", "pregled|cela ruta|celu rutu" to "overview",
+                "uvećaj|približi" to "zoom in", "umanji|udalji" to "zoom out", "sever gore" to "north up", "koliko je sati" to "what time",
+                "^\\s*(vozi me do|vozi me u|navigiraj do|idi do|idemo u|idemo do|do)\\s" to "go to",
+            ),
             "ms" to r(
                 "\\s(balik rumah|pulang ke rumah|pulang|bawa saya pulang)\\s" to "go home", "\\s(pergi kerja|ke tempat kerja|ke pejabat)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kemalangan|eksiden" to "accident", "polis|sekatan jalan raya" to "police", "kereta rosak|rosak" to "breakdown", "kamera had laju|kamera|perangkap laju" to "camera",
@@ -421,7 +456,7 @@ object L {
         "id", "ms" -> "ke-$n"
         // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
         "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
-        "eu", "cs", "fi", "sk", "da", "hr" -> "$n."
+        "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr" -> "$n."
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
@@ -477,7 +512,8 @@ object L {
         // (with "the", as the roundabout phrase needs: "hajtson ki a második kijáraton")
         "hu" -> "az első|a második|a harmadik|a negyedik|az ötödik|a hatodik|a hetedik|a nyolcadik|a kilencedik|a tizedik"
         "ms" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kelapan|kesembilan|kesepuluh"
-        "hr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
+        "hr", "sr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
+        "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
         else -> ""
@@ -502,7 +538,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -521,6 +557,8 @@ object L {
         addOwn(m, "hr", I18nHr.rows())
         addOwn(m, "ms", I18nMs.rows())
         addOwn(m, "hu", I18nHu.rows())
+        addOwn(m, "tr", I18nTr.rows())
+        addOwn(m, "sr", I18nSr.rows())
         m
     }
 
