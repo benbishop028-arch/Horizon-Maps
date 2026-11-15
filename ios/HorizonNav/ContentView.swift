@@ -7,20 +7,19 @@ struct ContentView: View {
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var featureSheet: FeatureSheet.Kind? = FeatureSheet.kindToShow()
     @State private var showsSettings = false
+    @State private var showsOfflineMaps = false
+    @ObservedObject private var network = NetworkMonitor.shared
+    @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
 
     var body: some View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
-                Map(position: $cameraPosition) {
-                    UserAnnotation()
-                    ForEach(Array(store.routeOptions.enumerated()), id: \.element.id) { index, option in
-                        if index != store.selectedRouteIndex {
-                            MapPolyline(coordinates: option.coordinates).stroke(.gray.opacity(0.7), lineWidth: 6)
-                        }
-                    }
-                    if let route = store.selectedRoute { MapPolyline(coordinates: route.coordinates).stroke(.cyan, lineWidth: 7) }
+                if MapSourcePolicy.usesOpenMap(choice: mapSource, online: network.isOnline) {
+                    OpenMap(routes: store.routeOptions, selected: store.selectedRouteIndex, following: store.phase == .guiding)
+                        .ignoresSafeArea()
+                } else {
+                    appleMap
                 }
-                .mapStyle(.standard(elevation: .realistic, showsTraffic: true))
 
                 locationButton
                     .padding(.trailing)
@@ -31,12 +30,29 @@ struct ContentView: View {
             .navigationTitle("Horizon Nav")
             .toolbar {
                 if store.selectedRoute != nil { Button("End route", role: .destructive) { store.stopNavigating() } }
+                Button { showsOfflineMaps = true } label: { Image(systemName: "arrow.down.circle") }
+                    .accessibilityLabel("Offline maps")
                 Button { showsSettings = true } label: { Image(systemName: "gearshape") }
                     .accessibilityLabel("Settings")
             }
             .sheet(item: $featureSheet) { kind in FeatureSheet(kind: kind) }
             .sheet(isPresented: $showsSettings) { SettingsView() }
+            .sheet(isPresented: $showsOfflineMaps) { OfflineMapsView(store: store) }
         }
+    }
+
+    /// Apple Maps with its live traffic, the map used online by default.
+    private var appleMap: some View {
+        Map(position: $cameraPosition) {
+            UserAnnotation()
+            ForEach(Array(store.routeOptions.enumerated()), id: \.element.id) { index, option in
+                if index != store.selectedRouteIndex {
+                    MapPolyline(coordinates: option.coordinates).stroke(.gray.opacity(0.7), lineWidth: 6)
+                }
+            }
+            if let route = store.selectedRoute { MapPolyline(coordinates: route.coordinates).stroke(.cyan, lineWidth: 7) }
+        }
+        .mapStyle(.standard(elevation: .realistic, showsTraffic: true))
     }
 
     @ViewBuilder
@@ -94,6 +110,22 @@ struct ContentView: View {
             }
             .padding(14)
             .background(.thinMaterial, in: Capsule())
+            if !network.isOnline {
+                Label("No signal: using offline maps", systemImage: "wifi.slash").font(.caption).foregroundStyle(.secondary)
+            }
+            if store.phase == .idle, results.isEmpty, let trip = store.savedTrip {
+                HStack {
+                    Button {
+                        Task { await store.resumeSavedTrip() }
+                    } label: {
+                        Label("Resume trip to \(trip.destinationName)", systemImage: "arrow.uturn.forward.circle")
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    Button { store.forgetSavedTrip() } label: { Image(systemName: "xmark") }
+                        .accessibilityLabel("Forget saved trip")
+                }
+                .buttonStyle(.bordered)
+            }
             if store.phase == .planning { ProgressView("Finding a route") }
             if let error = store.lastError { Text(error).font(.caption).foregroundStyle(.red) }
             ForEach(results, id: \.self) { item in

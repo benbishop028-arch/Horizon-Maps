@@ -3,6 +3,13 @@ options:
   bundleIdPrefix: com.horizonnav
   deploymentTarget:
     iOS: "17.0"
+packages:
+  MapLibre:
+    url: https://github.com/maplibre/maplibre-gl-native-distribution
+    from: 6.31.0
+  ValhallaMobile:
+    url: https://github.com/Rallista/valhalla-mobile
+    exactVersion: 0.6.4
 settings:
   base:
     SWIFT_VERSION: 5.0
@@ -14,6 +21,11 @@ targets:
     platform: iOS
     sources:
       - path: HorizonNav
+    dependencies:
+      - package: MapLibre
+        product: MapLibre
+      - package: ValhallaMobile
+        product: Valhalla
     configFiles:
       Debug: Config/HorizonNav.xcconfig
       Release: Config/HorizonNav.xcconfig

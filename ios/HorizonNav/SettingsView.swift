@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var tomtomKey = KeyStore.keychainValue(for: .tomtom) ?? ""
     @AppStorage(AppSettings.Keys.routingProvider) private var routingProvider = "auto"
     @AppStorage(AppSettings.Keys.searchProvider) private var searchProvider = "auto"
+    @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
 
     var body: some View {
         NavigationStack {
@@ -27,6 +28,16 @@ struct SettingsView: View {
                     Text("Routes and search")
                 } footer: {
                     Text("With both keys on Automatic, new routes are asked of TomTom and Mapbox and the quicker one is offered first. Without a key, Apple Maps plans routes and searches.")
+                }
+                Section {
+                    Picker("Map", selection: $mapSource) {
+                        Text("Apple Maps").tag("apple")
+                        Text("OpenStreetMap").tag("openstreetmap")
+                    }
+                } header: {
+                    Text("Map")
+                } footer: {
+                    Text("Apple Maps shows live traffic. The OpenStreetMap map draws areas saved in Offline maps, and is used automatically when there is no signal.")
                 }
             }
             .navigationTitle("Settings")

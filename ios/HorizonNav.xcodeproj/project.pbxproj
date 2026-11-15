@@ -8,15 +8,24 @@
 
 /* Begin PBXBuildFile section */
 		0664A1BD5E3D990137505D78 /* Routing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5977C187B264C02BD1341F29 /* Routing.swift */; };
+		16C09E9E4C8E321E9F880690 /* valhalla-route.json in Resources */ = {isa = PBXBuildFile; fileRef = A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */; };
+		1AFB6C89D1C750E4991DC17C /* Valhalla in Frameworks */ = {isa = PBXBuildFile; productRef = 6210EADF3CF7862C3CA0E4A0 /* Valhalla */; };
 		1C06EC9E22013DC236BC2A28 /* ProviderSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */; };
 		222B3B2F82457B28DC17030D /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */; };
+		33CD6DC9BD1ED803CDF575E9 /* OfflineMaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2094174B236AE94C876E97 /* OfflineMaps.swift */; };
 		37929B7D35B83B0255E9FBA2 /* mapbox-geocode.json in Resources */ = {isa = PBXBuildFile; fileRef = D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */; };
+		386943218610DC1A575A4506 /* OfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */; };
 		3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04E9A35413956700DAF89D1 /* SettingsView.swift */; };
 		56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */ = {isa = PBXBuildFile; fileRef = D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */; };
 		59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */; };
 		6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */ = {isa = PBXBuildFile; fileRef = 660DAF332134879DA4A84296 /* tomtom-search.json */; };
+		766B91B82A13C4F0BD979E33 /* PackCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A690C0FAFDACB2E4D1422D7 /* PackCatalog.swift */; };
+		79E943DF1C8A87B489BC8696 /* OfflineRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422D25D0FFA8BDFD84C30058 /* OfflineRouting.swift */; };
+		82A8CA54E86F91C0FFE136B9 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B7F8B8DDD6C08B9EDDBBAE /* NetworkMonitor.swift */; };
 		8CEFF4760A1B3AA8D99D1D0E /* ProviderKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */; };
+		8E6D263E868935A72EFDB8F3 /* RouteCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573C94860557D772160FD07F /* RouteCache.swift */; };
 		913E7522DF0F4713EBCA1D49 /* mapbox-directions.json in Resources */ = {isa = PBXBuildFile; fileRef = 12DB274C95C955347B18C9C0 /* mapbox-directions.json */; };
+		A5101EEAF8EEAEBEC4DF81EC /* OfflineMapsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A51D14F80D3BB2D08A95F12 /* OfflineMapsView.swift */; };
 		A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5039D498498215F2014D9995 /* ContentView.swift */; };
 		A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */; };
 		A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */ = {isa = PBXBuildFile; fileRef = A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */; };
@@ -24,6 +33,8 @@
 		AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42ADA62D6A65A34506330EBA /* AppDelegate.swift */; };
 		C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */; };
 		C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */; };
+		C673F4BF74B0CA8E245C79AB /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = 698AFB20F315F26CAF7EE596 /* MapLibre */; };
+		CE3DFFF640F811D2C49F385E /* OpenMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C892718F9B9A44766CCB6F /* OpenMapView.swift */; };
 		CFCAE32CB5695D0C6402F78F /* MapboxProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */; };
 		D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */; };
 		DAC516764046603E84797CBC /* Maneuver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B50930AFB1AACC4C508DF /* Maneuver.swift */; };
@@ -45,28 +56,37 @@
 
 /* Begin PBXFileReference section */
 		04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapboxProvider.swift; sourceTree = "<group>"; };
+		06C892718F9B9A44766CCB6F /* OpenMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMapView.swift; sourceTree = "<group>"; };
+		0A690C0FAFDACB2E4D1422D7 /* PackCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PackCatalog.swift; sourceTree = "<group>"; };
 		0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRouting.swift; sourceTree = "<group>"; };
 		0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayMapViewController.swift; sourceTree = "<group>"; };
 		12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HorizonNav.entitlements; sourceTree = "<group>"; };
 		12DB274C95C955347B18C9C0 /* mapbox-directions.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-directions.json"; sourceTree = "<group>"; };
+		17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineTests.swift; sourceTree = "<group>"; };
 		1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSupport.swift; sourceTree = "<group>"; };
 		3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = HorizonNav.xcconfig; sourceTree = "<group>"; };
+		422D25D0FFA8BDFD84C30058 /* OfflineRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineRouting.swift; sourceTree = "<group>"; };
 		42ADA62D6A65A34506330EBA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidanceTests.swift; sourceTree = "<group>"; };
 		447F39C57098FCA199888C7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		480671AE6B396154B1004202 /* RouteGuidance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteGuidance.swift; sourceTree = "<group>"; };
+		4A51D14F80D3BB2D08A95F12 /* OfflineMapsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineMapsView.swift; sourceTree = "<group>"; };
 		4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HorizonNav.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5039D498498215F2014D9995 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		573C94860557D772160FD07F /* RouteCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteCache.swift; sourceTree = "<group>"; };
 		5977C187B264C02BD1341F29 /* Routing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routing.swift; sourceTree = "<group>"; };
+		60B7F8B8DDD6C08B9EDDBBAE /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		660DAF332134879DA4A84296 /* tomtom-search.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "tomtom-search.json"; sourceTree = "<group>"; };
 		67906EF6E63724FD6D5CC95E /* HorizonNavTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HorizonNavTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		783B50930AFB1AACC4C508DF /* Maneuver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maneuver.swift; sourceTree = "<group>"; };
 		7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeys.swift; sourceTree = "<group>"; };
 		9969FC5DCF189506D4387429 /* TomTomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomTomProvider.swift; sourceTree = "<group>"; };
 		A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "tomtom-route.json"; sourceTree = "<group>"; };
+		A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "valhalla-route.json"; sourceTree = "<group>"; };
 		A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonNavApp.swift; sourceTree = "<group>"; };
 		BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
 		C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		CC2094174B236AE94C876E97 /* OfflineMaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineMaps.swift; sourceTree = "<group>"; };
 		CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
 		D04E9A35413956700DAF89D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-geocode.json"; sourceTree = "<group>"; };
@@ -75,11 +95,24 @@
 		FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		298ABA44897A2D5CFD131C44 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C673F4BF74B0CA8E245C79AB /* MapLibre in Frameworks */,
+				1AFB6C89D1C750E4991DC17C /* Valhalla in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		3A533796CB8529A29D0D6E4E /* HorizonNavTests */ = {
 			isa = PBXGroup;
 			children = (
 				4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */,
+				17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */,
 				E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */,
 				D2216D924D19ACEDFE3B0834 /* Fixtures */,
 			);
@@ -109,9 +142,16 @@
 				04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */,
 				BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */,
 				CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */,
+				60B7F8B8DDD6C08B9EDDBBAE /* NetworkMonitor.swift */,
+				CC2094174B236AE94C876E97 /* OfflineMaps.swift */,
+				4A51D14F80D3BB2D08A95F12 /* OfflineMapsView.swift */,
+				422D25D0FFA8BDFD84C30058 /* OfflineRouting.swift */,
+				06C892718F9B9A44766CCB6F /* OpenMapView.swift */,
+				0A690C0FAFDACB2E4D1422D7 /* PackCatalog.swift */,
 				7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */,
 				0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */,
 				1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */,
+				573C94860557D772160FD07F /* RouteCache.swift */,
 				480671AE6B396154B1004202 /* RouteGuidance.swift */,
 				5977C187B264C02BD1341F29 /* Routing.swift */,
 				D04E9A35413956700DAF89D1 /* SettingsView.swift */,
@@ -137,6 +177,7 @@
 				D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */,
 				A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */,
 				660DAF332134879DA4A84296 /* tomtom-search.json */,
+				A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */,
 			);
 			path = Fixtures;
 			sourceTree = "<group>";
@@ -159,6 +200,7 @@
 			buildConfigurationList = B2E0D0E5E0353347E1A94B33 /* Build configuration list for PBXNativeTarget "HorizonNav" */;
 			buildPhases = (
 				18D19F1739B14E8BAAAA5983 /* Sources */,
+				298ABA44897A2D5CFD131C44 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,6 +208,8 @@
 			);
 			name = HorizonNav;
 			packageProductDependencies = (
+				698AFB20F315F26CAF7EE596 /* MapLibre */,
+				6210EADF3CF7862C3CA0E4A0 /* Valhalla */,
 			);
 			productName = HorizonNav;
 			productReference = 4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */;
@@ -218,6 +262,10 @@
 			);
 			mainGroup = EDFC35D6A5FAA1D9F5C1FB1B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F0B818756A6FB57C7B5DC069 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */,
+				C398308A2305F9D2A1BC407A /* XCRemoteSwiftPackageReference "valhalla-mobile" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CEE623A1ADC602EBB11FB385 /* Products */;
 			projectDirPath = "";
@@ -239,6 +287,7 @@
 				56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */,
 				A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */,
 				6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */,
+				16C09E9E4C8E321E9F880690 /* valhalla-route.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,9 +308,16 @@
 				CFCAE32CB5695D0C6402F78F /* MapboxProvider.swift in Sources */,
 				C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */,
 				59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */,
+				82A8CA54E86F91C0FFE136B9 /* NetworkMonitor.swift in Sources */,
+				33CD6DC9BD1ED803CDF575E9 /* OfflineMaps.swift in Sources */,
+				A5101EEAF8EEAEBEC4DF81EC /* OfflineMapsView.swift in Sources */,
+				79E943DF1C8A87B489BC8696 /* OfflineRouting.swift in Sources */,
+				CE3DFFF640F811D2C49F385E /* OpenMapView.swift in Sources */,
+				766B91B82A13C4F0BD979E33 /* PackCatalog.swift in Sources */,
 				8CEFF4760A1B3AA8D99D1D0E /* ProviderKeys.swift in Sources */,
 				E5AD77FCC1C4B28D48887DA1 /* ProviderRouting.swift in Sources */,
 				1C06EC9E22013DC236BC2A28 /* ProviderSupport.swift in Sources */,
+				8E6D263E868935A72EFDB8F3 /* RouteCache.swift in Sources */,
 				FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */,
 				0664A1BD5E3D990137505D78 /* Routing.swift in Sources */,
 				3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */,
@@ -274,6 +330,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */,
+				386943218610DC1A575A4506 /* OfflineTests.swift in Sources */,
 				AD711FB96ACF6EE4571CF983 /* ProviderParsingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -515,6 +572,38 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C398308A2305F9D2A1BC407A /* XCRemoteSwiftPackageReference "valhalla-mobile" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Rallista/valhalla-mobile";
+			requirement = {
+				kind = exactVersion;
+				version = 0.6.4;
+			};
+		};
+		F0B818756A6FB57C7B5DC069 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maplibre/maplibre-gl-native-distribution";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.31.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6210EADF3CF7862C3CA0E4A0 /* Valhalla */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C398308A2305F9D2A1BC407A /* XCRemoteSwiftPackageReference "valhalla-mobile" */;
+			productName = Valhalla;
+		};
+		698AFB20F315F26CAF7EE596 /* MapLibre */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F0B818756A6FB57C7B5DC069 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */;
+			productName = MapLibre;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = F5F2A7D751F798B476E42D9C /* Project object */;
 }

@@ -76,8 +76,8 @@ struct RouteRequest {
     var wantsAlternatives = true
 }
 
-/// The injectable routing boundary. MapKit is the online implementation; an on-device engine
-/// (for example a packaged road graph like the Android offline router) plugs in here.
+/// The injectable routing boundary. Online it is TomTom, Mapbox or Apple Maps; offline it is the on-device
+/// Valhalla router (`ValhallaRoutingProvider`) and the saved route (`CachedRouteProvider`).
 protocol RoutingProvider {
     var name: String { get }
     func routes(for request: RouteRequest) async throws -> [RouteOption]
@@ -148,10 +148,13 @@ struct MapKitRoutingProvider: RoutingProvider {
 struct FailoverRoutingProvider: RoutingProvider {
     var online: RoutingProvider
     var offline: RoutingProvider?
+    /// With no connection at all, the offline provider is asked straight away.
+    var isOnline: () -> Bool = { true }
 
     var name: String { online.name }
 
     func routes(for request: RouteRequest) async throws -> [RouteOption] {
+        if !isOnline(), let offline { return try await offline.routes(for: request) }
         do {
             return try await online.routes(for: request)
         } catch {

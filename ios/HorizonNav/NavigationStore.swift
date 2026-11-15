@@ -54,7 +54,13 @@ final class NavigationStore: NSObject, ObservableObject {
 
     var placeSearch = PlaceSearchService()
 
-    init(routing: RoutingProvider = FailoverRoutingProvider(online: KeyedRoutingProvider(), offline: nil)) {
+    /// The trip kept on the phone for guidance with no network, offered again after a restart.
+    @Published private(set) var savedTrip: SavedTrip? = RouteCache.load()
+
+    init(routing: RoutingProvider = FailoverRoutingProvider(
+        online: KeyedRoutingProvider(),
+        offline: OfflineRoutingChain(providers: [ValhallaRoutingProvider(), CachedRouteProvider()]),
+        isOnline: { NetworkMonitor.shared.isOnlineNow })) {
         self.routing = routing
         super.init()
         locationManager.delegate = self
@@ -80,6 +86,7 @@ final class NavigationStore: NSObject, ObservableObject {
             routeOptions = options
             selectedRouteIndex = 0
             phase = .previewing
+            saveTrip(options)
             log.info("Planned \(options.count, privacy: .public) route option(s)")
         } catch {
             lastError = error.localizedDescription
@@ -104,6 +111,25 @@ final class NavigationStore: NSObject, ObservableObject {
         if let location = locationManager.location { process(location) } else { guidance = engine?.update(with: CLLocation(latitude: route.coordinates[0].latitude, longitude: route.coordinates[0].longitude)) }
         events.send(.guidanceStarted(route))
         log.info("Guidance started with \(route.steps.count, privacy: .public) manoeuvres")
+    }
+
+    /// Keeps freshly planned routes for offline guidance. A route rebuilt from the saved trip is not saved over it.
+    private func saveTrip(_ options: [RouteOption]) {
+        guard let destination, let first = options.first else { return }
+        if case .offline(let label) = first.source, label == String(localized: "Saved route") { return }
+        RouteCache.save(destination: destination, routes: options)
+        savedTrip = RouteCache.load()
+    }
+
+    /// Plans the saved trip again: online when there is signal, otherwise from the offline pack or the saved route itself.
+    func resumeSavedTrip() async {
+        guard let trip = savedTrip else { return }
+        await navigate(to: trip.destinationItem)
+    }
+
+    func forgetSavedTrip() {
+        RouteCache.clear()
+        savedTrip = nil
     }
 
     func stopNavigating() {
@@ -133,6 +159,7 @@ final class NavigationStore: NSObject, ObservableObject {
         case .arrived:
             phase = .arrived
             locationManager.allowsBackgroundLocationUpdates = false
+            forgetSavedTrip()
             log.info("Arrived")
             events.send(.arrived)
         case .rerouteNeeded:
@@ -154,6 +181,7 @@ final class NavigationStore: NSObject, ObservableObject {
             guard phase == .rerouting, let route = options.first else { return }
             routeOptions = [route]
             selectedRouteIndex = 0
+            saveTrip([route])
             engine = RouteGuidance(route: route)
             phase = .guiding
             guidance = engine?.update(with: location)
