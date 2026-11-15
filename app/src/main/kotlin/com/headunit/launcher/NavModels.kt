@@ -24,6 +24,8 @@ class TurnInfo(
     val thenExit: Int = 0,
     /** Mapbox's picture of this junction, when there is one (Settings > Turn card & lanes > Junction pictures). */
     val junctionPic: String = "",
+    /** "At the lights" / "At the stop sign" when the turn is at one (Settings > Sound & voice > Landmarks in directions); "" otherwise. */
+    val landmark: String = "",
 )
 /** Countries that use miles for road distances and speeds. */
 val MILES_COUNTRIES = setOf("GB", "US", "PR", "LR", "MM", "IM", "GG", "JE", "VG", "VI", "AG", "DM", "GD", "KN", "LC", "VC", "BS", "KY", "FK", "SH", "WS", "GU", "AS", "MP")

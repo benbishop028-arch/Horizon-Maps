@@ -338,6 +338,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val railItems = ArrayList<@Composable () -> Unit>()
             railItems.add(@Composable { ImmCompass(engine) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
+            // navigating: sound in one big button with the others (voice, alerts only, mute), as in Google Maps. It used to be a small
+            // button on the trip card, close to the others and hard to hit while driving (GitHub, magnazan)
+            if (routing) railItems.add(@Composable {
+                ImmCircle({ engine.cycleSound() }, 52.dp) {
+                    Icon(soundIcon(engine.soundMode), L.t("Sound"), tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(24.dp))
+                }
+            })
             // navigating: other ways to go, any time (as in Google Maps): shown in grey on the map with how they compare, tap one to switch
             if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = L.t("Other routes")) })
             // the demo drive: play to start it; while it plays, its speed (tap for 1x / 2x / 4x), skip to the next turn, and stop
@@ -559,7 +566,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             modifier = Modifier.align(side(Alignment.CenterEnd)),
             enter = slideInHorizontally(initialOffsetX = { if (mir) -it else it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { if (mir) -it else it }) + fadeOut(),
-        ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth, onSettings = { sheet = false; onSettings() }) { sheet = false } }
+        ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth, onSettings = { sheet = false; onSettings() }, voice = voice) { sheet = false } }
         if (engine.stopsEditor) StopsDialog(engine, onClose = { engine.stopsEditor = false })
     }
 }
@@ -570,7 +577,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
  * needs scrolling; it still scrolls if a small screen needs it.
  */
 @Composable
-private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, onSettings: () -> Unit = {}, close: () -> Unit) {
+private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, onSettings: () -> Unit = {}, voice: () -> Unit = {}, close: () -> Unit) {
     val c = LocalVw.current
     val p = engine.prefs
     val routing = engine.route != null && !engine.previewing
@@ -628,7 +635,8 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
         val tripPart: @Composable () -> Unit = {
             if (routing) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetHeading(L.t("This trip"))
-                WideTiles(4, listOf(
+                WideTiles(5, listOf(
+                    TileSpec(Icons.Rounded.Mic, L.t("Voice"), c.accent, { close(); voice() }),
                     TileSpec(Icons.Rounded.Add, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), c.accent, { engine.stopsEditor = true; close() }),
                     TileSpec(Icons.Rounded.DoNotDisturbOn, L.t("Avoid road"), Warn, { engine.avoidRoadAhead(); close() }),
                     TileSpec(Icons.Rounded.Route, L.t("Overview"), c.accent, { engine.overview(); close() }),
@@ -792,12 +800,11 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                 }
                 val buttons: @Composable () -> Unit = {
                     // electric: chargers along the route from here
-                    if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(20.dp)) }
-                    ImmCircle({ voice() }, 40.dp) { Icon(Icons.Rounded.Mic, L.t("Voice"), tint = c.text, modifier = Modifier.size(20.dp)) }
-                    ImmCircle({ engine.cycleSound() }, 40.dp) { Icon(soundIcon(engine.soundMode), L.t("Sound"), tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(20.dp)) }
-                    ImmCircle({ engine.stopsEditor = true }, 40.dp) { Icon(Icons.Rounded.Add, L.t("Stops"), tint = c.text, modifier = Modifier.size(21.dp)) }
-                    Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(21.dp))
+                    // (voice, sound and stops moved off the card: sound is a big button at the top right, voice and stops are in Map
+                    // options > This trip)
+                    if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 44.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(22.dp)) }
+                    Box(Modifier.size(44.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(23.dp))
                     }
                 }
                 if (!narrow) Row(
@@ -811,7 +818,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     // all fit (an electric car adds a fourth figure and a fifth button), the buttons go on a line under the figures:
                     // squeezed onto one line the figures ran into each other ("21 min14:1216 km75")
                     val nStats = if (evStat) 4 else 3
-                    val nButtons = if (evPct != null) 5 else 4
+                    val nButtons = if (evPct != null) 2 else 1
                     val oneLine = maxWidth >= (nStats * 74 + nButtons * 42 + 30).dp
                     val figures: @Composable (Modifier) -> Unit = { m ->
                         Row(m, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -823,12 +830,9 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     }
                     val smallButtons: @Composable (Modifier) -> Unit = { m ->
                         Row(m, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 36.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(19.dp)) }
-                            ImmCircle({ voice() }, 36.dp) { Icon(Icons.Rounded.Mic, L.t("Voice"), tint = c.text, modifier = Modifier.size(19.dp)) }
-                            ImmCircle({ engine.cycleSound() }, 36.dp) { Icon(soundIcon(engine.soundMode), L.t("Sound"), tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(19.dp)) }
-                            ImmCircle({ engine.stopsEditor = true }, 36.dp) { Icon(Icons.Rounded.Add, L.t("Stops"), tint = c.text, modifier = Modifier.size(20.dp)) }
-                            Box(Modifier.size(36.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
-                                Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(20.dp))
+                            if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(20.dp)) }
+                            Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
+                                Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(21.dp))
                             }
                         }
                     }
@@ -1034,20 +1038,23 @@ internal fun ImmTurnCard(
         if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
-            Text(t.street, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 12.dp))
+            Text(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 12.dp))
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
             Column(Modifier.padding(start = if (compact) 9.dp else 16.dp).weight(1f)) {
-                RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, if (compact) 28.sp else 38.sp, fontWeight = FontWeight.Bold)
+                // at traffic lights or a stop sign: that in big ("At the lights"), and the distance moves down beside the road name
+                val lmk = t.landmark.isNotBlank()
+                if (lmk) Text(t.landmark, color = Color.White, fontSize = if (compact) 24.sp else 31.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                else RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, if (compact) 28.sp else 38.sp, fontWeight = FontWeight.Bold)
                 val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit"))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (t.tag.isNotBlank() && !(ukSign && t.tag.startsWith("Exit"))) Text(t.tag, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1,
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))
                     if (!ukSign && t.sign.isNotBlank() && t.sign != t.street) Text(t.sign, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 130.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF1E8E55)).padding(horizontal = 7.dp, vertical = 2.dp))
-                    Text(t.street, color = Color.White, fontSize = if (compact) 16.sp else 19.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, color = Color.White, fontSize = if (compact) 16.sp else 19.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)

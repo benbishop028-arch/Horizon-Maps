@@ -262,6 +262,33 @@ fun rememberLocatorImagePicker(onDone: (Boolean) -> Unit): () -> Boolean {
     }
 }
 
+/** Opens the phone's file picker for your own 3D model (.glb); [onDone] gets null when it was saved, or why it wasn't. */
+@Composable
+fun rememberModelPicker(prefs: com.headunit.launcher.Prefs, onDone: (String?) -> Unit): () -> Boolean {
+    val ctx = LocalContext.current
+    val pick = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+        val uri = res.data?.data ?: return@rememberLauncherForActivityResult
+        val app = ctx.applicationContext
+        Thread {
+            val why = try { com.headunit.launcher.OwnModel.save(app, uri, prefs) } catch (e: Throwable) { e.message ?: "failed" }
+            android.os.Handler(android.os.Looper.getMainLooper()).post { onDone(why) }
+        }.start()
+    }
+    return {
+        // (.glb files have no agreed type on Android, so any file is offered and checked once picked)
+        val tries = listOf(
+            Intent(Intent.ACTION_OPEN_DOCUMENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),
+            Intent(Intent.ACTION_GET_CONTENT).setType("*/*").addCategory(Intent.CATEGORY_OPENABLE),
+        )
+        var started = false
+        for (i in tries) {
+            if (started) break
+            try { pick.launch(i); started = true } catch (e: Exception) { }
+        }
+        started
+    }
+}
+
 /** Reads the picked picture at a small size and saves it as the locator (largest side 256 px, transparency kept). */
 fun saveLocatorImage(ctx: android.content.Context, uri: android.net.Uri): Boolean {
     val cr = ctx.contentResolver

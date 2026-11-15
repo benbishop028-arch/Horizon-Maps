@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Always day on Android Auto: the car screen's own Always day / Always night now wins. With the phone set to Night (or to follow a dark phone), picking Always day on the car still left the car's map dark.
 - Average speed checks shown as plain speed cameras: the cameras at the start and end of a check are now announced as the average speed check, instead of a "Speed camera" alert that hid it, and the check is warned about as early as a camera would be. If the search along the route fails on a busy server, the checks are now looked up on their own so they aren't missed.
 - Average speed check limits outside the UK: a check's limit was always read as British, so one mapped as "60" (km/h) showed as 95 km/h. It's now read in the units of the country the check is in, and the card never shows a limit higher than the road's own signed limit.
 - Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
@@ -133,6 +134,8 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Landmarks in directions: when a turn is at traffic lights or a stop sign, the turn card says "At the lights" (with the distance and road below) and the voice says "At the traffic lights, turn right onto…", or "At the second set of lights" when there's one set before it. With more lights on the way it says the distance as before. Turn it off in Settings › Sound & voice › Landmarks in directions
+- Your own 3D model: Settings › Your arrow › Real 3D model › Your model loads a .glb file of your own (up to 8 MB) as the arrow, sized to match the built-in car whatever scale it was made at, with Turn to point it the way you drive and the size slider to fine-tune it. If it can't be shown, the built-in car stands in. Works on Android Auto too.
 - Hungarian: Horizon Nav can now be used in Magyar, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Malay: Horizon Nav can now be used in Bahasa Melayu, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
 - Croatian: Horizon Nav can now be used in Hrvatski, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
@@ -216,6 +219,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
+- Trip card: the voice, sound and stops buttons are gone from the trip card, leaving just End (and chargers in an electric car). Sound is now a big button at the top right while navigating, and Voice and Stops are in Map options › This trip
 - Removing a report: a report made by mistake can be taken back with Undo on the "saved here" message, and tapping one of your reports on the map (phone or Android Auto) offers Remove or Keep for just that one.
 - Chime volume: on the head unit the speeding, limit-change and camera chimes now play on the same channel as the spoken directions (they were on the music channel at full strength), so the head unit's volume turned during a direction turns them down too. Settings › Sound & voice › Chime volume sets them against the voice, with a sample beep.
 - Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).

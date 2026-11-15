@@ -13,7 +13,10 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
     /** Mapbox's picture of this junction (a motorway junction with the lanes marked), when there is one; "" otherwise. */
     val junctionPic: String = "",
     /** At a roundabout: the way you're heading as you come onto it, the way you leave it, and the other roads off it (degrees; -1 unknown). */
-    val rbIn: Double = -1.0, val rbOut: Double = -1.0, val rbExits: List<Double> = emptyList())
+    val rbIn: Double = -1.0, val rbOut: Double = -1.0, val rbExits: List<Double> = emptyList(),
+    /** Mapbox marks traffic lights / a stop sign at this junction ([lights], [stopSign]), and how many lights it marks on the way to it
+     *  ([lightsBefore]), for "At the traffic lights, turn right". */
+    val lights: Boolean = false, val stopSign: Boolean = false, val lightsBefore: Int = 0)
 /** A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). */
 data class Place(val name: String, val sub: String, val pos: LL, val web: String = "")
 

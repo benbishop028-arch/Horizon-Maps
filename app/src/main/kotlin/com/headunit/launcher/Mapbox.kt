@@ -437,6 +437,8 @@ object MapboxRest {
             var prevOff = legStart
             // the last junction passed on the way to the next turn (an earlier slip road, say): the next turn's lanes start after it
             var lastPassed: LL? = null
+            // traffic lights Mapbox marks on the way along the step before (passed before the next turn)
+            var sigOnWay = 0
             val ss = leg.optJSONArray("steps") ?: JSONArray()
             for (si in 0 until ss.length()) {
                 val s = ss.getJSONObject(si)
@@ -477,9 +479,15 @@ object MapboxRest {
                         tunnelSpots += a to nx?.let { LL(it.getDouble(1), it.getDouble(0)) }
                     }
                 } catch (e: Exception) { }
+                // the lights along this step after its turn: passed on the way to the next one
+                val sigHere = try {
+                    val ints = s.optJSONArray("intersections")
+                    if (ints == null) 0 else (1 until ints.length()).count { ints.optJSONObject(it)?.optBoolean("traffic_signal", false) == true }
+                } catch (e: Exception) { 0 }
                 // a stop on the way: not a step of its own (the next leg carries on from it)
                 val skip = type == "notification" || type == "exit roundabout" || type == "exit rotary" ||
                     (type == "arrive" && li < legs.length() - 1) || (type == "depart" && li > 0)
+                if (skip) sigOnWay += sigHere
                 if (!skip) {
                     val man = maneuverOf(type, mod, leftHand)
                     val name = s.optString("name")
@@ -495,8 +503,12 @@ object MapboxRest {
                             if (pic.isNotEmpty()) break
                         }
                     }
+                    // traffic lights or a stop sign at the turn itself (the step's first junction), for "At the traffic lights, turn right"
+                    val j0 = s.optJSONArray("intersections")?.optJSONObject(0)
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
-                        rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0)
+                        rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
+                        lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay)
+                    sigOnWay = sigHere
                     if (type == "roundabout" || type == "rotary") rbIdx = steps.size - 1
                     // the lanes at this junction: which go where, and the ones to be in
                     try {

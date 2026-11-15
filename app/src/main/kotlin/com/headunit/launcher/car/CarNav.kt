@@ -557,7 +557,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         // host redo its layout for nothing); the turn and distance go to the car's displays through updateTrip
         val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}"
         if (sig != lastSig) { lastSig = sig; invalidate() }
-        val tsig = "${t?.maneuver}|${t?.street}|${t?.exit}|${t?.dist?.let { Math.round(it / 10) }}|${eta?.secs?.let { Math.round(it / 30) }}|${eta?.dist?.let { Math.round(it / 100) }}|${System.identityHashCode(t?.lanes)}"
+        val tsig = "${t?.maneuver}|${t?.street}|${t?.landmark}|${t?.exit}|${t?.dist?.let { Math.round(it / 10) }}|${eta?.secs?.let { Math.round(it / 30) }}|${eta?.dist?.let { Math.round(it / 100) }}|${System.identityHashCode(t?.lanes)}"
         if (guiding && t != null && eta != null && tsig != lastTrip) {
             lastTrip = tsig
             try { nav?.updateTrip(trip(e, t, eta)) } catch (x: Exception) { }
@@ -812,7 +812,9 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
                 t.tag.isNotBlank() -> t.tag
                 else -> com.headunit.launcher.Geo.maneuverText(m, t.exit).replaceFirstChar { it.uppercase() }
             }
-            val cue = if (t.street.isNotBlank()) "$what · ${t.street}" else what
+            // at traffic lights or a stop sign: "At the lights · Smith Street"
+            val lead = if (t.landmark.isNotBlank()) t.landmark else what
+            val cue = if (t.street.isNotBlank()) "$lead · ${t.street}" else lead
             val sb = Step.Builder(cue).setManeuver(mb.build())
             if (t.street.isNotBlank()) sb.setRoad(t.street)
             // which lanes to be in, for the car's own displays (the dashboard behind the wheel or a head-up display, where the car has

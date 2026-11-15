@@ -75,6 +75,7 @@ import com.headunit.launcher.Geo
 import com.headunit.launcher.L
 import com.headunit.launcher.NavEngine
 import com.headunit.launcher.OfflinePlaces
+import com.headunit.launcher.OwnModel
 import com.headunit.launcher.Place
 import com.headunit.launcher.Prefs
 import com.headunit.launcher.PreferenceKeys
@@ -405,13 +406,29 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         SPictureChoice(L.t("Locator"), null, listOf("arrow" to L.t("3D arrow"), "car" to L.t("Car"), "model" to L.t("Real 3D model"), "flat" to L.t("Flat arrow"), "custom" to L.t("Your picture")), loc, { id, c -> locatorPicture(id, c) }) {
             if (it == "custom" && !hasPic) choosePic() else prefs.put(PreferenceKeys.LOCATOR, it)
         }
+        // your own 3D model (.glb): picked, checked and measured, then turned to point the way you drive
+        val own = OwnModel.info(prefs)
+        val pickModel = rememberModelPicker(prefs) { why ->
+            if (why == null) prefs.put(PreferenceKeys.MODEL_SHAPE, "own")
+            else android.widget.Toast.makeText(ctx, L.t("That file isn't a .glb 3D model (or it's over 8 MB)"), android.widget.Toast.LENGTH_LONG).show()
+        }
+        fun chooseModel() { if (!pickModel()) android.widget.Toast.makeText(ctx, L.t("No app on this unit can pick a file (try installing a file manager)"), android.widget.Toast.LENGTH_LONG).show() }
         if (loc == "model") {
-            SChoice(L.t("Model shape"), listOf("arrow" to L.t("Arrow"), "car" to L.t("Car")), prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow")) { prefs.put(PreferenceKeys.MODEL_SHAPE, it) }
+            SChoice(L.t("Model shape"), listOf("arrow" to L.t("Arrow"), "car" to L.t("Car"), "own" to L.t("Your model")), prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow")) {
+                if (it == "own" && own == null) chooseModel() else prefs.put(PreferenceKeys.MODEL_SHAPE, it)
+            }
+            if (prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow") == "own" && own != null) {
+                SItem(L.t("3D model file"), own.first + " · " + String.format(java.util.Locale.UK, "%.1f MB", own.second / (1024.0 * 1024.0))) { SButton(L.t("Change")) { chooseModel() } }
+                SNote(L.t("A .glb up to 8 MB. Point it the way you drive with Turn; over 3 MB it may stutter on slower head units"))
+                if (engine.map.ownFailed) SNote(L.t("Your 3D model couldn't be shown, so the built-in car is used"))
+                SSlider(L.t("Turn"), prefs.s(PreferenceKeys.MODEL_TURN, "0").toFloatOrNull() ?: 0f, 0f..345f, "°", steps = 22, reset = 0f) { prefs.put(PreferenceKeys.MODEL_TURN, it.toString()) }
+            }
             SToggle(prefs, L.t("Glow"), PreferenceKeys.MODEL_GLOW, true, L.t("A soft blue glow round the model, and the model lit up brightly"))
             if (prefs.mapDetail() != "full") SNote(L.t("The real 3D model shows with Map detail: Full 3D. On Lite and Lightest the picture of the same shape is used."))
         }
+        val ownShape = loc == "model" && prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow") == "own" && own != null
         val shapeCar = loc == "car" || (loc == "model" && prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow") == "car")
-        val shapeArrow = loc == "arrow" || (loc == "model" && !shapeCar)
+        val shapeArrow = loc == "arrow" || (loc == "model" && !shapeCar && !ownShape)
         if (loc == "custom") {
             SItem(L.t("Picture"), L.t("A PNG with a see-through background looks best. Point the top of it the way you drive")) { SButton(if (hasPic) L.t("Change") else L.t("Choose")) { choosePic() } }
             SToggle(prefs, L.t("Turns with you"), PreferenceKeys.LOCATOR_IMAGE_TURNS, true, L.t("Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright"))
@@ -450,7 +467,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             "#1FC7A6" to L.t("Teal"), "#3DDC84" to L.t("Green"), "#B5E34A" to L.t("Lime"), "#FFD54A" to L.t("Yellow"), "#FF9A3C" to L.t("Orange"), "#FF4D5E" to L.t("Red"),
             "#FF6FB5" to L.t("Pink"), "#A56BFF" to L.t("Purple"),
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
-        SSlider(if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
+        SSlider(if (ownShape) L.t("Model size") else if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
         SToggle(prefs, L.t("Headlight beam at night"), PreferenceKeys.BEAM, true, L.t("A soft cone of light on the road ahead of you after dark, while you're moving"))
     }
     SGroup(L.t("Route line")) {
@@ -700,6 +717,7 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
         SChoice(L.t("Spoken guidance"), listOf("0" to L.t("All"), "1" to L.t("Alerts only"), "2" to L.t("Off")), engine.soundMode.toString(),
             L.t("Alerts only skips turn-by-turn but still speaks cameras, limits and hazards")) { prefs.put(PreferenceKeys.SOUND_MODE, it.toInt()) }
         SToggle(prefs, L.t("Say road names"), PreferenceKeys.VOICE_ROADS, true, L.t("Off gives just the direction: \"In 200 metres, turn left\", without the road or the places on the signs"))
+        SToggle(prefs, L.t("Landmarks in directions"), PreferenceKeys.LANDMARK_DIRS, true, L.t("\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice"))
         SToggle(prefs, L.t("Smarter directions"), "smartvoice", true, L.t("Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot"))
     }
     SGroup(L.t("Voice and volume")) {

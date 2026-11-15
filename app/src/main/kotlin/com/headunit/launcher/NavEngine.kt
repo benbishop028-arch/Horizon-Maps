@@ -998,9 +998,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     private fun lightPreset(dark: Boolean): String {
+        // the car screen goes by its own choice (Always day / Always night on the car), not the phone's: with the phone set to Night,
+        // picking Always day on the car still left the car's map dark, and the other way round
+        if (isCar) when (prefs.s(PreferenceKeys.CARTHEME, "car")) { "day" -> return "day"; "night" -> return "night" }
         val theme = prefs.s(PreferenceKeys.THEME, "auto")
-        if (theme == "day") return "day"
-        if (theme == "night") return "night"
+        if (!isCar && theme == "day") return "day"
+        if (!isCar && theme == "night") return "night"
         if (theme == "times") return if (dark) "night" else "day"
         // Headlights (and the car screen following the car): only the lights decide, so a tunnel at midday goes properly dark and
         // coming out goes straight back to day. The sun's dawn and dusk light is left out, as it would tint the map whatever the
@@ -4860,23 +4863,31 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 "off" -> false
                 else -> gap <= max(300.0, (fix?.speed ?: 0.0) * 15.0)
             }
+            // what's at the turn (lights or a stop sign), worked out again every 20 m or so from about 600 m out
+            val lmK = "$sk|${(progress / 20).toInt()}"
+            if (lmK != lmKey) { lmKey = lmK; lmVal = if (d <= 600 && !arriving) (try { landmarkAt(r, cur, progress) } catch (e: Throwable) { 0 }) else 0 }
+            val lm = lmVal
             val newTurn = TurnInfo(
                 d, street, cur.maneuver, if (thenOn) nxt?.maneuver else null,
                 if (thenOn && nxt != null) L.t("Then {0}", Geo.maneuverText(nxt.maneuver, nxt.roundExit) + (if (nxt.street.isNotBlank()) L.t(" onto {0}", nxt.street) else "")) else "",
                 laneSec, Geo.stepTag(cur), laneAdv, cur.roundExit, cur.sign,
                 exitNo = cur.exitNo, rbIn = cur.rbIn, rbOut = cur.rbOut, rbExits = cur.rbExits, thenGap = if (thenOn) gap else 0.0, thenExit = if (thenOn) (nxt?.roundExit ?: 0) else 0,
                 junctionPic = cur.junctionPic,
+                landmark = if (d <= 500) when (lm) { 1 -> L.t("At the lights"); 2 -> L.t("At the second set of lights"); 3 -> L.t("At the stop sign"); else -> "" } else "",
             )
             // only publish a new turn card when something a driver can see changed (about 3 m of distance), so the screen is not redrawn four times a second for nothing
             val ot = turn
-            if (ot == null || ot.maneuver != newTurn.maneuver || ot.street != newTurn.street || ot.lanes !== newTurn.lanes || ot.thenText != newTurn.thenText || abs(ot.dist - newTurn.dist) >= 3.0 || newTurn.dist < 30.0) turn = newTurn
+            if (ot == null || ot.maneuver != newTurn.maneuver || ot.street != newTurn.street || ot.lanes !== newTurn.lanes || ot.thenText != newTurn.thenText || ot.landmark != newTurn.landmark || abs(ot.dist - newTurn.dist) >= 3.0 || newTurn.dist < 30.0) turn = newTurn
             val word = Geo.maneuverText(cur.maneuver, cur.roundExit)
             // (Settings > Sound > Say road names off: just the direction, "In 200 metres, turn left")
             val tail = if (arriving || cur.street.isBlank() || !prefs.b(PreferenceKeys.VOICE_ROADS, true)) "" else L.t(" onto {0}", cur.street)
             val lane = if (laneAdv != null) ". $laneAdv" else ""
             if (onRoad.isNotBlank()) tripRoads.add(onRoad)
             // smarter voice: junction numbers, sign destinations and the next move when it follows quickly
-            val phrase = if (arriving) word else smartPhrase(cur, nxt, word, tail)
+            val phrase0 = if (arriving) word else smartPhrase(cur, nxt, word, tail)
+            // "At the traffic lights, turn right onto Smith Street" in place of the distance, when the turn is at the lights
+            val lmPhrase = when (lm) { 1 -> L.t("At the traffic lights, {0}", phrase0); 2 -> L.t("At the second set of lights, {0}", phrase0); 3 -> L.t("At the stop sign, {0}", phrase0); else -> "" }
+            val phrase = phrase0
             // on roads you drive a lot the early heads-ups are skipped and the main one comes a little later
             val familiar = prefs.b(PreferenceKeys.SMARTVOICE, true) && onRoad.isNotBlank() && (roadFam[onRoad] ?: 0) >= 6
             val fFrom = if (familiar) 330.0 else 520.0
@@ -4884,9 +4895,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (!familiar && d <= 1700 && d > 1100 && p0Speed() > 18.0 && !arriving && said.add("${sk}e"))
                 speak(L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase))
             if (d <= fFrom && d > 200 && said.add("${sk}f"))
-                speak(if (arriving) L.t("In {0}, you will arrive", Geo.spoken(d, imperial)) + (if (side.isNotEmpty()) ". " + L.t("Your destination is on the $side") else "") else L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase) + lane)
+                speak(if (lmPhrase.isNotEmpty()) lmPhrase + lane else if (arriving) L.t("In {0}, you will arrive", Geo.spoken(d, imperial)) + (if (side.isNotEmpty()) ". " + L.t("Your destination is on the $side") else "") else L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase) + lane)
             if (d <= 120 && said.add("${sk}n"))
-                speak(if (arriving) (if (side.isNotEmpty()) L.t("Your destination is on the $side") else L.t("You have arrived")) else phrase.replaceFirstChar { it.uppercase() })
+                speak(if (arriving) (if (side.isNotEmpty()) L.t("Your destination is on the $side") else L.t("You have arrived")) else if (lmPhrase.isNotEmpty()) lmPhrase else phrase.replaceFirstChar { it.uppercase() })
         }
         // a route that stops short of the destination (the downloaded map ran out): at its end, plan on from here instead
         if (shortRoute && rem < 200) {
@@ -5154,6 +5165,41 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         sign.split(',', '/', ';', '|').map { refRx.replace(it, "").replace(Regex("[()]"), "").trim() }.filter { it.length >= 3 && it.any { ch -> ch.isLetter() } }.distinct()
 
     /** "take junction 9 towards Winchester, then keep left for the A34", from the route's step and sign data. */
+    /**
+     * What's at the turn ahead, for "At the traffic lights, turn right" (GitHub request): 1 the lights (the only set between here and
+     * the turn), 2 the second set of lights, 3 a stop sign, 0 nothing to name (or too many lights on the way to be clear, when the
+     * distance is said as before). The lights are the ones found on the route from OpenStreetMap, or Mapbox's own marks on its routes.
+     */
+    private fun landmarkAt(r: Route, cur: Step, progress: Double): Int {
+        if (!prefs.b(PreferenceKeys.LANDMARK_DIRS, true)) return 0
+        val m = cur.maneuver.uppercase()
+        // only plain turns at a junction: roundabouts already say so, and motorway exits, slip roads and "keep" have no lights to name
+        if (m.startsWith("ROUNDABOUT") || m.startsWith("ARRIVE") || m.startsWith("DEPART") || m.contains("EXIT") || m.contains("RAMP") ||
+            m.contains("MOTORWAY") || m.contains("FREEWAY") || m.contains("HIGHWAY") || m.startsWith("KEEP") || m == "STRAIGHT" || m == "FOLLOW" ||
+            m.contains("FERRY") || m.contains("PARALLEL") || m.contains("MAIN_ROAD")) return 0
+        val offs = if (lightRoute === r) lightOffs else DoubleArray(0)
+        // the sets of lights from here to the turn (lights within 60 m of each other are one junction)
+        var sets = 0; var last = -1e9
+        for (o in offs) {
+            if (o <= progress + 5.0) continue
+            if (o > cur.off + 25.0) break
+            if (o - last > 60.0) sets++
+            last = o
+        }
+        val atTurn = sets > 0 && last >= cur.off - 35.0
+        return when {
+            atTurn && sets == 1 -> 1
+            atTurn && sets == 2 -> 2
+            sets > 0 -> 0
+            // none found from OpenStreetMap here: Mapbox's own marks, when it shows lights at the turn and none on the way to it
+            cur.lights && cur.lightsBefore == 0 -> 1
+            cur.stopSign && cur.lightsBefore == 0 -> 3
+            else -> 0
+        }
+    }
+    private var lmKey = ""
+    private var lmVal = 0
+
     private fun smartPhrase(cur: Step, nxt: Step?, word: String, tail: String): String {
         if (!prefs.b(PreferenceKeys.SMARTVOICE, true)) return word + tail
         val sayRoads = prefs.b(PreferenceKeys.VOICE_ROADS, true)
