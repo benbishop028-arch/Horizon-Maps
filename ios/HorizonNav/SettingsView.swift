@@ -9,6 +9,8 @@ struct SettingsView: View {
     @AppStorage(AppSettings.Keys.searchProvider) private var searchProvider = "auto"
     @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
     @AppStorage(AppSettings.Keys.soundMode) private var soundMode = 0
+    @AppStorage(AppSettings.Keys.cameraWarnings) private var cameraWarnings = true
+    @AppStorage(AppSettings.Keys.carPlayAppearance) private var carPlayAppearance = "car"
 
     var body: some View {
         NavigationStack {
@@ -36,10 +38,23 @@ struct SettingsView: View {
                         Text("Alerts only").tag(1)
                         Text("Off").tag(2)
                     }
+                    Toggle("Speed camera warnings", isOn: $cameraWarnings)
                 } header: {
                     Text("Sound")
                 } footer: {
                     Text("Directions are spoken before each turn in the app's language. Music is turned down while a direction plays, and podcasts pause, on the phone and in CarPlay.")
+                }
+                Section {
+                    Picker("Day and night", selection: $carPlayAppearance) {
+                        Text("Follow the car").tag("car")
+                        Text("Follow the phone").tag("phone")
+                        Text("Always day").tag("day")
+                        Text("Always night").tag("night")
+                    }
+                } header: {
+                    Text("CarPlay")
+                } footer: {
+                    Text("Camera warnings use OpenStreetMap's cameras and stay off in France, Germany and Switzerland, where they are not allowed.")
                 }
                 Section {
                     Picker("Map", selection: $mapSource) {

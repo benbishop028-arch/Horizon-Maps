@@ -16,6 +16,9 @@ struct PackRegion: Identifiable, Hashable {
             : "https://github.com/benbishop028-arch/Horizon-Maps/releases/download"
         return URL(string: "\(base)/pack-\(id)")!
     }
+
+    /// Where the speed camera file is: the same release, except the UK packs, whose extras are built in Horizon-Maps.
+    var extrasURL: URL { URL(string: "https://github.com/benbishop028-arch/Horizon-Maps/releases/download/pack-\(id)")! }
 }
 
 /// The catalog of the Android `PackRegions.all`, generated from it so both apps fetch the same packs.

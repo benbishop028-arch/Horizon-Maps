@@ -16,6 +16,9 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
     private var activeTrip: CPTrip?
     private var shownStepIndex: Int?
     private var shownRouteID: UUID?
+    private var shownLanes: LaneSection?
+    private var shownJunction = false
+    private var scene: CPTemplateApplicationScene?
     private var searchResults: [MKMapItem] = []
     private var cancellables: Set<AnyCancellable> = []
 
@@ -24,6 +27,7 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
     func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene,
                                   didConnect interfaceController: CPInterfaceController, to window: CPWindow) {
         self.interfaceController = interfaceController
+        scene = templateApplicationScene
         carWindow = window
         let mapViewController = CarPlayMapViewController(store: store)
         window.rootViewController = mapViewController
@@ -36,6 +40,7 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         template.tripEstimateStyle = .dark
         mapTemplate = template
         updateBarButtons()
+        applyAppearance()
         interfaceController.setRootTemplate(template, animated: false, completion: nil)
         log.info("CarPlay scene connected, map template is root")
 
@@ -46,6 +51,11 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         store.events
             .receive(on: RunLoop.main)
             .sink { [weak self] event in self?.handle(event) }
+            .store(in: &cancellables)
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .merge(with: NotificationCenter.default.publisher(for: .phoneAppearanceChanged))
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.applyAppearance() }
             .store(in: &cancellables)
 
         // A trip already running on the phone continues on the car screen.
@@ -61,9 +71,25 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         activeTrip = nil
         mapTemplate = nil
         mapViewController = nil
+        scene = nil
         carWindow = nil
         self.interfaceController = nil
         log.info("CarPlay scene disconnected")
+    }
+
+    /// The car switching between its day and night look.
+    func contentStyleDidChange(_ contentStyle: UIUserInterfaceStyle) {
+        applyAppearance()
+    }
+
+    /// Day or night map and cards: the car's own look, or the phone's, or always day or night (Settings).
+    private func applyAppearance() {
+        let carDark = (scene?.contentStyle ?? carWindow?.traitCollection.userInterfaceStyle) == .dark
+        let phoneDark = UIScreen.main.traitCollection.userInterfaceStyle == .dark
+        let dark = CarPlayManeuvers.isDark(setting: AppSettings.carPlayAppearance, carDark: carDark, phoneDark: phoneDark)
+        mapViewController?.overrideUserInterfaceStyle = dark ? .dark : .light
+        mapTemplate?.tripEstimateStyle = dark ? .dark : .light
+        mapTemplate?.guidanceBackgroundColor = dark ? UIColor(white: 0.11, alpha: 1) : .white
     }
 
     // MARK: Templates
@@ -151,6 +177,7 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         activeTrip = nil
         shownStepIndex = nil
         shownRouteID = nil
+        shownLanes = nil
         updateBarButtons()
         log.info("CPNavigationSession \(arrived ? "finished" : "cancelled", privacy: .public)")
     }
@@ -175,19 +202,57 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
             endSession(arrived: true)
         case .ended:
             endSession(arrived: false)
+        case .alert(let alert):
+            present(alert)
         }
     }
 
-    /// Pushes the upcoming manoeuvres and live estimates into the session.
+    /// A warning as a CarPlay navigation alert (Android raises its own alert card on the car screen).
+    private func present(_ alert: NavigationStore.NavigationAlert) {
+        guard let mapTemplate else { return }
+        let ok = CPAlertAction(title: String(localized: "OK"), style: .cancel) { [weak self] _ in
+            self?.mapTemplate?.dismissNavigationAlert(animated: true) { _ in }
+        }
+        let navigationAlert = CPNavigationAlert(titleVariants: [alert.title], subtitleVariants: [alert.detail],
+                                                image: UIImage(systemName: alert.symbol), primaryAction: ok, secondaryAction: nil, duration: 8)
+        mapTemplate.dismissNavigationAlert(animated: false) { _ in
+            mapTemplate.present(navigationAlert: navigationAlert, animated: true)
+        }
+        log.info("Navigation alert: \(alert.title, privacy: .public)")
+    }
+
+    /// Pushes the upcoming manoeuvres, lanes and live estimates into the session.
     private func apply(_ update: GuidanceUpdate?) {
         guard let session = navigationSession, let update, let route = store.selectedRoute,
               let index = update.upcomingStepIndex, route.steps.indices.contains(index) else { return }
-        if index != shownStepIndex || route.id != shownRouteID {
-            let upcoming = route.steps[index...].prefix(2)
-            session.upcomingManeuvers = upcoming.map { Self.maneuver(for: $0) }
+        let step = route.steps[index]
+        let lanes = route.laneSection(forStep: index, progress: update.progress,
+                                      fastRoad: NavigationStore.isFastRoad(step: step, route: route, progress: update.progress))
+        let junction = JunctionImages.shared.image(for: step.junctionImageURL)
+        let isNew = index != shownStepIndex || route.id != shownRouteID
+        if isNew || lanes != shownLanes || (junction != nil) != shownJunction {
+            var maneuvers = [CarPlayManeuvers.maneuver(for: step, lanes: lanes, junctionImage: junction)]
+            // The lanes as a row under the turn when there are lanes to pick, otherwise the turn after this one.
+            if let lanes, let row = CarPlayManeuvers.laneRow(for: step, lanes: lanes) {
+                maneuvers.append(row)
+            } else if route.steps.indices.contains(index + 1) {
+                maneuvers.append(CarPlayManeuvers.maneuver(for: route.steps[index + 1], lanes: nil, junctionImage: nil))
+            }
+            session.upcomingManeuvers = maneuvers
+            if #available(iOS 17.4, *) {
+                session.currentLaneGuidance = (maneuvers.first?.userInfo as? CarPlayManeuvers.Info)?.laneGuidance as? CPLaneGuidance
+                if isNew { session.maneuverState = .initial }
+            }
             shownStepIndex = index
             shownRouteID = route.id
-            log.info("Manoeuvre \(index, privacy: .public) of \(route.steps.count, privacy: .public): \(route.steps[index].instruction, privacy: .public)")
+            shownLanes = lanes
+            shownJunction = junction != nil
+            JunctionImages.shared.load(step.junctionImageURL) { [weak self] in self?.apply(self?.store.guidance) }
+            if isNew { log.info("Manoeuvre \(index, privacy: .public) of \(route.steps.count, privacy: .public): \(step.instruction, privacy: .public)") }
+        }
+        if #available(iOS 17.4, *) {
+            if !isNew { session.maneuverState = update.distanceToManeuver <= 120 ? .execute : update.distanceToManeuver <= 520 ? .prepare : .continue }
+            session.currentRoadNameVariants = store.currentRoad.isEmpty ? [] : [store.currentRoad]
         }
         if let current = session.upcomingManeuvers.first {
             let timeToManeuver = route.distance > 0 ? update.remainingTime * update.distanceToManeuver / max(update.remainingDistance, 1) : 0
@@ -196,18 +261,6 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         if let trip = activeTrip {
             mapTemplate?.update(CPTravelEstimates(distanceRemaining: Self.measurement(update.remainingDistance), timeRemaining: update.remainingTime), for: trip, with: .default)
         }
-    }
-
-    private static func maneuver(for step: RouteStep) -> CPManeuver {
-        let maneuver = CPManeuver()
-        let instruction = step.instruction.isEmpty ? String(localized: "Continue") : step.instruction
-        maneuver.instructionVariants = [instruction]
-        if let image = UIImage(systemName: step.symbolName) {
-            maneuver.symbolImage = image
-        }
-        maneuver.initialTravelEstimates = CPTravelEstimates(distanceRemaining: measurement(step.distance), timeRemaining: 0)
-        maneuver.userInfo = step.startProgress
-        return maneuver
     }
 
     private static func measurement(_ meters: CLLocationDistance) -> Measurement<UnitLength> {
@@ -244,8 +297,10 @@ extension CarPlaySceneDelegate: CPMapTemplateDelegate {
     }
 
     func mapTemplate(_ mapTemplate: CPMapTemplate, displayStyleFor maneuver: CPManeuver) -> CPManeuverDisplayStyle {
-        .leadingSymbol
+        maneuver.userInfo as? String == CarPlayManeuvers.laneRowMarker ? .symbolOnly : .leadingSymbol
     }
+
+    func mapTemplate(_ mapTemplate: CPMapTemplate, shouldShowNotificationFor navigationAlert: CPNavigationAlert) -> Bool { true }
 
     func mapTemplateDidBeginPanGesture(_ mapTemplate: CPMapTemplate) { }
 

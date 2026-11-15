@@ -9,10 +9,16 @@ final class CarPlayMapViewController: UIViewController, MKMapViewDelegate {
     private let store: NavigationStore
     private let mapView = MKMapView()
     private var openMap: OpenMapView?
+    private let speedSign = SpeedSignView()
+    /// The instrument cluster's smaller map: it always follows the car.
+    private let compact: Bool
     private var cancellables: Set<AnyCancellable> = []
+    /// The limit sign and speedometer, shown while guiding unless the car turns them off.
+    var showsSpeedSign = true { didSet { updateSpeedSign() } }
 
-    init(store: NavigationStore) {
+    init(store: NavigationStore, compact: Bool = false) {
         self.store = store
+        self.compact = compact
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -27,8 +33,24 @@ final class CarPlayMapViewController: UIViewController, MKMapViewDelegate {
         mapView.showsUserLocation = true
         mapView.showsTraffic = true
         mapView.pointOfInterestFilter = .excludingAll
-        mapView.userTrackingMode = .follow
+        mapView.userTrackingMode = compact ? .followWithHeading : .follow
         view.addSubview(mapView)
+        speedSign.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(speedSign)
+        NSLayoutConstraint.activate([
+            speedSign.widthAnchor.constraint(equalToConstant: 76),
+            speedSign.heightAnchor.constraint(equalToConstant: 82),
+            speedSign.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            speedSign.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -8),
+        ])
+        // Day and night follow the car's look, or the Settings override applied to this controller.
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _: UITraitCollection) in
+            self.openMap?.setDark(self.isDark)
+        }
+        store.$speedLimit.combineLatest(store.$currentSpeed, store.$phase)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _, _, _ in self?.updateSpeedSign() }
+            .store(in: &cancellables)
 
         store.$routeOptions.combineLatest(store.$selectedRouteIndex, store.$phase)
             .receive(on: RunLoop.main)
@@ -44,12 +66,18 @@ final class CarPlayMapViewController: UIViewController, MKMapViewDelegate {
 
     private var isDark: Bool { traitCollection.userInterfaceStyle == .dark }
 
+    private func updateSpeedSign() {
+        let guiding = store.phase == .guiding || store.phase == .rerouting
+        speedSign.isHidden = !(showsSpeedSign && guiding)
+        speedSign.update(limit: store.speedLimit, speed: store.currentSpeed)
+    }
+
     /// Swaps between Apple Maps and the OpenStreetMap map that can draw downloaded areas offline.
     private func setOpenMap(_ enabled: Bool) {
         if enabled, openMap == nil {
             let open = OpenMapView(frame: view.bounds, dark: isDark)
             open.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            view.addSubview(open)
+            view.insertSubview(open, belowSubview: speedSign)
             openMap = open
             render(options: store.routeOptions, selected: store.selectedRouteIndex, phase: store.phase)
         } else if !enabled, let open = openMap {
@@ -59,10 +87,6 @@ final class CarPlayMapViewController: UIViewController, MKMapViewDelegate {
         mapView.isHidden = enabled
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        openMap?.setDark(isDark)
-    }
 
     func recenter() {
         if let openMap { openMap.follow(withHeading: store.phase == .guiding); return }

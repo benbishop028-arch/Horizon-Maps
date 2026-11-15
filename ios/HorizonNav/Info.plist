@@ -22,8 +22,11 @@
         <dict>
             <key>CPTemplateApplicationSceneSessionRoleApplication</key>
             <array><dict><key>UISceneClassName</key><string>CPTemplateApplicationScene</string><key>UISceneDelegateClassName</key><string>$(PRODUCT_MODULE_NAME).CarPlaySceneDelegate</string></dict></array>
+            <key>CPTemplateApplicationInstrumentClusterSceneSessionRoleApplication</key>
+            <array><dict><key>UISceneClassName</key><string>CPTemplateApplicationInstrumentClusterScene</string><key>UISceneDelegateClassName</key><string>$(PRODUCT_MODULE_NAME).CarPlayClusterSceneDelegate</string></dict></array>
         </dict>
     </dict>
+    <key>CPSupportsInstrumentClusterNavigationScene</key><true/>
     <key>UIBackgroundModes</key><array><string>audio</string><string>location</string></array>
     <key>HNMapboxAccessToken</key><string>$(HN_MAPBOX_ACCESS_TOKEN)</string>
     <key>HNTomTomAPIKey</key><string>$(HN_TOMTOM_API_KEY)</string>

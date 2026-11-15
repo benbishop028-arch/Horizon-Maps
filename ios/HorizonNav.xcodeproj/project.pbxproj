@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0664A1BD5E3D990137505D78 /* Routing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5977C187B264C02BD1341F29 /* Routing.swift */; };
 		16C09E9E4C8E321E9F880690 /* valhalla-route.json in Resources */ = {isa = PBXBuildFile; fileRef = A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */; };
+		19D3147D40C67F034E8FE9F0 /* SpeedSign.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4ECF79380EDDADCA9CB51E3 /* SpeedSign.swift */; };
 		1AFB6C89D1C750E4991DC17C /* Valhalla in Frameworks */ = {isa = PBXBuildFile; productRef = 6210EADF3CF7862C3CA0E4A0 /* Valhalla */; };
 		1C06EC9E22013DC236BC2A28 /* ProviderSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */; };
 		1E19E409F6D742CCEF47FF7C /* VoiceTimingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8213C378CAA9689AFB62F49 /* VoiceTimingTests.swift */; };
@@ -16,10 +17,13 @@
 		33CD6DC9BD1ED803CDF575E9 /* OfflineMaps.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2094174B236AE94C876E97 /* OfflineMaps.swift */; };
 		37929B7D35B83B0255E9FBA2 /* mapbox-geocode.json in Resources */ = {isa = PBXBuildFile; fileRef = D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */; };
 		386943218610DC1A575A4506 /* OfflineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */; };
+		38B61EBD66673BE27C134F97 /* SpeedCameras.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE909D88A142C2D80B58921A /* SpeedCameras.swift */; };
 		3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04E9A35413956700DAF89D1 /* SettingsView.swift */; };
 		3C4BE6B7ECE067BF3C920EA7 /* VoiceGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39831CF4F47DBBB6F173914B /* VoiceGuidance.swift */; };
+		55E5C256121C8D86BEB09D1E /* overpass-cameras.json in Resources */ = {isa = PBXBuildFile; fileRef = C464952F361517A4EFCDACB6 /* overpass-cameras.json */; };
 		56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */ = {isa = PBXBuildFile; fileRef = D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */; };
 		59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */; };
+		61B571428B84DA8EBAD98DB7 /* CarPlayManeuvers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30FAA25192D896D177E692D8 /* CarPlayManeuvers.swift */; };
 		6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */ = {isa = PBXBuildFile; fileRef = 660DAF332134879DA4A84296 /* tomtom-search.json */; };
 		766B91B82A13C4F0BD979E33 /* PackCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A690C0FAFDACB2E4D1422D7 /* PackCatalog.swift */; };
 		79E943DF1C8A87B489BC8696 /* OfflineRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 422D25D0FFA8BDFD84C30058 /* OfflineRouting.swift */; };
@@ -31,6 +35,7 @@
 		A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5039D498498215F2014D9995 /* ContentView.swift */; };
 		A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */; };
 		A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */ = {isa = PBXBuildFile; fileRef = A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */; };
+		A908DBD90950E8F642B634A7 /* HeadUnitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAF4CC0FE29AE51AD1E8C3F4 /* HeadUnitTests.swift */; };
 		AD711FB96ACF6EE4571CF983 /* ProviderParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */; };
 		AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42ADA62D6A65A34506330EBA /* AppDelegate.swift */; };
 		C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */; };
@@ -42,8 +47,10 @@
 		DAC516764046603E84797CBC /* Maneuver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B50930AFB1AACC4C508DF /* Maneuver.swift */; };
 		E5AD77FCC1C4B28D48887DA1 /* ProviderRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */; };
 		E68B800CA2B1E9793647CD5F /* CarPlayMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */; };
+		E6D67F8F3730F39F479ABF35 /* LaneImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 371EFD2440F962ED9E56C99C /* LaneImage.swift */; };
 		F9950A2E8C8C15508E1937C7 /* TomTomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9969FC5DCF189506D4387429 /* TomTomProvider.swift */; };
 		FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480671AE6B396154B1004202 /* RouteGuidance.swift */; };
+		FF1A8B98A676021D4AB3C1A8 /* CarPlayClusterSceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF165B8E3B9616FD148DDE41 /* CarPlayClusterSceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,6 +73,8 @@
 		12DB274C95C955347B18C9C0 /* mapbox-directions.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-directions.json"; sourceTree = "<group>"; };
 		17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineTests.swift; sourceTree = "<group>"; };
 		1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSupport.swift; sourceTree = "<group>"; };
+		30FAA25192D896D177E692D8 /* CarPlayManeuvers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayManeuvers.swift; sourceTree = "<group>"; };
+		371EFD2440F962ED9E56C99C /* LaneImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaneImage.swift; sourceTree = "<group>"; };
 		39831CF4F47DBBB6F173914B /* VoiceGuidance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceGuidance.swift; sourceTree = "<group>"; };
 		3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = HorizonNav.xcconfig; sourceTree = "<group>"; };
 		422D25D0FFA8BDFD84C30058 /* OfflineRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineRouting.swift; sourceTree = "<group>"; };
@@ -88,15 +97,20 @@
 		A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "valhalla-route.json"; sourceTree = "<group>"; };
 		A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonNavApp.swift; sourceTree = "<group>"; };
 		BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
+		C464952F361517A4EFCDACB6 /* overpass-cameras.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "overpass-cameras.json"; sourceTree = "<group>"; };
+		C4ECF79380EDDADCA9CB51E3 /* SpeedSign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSign.swift; sourceTree = "<group>"; };
 		C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		CC2094174B236AE94C876E97 /* OfflineMaps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineMaps.swift; sourceTree = "<group>"; };
 		CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
+		CF165B8E3B9616FD148DDE41 /* CarPlayClusterSceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayClusterSceneDelegate.swift; sourceTree = "<group>"; };
 		D04E9A35413956700DAF89D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-geocode.json"; sourceTree = "<group>"; };
 		D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-searchbox.json"; sourceTree = "<group>"; };
 		D8213C378CAA9689AFB62F49 /* VoiceTimingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceTimingTests.swift; sourceTree = "<group>"; };
 		E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderParsingTests.swift; sourceTree = "<group>"; };
+		EAF4CC0FE29AE51AD1E8C3F4 /* HeadUnitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadUnitTests.swift; sourceTree = "<group>"; };
 		FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSheet.swift; sourceTree = "<group>"; };
+		FE909D88A142C2D80B58921A /* SpeedCameras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedCameras.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -116,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */,
+				EAF4CC0FE29AE51AD1E8C3F4 /* HeadUnitTests.swift */,
 				17B87C41CD9660D1DAADB5D2 /* OfflineTests.swift */,
 				E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */,
 				D8213C378CAA9689AFB62F49 /* VoiceTimingTests.swift */,
@@ -136,6 +151,8 @@
 			isa = PBXGroup;
 			children = (
 				42ADA62D6A65A34506330EBA /* AppDelegate.swift */,
+				CF165B8E3B9616FD148DDE41 /* CarPlayClusterSceneDelegate.swift */,
+				30FAA25192D896D177E692D8 /* CarPlayManeuvers.swift */,
 				0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */,
 				C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */,
 				5039D498498215F2014D9995 /* ContentView.swift */,
@@ -143,6 +160,7 @@
 				12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */,
 				A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */,
 				447F39C57098FCA199888C7C /* Info.plist */,
+				371EFD2440F962ED9E56C99C /* LaneImage.swift */,
 				783B50930AFB1AACC4C508DF /* Maneuver.swift */,
 				04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */,
 				BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */,
@@ -160,6 +178,8 @@
 				480671AE6B396154B1004202 /* RouteGuidance.swift */,
 				5977C187B264C02BD1341F29 /* Routing.swift */,
 				D04E9A35413956700DAF89D1 /* SettingsView.swift */,
+				FE909D88A142C2D80B58921A /* SpeedCameras.swift */,
+				C4ECF79380EDDADCA9CB51E3 /* SpeedSign.swift */,
 				9969FC5DCF189506D4387429 /* TomTomProvider.swift */,
 				39831CF4F47DBBB6F173914B /* VoiceGuidance.swift */,
 			);
@@ -181,6 +201,7 @@
 				12DB274C95C955347B18C9C0 /* mapbox-directions.json */,
 				D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */,
 				D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */,
+				C464952F361517A4EFCDACB6 /* overpass-cameras.json */,
 				A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */,
 				660DAF332134879DA4A84296 /* tomtom-search.json */,
 				A92E224813C8ECA4AD0BE7DC /* valhalla-route.json */,
@@ -291,6 +312,7 @@
 				913E7522DF0F4713EBCA1D49 /* mapbox-directions.json in Resources */,
 				37929B7D35B83B0255E9FBA2 /* mapbox-geocode.json in Resources */,
 				56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */,
+				55E5C256121C8D86BEB09D1E /* overpass-cameras.json in Resources */,
 				A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */,
 				6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */,
 				16C09E9E4C8E321E9F880690 /* valhalla-route.json in Resources */,
@@ -305,11 +327,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */,
+				FF1A8B98A676021D4AB3C1A8 /* CarPlayClusterSceneDelegate.swift in Sources */,
+				61B571428B84DA8EBAD98DB7 /* CarPlayManeuvers.swift in Sources */,
 				E68B800CA2B1E9793647CD5F /* CarPlayMapViewController.swift in Sources */,
 				222B3B2F82457B28DC17030D /* CarPlaySceneDelegate.swift in Sources */,
 				A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */,
 				A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */,
 				D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */,
+				E6D67F8F3730F39F479ABF35 /* LaneImage.swift in Sources */,
 				DAC516764046603E84797CBC /* Maneuver.swift in Sources */,
 				CFCAE32CB5695D0C6402F78F /* MapboxProvider.swift in Sources */,
 				C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */,
@@ -327,6 +352,8 @@
 				FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */,
 				0664A1BD5E3D990137505D78 /* Routing.swift in Sources */,
 				3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */,
+				38B61EBD66673BE27C134F97 /* SpeedCameras.swift in Sources */,
+				19D3147D40C67F034E8FE9F0 /* SpeedSign.swift in Sources */,
 				F9950A2E8C8C15508E1937C7 /* TomTomProvider.swift in Sources */,
 				3C4BE6B7ECE067BF3C920EA7 /* VoiceGuidance.swift in Sources */,
 			);
@@ -337,6 +364,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */,
+				A908DBD90950E8F642B634A7 /* HeadUnitTests.swift in Sources */,
 				386943218610DC1A575A4506 /* OfflineTests.swift in Sources */,
 				AD711FB96ACF6EE4571CF983 /* ProviderParsingTests.swift in Sources */,
 				1E19E409F6D742CCEF47FF7C /* VoiceTimingTests.swift in Sources */,

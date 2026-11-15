@@ -160,6 +160,7 @@ struct InstalledPack: Identifiable, Equatable {
     let bytes: Int64
 
     var tilesURL: URL { folder.appendingPathComponent("tiles.tar") }
+    var camerasURL: URL { folder.appendingPathComponent("cameras.tsv") }
 
     func contains(_ c: CLLocationCoordinate2D) -> Bool {
         guard let b = bounds, b.count == 4 else { return false }
@@ -264,11 +265,13 @@ final class OfflinePackStore: ObservableObject {
         status = String(localized: "Starting")
         task = Task {
             do {
-                try await PackDownloader(region: region) { [weak self] fraction, text in
-                    Task { @MainActor in self?.progress = fraction; self?.status = text }
+                try await PackDownloader(region: region) { fraction, text in
+                    Task { @MainActor in self.progress = fraction; self.status = text }
                 }.run()
                 status = String(localized: "Download finished")
                 log.info("Pack \(region.id, privacy: .public) installed")
+            } catch let error as URLError where error.code == .cancelled {
+                status = String(localized: "Download cancelled")
             } catch is CancellationError {
                 status = String(localized: "Download cancelled")
             } catch {
@@ -314,6 +317,10 @@ struct PackDownloader {
             }
         }
         guard try await fetchJoined(base, name: "tiles.tar", folder: folder) else { throw Failure.missing("tiles.tar") }
+        // Speed cameras for warnings with no signal (optional: older packs have none).
+        if !(try await fetch(region.extrasURL.appendingPathComponent("cameras.tsv"), to: folder.appendingPathComponent("cameras.tsv"), label: "cameras.tsv", share: 0)) {
+            _ = try? await fetch(base.appendingPathComponent("cameras.tsv"), to: folder.appendingPathComponent("cameras.tsv"), label: "cameras.tsv", share: 0)
+        }
         // The pack's area, from the first bytes of its map file, so the right pack is picked for a trip.
         if let header = try? await headerBytes(base.appendingPathComponent("map.pmtiles")),
            let bounds = OfflinePackStorage.bounds(fromPMTilesHeader: header) {

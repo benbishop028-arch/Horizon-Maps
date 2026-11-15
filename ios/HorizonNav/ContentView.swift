@@ -11,6 +11,7 @@ struct ContentView: View {
     @ObservedObject private var network = NetworkMonitor.shared
     @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
     @AppStorage(AppSettings.Keys.soundMode) private var soundMode = 0
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
@@ -29,6 +30,14 @@ struct ContentView: View {
                 .padding(.trailing)
                 .padding(.top, 8)
             }
+            .overlay(alignment: .topLeading) {
+                if store.phase == .guiding || store.phase == .rerouting {
+                    SpeedSignBadge(limit: store.speedLimit, speed: store.currentSpeed)
+                        .padding(.leading)
+                        .padding(.top, 8)
+                }
+            }
+            .onChange(of: colorScheme) { NotificationCenter.default.post(name: .phoneAppearanceChanged, object: nil) }
             .safeAreaInset(edge: .top) { maneuverBanner }
             .safeAreaInset(edge: .bottom) { searchPanel }
             .navigationTitle("Horizon Nav")
@@ -61,6 +70,18 @@ struct ContentView: View {
 
     @ViewBuilder
     private var maneuverBanner: some View {
+        if let alert = store.activeAlert {
+            Label {
+                Text("\(alert.title) · \(alert.detail)")
+            } icon: {
+                Image(systemName: alert.symbol)
+            }
+            .font(.headline)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.orange)
+        }
         if store.phase == .rerouting {
             Label("Rerouting", systemImage: "arrow.triangle.2.circlepath")
                 .font(.headline)
@@ -76,6 +97,17 @@ struct ContentView: View {
                     Text(Measurement(value: update.distanceToManeuver, unit: UnitLength.meters).formatted(.measurement(width: .abbreviated, usage: .road)))
                         .font(.title2.weight(.bold))
                     Text(step.instruction).font(.headline).lineLimit(2)
+                    if let lanes = route.laneSection(forStep: index, progress: update.progress,
+                                                     fastRoad: NavigationStore.isFastRoad(step: step, route: route, progress: update.progress)),
+                       let image = LaneImage.image(LanePolicy.marked(lanes, maneuver: step.maneuver)) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 36)
+                            .padding(4)
+                            .background(Color.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 6))
+                            .accessibilityLabel(LanePolicy.advice(lanes, maneuver: step.maneuver) ?? "")
+                    }
                 }
                 Spacer()
             }
@@ -212,4 +244,9 @@ private extension View {
             background(.ultraThinMaterial, in: shape)
         }
     }
+}
+
+extension Notification.Name {
+    /// The phone switched between light and dark, for the CarPlay map set to follow the phone.
+    static let phoneAppearanceChanged = Notification.Name("HorizonNavPhoneAppearanceChanged")
 }

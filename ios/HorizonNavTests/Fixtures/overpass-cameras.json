@@ -1,0 +1,60 @@
+{
+ "version": 0.6,
+ "generator": "Overpass API 0.7.62.7 375dc00a",
+ "osm3s": {
+  "timestamp_osm_base": "2026-11-15T16:58:12Z",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+ },
+ "elements": [
+  {
+   "type": "node",
+   "id": 1001,
+   "lat": 51.50705,
+   "lon": -0.1207,
+   "tags": {
+    "highway": "speed_camera",
+    "maxspeed": "30 mph",
+    "direction": "E"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1002,
+   "lat": 51.50702,
+   "lon": -0.12065,
+   "tags": {
+    "highway": "speed_camera"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1003,
+   "lat": 51.50692,
+   "lon": -0.119,
+   "tags": {
+    "highway": "speed_camera",
+    "direction": "270"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1004,
+   "lat": 51.507799999999996,
+   "lon": -0.12,
+   "tags": {
+    "highway": "speed_camera",
+    "direction": "90;270"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1005,
+   "lat": 51.50703,
+   "lon": -0.1185,
+   "tags": {
+    "highway": "speed_camera",
+    "camera:direction": "80"
+   }
+  }
+ ]
+}
