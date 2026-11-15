@@ -77,6 +77,12 @@ import com.headunit.launcher.Geo
 import com.headunit.launcher.L
 import com.headunit.launcher.NavEngine
 import com.headunit.launcher.PreferenceKeys
+import com.headunit.launcher.carArrowScale
+import com.headunit.launcher.hdRoadsWanted
+import com.headunit.launcher.lightOptsFrom
+import com.headunit.launcher.locatorSpec
+import com.headunit.launcher.mapDetail
+import com.headunit.launcher.mapSource
 
 /**
  * The app's own screens on the Android Auto display, drawn over the car's map with the app's designs: alerts across the top, the
@@ -87,6 +93,8 @@ import com.headunit.launcher.PreferenceKeys
 @Composable
 fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: State<Boolean>, scale: State<Float>, actions: CarActions, onCover: (Int) -> Unit = {}) {
     val base = LocalDensity.current
+    // the car's map follows the settings as soon as they change (on the phone or in the car's own settings)
+    CarLiveSettings(engine, dark)
     // [scale] is worked out from the car screen's size (see CarSurface); the Android Auto size setting adjusts it either way
     val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
     val textScale = engine.prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).coerceIn(75, 150) / 100f
@@ -95,6 +103,82 @@ fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: Sta
         // (not with "Always day" picked in the car's settings)
         VwTheme(dark.value || (engine.mapLooksDark && engine.prefs.s(PreferenceKeys.CARTHEME, "car") == "car")) { CarScreen(engine, area.value, actions, onCover) }
     }
+}
+
+/**
+ * Runs [block] when any of [keys] changes after the first composition. The car's map is set up once with the settings as they
+ * are when it starts (CarNavSession.startEngine), so only later changes need applying.
+ */
+@Composable
+private fun OnChange(vararg keys: Any?, block: () -> Unit) {
+    val now = keys.toList()
+    // what was last applied: compared rather than counted, so a change isn't lost if an effect is cancelled before it runs
+    val applied = remember { arrayOf(now) }
+    LaunchedEffect(now) {
+        if (applied[0] != now) {
+            applied[0] = now
+            try { block() } catch (e: Exception) { }
+        }
+    }
+}
+
+/**
+ * Keeps the Android Auto map in step with the settings while it's connected, as the phone's own map is (see App.kt): the map
+ * theme and detail, the locator, sizes and the 3D extras used to be read once when the car connected, so a change only showed
+ * after reconnecting. The values mirror CarNavSession.startEngine, which applies them the first time.
+ */
+@Composable
+private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
+    val prefs = engine.prefs
+    val map = engine.map
+    val (locStyle, locColor) = prefs.locatorSpec()
+    OnChange(locStyle, locColor) { map.setLocator(locStyle, locColor) }
+    val arrow = prefs.carArrowScale()
+    OnChange(arrow) { map.setArrowScale(arrow) }
+    val detail = prefs.mapDetail()
+    OnChange(detail) { map.setMapDetail(detail) }
+    val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, false)
+    OnChange(trafficGreen) { map.setTrafficGreen(trafficGreen) }
+    val carModel = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
+    OnChange(carModel) { map.setCarModel(carModel) }
+    val roadName = prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).coerceIn(70, 200)
+    OnChange(roadName) { map.setRoadNameScale(roadName / 100f) }
+    // the map theme (Custom: the theme it starts from, with its own colours on top)
+    val mapCols = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
+    val customOn = mapCols == "custom"
+    val baseCols = if (customOn) prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapCols
+    OnChange(baseCols) { map.setColours(baseCols) }
+    val customDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
+    val customNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
+    val customW = prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100)
+    OnChange(customOn, customDay, customNight, customW) { map.setCustom(customOn, customDay, customNight, customW) }
+    val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
+    OnChange(camSize) { map.setCameraSize(camSize) }
+    val flags3d = prefs.b(PreferenceKeys.FLAGS_3D, true)
+    val hills = prefs.b(PreferenceKeys.HILLSHADE, false)
+    OnChange(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }
+    val carTint = prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0")
+    val carTintStr = prefs.i(PreferenceKeys.CAR_TINT_STR, 40)
+    OnChange(carTint, carTintStr) { map.setCarTint(carTint, carTintStr) }
+    val light = lightOptsFrom(prefs)
+    OnChange(light.nightBright, light.moon, light.moonStr, light.shadows, light.sunReal, light.overcast, light.weatherLight) { map.setLightOpts(light) }
+    val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
+    OnChange(logoCorner) { map.setLogoCorner(logoCorner) }
+    val xFacades = prefs.b(PreferenceKeys.FACADES, true); val xLand = prefs.b(PreferenceKeys.LANDMARKS3D, true); val xPaths = prefs.b(PreferenceKeys.PATHS, true)
+    val xTerrain = prefs.b(PreferenceKeys.TERRAIN, false); val xFurn = prefs.b(PreferenceKeys.FURNITURE3D, true); val xClear = prefs.b(PreferenceKeys.CLEARVIEW, true)
+    // (tap-to-select stays off on the car, as when the map is made)
+    OnChange(xFacades, xLand, xPaths, xTerrain, xFurn, xClear) { map.setExtras(xFacades, xLand, xPaths, xTerrain, false, xFurn, xClear) }
+    val xHd = hdRoadsWanted(prefs, prefs.s(PreferenceKeys.COUNTRYDETECTED, ""))
+    OnChange(xHd) { map.setHdRoads(xHd) }
+    val signalsOn = prefs.b(PreferenceKeys.SIGNALS, true)
+    OnChange(signalsOn) { map.signalsEnabled(signalsOn) }
+    // the map source, traffic, keys and Mapbox look are read when the style is applied: apply it again in the car's current day / night
+    val style = prefs.mapSource()
+    val traffic = prefs.b(PreferenceKeys.TRAFFIC, true)
+    val key = prefs.s(PreferenceKeys.API_KEY, "")
+    val mbToken = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")
+    val mbLook = prefs.s(PreferenceKeys.MBLOOK, "horizon")
+    OnChange(style, traffic, key, mbToken, mbLook) { engine.applyStyle(dark.value) }
 }
 
 /** What taps on the app's cards do that needs Android Auto's own screens (search, the places list). */
@@ -168,7 +252,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // Settings > Android Auto > Card positions: the trip card under the cards on the left ("auto"), in the middle or on the right
         // of the bottom; the speedometer bottom right ("auto") or bottom left (it moves left by itself when the trip card takes the right)
         val carTripAt = engine.prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto")
-        val carSpeedLeft = engine.prefs.s(PreferenceKeys.CAR_SPEED_SIDE, "auto").let { it == "left" || (it == "auto" && carTripAt == "right") }
+        // (where it goes is worked out below, once it's known whether the turn card is showing)
+        val carSpeedSide = engine.prefs.s(PreferenceKeys.CAR_SPEED_SIDE, "auto")
+        val carSpeedPos = engine.prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
         val speedScale = speedScale0 * (if (tile) 0.7f else if (short) 0.85f else 1f)
         val insL = with(dens) { (a?.left ?: 0).toDp() }
         val insT = with(dens) { (a?.top ?: 0).toDp() }
@@ -239,8 +325,24 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // one slim line while the turn is far off (about 2 km), the full card as it comes up (a little either side, so it can't flicker)
         val slimHold = remember { booleanArrayOf(false) }
         if (t != null) slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
+        // Speed position (Settings > Android Auto, and the car's own settings). Every place is anchored to a card or a corner:
+        // floating half-way up the right-hand side, beside Android Auto's zoom buttons, it looked lost and sat in from the edge.
+        //  "bottom": the bottom corner, on the side picked under Card positions (bottom left on a short screen, #67)
+        //  "middle": under the turn card (the stored name is from when it was the middle of the right-hand side); with no turn
+        //            card showing it waits bottom left
+        //  "top":    top right, under Android Auto's buttons. On a short screen the ring has no room there between Android
+        //            Auto's two groups of buttons, so it goes under the turn card instead; the compact pill is small enough to fit
+        val topRightFits = !small || engine.prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app") == "compact"
+        val speedUnderTurn = !portrait && showTurn && (carSpeedPos == "middle" || (carSpeedPos == "top" && !topRightFits))
+        val speedTopRight = carSpeedPos == "top" && topRightFits
+        val carSpeedLeft = when {
+            speedUnderTurn || speedTopRight -> false
+            carSpeedPos == "bottom" -> carSpeedSide == "left" || (carSpeedSide == "auto" && (carTripAt == "right" || small))
+            else -> true
+        }
+        var speedUnderH by remember { mutableStateOf(0) }
         // (worked out here: the screen's height can't be read from inside the column below)
-        val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH).toDp() } - 28.dp).coerceAtLeast(0.dp)
+        val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
         if (showTurn && t != null) Box(Modifier.padding(start = left, top = top).width(if (portrait) topW else if (small) minOf(340.dp, maxWidth * 0.42f) else minOf(420.dp, maxWidth * 0.36f))
             .onSizeChanged { turnH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
@@ -264,6 +366,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
                 // (not on a short screen or a tile: the lanes are in the turn card's own strip there)
                 if (!small) JunctionCloseup(engine, maxH = laneRoom)
+                // Speed position "Under the turn card": in the left-hand column the app's own cards already keep clear
+                if (speedUnderTurn) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
+                }
             }
         }
 
@@ -336,8 +442,18 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 var leftColW by remember { mutableStateOf(0) }
                 var leftColH by remember { mutableStateOf(0) }
                 var speedW by remember { mutableStateOf(0) }
+                // Android Auto's split screen (the map in a tile beside another app: the surface stays full size and only the
+                // tile's part of it is visible): while navigating, the trip strip is a bar docked along the tile's bottom edge,
+                // centred, as Google Maps has it, instead of floating above the edge beside the other cards
+                val split = a != null && a.width() < wPx * 0.75f
+                val tripDocked = split && small && guiding
+                var dockH by remember { mutableStateOf(0) }
+                // (right down on the edge: Android Auto leaves a small margin for the tile's rounded corners, which the bar's
+                // own rounded top doesn't need. A big bottom inset is something really covering the map, so that's kept clear)
+                val dockBottom = if (with(dens) { insB.toPx() } < hPx * 0.12f) 0.dp else insB
+                val colBottom = if (tripDocked) dockBottom + with(dens) { dockH.toDp() } + 8.dp else bottom
                 Column(
-                    Modifier.align(Alignment.BottomStart).padding(start = left, bottom = bottom).onSizeChanged { leftColW = it.width; leftColH = it.height; bottomColH = it.height }
+                    Modifier.align(Alignment.BottomStart).padding(start = left, bottom = colBottom).onSizeChanged { leftColW = it.width; leftColH = it.height; bottomColH = it.height }
                         .onGloballyPositioned { report(1, it.boundsInRoot()) },
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
@@ -345,16 +461,16 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     // (while guiding, the sound button is on the trip card instead of a pill of its own)
                     if (!guiding && !small) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
                     hazards()
-                    if (small || carSpeedLeft) {
-                        // a short screen (#67): the speed stays put in the bottom-left corner, with the one-line trip strip beside it
+                    if (carSpeedLeft) {
+                        // bottom left (picked, or a short screen (#67)): the speed stays put in the bottom-left corner, with the one-line trip strip beside it
                         // while navigating. Bottom right, it slid in and out with Android Auto's zoom buttons, sat on the Mapbox logo,
                         // and went up the side whenever the trip strip needed the room
                         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                             // (allowed to shrink, so on the narrowest tiles it gives way rather than pushing past the edge)
-                            if (guiding && carTripAt == "auto") Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) } }
+                            if (guiding && carTripAt == "auto" && !tripDocked) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) } }
                         }
-                    } else if (guiding && carTripAt == "auto") CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) }
+                    } else if (guiding && carTripAt == "auto" && !tripDocked) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) }
                 }
                 // your speed and the limit, bottom right as in the app (clear of Android Auto's zoom buttons); on a small screen where
                 // it would run into the cards on the left, it sits above them instead
@@ -368,25 +484,29 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 val crowded = crowdedNow || crowdedHeld
                 // Down in the bottom corner, level with the trip card and just left of Android Auto's zoom and re-centre buttons
                 // (halfway up the side it looked lost in the middle of the screen)
-                val speedBottom = if (crowded && leftColH > 0) bottom + with(dens) { leftColH.toDp() } + 10.dp else bottom
+                val speedBottom = if (crowded && leftColH > 0) colBottom + with(dens) { leftColH.toDp() } + 10.dp else colBottom
                 // right up against the edge of the clear map: Android Auto reports the part of the screen its own buttons leave free,
                 // which shrinks while its zoom and re-centre buttons are showing, so the sign sits just beside them then and slides
                 // into the corner when they hide (it used to keep a fixed 92dp gap as well, so it sat well in from either)
                 val speedEnd by androidx.compose.animation.core.animateDpAsState(insR + 6.dp, tween(280), label = "speedEnd")
                 // (Settings > Android Auto > Speed position on the car screen: bottom as always, or up the side, clear of the cards on
                 // the left; at the top it sits below Android Auto's own buttons in the top corner)
-                val carSpeedPos = engine.prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
-                val speedMod = when (carSpeedPos) {
-                    "top" -> Modifier.align(Alignment.TopEnd).padding(end = speedEnd, top = top + 72.dp, start = 34.dp, bottom = bottom)
-                    "middle" -> Modifier.align(Alignment.CenterEnd).padding(end = speedEnd, top = top + 20.dp, start = 34.dp, bottom = bottom)
-                    else -> Modifier.align(Alignment.BottomEnd).padding(end = speedEnd, bottom = speedBottom, start = 34.dp, top = 20.dp)
-                }
+                val speedMod = if (speedTopRight) Modifier.align(Alignment.TopEnd).padding(end = speedEnd, top = top + 72.dp, start = 34.dp, bottom = bottom)
+                    else Modifier.align(Alignment.BottomEnd).padding(end = speedEnd, bottom = speedBottom, start = 34.dp, top = 20.dp)
                 // Card positions (Settings > Android Auto): the trip card in the middle or on the right, along the bottom
-                if (guiding && carTripAt != "auto") Box(
+                if (tripDocked) Box(
+                    Modifier.align(Alignment.BottomStart).padding(start = insL, end = insR, bottom = dockBottom).fillMaxWidth(),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                        Box(Modifier.onSizeChanged { dockH = it.height }) { TripCard(engine, false, oneLine = true, buttonsShown = !tile, docked = true) }
+                    }
+                }
+                if (guiding && carTripAt != "auto" && !tripDocked) Box(
                     Modifier.align(if (carTripAt == "centre") Alignment.BottomCenter else Alignment.BottomEnd)
                         .padding(bottom = bottom, end = if (carTripAt == "right") speedEnd else 0.dp)
                 ) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile) } }
-                if (!small && !carSpeedLeft) BoxWithConstraints(speedMod.onSizeChanged { speedW = if (carSpeedPos == "bottom") it.width else 0 }) {
+                if (!carSpeedLeft && !speedUnderTurn) BoxWithConstraints(speedMod.onSizeChanged { speedW = if (speedTopRight) 0 else it.width }) {
                     val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
                     val fittedScale = requestedSpeedScale * availableFit * (if (tile) 0.7f else if (short) 0.85f else 1f)
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * fittedScale, dens.fontScale)) { ImmSpeed(engine) }
@@ -395,7 +515,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         }
 
         // before setting off: the destination, the route choices and the Start bar that starts by itself after 10 s
-        if (previewing) Box(Modifier.align(Alignment.BottomCenter).padding(start = left, end = if (portrait) rightBottom else rightTop, bottom = bottom)) { CarRoutePreview(engine) }
+        if (previewing) Box(Modifier.align(Alignment.BottomCenter).padding(start = left, end = if (portrait) rightBottom else rightTop, bottom = bottom)) {
+            // ("Card size" covers the route cards too)
+            CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { CarRoutePreview(engine) }
+        }
 
         // working out a route: a small spinner at the top, as in the app
         AnimatedVisibility(engine.busy, modifier = Modifier.align(Alignment.TopCenter).padding(top = top + (if (portrait) below else 0.dp)),
@@ -453,9 +576,9 @@ private fun SoundPill(engine: NavEngine) {
 }
 
 /** Time left, arrival, distance and the route bar, with the sound button and the red button that ends the route.
- *  [fill]: across the width, compact (tall screens). */
+ *  [fill]: across the width, compact (tall screens). [docked]: a bar on the bottom edge (Android Auto's split screen). */
 @Composable
-private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false, buttonsShown: Boolean = true) {
+private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false, buttonsShown: Boolean = true, docked: Boolean = false) {
     val e = engine.eta ?: return
     val c = LocalVw.current
     val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
@@ -466,7 +589,8 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
     var rowW by remember { mutableStateOf(0) }
     val dens = LocalDensity.current
     val w = if (fill) Modifier.fillMaxWidth() else Modifier.width(if (rowW > 0) with(dens) { rowW.toDp() } else 400.dp)
-    Column((if (fill) Modifier.fillMaxWidth() else Modifier).panel(10.dp, RoundedCornerShape(22.dp), c.surface)) {
+    // ([docked]: sitting on the bottom edge of the screen, so only its top corners are rounded)
+    Column((if (fill) Modifier.fillMaxWidth() else Modifier).panel(10.dp, if (docked) RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp) else RoundedCornerShape(22.dp), c.surface)) {
         // a slim bar: the full-height one took up nearly half the card
         if (engine.showRouteBar && !oneLine) RouteBar(engine, w.padding(start = 16.dp, end = 16.dp, top = 6.dp), thin = true)
         val end: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
@@ -501,7 +625,7 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
         val on = if (buttonsShown) carTripButtonsOn(engine.prefs) else emptySet()
         // a short screen or a split-screen tile: one line, the figures without their labels, then the buttons kept
         if (oneLine) {
-            val grow1 = when (engine.prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) { "large" -> 1.25f; "xl" -> 1.5f; else -> 1f }
+            val grow1 = (when (engine.prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) { "large" -> 1.25f; "xl" -> 1.5f; else -> 1f }) * carButtonScale(engine)
             Row(Modifier.padding(start = 14.dp, end = if (on.isEmpty()) 14.dp else 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
@@ -517,7 +641,7 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
             }
             return@Column
         }
-        val grow = when (engine.prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) { "large" -> 1.25f; "xl" -> 1.5f; else -> 1f }
+        val grow = (when (engine.prefs.s(PreferenceKeys.CAR_TRIP_BTN_SIZE, "normal")) { "large" -> 1.25f; "xl" -> 1.5f; else -> 1f }) * carButtonScale(engine)
         val buttons: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { base ->
             val sz = base * grow
             if ("overview" in on) small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
@@ -535,6 +659,9 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
         }
     }
 }
+
+/** Settings > Android Auto > Button size, for the round buttons the app draws on the car screen. */
+private fun carButtonScale(engine: NavEngine): Float = engine.prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
 
 /** A figure on the car trip card, with a label big enough to read at a glance (the app's own labels were tiny on a car screen). */
 @Composable
@@ -676,6 +803,8 @@ private fun CarRoutePreview(engine: NavEngine) {
 private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
     val c = LocalVw.current
     val home = engine.places.slot("home"); val work = engine.places.slot("work")
+    // (capped: five of them share one row of a short screen)
+    val bs = carButtonScale(engine).coerceAtMost(1.25f)
     LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); kotlinx.coroutines.delay(60_000) } }
     @Composable fun pill(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, label: String, place: com.headunit.launcher.Place?, mins: Int?) {
         Row(Modifier.height(38.dp).panel(6.dp, RoundedCornerShape(19.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else actions.search() }
@@ -687,8 +816,8 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
         }
     }
     @Composable fun round(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, act: () -> Unit) {
-        Box(Modifier.size(40.dp).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap(id, act), contentAlignment = Alignment.Center) {
-            androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
+        Box(Modifier.size(40.dp * bs).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap(id, act), contentAlignment = Alignment.Center) {
+            androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp * bs))
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -733,9 +862,9 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             }
         }
     }
-    @Composable fun find(kind: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color) {
-        Box(Modifier.size(50.dp).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap("n-$kind") { actions.nearby(kind) }, contentAlignment = Alignment.Center) {
-            androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(24.dp))
+    @Composable fun find(kind: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, sz: androidx.compose.ui.unit.Dp) {
+        Box(Modifier.size(sz).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap("n-$kind") { actions.nearby(kind) }, contentAlignment = Alignment.Center) {
+            androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(sz * 0.48f))
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -743,15 +872,19 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             tile("home", androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"], Modifier.weight(1f))
             tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"], Modifier.weight(1f))
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            // (an electric car: Charging first, and Toilets where Fuel was, unless petrol stations are wanted too)
-            val noFuel = engine.hideFuel
-            if (!noFuel) find("fuel", androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335))
-            find("charging", androidx.compose.material.icons.Icons.Rounded.EvStation, Color(0xFF34A853))
-            find("food", androidx.compose.material.icons.Icons.Rounded.Restaurant, Color(0xFFF29900))
-            find("coffee", androidx.compose.material.icons.Icons.Rounded.LocalCafe, Color(0xFFA56BFF))
-            find("parking", androidx.compose.material.icons.Icons.Rounded.LocalParking, Color(0xFF4C8DFF))
-            if (noFuel) find("toilets", androidx.compose.material.icons.Icons.Rounded.Wc, Color(0xFF4C8DFF))
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            // Settings > Android Auto > Button size, kept to what five across the row have room for
+            val sz = minOf(50.dp * carButtonScale(engine), (maxWidth - 16.dp) / 5)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                // (an electric car: Charging first, and Toilets where Fuel was, unless petrol stations are wanted too)
+                val noFuel = engine.hideFuel
+                if (!noFuel) find("fuel", androidx.compose.material.icons.Icons.Rounded.LocalGasStation, Color(0xFFEA4335), sz)
+                find("charging", androidx.compose.material.icons.Icons.Rounded.EvStation, Color(0xFF34A853), sz)
+                find("food", androidx.compose.material.icons.Icons.Rounded.Restaurant, Color(0xFFF29900), sz)
+                find("coffee", androidx.compose.material.icons.Icons.Rounded.LocalCafe, Color(0xFFA56BFF), sz)
+                find("parking", androidx.compose.material.icons.Icons.Rounded.LocalParking, Color(0xFF4C8DFF), sz)
+                if (noFuel) find("toilets", androidx.compose.material.icons.Icons.Rounded.Wc, Color(0xFF4C8DFF), sz)
+            }
         }
         // your own places first, then favourites, then recent ones (as in the app)
         val rawC = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, ""); val rawF = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""); val rawR = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")

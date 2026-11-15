@@ -5,12 +5,18 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Compact speedometer on Android Auto: an optional small dark pill with the limit sign and your speed side by side (Settings › Android Auto › Speedometer style on the car screen, or Speedometer style in the car's own settings). It's small enough to sit top right even on a short car screen
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Android Auto follows your settings straight away: the map theme and your own colours, map detail, your arrow or car (its kind, model, colour and size), the road name and camera sizes, the 3D extras and the light now change on the car screen as you change them, instead of after reconnecting
+- Speed position on Android Auto: the choices are now Bottom corner, Under the turn card and Top right, each against a card or a corner instead of floating half-way up the side beside Android Auto's own buttons
+- Android Auto split screen: while navigating, the trip strip is a bar along the bottom edge of the map's tile, centred
+- Button size and Card size on Android Auto now also cover the trip card's buttons, the round shortcut buttons and the route choice cards
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Speed position on Android Auto did nothing on a short car screen, or with the trip card on the right: the speedometer stayed bottom left whatever was picked
 - Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
 
 ## 1.0.559 — 15 Nov 2026

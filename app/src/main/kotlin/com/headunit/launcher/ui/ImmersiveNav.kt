@@ -884,7 +884,7 @@ private fun SpeedWithNext(engine: NavEngine) {
     val k = if (engine.imperial) 2.23694 else 3.6
     // with the speedometer ring, the limit sign pokes up above the ring's top corner: the gap leaves room for it, so the two
     // don't overlap (on the car screen they did)
-    val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true)
+    val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true) && !carCompactSpeed(engine)
     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign) 26.dp else 6.dp)) {
         Row(
             Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
@@ -906,6 +906,30 @@ private fun SpeedWithNext(engine: NavEngine) {
     }
 }
 
+/** The compact speedometer is picked for the Android Auto screen (Settings > Android Auto > Speedometer style). */
+private fun carCompactSpeed(engine: NavEngine): Boolean = engine.isCar && engine.prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app") == "compact"
+
+/**
+ * The compact speedometer for the car screen: one small dark pill with the limit sign (when the limit is known) and your speed
+ * beside it, or just a dark circle with your speed. Much smaller than the ring, so it tucks into a corner. It's dark by day and
+ * by night, so the white figures always read against the map.
+ */
+@Composable
+private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
+    val lim = engine.speedLimit
+    Row(
+        Modifier.height(60.dp).widthIn(min = 60.dp).panel(6.dp, RoundedCornerShape(30.dp), Color(0xFF101114)).padding(horizontal = 6.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
+    ) {
+        if (lim != null) SpeedLimitSign(engine, 48.dp)
+        // (the same width with or without the sign, so the pill doesn't change size as the figures do)
+        if (show) Column(Modifier.widthIn(min = 48.dp).padding(horizontal = if (lim != null) 6.dp else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+            Text(if (engine.imperial) "mph" else "km/h", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        }
+    }
+}
+
 @Composable
 private fun SpeedBlock(engine: NavEngine) {
     val c = LocalVw.current
@@ -913,6 +937,7 @@ private fun SpeedBlock(engine: NavEngine) {
     val lim = engine.speedLimit
     if (lim == null && !show) return
     val k = if (engine.imperial) 2.23694 else 3.6
+    if (carCompactSpeed(engine)) { SpeedPill(engine, show, k); return }
     if (engine.prefs.b(PreferenceKeys.SPEEDRING, true)) { SpeedRing(engine, show, k); return }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         // Keep the speed cluster in the same screen position, but mirror the sign's

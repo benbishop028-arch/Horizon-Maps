@@ -249,8 +249,12 @@ internal object PreferenceKeys {
     const val HILLSHADE = "hillshade"
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
-    /** The same for the Android Auto screen: "bottom" (as it always was), "middle" or "top" of the right-hand side. */
+    /** The same for the Android Auto screen: "bottom" (the bottom corner), "middle" (under the turn card; the name is from when
+     *  it was the middle of the right-hand side) or "top" (top right, under Android Auto's buttons). */
     const val SPEED_POS_CAR = "speedposcar"
+    /** The speedometer's look on the Android Auto screen: "app" (the same as the app: the ring or the block) or "compact"
+     *  (a small dark pill with the limit sign and your speed side by side, easy to tuck into a corner). */
+    const val CAR_SPEED_STYLE = "carspeedstyle"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
     /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */
@@ -449,6 +453,13 @@ fun Prefs.locatorSpec(): Pair<String, String> {
         else -> loc to s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")
     }
 }
+
+/**
+ * The arrow's size on the Android Auto map: the app's arrow size, normalised for the smaller car surface (so the 240% main-app
+ * default doesn't make an enormous arrow there), times the car screen's own "Navigation arrow size".
+ */
+fun Prefs.carArrowScale(): Float =
+    ((s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180) / 100f)
 
 /** Settings > Map > Map detail: "full", "lite" or "lightest" (the old "Light map" switch counts as lite). */
 fun Prefs.mapDetail(): String = s(PreferenceKeys.MAP_DETAIL, if (b(PreferenceKeys.MAP_LITE, false)) "lite" else "full")
