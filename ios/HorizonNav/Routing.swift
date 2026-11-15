@@ -2,7 +2,7 @@ import CoreLocation
 import MapKit
 
 /// One manoeuvre on a route. The manoeuvre happens where the step starts.
-struct RouteStep: Equatable {
+struct RouteStep: Equatable, Codable {
     var instruction: String
     var notice: String?
     /// Distance driven after the manoeuvre, until the next one.
@@ -12,9 +12,19 @@ struct RouteStep: Equatable {
     /// Signed turn angle at the manoeuvre, positive to the right. Nil when the geometry cannot tell.
     var turnAngle: Double?
     var isArrival: Bool
+    /// The provider's manoeuvre kind, with the Android app's names. Unknown for Apple Maps routes.
+    var maneuver: Maneuver = .unknown
+    /// The road the manoeuvre leads onto, when the provider names it.
+    var street: String = ""
+    var roundaboutExit: Int = 0
+    var exitNumber: String = ""
+    /// Signpost text ("towards Bristol"), when the provider gives it.
+    var signpost: String = ""
+    /// Mapbox's picture of the junction, when the account has junction views.
+    var junctionImageURL: URL?
 }
 
-enum RouteSource: Equatable {
+enum RouteSource: Equatable, Codable {
     case online(String)
     case offline(String)
 }
@@ -31,13 +41,23 @@ struct RouteOption: Identifiable, Equatable {
     var steps: [RouteStep]
     var advisories: [String]
     var source: RouteSource
+    /// Seconds of the travel time caused by traffic, when the provider reports it.
+    var trafficDelay: TimeInterval = 0
+    /// Lane layouts along the route, by distance along the geometry.
+    var laneSections: [LaneSection] = []
+    /// Posted speed limits along the route, by distance along the geometry.
+    var speedLimits: [SpeedLimitSection] = []
 
     var length: CLLocationDistance { cumulative.last ?? 0 }
 
     static func == (lhs: RouteOption, rhs: RouteOption) -> Bool { lhs.id == rhs.id }
 
     init(name: String, distance: CLLocationDistance, expectedTravelTime: TimeInterval,
-         coordinates: [CLLocationCoordinate2D], steps: [RouteStep], advisories: [String], source: RouteSource) {
+         coordinates: [CLLocationCoordinate2D], steps: [RouteStep], advisories: [String], source: RouteSource,
+         trafficDelay: TimeInterval = 0, laneSections: [LaneSection] = [], speedLimits: [SpeedLimitSection] = []) {
+        self.trafficDelay = trafficDelay
+        self.laneSections = laneSections
+        self.speedLimits = speedLimits
         self.name = name
         self.distance = distance
         self.expectedTravelTime = expectedTravelTime
@@ -222,6 +242,7 @@ extension RouteStep {
     /// SF Symbol for the manoeuvre, from the turn geometry so it does not depend on instruction language.
     var symbolName: String {
         if isArrival { return "flag.checkered" }
+        if let symbol = maneuver.symbolName { return symbol }
         guard let angle = turnAngle else { return "arrow.up" }
         switch abs(angle) {
         case ..<20: return "arrow.up"

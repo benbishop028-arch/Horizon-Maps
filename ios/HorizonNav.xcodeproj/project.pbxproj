@@ -8,15 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		0664A1BD5E3D990137505D78 /* Routing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5977C187B264C02BD1341F29 /* Routing.swift */; };
+		1C06EC9E22013DC236BC2A28 /* ProviderSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */; };
 		222B3B2F82457B28DC17030D /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */; };
+		37929B7D35B83B0255E9FBA2 /* mapbox-geocode.json in Resources */ = {isa = PBXBuildFile; fileRef = D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */; };
+		3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04E9A35413956700DAF89D1 /* SettingsView.swift */; };
+		56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */ = {isa = PBXBuildFile; fileRef = D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */; };
 		59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */; };
+		6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */ = {isa = PBXBuildFile; fileRef = 660DAF332134879DA4A84296 /* tomtom-search.json */; };
+		8CEFF4760A1B3AA8D99D1D0E /* ProviderKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */; };
+		913E7522DF0F4713EBCA1D49 /* mapbox-directions.json in Resources */ = {isa = PBXBuildFile; fileRef = 12DB274C95C955347B18C9C0 /* mapbox-directions.json */; };
 		A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5039D498498215F2014D9995 /* ContentView.swift */; };
 		A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */; };
+		A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */ = {isa = PBXBuildFile; fileRef = A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */; };
+		AD711FB96ACF6EE4571CF983 /* ProviderParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */; };
 		AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42ADA62D6A65A34506330EBA /* AppDelegate.swift */; };
 		C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */; };
 		C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */; };
+		CFCAE32CB5695D0C6402F78F /* MapboxProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */; };
 		D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */; };
+		DAC516764046603E84797CBC /* Maneuver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 783B50930AFB1AACC4C508DF /* Maneuver.swift */; };
+		E5AD77FCC1C4B28D48887DA1 /* ProviderRouting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */; };
 		E68B800CA2B1E9793647CD5F /* CarPlayMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */; };
+		F9950A2E8C8C15508E1937C7 /* TomTomProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9969FC5DCF189506D4387429 /* TomTomProvider.swift */; };
 		FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480671AE6B396154B1004202 /* RouteGuidance.swift */; };
 /* End PBXBuildFile section */
 
@@ -31,8 +44,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapboxProvider.swift; sourceTree = "<group>"; };
+		0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRouting.swift; sourceTree = "<group>"; };
 		0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayMapViewController.swift; sourceTree = "<group>"; };
 		12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HorizonNav.entitlements; sourceTree = "<group>"; };
+		12DB274C95C955347B18C9C0 /* mapbox-directions.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-directions.json"; sourceTree = "<group>"; };
+		1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderSupport.swift; sourceTree = "<group>"; };
+		3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = HorizonNav.xcconfig; sourceTree = "<group>"; };
 		42ADA62D6A65A34506330EBA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidanceTests.swift; sourceTree = "<group>"; };
 		447F39C57098FCA199888C7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -40,11 +58,20 @@
 		4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HorizonNav.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5039D498498215F2014D9995 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		5977C187B264C02BD1341F29 /* Routing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routing.swift; sourceTree = "<group>"; };
+		660DAF332134879DA4A84296 /* tomtom-search.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "tomtom-search.json"; sourceTree = "<group>"; };
 		67906EF6E63724FD6D5CC95E /* HorizonNavTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HorizonNavTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		783B50930AFB1AACC4C508DF /* Maneuver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Maneuver.swift; sourceTree = "<group>"; };
+		7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeys.swift; sourceTree = "<group>"; };
+		9969FC5DCF189506D4387429 /* TomTomProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TomTomProvider.swift; sourceTree = "<group>"; };
+		A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "tomtom-route.json"; sourceTree = "<group>"; };
 		A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonNavApp.swift; sourceTree = "<group>"; };
 		BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
 		C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
+		D04E9A35413956700DAF89D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-geocode.json"; sourceTree = "<group>"; };
+		D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "mapbox-searchbox.json"; sourceTree = "<group>"; };
+		E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderParsingTests.swift; sourceTree = "<group>"; };
 		FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -53,8 +80,18 @@
 			isa = PBXGroup;
 			children = (
 				4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */,
+				E5A3CA602BE84354DB44BE85 /* ProviderParsingTests.swift */,
+				D2216D924D19ACEDFE3B0834 /* Fixtures */,
 			);
 			path = HorizonNavTests;
+			sourceTree = "<group>";
+		};
+		60D69773723602ADED752AB4 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 		852C65FA0699F9C68C35D134 /* HorizonNav */ = {
@@ -68,10 +105,17 @@
 				12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */,
 				A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */,
 				447F39C57098FCA199888C7C /* Info.plist */,
+				783B50930AFB1AACC4C508DF /* Maneuver.swift */,
+				04CE05F7CD21A9DDEF7B981F /* MapboxProvider.swift */,
 				BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */,
 				CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */,
+				7992B873DF15B2F6C1D2EA41 /* ProviderKeys.swift */,
+				0BC35D3A48373CDEB38A5C76 /* ProviderRouting.swift */,
+				1C507BDAC82097B3A5E877DB /* ProviderSupport.swift */,
 				480671AE6B396154B1004202 /* RouteGuidance.swift */,
 				5977C187B264C02BD1341F29 /* Routing.swift */,
+				D04E9A35413956700DAF89D1 /* SettingsView.swift */,
+				9969FC5DCF189506D4387429 /* TomTomProvider.swift */,
 			);
 			path = HorizonNav;
 			sourceTree = "<group>";
@@ -85,9 +129,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		D2216D924D19ACEDFE3B0834 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				12DB274C95C955347B18C9C0 /* mapbox-directions.json */,
+				D182FFE39FCCD08898F917D8 /* mapbox-geocode.json */,
+				D36033680B5DF9C222629BF1 /* mapbox-searchbox.json */,
+				A0A3EE5A4A651268050D0CE1 /* tomtom-route.json */,
+				660DAF332134879DA4A84296 /* tomtom-search.json */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
 		EDFC35D6A5FAA1D9F5C1FB1B = {
 			isa = PBXGroup;
 			children = (
+				60D69773723602ADED752AB4 /* Config */,
 				852C65FA0699F9C68C35D134 /* HorizonNav */,
 				3A533796CB8529A29D0D6E4E /* HorizonNavTests */,
 				CEE623A1ADC602EBB11FB385 /* Products */,
@@ -119,6 +176,7 @@
 			buildConfigurationList = E93D0A3EC75F23E3D31F0BC5 /* Build configuration list for PBXNativeTarget "HorizonNavTests" */;
 			buildPhases = (
 				3DD3A16D0381167D849F80B3 /* Sources */,
+				EEC0C65DF3AEADA25CAC2ED8 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -171,6 +229,21 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		EEC0C65DF3AEADA25CAC2ED8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				913E7522DF0F4713EBCA1D49 /* mapbox-directions.json in Resources */,
+				37929B7D35B83B0255E9FBA2 /* mapbox-geocode.json in Resources */,
+				56F4C1993B13BB26ED659384 /* mapbox-searchbox.json in Resources */,
+				A71ECDFD932001024431BE52 /* tomtom-route.json in Resources */,
+				6DD4157A931C247AE82AAA73 /* tomtom-search.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		18D19F1739B14E8BAAAA5983 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -182,10 +255,17 @@
 				A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */,
 				A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */,
 				D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */,
+				DAC516764046603E84797CBC /* Maneuver.swift in Sources */,
+				CFCAE32CB5695D0C6402F78F /* MapboxProvider.swift in Sources */,
 				C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */,
 				59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */,
+				8CEFF4760A1B3AA8D99D1D0E /* ProviderKeys.swift in Sources */,
+				E5AD77FCC1C4B28D48887DA1 /* ProviderRouting.swift in Sources */,
+				1C06EC9E22013DC236BC2A28 /* ProviderSupport.swift in Sources */,
 				FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */,
 				0664A1BD5E3D990137505D78 /* Routing.swift in Sources */,
+				3AC87648B18A9C3DA242D725 /* SettingsView.swift in Sources */,
+				F9950A2E8C8C15508E1937C7 /* TomTomProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -194,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */,
+				AD711FB96ACF6EE4571CF983 /* ProviderParsingTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,6 +308,7 @@
 		};
 		223A46842980BB43BAEDF7F0 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HorizonNav/HorizonNav.entitlements;
@@ -385,6 +467,7 @@
 		};
 		EC8604FE7BDA1A35B853C84F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B8F3F439BB183BDDF65BDC9 /* HorizonNav.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HorizonNav/HorizonNav.entitlements;

@@ -1,0 +1,52 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "dXJuOm1ieGFkcjpmaXh0dXJl",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.127683,
+     51.503396
+    ]
+   },
+   "properties": {
+    "mapbox_id": "dXJuOm1ieGFkcjpmaXh0dXJl",
+    "feature_type": "address",
+    "full_address": "10 Downing Street, London SW1A 2AA, United Kingdom",
+    "name": "10 Downing Street",
+    "name_preferred": "10 Downing Street",
+    "place_formatted": "London SW1A 2AA, United Kingdom",
+    "coordinates": {
+     "longitude": -0.127683,
+     "latitude": 51.503396,
+     "accuracy": "rooftop"
+    },
+    "context": {
+     "address": {
+      "address_number": "10",
+      "street_name": "Downing Street",
+      "name": "10 Downing Street"
+     },
+     "postcode": {
+      "name": "SW1A 2AA"
+     },
+     "place": {
+      "name": "London"
+     },
+     "country": {
+      "name": "United Kingdom",
+      "country_code": "GB"
+     }
+    },
+    "match_code": {
+     "address_number": "matched",
+     "street": "matched",
+     "confidence": "exact"
+    }
+   }
+  }
+ ],
+ "attribution": "NOTICE: \u00a9 2026 Mapbox and its suppliers."
+}

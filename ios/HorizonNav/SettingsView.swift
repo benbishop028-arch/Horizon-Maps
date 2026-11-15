@@ -1,0 +1,68 @@
+import SwiftUI
+
+/// Settings: provider keys (kept in the Keychain) and the choices that mirror the Android Settings pages.
+struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var mapboxToken = KeyStore.keychainValue(for: .mapbox) ?? ""
+    @State private var tomtomKey = KeyStore.keychainValue(for: .tomtom) ?? ""
+    @AppStorage(AppSettings.Keys.routingProvider) private var routingProvider = "auto"
+    @AppStorage(AppSettings.Keys.searchProvider) private var searchProvider = "auto"
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                keysSection
+                Section {
+                    Picker("Routes from", selection: $routingProvider) {
+                        Text("Automatic").tag("auto")
+                        Text("TomTom").tag("tomtom")
+                        Text("Mapbox").tag("mapbox")
+                    }
+                    Picker("Search with", selection: $searchProvider) {
+                        Text("Automatic").tag("auto")
+                        Text("TomTom").tag("tomtom")
+                        Text("Mapbox").tag("mapbox")
+                    }
+                } header: {
+                    Text("Routes and search")
+                } footer: {
+                    Text("With both keys on Automatic, new routes are asked of TomTom and Mapbox and the quicker one is offered first. Without a key, Apple Maps plans routes and searches.")
+                }
+            }
+            .navigationTitle("Settings")
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { save(); dismiss() }
+                }
+            }
+            .onDisappear(perform: save)
+        }
+    }
+
+    private var keysSection: some View {
+        Section {
+            SecureField("Mapbox access token (pk.)", text: $mapboxToken)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+            SecureField("TomTom API key", text: $tomtomKey)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+        } header: {
+            Text("Keys")
+        } footer: {
+            Text(keyStatus)
+        }
+    }
+
+    private var keyStatus: String {
+        let keys = ProviderKeys.current
+        let mapbox = keys.hasMapbox ? String(localized: "Mapbox: set") : String(localized: "Mapbox: not set")
+        let tomtom = keys.hasTomTom ? String(localized: "TomTom: set") : String(localized: "TomTom: not set")
+        return String(localized: "Keys are stored in this iPhone's Keychain and only sent to their own service. \(mapbox). \(tomtom).")
+    }
+
+    private func save() {
+        KeyStore.save(mapboxToken, for: .mapbox)
+        KeyStore.save(tomtomKey, for: .tomtom)
+    }
+}

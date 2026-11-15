@@ -6,6 +6,7 @@ struct ContentView: View {
     @State private var results: [MKMapItem] = []
     @State private var cameraPosition: MapCameraPosition = .automatic
     @State private var featureSheet: FeatureSheet.Kind? = FeatureSheet.kindToShow()
+    @State private var showsSettings = false
 
     var body: some View {
         NavigationStack {
@@ -30,8 +31,11 @@ struct ContentView: View {
             .navigationTitle("Horizon Nav")
             .toolbar {
                 if store.selectedRoute != nil { Button("End route", role: .destructive) { store.stopNavigating() } }
+                Button { showsSettings = true } label: { Image(systemName: "gearshape") }
+                    .accessibilityLabel("Settings")
             }
             .sheet(item: $featureSheet) { kind in FeatureSheet(kind: kind) }
+            .sheet(isPresented: $showsSettings) { SettingsView() }
         }
     }
 

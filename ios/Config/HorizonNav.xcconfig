@@ -1,0 +1,9 @@
+// Build settings shared by every configuration of the app target.
+// Provider keys are optional and stay out of the repository: copy Secrets.example.xcconfig
+// to Secrets.xcconfig (ignored by git) and fill in your own keys. Without it the app uses
+// Apple Maps, or keys entered in the app's Settings.
+
+HN_MAPBOX_ACCESS_TOKEN =
+HN_TOMTOM_API_KEY =
+
+#include? "Secrets.xcconfig"

@@ -1,0 +1,73 @@
+{
+ "type": "FeatureCollection",
+ "attribution": "\u00a9 2026 Mapbox and its suppliers.",
+ "response_id": "fixture",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.099356,
+     51.507595
+    ]
+   },
+   "properties": {
+    "name": "Tate Modern",
+    "mapbox_id": "dXJuOm1ieHBvaTpmaXh0dXJl",
+    "feature_type": "poi",
+    "address": "Bankside",
+    "full_address": "Bankside, London, SE1 9TG, United Kingdom",
+    "place_formatted": "London, SE1 9TG, United Kingdom",
+    "context": {
+     "country": {
+      "name": "United Kingdom",
+      "country_code": "GB"
+     },
+     "place": {
+      "name": "London"
+     }
+    },
+    "coordinates": {
+     "latitude": 51.507595,
+     "longitude": -0.099356,
+     "routable_points": [
+      {
+       "name": "default",
+       "latitude": 51.5074,
+       "longitude": -0.0995
+      }
+     ]
+    },
+    "maki": "museum",
+    "poi_category": [
+     "museum",
+     "tourist attraction"
+    ],
+    "metadata": {
+     "website": "https://www.tate.org.uk"
+    }
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -0.0994,
+     51.5076
+    ]
+   },
+   "properties": {
+    "name": "Tate Modern",
+    "feature_type": "poi",
+    "full_address": "Bankside, London",
+    "place_formatted": "London",
+    "coordinates": {
+     "latitude": 51.5076,
+     "longitude": -0.0994
+    }
+   }
+  }
+ ]
+}

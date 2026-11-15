@@ -17,3 +17,6 @@ secrets.properties
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+# iOS provider keys (copy ios/Config/Secrets.example.xcconfig)
+ios/Config/Secrets.xcconfig

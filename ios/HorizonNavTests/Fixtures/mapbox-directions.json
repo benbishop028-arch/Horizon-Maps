@@ -1,0 +1,388 @@
+{
+ "code": "Ok",
+ "uuid": "fixture",
+ "waypoints": [
+  {
+   "name": "Victoria Embankment",
+   "location": [
+    -0.123,
+    51.507
+   ],
+   "distance": 2.1
+  },
+  {
+   "name": "Horse Guards Avenue",
+   "location": [
+    -0.118,
+    51.5046
+   ],
+   "distance": 1.4
+  }
+ ],
+ "routes": [
+  {
+   "weight_name": "auto",
+   "weight": 250.1,
+   "duration": 230.4,
+   "duration_typical": 180.0,
+   "distance": 612.9,
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      -0.123,
+      51.507
+     ],
+     [
+      -0.122,
+      51.507
+     ],
+     [
+      -0.121,
+      51.507
+     ],
+     [
+      -0.12,
+      51.507
+     ],
+     [
+      -0.119,
+      51.507
+     ],
+     [
+      -0.118,
+      51.507
+     ],
+     [
+      -0.118,
+      51.5064
+     ],
+     [
+      -0.118,
+      51.5058
+     ],
+     [
+      -0.118,
+      51.5052
+     ],
+     [
+      -0.118,
+      51.5046
+     ]
+    ]
+   },
+   "legs": [
+    {
+     "summary": "Victoria Embankment, Horse Guards Avenue",
+     "weight": 250.1,
+     "duration": 230.4,
+     "distance": 612.9,
+     "annotation": {
+      "distance": [
+       69.2,
+       69.2,
+       69.2,
+       69.2,
+       69.2,
+       66.7,
+       66.7,
+       66.7,
+       66.7
+      ],
+      "duration": [
+       15.0,
+       15.0,
+       15.0,
+       15.0,
+       15.0,
+       15.0,
+       15.0,
+       15.0,
+       15.0
+      ],
+      "congestion": [
+       "low",
+       "low",
+       "heavy",
+       "heavy",
+       "moderate",
+       "low",
+       "low",
+       "low",
+       "unknown"
+      ],
+      "maxspeed": [
+       {
+        "speed": 30,
+        "unit": "mph"
+       },
+       {
+        "speed": 30,
+        "unit": "mph"
+       },
+       {
+        "speed": 30,
+        "unit": "mph"
+       },
+       {
+        "speed": 30,
+        "unit": "mph"
+       },
+       {
+        "speed": 30,
+        "unit": "mph"
+       },
+       {
+        "speed": 20,
+        "unit": "mph"
+       },
+       {
+        "speed": 20,
+        "unit": "mph"
+       },
+       {
+        "speed": 20,
+        "unit": "mph"
+       },
+       {
+        "unknown": true
+       }
+      ]
+     },
+     "steps": [
+      {
+       "name": "Victoria Embankment",
+       "ref": "A3211",
+       "mode": "driving",
+       "distance": 346.0,
+       "duration": 150.0,
+       "weight": 160.0,
+       "driving_side": "left",
+       "geometry": {
+        "type": "LineString",
+        "coordinates": [
+         [
+          -0.123,
+          51.507
+         ],
+         [
+          -0.122,
+          51.507
+         ],
+         [
+          -0.121,
+          51.507
+         ],
+         [
+          -0.12,
+          51.507
+         ],
+         [
+          -0.119,
+          51.507
+         ],
+         [
+          -0.118,
+          51.507
+         ]
+        ]
+       },
+       "maneuver": {
+        "type": "depart",
+        "instruction": "Drive east on Victoria Embankment.",
+        "bearing_before": 0,
+        "bearing_after": 90,
+        "location": [
+         -0.123,
+         51.507
+        ]
+       },
+       "intersections": [
+        {
+         "location": [
+          -0.123,
+          51.507
+         ],
+         "bearings": [
+          90
+         ],
+         "entry": [
+          true
+         ],
+         "out": 0
+        }
+       ]
+      },
+      {
+       "name": "Horse Guards Avenue",
+       "mode": "driving",
+       "distance": 266.9,
+       "duration": 80.4,
+       "weight": 90.1,
+       "driving_side": "left",
+       "geometry": {
+        "type": "LineString",
+        "coordinates": [
+         [
+          -0.118,
+          51.507
+         ],
+         [
+          -0.118,
+          51.5064
+         ],
+         [
+          -0.118,
+          51.5058
+         ],
+         [
+          -0.118,
+          51.5052
+         ],
+         [
+          -0.118,
+          51.5046
+         ]
+        ]
+       },
+       "maneuver": {
+        "type": "turn",
+        "modifier": "right",
+        "instruction": "Turn right onto Horse Guards Avenue.",
+        "bearing_before": 90,
+        "bearing_after": 180,
+        "location": [
+         -0.118,
+         51.507
+        ]
+       },
+       "bannerInstructions": [
+        {
+         "distanceAlongGeometry": 266.9,
+         "primary": {
+          "text": "Horse Guards Avenue",
+          "type": "turn",
+          "modifier": "right",
+          "components": [
+           {
+            "text": "Horse Guards Avenue",
+            "type": "text"
+           }
+          ]
+         },
+         "view": {
+          "text": "",
+          "type": "turn",
+          "modifier": "right",
+          "components": [
+           {
+            "type": "guidance-view",
+            "subType": "jct",
+            "text": "",
+            "imageURL": "https://api.mapbox.com/guidance-views/v1/1586304000/jct/CA075101?arrow_ids=CA07510E"
+           }
+          ]
+         }
+        }
+       ],
+       "intersections": [
+        {
+         "location": [
+          -0.118,
+          51.507
+         ],
+         "bearings": [
+          0,
+          180,
+          270
+         ],
+         "entry": [
+          false,
+          true,
+          false
+         ],
+         "in": 2,
+         "out": 1,
+         "traffic_signal": true,
+         "lanes": [
+          {
+           "valid": false,
+           "active": false,
+           "indications": [
+            "straight"
+           ]
+          },
+          {
+           "valid": true,
+           "active": false,
+           "valid_indication": "right",
+           "indications": [
+            "straight",
+            "right"
+           ]
+          },
+          {
+           "valid": true,
+           "active": true,
+           "valid_indication": "right",
+           "indications": [
+            "right"
+           ]
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "name": "Horse Guards Avenue",
+       "mode": "driving",
+       "distance": 0,
+       "duration": 0,
+       "weight": 0,
+       "driving_side": "left",
+       "geometry": {
+        "type": "LineString",
+        "coordinates": [
+         [
+          -0.118,
+          51.5046
+         ],
+         [
+          -0.118,
+          51.5046
+         ]
+        ]
+       },
+       "maneuver": {
+        "type": "arrive",
+        "modifier": "left",
+        "instruction": "Your destination is on the left.",
+        "bearing_before": 180,
+        "bearing_after": 0,
+        "location": [
+         -0.118,
+         51.5046
+        ]
+       },
+       "intersections": [
+        {
+         "location": [
+          -0.118,
+          51.5046
+         ],
+         "bearings": [
+          0
+         ],
+         "entry": [
+          true
+         ],
+         "in": 0
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

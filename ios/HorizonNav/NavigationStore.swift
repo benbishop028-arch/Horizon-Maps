@@ -52,7 +52,9 @@ final class NavigationStore: NSObject, ObservableObject {
         locationManager.location?.coordinate ?? Self.fallbackCoordinate
     }
 
-    init(routing: RoutingProvider = FailoverRoutingProvider(online: MapKitRoutingProvider(), offline: nil)) {
+    var placeSearch = PlaceSearchService()
+
+    init(routing: RoutingProvider = FailoverRoutingProvider(online: KeyedRoutingProvider(), offline: nil)) {
         self.routing = routing
         super.init()
         locationManager.delegate = self
@@ -64,10 +66,7 @@ final class NavigationStore: NSObject, ObservableObject {
 
     func search(_ query: String) async -> [MKMapItem] {
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return [] }
-        let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = query
-        request.region = MKCoordinateRegion(center: currentCoordinate, span: MKCoordinateSpan(latitudeDelta: 0.35, longitudeDelta: 0.35))
-        do { return try await MKLocalSearch(request: request).start().mapItems } catch { return [] }
+        return await placeSearch.search(query, near: currentCoordinate)
     }
 
     /// Plans routes to a destination and enters route preview with the alternatives.

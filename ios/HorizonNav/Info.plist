@@ -25,6 +25,8 @@
         </dict>
     </dict>
     <key>UIBackgroundModes</key><array><string>location</string></array>
+    <key>HNMapboxAccessToken</key><string>$(HN_MAPBOX_ACCESS_TOKEN)</string>
+    <key>HNTomTomAPIKey</key><string>$(HN_TOMTOM_API_KEY)</string>
     <key>NSLocationWhenInUseUsageDescription</key><string>Horizon Nav uses your location to show your position and guide your route.</string>
 </dict>
 </plist>

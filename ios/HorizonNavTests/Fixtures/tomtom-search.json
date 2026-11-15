@@ -1,0 +1,93 @@
+{
+ "summary": {
+  "query": "tate modern",
+  "queryType": "NON_NEAR",
+  "queryTime": 18,
+  "numResults": 2,
+  "offset": 0,
+  "totalResults": 2,
+  "fuzzyLevel": 1
+ },
+ "results": [
+  {
+   "type": "POI",
+   "id": "GB/POI/p0/1234",
+   "score": 12.4,
+   "dist": 2210.5,
+   "info": "search:ta:826009009876543-GB",
+   "poi": {
+    "name": "Tate Modern",
+    "phone": "+44 20 7887 8888",
+    "categorySet": [
+     {
+      "id": 7317
+     }
+    ],
+    "url": "www.tate.org.uk",
+    "categories": [
+     "museum"
+    ],
+    "classifications": [
+     {
+      "code": "MUSEUM",
+      "names": [
+       {
+        "nameLocale": "en-US",
+        "name": "museum"
+       }
+      ]
+     }
+    ]
+   },
+   "address": {
+    "streetName": "Bankside",
+    "municipality": "London",
+    "countryCode": "GB",
+    "country": "United Kingdom",
+    "postalCode": "SE1 9TG",
+    "freeformAddress": "Bankside, London, SE1 9TG",
+    "localName": "London"
+   },
+   "position": {
+    "lat": 51.50758,
+    "lon": -0.09935
+   },
+   "viewport": {
+    "topLeftPoint": {
+     "lat": 51.50848,
+     "lon": -0.10079
+    },
+    "btmRightPoint": {
+     "lat": 51.50668,
+     "lon": -0.09791
+    }
+   },
+   "entryPoints": [
+    {
+     "type": "main",
+     "position": {
+      "lat": 51.50744,
+      "lon": -0.09946
+     }
+    }
+   ]
+  },
+  {
+   "type": "Street",
+   "id": "GB/STR/p0/99",
+   "score": 8.1,
+   "dist": 2400.0,
+   "address": {
+    "streetName": "Tate Street",
+    "municipality": "London",
+    "countryCode": "GB",
+    "country": "United Kingdom",
+    "freeformAddress": "Tate Street, London"
+   },
+   "position": {
+    "lat": 51.4901,
+    "lon": -0.1102
+   }
+  }
+ ]
+}

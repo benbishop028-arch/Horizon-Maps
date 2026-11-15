@@ -1,0 +1,277 @@
+{
+ "formatVersion": "0.0.12",
+ "routes": [
+  {
+   "summary": {
+    "lengthInMeters": 613,
+    "travelTimeInSeconds": 214,
+    "trafficDelayInSeconds": 95,
+    "trafficLengthInMeters": 140,
+    "departureTime": "2026-11-15T09:00:00+00:00",
+    "arrivalTime": "2026-11-15T09:03:34+00:00"
+   },
+   "legs": [
+    {
+     "summary": {
+      "lengthInMeters": 613,
+      "travelTimeInSeconds": 214,
+      "trafficDelayInSeconds": 95
+     },
+     "points": [
+      {
+       "latitude": 51.507,
+       "longitude": -0.123
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.122
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.121
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.12
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.119
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5064,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5058,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5052,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5046,
+       "longitude": -0.118
+      }
+     ]
+    }
+   ],
+   "sections": [
+    {
+     "startPointIndex": 0,
+     "endPointIndex": 9,
+     "sectionType": "TRAVEL_MODE",
+     "travelMode": "car"
+    },
+    {
+     "startPointIndex": 2,
+     "endPointIndex": 4,
+     "sectionType": "TRAFFIC",
+     "simpleCategory": "JAM",
+     "effectiveSpeedInKmh": 12,
+     "delayInSeconds": 95,
+     "magnitudeOfDelay": 1,
+     "tec": {
+      "causes": [
+       {
+        "mainCauseCode": 1
+       }
+      ],
+      "effectCode": 4
+     }
+    },
+    {
+     "startPointIndex": 4,
+     "endPointIndex": 5,
+     "sectionType": "LANES",
+     "lanes": [
+      {
+       "directions": [
+        "STRAIGHT"
+       ]
+      },
+      {
+       "directions": [
+        "STRAIGHT",
+        "RIGHT"
+       ],
+       "follow": "RIGHT"
+      },
+      {
+       "directions": [
+        "RIGHT"
+       ],
+       "follow": "RIGHT"
+      }
+     ],
+     "laneSeparators": [
+      "SOLID",
+      "LONG_DASHED",
+      "LONG_DASHED",
+      "SOLID"
+     ]
+    },
+    {
+     "startPointIndex": 0,
+     "endPointIndex": 5,
+     "sectionType": "SPEED_LIMIT",
+     "maxSpeedLimitInKmh": 48
+    },
+    {
+     "startPointIndex": 5,
+     "endPointIndex": 9,
+     "sectionType": "SPEED_LIMIT",
+     "maxSpeedLimitInKmh": 32
+    }
+   ],
+   "guidance": {
+    "instructions": [
+     {
+      "routeOffsetInMeters": 0,
+      "travelTimeInSeconds": 0,
+      "point": {
+       "latitude": 51.507,
+       "longitude": -0.123
+      },
+      "pointIndex": 0,
+      "instructionType": "LOCATION_DEPARTURE",
+      "street": "Victoria Embankment",
+      "countryCode": "GBR",
+      "possibleCombineWithNext": false,
+      "drivingSide": "LEFT",
+      "maneuver": "DEPART",
+      "message": "Leave from Victoria Embankment"
+     },
+     {
+      "routeOffsetInMeters": 346,
+      "travelTimeInSeconds": 150,
+      "point": {
+       "latitude": 51.507,
+       "longitude": -0.118
+      },
+      "pointIndex": 5,
+      "instructionType": "TURN",
+      "roadNumbers": [
+       "A3212"
+      ],
+      "street": "Horse Guards Avenue",
+      "countryCode": "GBR",
+      "junctionType": "REGULAR",
+      "turnAngleInDecimalDegrees": 90,
+      "possibleCombineWithNext": false,
+      "drivingSide": "LEFT",
+      "maneuver": "TURN_RIGHT",
+      "message": "Turn right onto Horse Guards Avenue/A3212"
+     },
+     {
+      "routeOffsetInMeters": 613,
+      "travelTimeInSeconds": 214,
+      "point": {
+       "latitude": 51.504599999999996,
+       "longitude": -0.118
+      },
+      "pointIndex": 9,
+      "instructionType": "LOCATION_ARRIVAL",
+      "street": "Horse Guards Avenue",
+      "countryCode": "GBR",
+      "possibleCombineWithNext": false,
+      "drivingSide": "LEFT",
+      "maneuver": "ARRIVE_LEFT",
+      "message": "You have arrived at Horse Guards Avenue. Your destination is on the left"
+     }
+    ],
+    "instructionGroups": [
+     {
+      "firstInstructionIndex": 0,
+      "lastInstructionIndex": 2,
+      "groupLengthInMeters": 613,
+      "groupMessage": "Leave from Victoria Embankment"
+     }
+    ]
+   }
+  },
+  {
+   "summary": {
+    "lengthInMeters": 733,
+    "travelTimeInSeconds": 260,
+    "trafficDelayInSeconds": 0
+   },
+   "legs": [
+    {
+     "points": [
+      {
+       "latitude": 51.507,
+       "longitude": -0.123
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.122
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.121
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.12
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.119
+      },
+      {
+       "latitude": 51.507,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5064,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5058,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5052,
+       "longitude": -0.118
+      },
+      {
+       "latitude": 51.5046,
+       "longitude": -0.118
+      }
+     ]
+    }
+   ],
+   "sections": [],
+   "guidance": {
+    "instructions": [
+     {
+      "routeOffsetInMeters": 0,
+      "maneuver": "DEPART",
+      "message": "Leave from Victoria Embankment",
+      "street": "Victoria Embankment"
+     },
+     {
+      "routeOffsetInMeters": 346,
+      "maneuver": "ROUNDABOUT_RIGHT",
+      "junctionType": "ROUNDABOUT",
+      "roundaboutExitNumber": 2,
+      "turnAngleInDecimalDegrees": 90,
+      "message": "At the roundabout take the 2nd exit onto Horse Guards Avenue",
+      "street": "Horse Guards Avenue"
+     },
+     {
+      "routeOffsetInMeters": 613,
+      "maneuver": "ARRIVE",
+      "message": "You have arrived at Horse Guards Avenue"
+     }
+    ]
+   }
+  }
+ ]
+}
