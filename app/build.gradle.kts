@@ -26,15 +26,20 @@ android {
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
 
-    // Sign every build with the same key: the signing.keystore file in your GitHub repo (found by looking up from the project folder).
-    // Android only installs a new APK over the old one when both are signed with the same key.
+    // Sign every build with the same key: the signing.keystore the build puts next to the project from GitHub Secrets (found by
+    // looking up from the project folder). Android only installs a new APK over the old one when both are signed with the same key.
+    // The passwords and alias come from GitHub Secrets too (the build passes them in); they're no longer written here. After
+    // Gradle, the build signs again with the new key and the key-rotation record (see .github/workflows/build.yml), so phones on
+    // Android 9 and newer move to the new key while older ones keep updating.
     val repoKeystore = generateSequence(rootDir) { it.parentFile }.take(6).map { File(it, "signing.keystore") }.firstOrNull { it.isFile }
+    fun secret(name: String, fallback: String) = System.getenv(name)?.takeIf { it.isNotBlank() } ?: fallback
     signingConfigs {
         if (repoKeystore != null) create("stable") {
             storeFile = repoKeystore
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            // (the fallback is the old key's well-known debug password, for a build made without the secrets)
+            storePassword = secret("SIGNING_STORE_PASSWORD", "android")
+            keyAlias = secret("SIGNING_KEY_ALIAS", "androiddebugkey")
+            keyPassword = secret("SIGNING_KEY_PASSWORD", "android")
         }
     }
 
