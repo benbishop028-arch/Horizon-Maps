@@ -139,5 +139,14 @@ The best way to report a problem: **Settings › About & backup › Feedback or 
 
 See [CHANGELOG.md](CHANGELOG.md) for what's changed in each version.
 
+---
+
+## 🙌 Contributors
+
+A big thank you to the people who have sent code, not just reports:
+
+- **[yurividal](https://github.com/yurividal)**: Android Auto settings that apply straight away, the new speedometer positions and compact style, the split-screen trip bar, and wider Button and Card sizes ([#128](https://github.com/benbishop028-arch/Horizon-Maps/pull/128))
+- **[Smile9799](https://github.com/Smile9799)**: fixes that got the app's automatic tests compiling and passing again
+
 Thanks for all the testing! 🙏
 
