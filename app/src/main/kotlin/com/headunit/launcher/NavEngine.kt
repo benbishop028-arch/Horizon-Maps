@@ -142,6 +142,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.flyRoute(r.pts, r.cum, r.len, 62.0, full = true) { flyingOver = false; if (previewing) map.fit(allPts) }
     }
 
+    /** Stops the fly-over and goes back to the route overview. */
+    fun stopFlyOver() { if (flyingOver) map.endFly() }
+
+    /** Fits the route choices on screen again (after the route panel changes shape). */
+    fun refitPreview() {
+        if (!previewing || flyingOver) return
+        val allPts = routes.take(3).flatMap { x -> x.pts.filterIndexed { i, _ -> i % 8 == 0 } + x.pts.last() }
+        if (allPts.size >= 2) map.fit(allPts)
+    }
+
     /** The way back to where this trip started (home when it started near home). */
     fun routeBack() {
         val from = tripFrom ?: return

@@ -3354,6 +3354,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Stops a fly-through without running its ending. */
     fun stopFly() { flyToken++; flyDone = null }
 
+    /** Ends a route fly-over now, as a tap on the map does (its finish runs: back to the overview). */
+    fun endFly() { flyDone?.let { d -> flyDone = null; flyToken++; try { mapView.camera.cancelAllAnimators() } catch (e: Throwable) { }; d() } }
+
+    /** The part of the map's width the route panel covers down the left (a phone held sideways), so the route fits beside it. */
+    @Volatile var previewSide = 0.0
+
     // ---- flowing light along the route ----
     private var flowOn = false
     private var flowWanted = true
@@ -4799,7 +4805,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Smoothly zooms out (flat, north-up) so every point sits in the area above the route-preview panel. */
     /** [panel]: the bottom of the screen is covered by the route preview panel (false: only the turn card and trip card are in the way). */
     fun fit(points: List<LL>, panel: Boolean = true) =
-        fitFrac(points, 0.07, if (panel) 0.10 else 0.16, 0.07, if (panel) 0.60 else 0.20)
+        if (panel && previewSide > 0.0) fitFrac(points, previewSide + 0.05, 0.12, 0.10, 0.12)
+        else fitFrac(points, 0.07, if (panel) 0.10 else 0.16, 0.07, if (panel) 0.60 else 0.20)
 
     /** Fits [points] into the map with these parts of it (fractions of its width and height) kept clear on each side. */
     fun fitFrac(points: List<LL>, plF: Double, ptF: Double, prF: Double, pbF: Double) {

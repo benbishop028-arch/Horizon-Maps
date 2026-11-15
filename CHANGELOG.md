@@ -9,6 +9,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Route choice on a phone held sideways: the route panel is now a column down the left with the routes shown beside it, instead of covering nearly the whole map
+- Fly over route: the route panel steps aside while the flight plays, so you can see it, with a small Stop button to end it
 - Android Auto follows your settings straight away: the map theme and your own colours, map detail, your arrow or car (its kind, model, colour and size), the road name and camera sizes, the 3D extras and the light now change on the car screen as you change them, instead of after reconnecting (thanks to yurividal)
 - Speed position on Android Auto: the choices are now Bottom corner, Under the turn card and Top right, each against a card or a corner instead of floating half-way up the side beside Android Auto's own buttons (thanks to yurividal)
 - Android Auto split screen: while navigating, the trip strip is a bar along the bottom edge of the map's tile, centred (thanks to yurividal)
@@ -17,6 +19,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Black map after Settings or the demo: now and then only the top part of the map showed and the rest stayed black until the app was restarted. The map now always fills the screen again
+- Speed limit sign off the edge: with the speed set to the right on a left-hand-drive layout, the limit sign could sit off the edge of the screen. It now always sits on the side facing the middle
 - Headlight beam: the beam now shines from the front of your arrow, rather than starting underneath it
 - Route choice on a phone: with Fly over route and Demo both on, they now share a row of their own, so Start navigation is no longer squeezed into a column of broken words; the route labels stay on one line, and the "Starting from" pill no longer covers the buttons
 - Your arrow in the camera strip: since the Android 16 update, part of the arrow could show in the black strip at the top of the screen on phones with a camera notch. It now stays on the map

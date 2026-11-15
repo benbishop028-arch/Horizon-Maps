@@ -12,6 +12,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.tween
@@ -515,7 +517,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // traffic pill (never shown together)
         val sf = engine.startFrom
         // (not over the route choice on a phone: there the bottom of the screen is the route card's buttons, and it covered them)
-        AnimatedVisibility(sf != null && !engine.stoppedOverview && !(previewing && narrow), modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
+        AnimatedVisibility(sf != null && !engine.stoppedOverview && !(previewing && (narrow || maxHeight < 480.dp)), modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.clearStartFrom() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Starting from {0}", sf?.name ?: ""), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
@@ -1007,7 +1009,18 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
         // The limit sign goes on the speed's inner side, so it never runs off the screen: the left normally, the right when the
         // app is mirrored for left-hand drive (the speed is then on the left edge). Android Auto never mirrors: its speed is
         // always on the right.
-        val signRight = engine.mirrored && !engine.isCar
+        // (decided by where the speed really is on screen: with the speed set to the right on a left-hand-drive layout, the
+        // sign went off the right edge, GitHub)
+        var onLeftHalf by remember { mutableStateOf(engine.mirrored && !engine.isCar) }
+        Box(Modifier.matchParentSize().onGloballyPositioned { lc ->
+            val rootW = lc.findRootCoordinates().size.width
+            if (rootW > 0) {
+                val cx = lc.positionInRoot().x + lc.size.width / 2f
+                val left = cx < rootW / 2f
+                if (left != onLeftHalf) onLeftHalf = left
+            }
+        })
+        val signRight = onLeftHalf
         if (lim != null) Box(
             Modifier.align(if (!show) Alignment.Center else if (signRight) Alignment.TopEnd else Alignment.TopStart)
                 .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (show) (-18).dp else 0.dp)

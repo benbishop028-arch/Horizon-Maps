@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -146,9 +147,35 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         if (!engine.stopMode) engine.beginNavigation()
     }
     if (arriveBy) ArriveByDialog(engine) { arriveBy = false }
+    val conf = androidx.compose.ui.platform.LocalConfiguration.current
+    // a phone held sideways: too short for the panel across the bottom (it covered nearly all the map, GitHub), so it becomes a
+    // column down the left with the route fitted beside it. (Head units are wider than 1000, so they keep the usual layout.)
+    val sideways = conf.screenHeightDp < 480 && conf.screenWidthDp < 1000 && conf.screenWidthDp > conf.screenHeightDp
+    val sideW = minOf(400, conf.screenWidthDp / 2)
+    LaunchedEffect(sideways, sideW, conf.screenWidthDp) {
+        val f = if (sideways) sideW.toDouble() / conf.screenWidthDp.coerceAtLeast(1) else 0.0
+        if (f != engine.map.previewSide) { engine.map.previewSide = f; engine.refitPreview() }
+    }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { engine.map.previewSide = 0.0 } }
+    // flying over the route: the panel steps aside so the flight can be seen, leaving one small pill to stop it
+    if (engine.flyingOver) {
+        Row(
+            Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp).floating(28.dp).padding(start = 18.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(L.t("Flying…"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Pill(L.t("Stop"), true, { engine.stopFlyOver() })
+        }
+        return
+    }
     val fmt = com.headunit.launcher.Clock.format()
     val baseMs = if (engine.departAtMs > 0) engine.departAtMs else System.currentTimeMillis()
-    Column(Modifier.align(Alignment.BottomCenter).padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        (if (sideways) Modifier.align(Alignment.BottomStart).padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 4.dp).width(sideW.dp)
+            .verticalScroll(rememberScrollState(), reverseScrolling = true)
+        else Modifier.align(Alignment.BottomCenter).padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth()),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
     val selRoute = rs.getOrNull(engine.active)
     // fuel estimate from the economy and pump price set in Settings > Driving (blank = not shown)
     val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
@@ -176,10 +203,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
             }
         }
     }
-    Row(
-        Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
+    val stopsPart: @Composable () -> Unit = {
         Text(L.t("Stops"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
         Pill(L.t("+ Fuel"), engine.stopMode && engine.nearbyKind == "fuel", { engine.stopMode = true; engine.loadNearby("fuel", false) })
         Pill(L.t("+ Charger"), engine.stopMode && engine.nearbyKind == "charging", { engine.stopMode = true; engine.loadNearby("charging", false) })
@@ -189,15 +213,27 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         if (costText != null) Text(costText, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 8.dp))
         engine.destRain?.let { Text(it, color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp)) }
     }
-    Row(
-        Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
+    val leavePart: @Composable () -> Unit = {
         Text(L.t("Leave"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
         for ((label, m) in listOf(L.t("Now") to 0, L.t("+15 min") to 15, L.t("+30 min") to 30, "+1 h" to 60, "+2 h" to 120)) {
             Pill(label, engine.departMin == m, { if (engine.departMin != m) engine.setDeparture(m) })
         }
         Pill(L.t("Arrive by…"), hold, { arriveBy = true })
+    }
+    // (sideways on a phone the two share one row that scrolls across, to leave more of the map showing)
+    if (sideways) Row(
+        Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) { stopsPart(); Spacer(Modifier.width(8.dp)); leavePart() }
+    else {
+        Row(
+            Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) { stopsPart() }
+        Row(
+            Modifier.floating(50.dp).horizontalScroll(rememberScrollState()).padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) { leavePart() }
     }
     // electric: the battery now, the least you want to arrive with, and the eco route; a charging stop is then suggested
     // below if the trip needs one
@@ -218,7 +254,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
     }
     FuelSuggestionRow(engine)
     // landscape: everything in one row. Portrait (narrow): destination on top, the route choices across, Start underneath.
-    val narrowP = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 720
+    val narrowP = conf.screenWidthDp < 720 || sideways
     val destPart: @Composable (Modifier) -> Unit = { m ->
         Column(m) {
             Text(L.t("Destination"), color = c.sub, fontSize = 12.sp)
