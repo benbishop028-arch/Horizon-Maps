@@ -83,6 +83,6 @@ class MapRouteGeometryTest {
         assertEquals(spliced.size, indices?.size ?: -1)
         assertEquals(route.lastIndex, indices?.last() ?: -1)
         assertEquals(route.last(), spliced.last())
-        assertTrue(indices!!.zipWithNext().all { (a, b) -> b >= a })
+        assertTrue(indices!!.toList().zipWithNext().all { (a, b) -> b >= a })
     }
 }

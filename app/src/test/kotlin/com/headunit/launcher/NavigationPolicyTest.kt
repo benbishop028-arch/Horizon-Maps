@@ -73,15 +73,7 @@ class NavigationPolicyTest {
         assertFalse(NavigationPolicy.isProgressJump(500.0, 100.0, 10.0, Double.NaN))
     }
 
-    @Test fun roundaboutGuidanceDoesNotShowRawLeftTurnMessage() {
-        val step = Step(300.0, "ROUNDABOUT_CROSS", "", "Turn left", 2)
-        assertEquals("at the roundabout, take the 2nd exit", Geo.guidanceLabel(step))
-    }
-
-    @Test fun roundaboutKeepsRoadNameWhenAvailable() {
-        val step = Step(300.0, "ROUNDABOUT_CROSS", "A3057", "Turn left", 2)
-        assertEquals("A3057", Geo.guidanceLabel(step))
-    }
+    // (two tests of Geo.guidanceLabel were here: that function is no longer in the app, so they could not compile. Fix by Smile9799)
 
     @Test fun zoomChangesAreDamped() {
         assertEquals(15.1, NavigationPolicy.smoothZoom(15.0, 16.0), 0.0001)

@@ -84,10 +84,16 @@ class FiddlyMathTest {
 
     // ---- distances on the cards ----
     @Test fun distances() {
-        assertEquals("150 m", Geo.fmtDist(150.0, false))
-        assertEquals("1.5 km", Geo.fmtDist(1500.0, false))
-        assertEquals("1.0 mi", Geo.fmtDist(1609.344, true))
-        assertEquals("70 ft", Geo.fmtDist(20.0, true))
+        // distances are written the way the device's region writes numbers ("1,5 km" in South Africa or Germany), so the
+        // region is fixed here: the test used to fail on any computer not set to a decimal-point region (fix by Smile9799)
+        val region = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(java.util.Locale.UK)
+        try {
+            assertEquals("150 m", Geo.fmtDist(150.0, false))
+            assertEquals("1.5 km", Geo.fmtDist(1500.0, false))
+            assertEquals("1.0 mi", Geo.fmtDist(1609.344, true))
+            assertEquals("70 ft", Geo.fmtDist(20.0, true))
+        } finally { java.util.Locale.setDefault(region) }
     }
 
     // ---- which way a speed camera points ----
