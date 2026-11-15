@@ -1,0 +1,97 @@
+name: Make the new signing key (one-off)
+
+# Run once, by hand, from the Actions tab. It makes Horizon Nav's new signing key and the "rotation" record that tells
+# Android the new key takes over from the old one, and saves both straight into this repository's Secrets. Nothing is
+# printed in the log, and it never replaces a key that's already there.
+#
+# Before running, these repository secrets must exist (Settings > Secrets and variables > Actions):
+#   SECRETS_ADMIN_TOKEN    a short-lived fine-grained token with "Secrets: read and write" on this repository only
+#   KEY_BACKUP_PASSPHRASE  a long passphrase you keep in your password manager (locks the backup copy)
+# plus the existing SIGNING_KEYSTORE_BASE64, SIGNING_STORE_PASSWORD, SIGNING_KEY_PASSWORD and SIGNING_KEY_ALIAS.
+#
+# It saves NEW_SIGNING_KEYSTORE_BASE64, NEW_SIGNING_PASSWORD, NEW_SIGNING_KEY_ALIAS and SIGNING_LINEAGE_BASE64, and leaves
+# a locked backup (a .7z only your passphrase opens) on the run page for one day: download it, keep it somewhere private,
+# then delete it from the run page.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type YES to make the new key"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  make-key:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Make the new key and save it to Secrets
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          GH_TOKEN: ${{ secrets.SECRETS_ADMIN_TOKEN }}
+          BACKUP_PASS: ${{ secrets.KEY_BACKUP_PASSPHRASE }}
+          ALREADY: ${{ secrets.NEW_SIGNING_KEYSTORE_BASE64 }}
+          OLD_KS_B64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          OLD_PW: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          OLD_KPW: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          OLD_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          umask 077
+          [ "$CONFIRM" = "YES" ] || { echo "Type YES (in capitals) to go ahead."; exit 1; }
+          [ -z "$ALREADY" ] || { echo "STOP: a new key is already saved in Secrets. Nothing was changed."; exit 1; }
+          [ -n "$GH_TOKEN" ] || { echo "Missing the SECRETS_ADMIN_TOKEN secret (see step 3)."; exit 1; }
+          [ "${#BACKUP_PASS}" -ge 12 ] || { echo "KEY_BACKUP_PASSPHRASE is missing or shorter than 12 characters."; exit 1; }
+          [ -n "$OLD_KS_B64" ] && [ -n "$OLD_PW" ] && [ -n "$OLD_KPW" ] && [ -n "$OLD_ALIAS" ] || { echo "The existing signing secrets are missing."; exit 1; }
+
+          W="$RUNNER_TEMP/key"; mkdir -p "$W"
+          printf '%s' "$OLD_KS_B64" | base64 --decode > "$W/old.ks"
+          keytool -list -keystore "$W/old.ks" -storepass "$OLD_PW" -alias "$OLD_ALIAS" > /dev/null
+
+          # the new key: 4096-bit RSA, valid about 27 years, with a long random password nobody types
+          NEW_PW="$(openssl rand -base64 48 | tr -d '/+=\n' | cut -c1-40)"
+          echo "::add-mask::$NEW_PW"
+          NEW_ALIAS="horizonnav"
+          keytool -genkeypair -keystore "$W/new.ks" -storetype PKCS12 -storepass "$NEW_PW" -keypass "$NEW_PW" \
+            -alias "$NEW_ALIAS" -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Horizon Nav" > /dev/null 2>&1
+          export OLD_PW OLD_KPW NEW_PW
+
+          # the rotation record: the old key vouches for the new one
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
+          "$APKSIGNER" rotate --out "$W/lineage.bin" \
+            --old-signer --ks "$W/old.ks" --ks-key-alias "$OLD_ALIAS" --ks-pass env:OLD_PW --key-pass env:OLD_KPW \
+            --new-signer --ks "$W/new.ks" --ks-key-alias "$NEW_ALIAS" --ks-pass env:NEW_PW --key-pass env:NEW_PW
+          echo "Rotation record (public fingerprints only):"
+          "$APKSIGNER" lineage --in "$W/lineage.bin" --print-certs | grep -i 'SHA-256' || true
+
+          # the locked backup, made before anything is saved, so the key is never only in Secrets
+          command -v 7z > /dev/null || { sudo apt-get update -q && sudo apt-get install -y -q p7zip-full > /dev/null; }
+          printf 'Horizon Nav signing key backup\n\nKeystore: new.ks (PKCS12)\nAlias: %s\nKeystore and key password: %s\nRotation record: lineage.bin\n' \
+            "$NEW_ALIAS" "$NEW_PW" > "$W/README.txt"
+          mkdir -p "$RUNNER_TEMP/backup"
+          (cd "$W" && 7z a -t7z -mhe=on -p"$BACKUP_PASS" "$RUNNER_TEMP/backup/horizon-nav-signing-backup.7z" new.ks lineage.bin README.txt > /dev/null)
+          rm -f "$W/README.txt"
+
+          # into Secrets (read from files, so nothing shows in the log)
+          base64 -w0 "$W/new.ks" > "$W/new.b64"; base64 -w0 "$W/lineage.bin" > "$W/lineage.b64"
+          gh secret set NEW_SIGNING_KEYSTORE_BASE64 --repo "$REPO" < "$W/new.b64"
+          printf '%s' "$NEW_PW" | gh secret set NEW_SIGNING_PASSWORD --repo "$REPO"
+          printf '%s' "$NEW_ALIAS" | gh secret set NEW_SIGNING_KEY_ALIAS --repo "$REPO"
+          gh secret set SIGNING_LINEAGE_BASE64 --repo "$REPO" < "$W/lineage.b64"
+          rm -rf "$W"
+          echo "Done: the new key and rotation record are saved in Secrets. Download the backup below, then delete it here."
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: horizon-nav-signing-backup-LOCKED
+          path: ${{ runner.temp }}/backup/horizon-nav-signing-backup.7z
+          retention-days: 1
+          if-no-files-found: error
