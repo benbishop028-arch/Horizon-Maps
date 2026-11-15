@@ -1,34 +1,722 @@
 # Changelog
 
-Add user-facing Horizon Nav changes under **Unreleased** before publishing each build, under ### New, ### Improved or ### Fixed headings, each written as "Headline: what it does" (the What's new card shows the headline in bold with the rest underneath). Keep entries focused on features, improvements, and fixes in the app—not GitHub Actions or release-publishing maintenance. There is no need to delete entries after publishing: notes that an earlier release already included are left out of the next one automatically.
+Everything that has changed in Horizon Nav, newest first. Each version lists what's new, what's improved and what's fixed. Changes that are ready but not published yet are under Unreleased.
 
 ## Unreleased
 
-- Fix lane guidance pushing the route line and lane strips off the road at ordinary junctions. Lanes are now lined up with the road only on motorway and trunk carriageways; elsewhere the lane to be in is drawn under the route line, and lane strips are only painted on the last stretch before the junction.
-- Add alternative-route line colour customisation, with a pale blue-grey default for better contrast against grey roads.
-- Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
-- Fix the map zooming in and out far too slowly while driving (it could take 10 seconds or more to close in for a turn), and the map starting zoomed out twice as far as intended.
-- Fix roundabout arrows pointing the wrong way: they now show the direction the real exit goes, rather than guessing from the exit number.
-- The "Look for updates by itself" switch works again, and automatic update and map-data checks run at most every half hour instead of every time the app opens or the connection comes back.
-- Changing the alternative-route colour now applies straight away.
-- The car screen's "Navigation arrow size" now sizes the arrow on the map (as on the phone) instead of the turn card.
-- Left-hand drive: the speedometer moves back to the bottom left (the cards are on the right), so the turn card no longer covers it; the speed limit sign stays on the screen side of it. The exit banner no longer repeats what the road sign on the turn card already says.
-- Smoother map drawing: the map is no longer capped at 30 frames a second on top of the camera's own pacing, which made it judder.
-- Android Auto with left-hand drive: your arrow no longer hides under the turn and trip cards, and the speed limit sign no longer runs off the right-hand edge of the screen.
-- Android Auto: the speedometer sits down in the bottom-right corner again, level with the trip card, instead of floating halfway up the screen.
-- Android Auto, tidier screen: hazards ahead now sit along the bottom of the turn card, the sound button has moved onto the trip card, the "Use the right lane" line is gone where the lane arrows already show it, the trip card has a slimmer progress bar and bigger labels, and while the next turn is far away the turn card shrinks to one line.
-- Android Auto: the car arrow and route line are a little bigger, so they stand out from the buildings.
-- Traffic on the roads around you now stays on the map while you navigate (it used to vanish as soon as a route started). Settings > Map can still limit it to your route.
-- Adding a TomTom key no longer switches the map to TomTom's flat map, which made the 3D buildings and models disappear. Maps that were switched that way go back to the 3D Mapbox map once (TomTom's map can still be picked in Settings).
-- Satellite view now works with the downloaded map chosen, and stays visible at night instead of going almost black.
-- When the map can't load for want of a working Mapbox key (missing, pasted with hidden characters, or turned down by Mapbox), a box now says so and lets you paste a new one, instead of a blank map with stars. Stray spaces and invisible characters are now taken out of pasted keys.
-- Big 3D buildings beside the road no longer vanish as you drive past them (the clear-view area round your arrow is tighter).
-- Offline maps > Around home is no longer squashed to one side.
-- Spoken directions: a new Voice channel setting (Settings > Sound) for head units where the beeps sound but the voice doesn't; a clear message when there's no text-to-speech voice or language installed; and alerts no longer cut a direction off half way.
-- Outside the UK and Ireland, motorway exits are now called "exit 12" rather than "junction 12".
-- If the app fails to start several times in a row (for example when the graphics driver crashes), it starts with the heaviest 3D features turned down and says so.
-- Android Auto: fixed a black car screen when Android Auto starts the app before it has been opened on the phone (after an update, for example); the turn card uses the compact lane strip so it no longer grows huge at junctions; Settings explains how to get the app into Android Auto, and the update card warns AAEnabler users that updating removes it from Android Auto.
-- The What's new card after an update now shows the changes straight away, even with no connection: the notes are built into the app instead of fetched from GitHub, which often refused.
+### New
+- Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
+
+### Improved
+- Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
+
+### Fixed
+- Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
+
+## 1.0.559 — 15 Nov 2026
+
+### Fixed
+- Camera alerts in France, Germany and Switzerland: the message saying they're switched off there now shows only the first time in each country instead of every time the app opens, and names the switch that keeps them on ("Off where they're banned" in Settings › Alerts)
+
+## 1.0.557 — 15 Nov 2026
+
+### Fixed
+- Signing key: Horizon Nav updates are now signed with a new key kept only in GitHub Secrets, with Android's key rotation so it updates over the current version as normal
+
+## 1.0.554 — 15 Nov 2026
+
+### New
+- Arabic, Hebrew and Urdu: the whole app, the spoken directions and the voice commands, read right to left. The inside of the turn card, trip card, search and settings is laid out right to left, while where the cards sit on the map still follows your driving side
+
+## 1.0.552 — 15 Nov 2026
+
+### New
+- Turkish and Serbian: the whole app, the spoken directions and the voice commands are now in Türkçe and Srpski (Latin script). Pick them in Settings › Sound & voice › Language, or leave it on Phone's language
+
+## 1.0.550 — 15 Nov 2026
+
+### Fixed
+- Always day on Android Auto: the car screen's own Always day / Always night now wins. With the phone set to Night (or to follow a dark phone), picking Always day on the car still left the car's map dark.
+- Average speed checks shown as plain speed cameras: the cameras at the start and end of a check are now announced as the average speed check, instead of a "Speed camera" alert that hid it, and the check is warned about as early as a camera would be. If the search along the route fails on a busy server, the checks are now looked up on their own so they aren't missed.
+
+### New
+- Landmarks in directions: when a turn is at traffic lights or a stop sign, the turn card says "At the lights" (with the distance and road below) and the voice says "At the traffic lights, turn right onto…", or "At the second set of lights" when there's one set before it. With more lights on the way it says the distance as before. Turn it off in Settings › Sound & voice › Landmarks in directions
+- Your own 3D model: Settings › Your arrow › Real 3D model › Your model loads a .glb file of your own (up to 8 MB) as the arrow, sized to match the built-in car whatever scale it was made at, with Turn to point it the way you drive and the size slider to fine-tune it. If it can't be shown, the built-in car stands in. Works on Android Auto too.
+
+### Improved
+- Trip card: the voice, sound and stops buttons are gone from the trip card, leaving just End (and chargers in an electric car). Sound is now a big button at the top right while navigating, and Voice and Stops are in Map options › This trip
+
+## 1.0.547 — 14 Nov 2026
+
+### Fixed
+- Average speed check limits outside the UK: a check's limit was always read as British, so one mapped as "60" (km/h) showed as 95 km/h. It's now read in the units of the country the check is in, and the card never shows a limit higher than the road's own signed limit.
+- Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
+
+## 1.0.545 — 14 Nov 2026
+
+### Fixed
+- Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
+
+## 1.0.543 — 14 Nov 2026
+
+### Fixed
+- Speed cameras along the route: the cameras on a planned route now show along all of it while you choose the route or start a demo, not only within 10 km of where you are. A stretch of road whose cameras couldn't be looked up (a busy server) is now tried again, instead of being skipped for the rest of the trip.
+
+### New
+- Hungarian: Horizon Nav can now be used in Magyar, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
+
+## 1.0.541 — 14 Nov 2026
+
+### New
+- Malay: Horizon Nav can now be used in Bahasa Melayu, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
+- Croatian: Horizon Nav can now be used in Hrvatski, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
+
+## 1.0.539 — 14 Nov 2026
+
+### Fixed
+- Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.
+
+## 1.0.537 — 14 Nov 2026
+
+### Fixed
+- Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.
+
+## 1.0.535 — 14 Nov 2026
+
+### New
+- Simplified Chinese, Slovak and Danish: Horizon Nav can now be used in 简体中文, Slovenčina and Dansk, with spoken directions and voice commands in each. Chinese phones now pick Simplified or Traditional by themselves.
+
+### Improved
+- Removing a report: a report made by mistake can be taken back with Undo on the "saved here" message, and tapping one of your reports on the map (phone or Android Auto) offers Remove or Keep for just that one.
+
+## 1.0.532 — 14 Nov 2026
+
+### New
+- Greek, Czech and Finnish: Horizon Nav can now be used in Ελληνικά, Čeština and Suomi, chosen in Settings or picked up from the phone, with spoken directions and voice commands in each.
+
+## 1.0.530 — 14 Nov 2026
+
+### New
+- Romanian, Basque and Traditional Chinese: Horizon Nav can now be used in Română, Euskara and 繁體中文, chosen in Settings or picked up from the phone. Directions and voice commands work in all three, and on a Hong Kong or Macau phone the Chinese voice speaks Cantonese.
+
+## 1.0.528 — 14 Nov 2026
+
+### Fixed
+- Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
+- Speed limit rules abroad: away from the UK, the app worked out the usual limits from the phone's language region, so an English (UK) phone in France got British rules. It now uses the country you're actually in (GitHub).
+
+### New
+- Card positions: Settings › Screen and sizes › Card positions puts the turn card top left or right, the trip card under it or bottom left, centre or right, and the speedometer bottom left or right, with a live picture as you choose. On Android Auto (Settings › Android Auto): the trip card and speedometer (GitHub).
+- Start from here: press and hold the map, then Start from here, and routes are planned from that spot instead of your GPS position (a "Starting from …" pill shows until you tap it, or until you drive off with a GPS fix) (GitHub #88).
+
+## 1.0.524 — 14 Nov 2026
+
+### Fixed
+- Searching by name or address with a TomTom key: if TomTom's classic search refuses the key (newer keys can come with only the newer "Orbis" APIs), the same search is now tried on TomTom's Orbis service, so shops, places and addresses are found again instead of only postcodes. If TomTom refuses both, the app now says why once, instead of quietly showing thin results.
+
+### New
+- Sharp bend warnings: bends that need slowing for are striped yellow with black chevrons on the route, and about 9 seconds before each a yellow chevron sign says "Sharp bend · take it at 25 mph" with a chime (only when you're going faster than that). Worked out from the route's shape; junction turns don't count. Settings › Warnings › Sharp bends.
+- Headlight beam: after dark, a soft cone of light lies on the road ahead of your arrow while you're moving, longer at speed. Settings › Your arrow › Headlight beam at night.
+- Destination lit up on arrival: the building stays lit while the arrival card is up, its entrance (the side nearest where you pulled up) gets a marker, and a dotted line shows the walk from the suggested parking. Settings › Arrival › Light up your destination.
+
+## 1.0.522 — 13 Nov 2026
+
+### Fixed
+- Speedometer on short Android Auto screens: it now stays put in the bottom-left corner, with the one-line trip strip beside it while navigating. In the bottom right it slid with Android Auto's zoom buttons, covered the Mapbox logo and moved up the side to make room for the trip strip (GitHub #67).
+
+## 1.0.520 — 13 Nov 2026
+
+### Fixed
+- Arrow back in the middle with the cards folded: on a wide screen, with Home, Work and Saved & recent folded away (just the search bar left), the arrow now goes back to the middle, as in Waze; it stayed off to the side because the search bar on its own still counted as a card beside it (GitHub #79).
+
+## 1.0.518 — 13 Nov 2026
+
+### Fixed
+- Rain and snow on Android Auto: Weather effects now show on the car screen too (they were only ever drawn on the phone), along with the weather haze towards the horizon.
+- Rain effect missing while it rained: the effect went by the hour's weather summary, which often says "cloudy" during showers. It now also checks the rain and snow actually falling in the current quarter hour, and looks every 10 minutes instead of 20.
+
+### New
+- Demo drive controls: while a demo plays, the map shows its speed (tap to switch 1×, 2× and 4× without restarting), a skip-to-the-next-turn button (jumps to about 250 m before the next junction) and a stop button. On Android Auto: End demo, the speed, Skip turn and Settings.
+- Demo on the route choice: with the demo drive switched on, a Demo button sits beside Start; choose it and Start (or the countdown) begins the trip as a demo drive. On Android Auto too.
+
+## 1.0.516 — 12 Nov 2026
+
+### Fixed
+- Lane arrows at back-to-back roundabouts: on the way into the first of two roundabouts close together, the lane picture showed the second one's lanes. Each turn now only shows its own lanes.
+
+## 1.0.514 — 12 Nov 2026
+
+### New
+- Keep the arrow to the side: a new switch (Android Auto settings, and Settings › Screen & sizes › While driving) keeps the arrow off to the side on a wide screen when the cards fold away, instead of gliding back to the middle.
+
+### Improved
+- Chime volume: on the head unit the speeding, limit-change and camera chimes now play on the same channel as the spoken directions (they were on the music channel at full strength), so the head unit's volume turned during a direction turns them down too. Settings › Sound & voice › Chime volume sets them against the voice, with a sample beep.
+
+## 1.0.512 — 12 Nov 2026
+
+### Fixed
+- Headlights mode on Teyes and FYT-type units: these units pass the lights on in their own setting instead of switching Android's night mode, so Headlights never went dark. It now reads that too, with a "Lights signal is reversed" switch for the few units that have it the other way round.
+
+### New
+- Slovenian: the whole app, spoken directions and voice commands are now in Slovenian (Settings › Sound & voice › Language, or it follows the phone) (GitHub #75).
+
+## 1.0.510 — 11 Nov 2026
+
+### New
+- Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.
+
+## 1.0.508 — 11 Nov 2026
+
+### Fixed
+- Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
+- "Going to …?" suggestion: switching off "Suggest where you're going" now hides the habit suggestion too (GitHub #73).
+
+### New
+- Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
+
+### Improved
+- Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).
+
+## 1.0.506 — 11 Nov 2026
+
+### Fixed
+- Traffic pill position: the "Traffic round you" pill sits at the top between the turn card and the map buttons when there's room, and otherwise just above the arrival time card instead of over it.
+
+## 1.0.504 — 11 Nov 2026
+
+### Fixed
+- Trip card showing through the add-a-stop panel: the time, arrival and distance card now steps aside while the add-a-stop (or all locations) panel is open, and comes back when it closes. Searching a shop also leaves out places that only mention it (a Western Union counter inside a Sainsbury's).
+- Android Auto on small screens and split screen (#67): the car screen now picks its layout from the space Android Auto leaves for the map instead of shrinking everything. On a short screen (like 800 × 480): a smaller search bar, Home and Work as slim pills, one row of shortcuts plus ⋯, icon-only Report and Places buttons, a narrower turn card with the lanes inside it, a one-line trip card and a smaller speed sign, laid out side by side so nothing overlaps. In a split-screen tile: just the turn, a one-line trip strip and the speed.
+
+## 1.0.500 — 11 Nov 2026
+
+### New
+- Add a stop, seen along your route: when adding a stop, "See them along your route" (or the keyboard's search key) shows every match on the map along the rest of the route, each labelled with the time it adds, in a panel sorted by Least detour, Soonest or Nearest, with how far ahead and how far off the route each one is. Tap one, then Add as a stop. On Android Auto it's a list sorted by detour.
+- Bulgarian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in Bulgarian too. Spoken directions need a Bulgarian text-to-speech voice installed (Google's has one).
+
+## 1.0.498 — 11 Nov 2026
+
+### Fixed
+- "Traffic round you" over the search box: the stopped-in-traffic view now only comes on after you've been driving (not with the phone lying still, e.g. when sharing a place from another app), its note sits at the bottom where it can't cover the search box, and tapping it (✕) goes back to the normal view.
+
+## 1.0.496 — 10 Nov 2026
+
+### Fixed
+- Mapbox logo halfway down the car screen: on Android Auto it was pushed down by a gap meant to clear the phone's top bar, made bigger by the car display's high density. It now sits in the corner.
+
+## 1.0.494 — 10 Nov 2026
+
+### Fixed
+- Wrong side on arrival: "your destination is on the right" for a place on the left. The side is now worked out from where the place actually is against the way you're driving, and the route service's own left / right is only used when that's too close to call.
+- Speed limit sign squashed on Android Auto: the US and Canadian board's words are sized from the sign itself, so a larger car-screen text size can't squash them; the board is a little bigger next to the speedometer; and the next-limit tag above no longer overlaps it, and shows the board instead of a round sign in the US and Canada.
+
+## 1.0.492 — 10 Nov 2026
+
+### Fixed
+- Your own locator picture on Android Auto: the car screen now shows your picture too, instead of the arrow.
+
+### New
+- Delay labels on queues: each queue of a minute or more ahead on your route gets a small "+8 min" pill where it starts, red for heavy traffic and amber for slow. While choosing a route, the other routes' queues show too, dimmed. Each one goes once you're past it.
+- Speed limit changes, your way: Settings › Alerts › Speed › How: chime and voice, voice only, or chime only. With both, the voice now waits for the chime to finish so it isn't lost under it.
+
+### Improved
+- Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).
+- Street lamps where they really are: the lamps on the map now come from OpenStreetMap online too (not only from an offline pack), so real lamp positions show wherever people have mapped them. Guessed lamps fill in only the gaps, and roads OpenStreetMap marks as unlit stay dark. In cities with every lamp mapped, guessed ones only go on roads marked lit. Fetched once per area, kept for a month, never in offline mode.
+
+## 1.0.488 — 10 Nov 2026
+
+### New
+- Prefer simpler routes switch: Settings › Routes › Choosing a route. When a route is only a minute or so slower but has far fewer turns, it's picked first, and it's now labelled Simplest (it used to say Shortest, which made it look like the app defaulted to the shortest route). Switch it off to always start on the fastest.
+
+## 1.0.486 — 10 Nov 2026
+
+### Fixed
+- Crash tapping a place on the map: tapping a place that has no name in Mapbox's data closed the app. Nameless places are now ignored, and anything else going wrong in a map tap can no longer close the app.
+
+## 1.0.484 — 10 Nov 2026
+
+### Fixed
+- Lane picture under the turn card on Android Auto: on a short car screen it ran on underneath the trip card. It now shrinks to fit the gap, and is left out when even a small one wouldn't fit (the lanes still show in the turn card).
+
+### New
+- Choose the trip card buttons on Android Auto: Settings › Android Auto › Buttons on the trip card turns Overview, Other routes, Sound and End on or off, with a Normal, Large or Extra large button size. Fewer buttons make the card narrower, so more of the map stays clear.
+
+## 1.0.480 — 10 Nov 2026
+
+### Fixed
+- Slip-road turns count down to the slip road: when the turn is at the far end of a slip road (common where a main road has no exit numbers), the turn card, the lit lane and the voice now count down to where the slip road leaves the main road ("take the exit on the left"), then to the turn at the end of it. They used to count down to the far end, past where you had to move over.
+
+## 1.0.478 — 10 Nov 2026
+
+### New
+- Thai, Japanese and Indonesian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in all three too. Directions are spoken with the phone's or head unit's own voice for that language, so it needs a Thai, Japanese or Indonesian text-to-speech voice installed.
+
+## 1.0.476 — 9 Nov 2026
+
+### Fixed
+- Dashboard and head-up display in feet: on Android Auto, the car's own dashboard and head-up display now show feet close to a turn (then miles), the same as the app, instead of yards.
+
+### New
+- Save route: the bookmark on the route options is now Save route. It keeps the destination, your stops and the road you picked ("Croke Park via M9"). Saved routes show under the search bar (and in Places on Android Auto); tap one to plan the same way again with that day's traffic, swipe it away to delete.
+- Red pin where you tap: tapping or holding the map drops a red pin on the exact spot while its card is open.
+
+### Improved
+- Send to car sends the whole trip: from the route options it now sends your stops and the road you picked too, not just the destination. The car's card says how many stops are coming.
+- Headlights mode follows only the lights: with Day and night set to Headlights, the map goes dark in tunnels and back to day straight after, without the sunset and sunrise tint. Settings shows whether your head unit has been seen switching with the lights, and what the lights signal says right now. The Android Auto screen works the same way when it follows the car.
+
+## 1.0.474 — 9 Nov 2026
+
+### Fixed
+- Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
+
+## 1.0.470 — 9 Nov 2026
+
+### New
+- See all locations: search for a shop or chain (Lidl, Sainsbury's, Costa…) and, when there are several nearby, "See all N locations" shows them all. A panel lists them by Quickest (drive time with today's traffic), Nearest or On my route, and the map zooms out to show each as its logo with the drive time. Tap a pin or a row, then Go or Add as a stop. "Search this area" looks again wherever you move the map. On Android Auto it's a list.
+- Logos in search results: shops and brands show their own logo (taken from their website, or a built-in list of common chains). Logos are kept on the unit after the first time, and the usual pin shows without a signal or in offline mode.
+
+## 1.0.464 — 9 Nov 2026
+
+### New
+- Your own shortcuts: choose which round "find nearby" buttons show under the search bar (up to 5, in your order) from Fuel, Charging, Food, Coffee, Parking, Toilets and Services, in Settings › Places & trips. Reset brings back the usual ones.
+- Offline mode: a master switch in Settings › Offline maps. Nothing goes online and the app stops looking for a signal, so there is no more flickering and retrying with a weak or missing connection. Everything comes from the downloaded pack. Downloads you start yourself still work.
+- Add a stop while planning: hold on the map on the route options screen, then tap "Add as a stop" on the card. It goes on the route being planned, and you can add as many as you like.
+
+## 1.0.462 — 8 Nov 2026
+
+### Fixed
+- Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.
+- Missed-turn detection: made safer against GPS drift in town. It only triggers beyond the GPS's own error and at a sharper angle, so approaching a turn never sets off a reroute.
+- Postcode district search: a district on its own ("M25", "B1") is also how roads are named, so it now shows third, and a search for the M25 still shows the motorway first.
+- Route overview on Android Auto: the route now fills the screen instead of sitting in the top third (it left room for a panel that isn't there on the car), so it's zoomed in further and the place names are easier to read.
+
+### New
+- Italian, Portuguese and Polish: the whole app (screens, Android Auto, spoken directions, alerts and spoken commands) is now also in Italiano, Português and Polski. Portuguese uses the Brazilian voice on a Brazilian phone.
+- Request a language: Settings › Sound & voice › "Missing your language?" opens a GitHub issue filled in with the language wanted, whether the person can help check the wording, and their phone's language.
+- Languages (part 3c, the last part): the whole app is now in Dutch, German, French and Spanish. This adds the first-time setup, the Offline maps page, the donate and What's new screens, and the settings search (search in your language or in English). Spoken commands work in each language, such as "naar huis", "nächste Tankstelle", "signaler accident" and "ir a Madrid", with voice search listening in that language. Lorry height and weight warnings are spoken in it too.
+- Languages (part 3b): Settings are now in Dutch, German, French and Spanish too. That covers every page, option, description and button, the Custom theme and Your themes, and fuel, Android Auto, keys, feedback and backup. A setting found with the settings search is still highlighted in any language.
+- Languages (part 3a): the phone's main screens are now in Dutch, German, French and Spanish too. That covers the map and its buttons, map options, search, Home and Work, saved and recent places, route choice, stops, plan-ahead, arrival, nearby lists, place cards, the alert banners, the update and Mapbox key screens, ETA sharing and the app's pop-up messages. Changing the language updates the screen straight away.
+- Languages (part 2): the Android Auto screens are now in Dutch, German, French and Spanish too. That covers the map buttons, trip card, route choice, Places, Search, Report, Other routes, nearby lists and car settings. The alert banners (cameras, limits, incidents, zones and the rest) are translated on the phone and in the car.
+- Languages (part 1): spoken directions, voice alerts and the turn card in Dutch, German, French and Spanish, as well as English. Set in Settings › Sound & voice › Language ("Phone's language" by default). Route instructions and search results come in the same language. The rest of the app follows in the next updates.
+
+### Improved
+- Custom theme live preview: every change shows on the preview at the top as you make it, even while a slider is still moving. Nothing is kept until you press Save. Leave without saving (or press Undo changes) and the map goes back to how it was. Giving it a name also keeps it under Your themes.
+
+## 1.0.458 — 8 Nov 2026
+
+### Fixed
+- Missed turns noticed sooner: driving straight past a turn, the arrow no longer carries on round the turn you didn't take. It follows you straight away and a new route is asked for in about 2 seconds (it used to wait until you were 40 m or more off the route).
+
+## 1.0.456 — 8 Nov 2026
+
+### Improved
+- Traffic from both services: on a Mapbox route with a TomTom key, TomTom also times the same road at every traffic refresh. Each stretch of the route line shows whichever service says it's worse, and the time left and arrival time use the longer of the two, so a jam either one knows about is counted.
+- Time left in queues: traffic is refreshed every 2 minutes instead of 3 while you're crawling along, so the arrival time catches up with a jam sooner.
+- Simpler routes: when planning, a route with clearly fewer turns is chosen over one that's only up to about a minute and a half quicker, so it keeps to the main roads instead of cutting through back streets. The quicker one is still offered to pick.
+
+## 1.0.454 — 8 Nov 2026
+
+### Fixed
+- Speeding beep on Android Auto: now plays on the navigation channel (like the spoken directions), so it is heard over the radio or the car's own music too. Before, it only reached the speakers while Android Auto was the sound source.
+
+## 1.0.452 — 8 Nov 2026
+
+### Fixed
+- Lanes at two slip roads close together: the second junction's lanes no longer light up at the first one, which made it look like the exit to take.
+- Lanes lit too generously: where Mapbox picks the lanes to be in, only those are lit now, not every lane that could work.
+
+### New
+- Postcode search: typing a UK postcode now shows the postcode itself at the top of the results (not just addresses in it), on the phone and Android Auto. A half-typed one ("SO17 1") lists the postcodes it could be, and a district ("SO17") works too.
+
+## 1.0.448 — 8 Nov 2026
+
+### New
+- Battery estimate toggle: electric car drivers can hide the battery % on the trip card (phone and Android Auto) in Settings › Fuel › Your electric car.
+
+## 1.0.446 — 8 Nov 2026
+
+### Fixed
+- Next speed limit: no longer shows a strange "0 in 700 m" sign above the speed when the road ahead has no known limit.
+- Car turn card: the "then" line for the turn after next now shows on small Android Auto screens too.
+- Pinch zoom on Android Auto: zooms smoothly around the middle of the map instead of jumping about.
+
+## 1.0.444 — 7 Nov 2026
+
+### Improved
+- Android Auto split screen: in the narrow part of the screen the app's cards and buttons now shrink further by themselves, so they fit beside the map. The Overall size setting (Settings > Android Auto, or the car's own Settings) still sets them bigger or smaller, 40% to 300%.
+
+## 1.0.442 — 7 Nov 2026
+
+### Fixed
+- Small Android Auto screens (GitHub, Pioneer SPH-DA160): on 7-inch 800 x 480 units the turn card left out the lanes, the junction close-up and the driving advice, as if the screen were too small. Lanes now always show on the car's turn card, and the close-up and advice show unless the screen is really short.
+- Services on the route bar with the services card off: switching off Next services card now takes them off the route bar too.
+
+### Improved
+- Android Auto: Route overview and Other routes buttons on the trip card (beside sound and end), and Route overview in the car's Settings too.
+- Android Auto arrow size now goes down to 30% (was 60%), for small car screens where even 60% looked big.
+
+## 1.0.438 — 7 Nov 2026
+
+### New
+- 3D flags: a tall red flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance. On by default; Settings > Your arrow & route line > Route line.
+- Hill shading: soft shading on hillsides, so valleys and ridges show even on a flat map, with its own day and night shades. Off by default; Settings > Light & 3D > 3D.
+- What's here: holding on the map now shows a card first: the road as its own sign (blue motorway, green A road, white B road), a mini speed limit sign, what the land is and the area with their own icons and colour, how far it is from you, and Go (or Add as a stop while driving) and a star to save it. On by default; switch it off in Settings > On the map > Holding on the map to go straight there as before.
+
+## 1.0.436 — 7 Nov 2026
+
+### New
+- Arrive on your side of the road: routes bring you to the kerb side of where you're going, so you don't have to cross the traffic (Mapbox and offline routes). On by default; Settings > Routes > Choosing a route.
+- Next speed limit ahead: a small sign above the limit shows the next limit on your route and how far it is, from about half a mile away. On by default; Settings > Alerts > Speed.
+- What's here: holding on the map now shows the road, its speed limit and the area first, with Go (or Add as a stop while driving). On by default; switch it off in Settings > On the map > Holding on the map to go straight there as before.
+- Junction pictures: Mapbox's pictures of motorway junctions, with the lanes to use, in the last kilometre before one. Off by default (Settings > Turn card & lanes > Lanes and junctions); they only show where Mapbox has them and for accounts it offers them to.
+
+## 1.0.434 — 7 Nov 2026
+
+### Improved
+- Horizon colours: now a cool moonlight blue at night (ground, buildings and the whole map's tint), so it's clearly different from Twilight's purple.
+
+## 1.0.432 — 6 Nov 2026
+
+### New
+- Custom theme: a Custom tile in Settings > Map style > Colours. Pick the theme it starts from, then change the ground, water, parks, roads, main roads and buildings, and the route line's colour, separately for day and night, plus the route line's width and the night brightness. The live preview at the top shows the Day or Night colours you're editing. Save it under a name (Your themes) to pick again later, and reset a part, a day or night, or everything. It starts as exactly the theme you had, so nothing changes until you change something.
+
+## 1.0.430 — 6 Nov 2026
+
+### Fixed
+- Traffic jams not added to the route: a jam could be announced ("Traffic jam ahead") without the time left going up or the route line turning amber or red. TomTom's incident details were read wrongly (the kind of incident as a word when it's a number, and the delay under the wrong name), and a jam with no delay given was skipped. Now every jam ahead colours the route (amber, red when it's major), and its hold-up is added to the time left when the route's own traffic doesn't already have it.
+- TomTom roadworks and closures not recognised: the same misreading meant TomTom's closures and roadworks weren't known as such, so they weren't avoided or shown round about. Fixed with the above.
+
+## 1.0.428 — 6 Nov 2026
+
+### Fixed
+- Freezing head units not helped: when the map locked the screen up and Android closed the app (the unit itself kept running), it didn't count, so the map's drawing was never turned down for that unit. A lock-up now counts, and turns the drawing down a step straight away at the next start (Lite map at a lower sharpness, then Lightest), with a message saying so.
+
+## 1.0.426 — 6 Nov 2026
+
+### New
+- More map colours: Ember (warm and dark), Mono Night (greys, with only the route and warnings in colour), Forest, Arctic, High Contrast, Sepia, Neon, Pastel, and Match my car (a hint of your car's interior lighting colour, with how strong). In Settings > Map style > Colours.
+- Light and weather: a new group in Settings > Light & 3D, with Night brightness, Moonlight at night (moved here) and its Moon strength, Shadows on or off, Sun in its real place (by day, light and shadows from where the sun really is), Overcast light (soft daylight, no hard shadows) and Weather light (greyer light when it's raining). Everything starts as before.
+- Moonlight at night: a switch in Settings > Light & 3D > Light and weather. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.
+- Twilight map colours: a new choice in Settings > Map style > Colours: the deep purple-blue night, more purple than Horizon (its ground and buildings lavender at night).
+- Tilt settings: Settings > Light & 3D > 3D view sets how far the 3D map tilts, separately for a wide screen, a tall screen and Android Auto (30° to 65°, or Auto as before).
+- Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map style, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
+
+### Improved
+- Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
+- Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
+- Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
+- Other routes: picking a route (or closing the Routes box) goes straight back to following you on the map.
+- Behind the scenes: the light and weather settings only ever change the map from the right place in the app (a change from the car screen could have come from elsewhere and upset the map), and stop cleanly when the map closes; the driver's display, like the main car screen, now stays open when Android resizes it; the Routes box shows "Looking" while a check already under way finishes, rather than "No other routes".
+
+## 1.0.424 — 6 Nov 2026
+
+### New
+- Other routes button: while navigating, a button on the map (under map options) folds out a Routes box, as in Google Maps: your route and each other way with its time, how it compares, arrival time, distance, the road it goes by and the traffic. Tap one in the box or on the map (where they're shown in grey) to switch. On Android Auto it's the first row in Settings, as a list you can pick from with a touch or the knob.
+
+## 1.0.422 — 6 Nov 2026
+
+### Fixed
+- Routes through closed roads: a road closure on your route ahead now makes the route find a way round it, and known closures nearby are kept out of new routes (by TomTom, Mapbox and offline routes alike). A closure with no way round (the only road to where you're going) is still used.
+- Live alternatives not always showing: they're now looked for every 2 minutes (was 3), in slow traffic too (they were skipped under about 7 mph), up to the last 5 minutes of the trip (was 10), half a minute after a reroute, and from both route services when you have keys for both.
+- Android Auto split screen (GitHub #44): with Horizon Nav in the small part of the screen, only the right-hand part of the map showed, not centred, so the route and cards were out of view. The map now fits the part Android Auto gives it, and is laid out again when that part changes size.
+- Arrow turning off the road at lights (GitHub #42): slowing down, the GPS's direction swings about and the arrow turned into a car park or plaza beside the road until you moved off. It now keeps your last real direction and stays on the road down to a crawl.
+
+### New
+- Other routes button: while navigating, a button on the map (under map options) shows the other ways to go any time, in grey with how they compare; tap one to switch. On Android Auto it's the first row in Settings, as a list you can pick from with a touch or the knob.
+- Roadworks and road closures round about (GitHub #45): with a TomTom key, roadworks and closures within about 7 km are shown on the map whether or not you're on a route, as Google Maps and Waze show them (before, only those on your route showed).
+
+## 1.0.420 — 6 Nov 2026
+
+### New
+- More map colours: Ember (warm and dark), Mono Night (greys, with only the route and warnings in colour), Forest, Arctic, High Contrast, Sepia, Neon, Pastel, and Match my car (a hint of your car's interior lighting colour, with how strong). In Settings > Map look > Colours.
+- Light and weather: a new group in Settings > Map look, with Night brightness, Moonlight at night (moved here) and its Moon strength, Shadows on or off, Sun in its real place (by day, light and shadows from where the sun really is), Overcast light (soft daylight, no hard shadows) and Weather light (greyer light when it's raining). Everything starts as before.
+- Moonlight at night: a switch in Settings > Map look > Light and weather. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.
+- Twilight map colours: a new choice in Settings > Map look > Colours: the deep purple-blue night, more purple than Horizon (its ground and buildings lavender at night).
+
+### Improved
+- Horizon colours: a little more lilac.
+
+## 1.0.413 — 6 Nov 2026
+
+### New
+- Glowing buildings: a switch in Settings > Map look > 3D. At night the buildings glow blue from within, with a Glow slider to turn it up or down (it lights the buildings only). They keep the shape of Mapbox's own, with the same slightly rounded corners and edges. While they glow, the detailed building fronts are hidden; landmarks stay. Off to start with.
+
+## 1.0.411 — 6 Nov 2026
+
+### Improved
+- Android Auto with a rotary knob or buttons: a Places button is now on every car's top row. It opens a list the knob can move through, with Search first, then the fuel, food and parking shortcuts and saved places (the search bar and chips drawn on the map can't be reached by a knob).
+- Android Auto Settings while navigating: the Settings button now stays while you navigate (Stop, Sound, Report, Settings). 2D / 3D has moved to the first row of the car's Settings.
+
+## 1.0.409 — 6 Nov 2026
+
+### New
+- Custom map colours: a Custom tile in Settings > Map look > Colours, with an editor over the live map. Day and night each get their own colours for the ground, water, parks, roads, main roads, buildings, coloured areas and labels, plus night brightness, an overall tint, glowing buildings and underglow. It starts as the theme you had, so nothing changes until you change something.
+
+## 1.0.406 — 5 Nov 2026
+
+### New
+- Moonlight map colours: a new choice in Settings > Map look > Colours. At night it's Horizon's night, with the buildings a clearer blue and a soft blue glow on the ground round each one, as if light spills out of them. By day it's the same as Horizon.
+
+## 1.0.402 — 5 Nov 2026
+
+### New
+- Moonlight map colours: a new choice in Settings > Map look > Colours. At night the map is a lighter blue, like Google Maps at night, and the buildings are a brighter blue that looks softly lit from inside (a softer, even night light with no hard shadows). By day it's the same as Horizon.
+
+## 1.0.400 — 5 Nov 2026
+
+### New
+- Speed camera size: a slider in Settings > On the map > On your route, from 50% to 350%, to make the red speed camera badge on the map smaller or bigger (on the head unit, phone and Android Auto).
+
+## 1.0.398 — 5 Nov 2026
+
+### Fixed
+- Crash with the driver's display: on cars that show the map behind the steering wheel (seen on a Jaguar), the app could crash as soon as Android Auto started, because that map had nothing to tell it when to start and stop. It now has.
+
+### New
+- Twilight map colours: a new choice in Settings > Map look > Colours. It's the Horizon colours as they were, with the deeper purple-blue night.
+
+### Improved
+- Horizon colours: the night map is now a dark slate blue with just a touch of purple (less obviously purple than before), with the buildings a lighter slate blue. Same brightness as before. The old purple look is now called Twilight.
+
+## 1.0.396 — 5 Nov 2026
+
+### Improved
+- Horizon theme at night: buildings now stand out lighter than the ground instead of being the same shade, on the phone, head unit and Android Auto. Day keeps its own colours.
+
+## 1.0.388 — 4 Nov 2026
+
+### Improved
+- Horizon theme at night: buildings are now a soft lavender-blue, a step lighter than the ground, instead of the same dark shade as it, so they stand out (walls and roofs still take the light and shadow). Day keeps its own building colours.
+
+## 1.0.386 — 4 Nov 2026
+
+### Fixed
+- Fuel prices on Android Auto: euro and Australian prices showed as pence ("178.9p"); they now show the local way (€1.789, 189.9c).
+
+### New
+- Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
+- Lorry check: with Lorry chosen, the route choice checks the height, weight, width and length limits along the whole route in the background and says "no limits under your lorry" or which it found (e.g. "1 low bridge (3.9 m)").
+- Lorry parks: a "+ Lorry park" stop on the route options, and Lorry parks in place of Parking on the map page, finding lorry parks and services that take lorries (from OpenStreetMap), with opening hours, spaces and showers where mapped.
+- Speed sign position on Android Auto: bottom, middle or top of the side, separate from the phone's (Settings > Android Auto, or the car's own Settings > More settings).
+- Send a crash report from Settings: the problem report now has a Send report button, which sends it with your unit's details like Feedback does.
+
+### Improved
+- Parking at your destination: the car parks offered near the end of a trip now show their price, opening hours and spaces where OpenStreetMap has them.
+- Your car on the phone: the phone now remembers where you parked at the end of any drive (not only after Android Auto), and the "Your car" card offers Walk back once you've walked away from it.
+- "Hey Google, navigate to …" on Android Auto: a place asked for by name or address now starts its route to the top result by itself (the route choice shows where to, with Cancel), instead of leaving a list to tap while driving.
+
+## 1.0.384 — 4 Nov 2026
+
+### Fixed
+- Turn notification with Android Auto on: only the car screen updates it now, so it no longer flicks between two slightly different distances.
+- Speed cameras on a route are matched again whenever a fresh search finds different cameras, not only when the number found changes.
+- Feedback report: it now lists the lanes for the next turn exactly as the route data gives them (which way each lane goes, and the ones to use), so a junction with the wrong lane arrows can be traced.
+
+### Improved
+- Android Auto settings: on cars that only allow a few rows in a list, the rest now go on a "More settings" page (the last ones used to be cut off). The most used come first: voice, map direction, day and night, route options. "Locator arrow scale" is now "Arrow size" and only changes the car screen's arrow (it used to change the phone's arrow too), and "Map UI scale" is "Overall size", matching the app's Settings > Android Auto.
+- Settings tidied: speed camera icons (On the map) and speed camera warnings (Alerts) now say which is which, and the speed sign size says it's for this screen only (Android Auto has its own).
+- Smoother lanes: while the junction's road is still being looked for, the lanes are only redrawn once it's found, instead of every second.
+- Problem report: crash reports now say which version and when, and one left over from before an update says so (it may already be fixed), so an old report isn't mistaken for a new problem.
+- Lane guidance on the map: all the lanes are drawn on the road again, with the lane to use lit up and its arrows and the other lanes in a darker road colour with clear white lines (so they no longer fade into the map), as the view zooms in before the junction. They're laid out on the road itself (centred on a motorway or one-way road; on a two-way road all on your side of the middle), at a slimmer width, so they no longer spill over the verge; only where the map has no road there is just your lane drawn, under the route line. The route line moves into the lit lane as you come up to the junction, so the two always line up (it keeps looking for the junction's road as you get closer, and moves over even where the lane list only starts at the junction itself, so it no longer happens only some of the time). Settings > Turn card & lanes > Lanes shown as also offers a close-up picture of the junction's lanes under the turn card, or the sign over the road from the last few versions.
+
+## 1.0.375 — 4 Nov 2026
+
+### Fixed
+- Day and night following the head unit: its night mode is now checked every 1.5 seconds (it was every 4) and straight away when the system's night mode setting changes. The feedback report now shows when each night signal last changed, to track down units that are still slow.
+- Traffic in the time left: with Mapbox routes the time left could stay green with red traffic on the map, because the delay was measured against the usual time for that hour, so everyday rush-hour traffic counted as none. The delay is now the time the amber and red stretches take over their no-traffic time, so the time left turns amber or red and shows "+X min traffic" when there is traffic. (The arrival time already included the traffic.)
+- Speed cameras on a route: cameras found by the search round you are now matched to the route too, so ones the route search missed are shown and warned about. A camera now has to be within 30 m of the route's line (it was 45 m from a point on it), and one mapped twice gives one alert, so cameras on a road alongside no longer set off alerts.
+- Speed cameras without a route: a camera now has to be close to the line you're driving along (within 30 to 40 m to the side) rather than within an angle ahead, which took in cameras on other roads up to a few hundred metres away.
+- Road name under the arrow: it now comes from the road the map draws under you, so it changes as soon as the road does (it used to stay on the old road until the next turn, or until a new route, and could vanish when the lookups failed). On the phone, head unit and Android Auto (GitHub #35, #36).
+
+### New
+- Tilt settings: Settings > Map look > 3D view sets how far the 3D map tilts, separately for a wide screen, a tall screen and Android Auto (30° to 65°, or Auto as before).
+- Full screen switch: Settings > Screen & sizes > Screen. Off keeps the status and navigation bars showing, so a head unit's own bar (climate, home button) isn't covered by the map.
+- North up on Android Auto: a "Map direction" row in Android Auto's Settings switches between North up and turning with you, remembered for the car (GitHub #39).
+- Fuel prices in Australia: New South Wales and Tasmania prices from the NSW government's FuelCheck, with a free API key and secret from api.nsw.gov.au, in cents a litre.
+
+## 1.0.373 — 4 Nov 2026
+
+### New
+- Lorry routes: Settings > Routes > Vehicle can now be set to Lorry, with its height, width, length, weight, axle weight and hazardous goods. Routes from TomTom and offline routes then keep off low bridges, weight limits and lorry bans for that size; Mapbox routes use the height, width and weight. A lorry never gets a car route as a fallback. Each route shows a lorry badge: blue when every measurement was used, amber when only height and weight could be (Mapbox).
+- Low bridge and weight limit warnings: for a lorry on a route, height, weight, width and length limits on the road ahead show as signs on the map, and one the lorry is over gets a red card under the turn card and a spoken warning at about 1 km and again at 300 m. On the phone, head unit and Android Auto.
+
+### Improved
+- Settings easier to scan: long lists are split under more headings (3D, Sky and satellite; Speed, Cameras, Hazards, Zones and reminders; Directions, Voice and volume; Brightness, Sizes, Speed display; and on Android Auto, Sizes on the car screen and Setting it up). Nothing has moved section, and the settings search finds everything, now including "Show petrol stations too".
+
+## 1.0.370 — 3 Nov 2026
+
+### New
+- Next turn in the notification: while you navigate, Horizon Nav's notification now shows the turn arrow, distance, road and arrival time, marked as a navigation notification. Car launchers, smartwatches and other screens that show navigation notifications can pick it up. Switch it off in Settings > Guidance > Turn card.
+
+## 1.0.368 — 3 Nov 2026
+
+### Fixed
+- Trip card figures running together in portrait: with an electric car (a fourth figure and a fifth button), or any time they don't fit on one line, the buttons now go on a line under the figures.
+- Miles in metric settings: with kilometres chosen, settings now say km, km per kWh, litres per 100 km and cents, and the route's fuel or charging cost shows in your own currency. Saved figures stay the same.
+
+### New
+- Speed position: Settings > Screen & sizes > Speed position moves the speed limit and speedometer to the middle or top of its side (away from the cards), for when your hand covers it at the bottom.
+- Map on the driver's display: on cars whose Android Auto offers it, the screen behind the steering wheel now shows the map following you, with your route (it used to show only the app's icon). Switch it off in Android Auto's Settings > Map on the driver's display.
+
+### Improved
+- Electric cars: with Electric chosen as your fuel, the map page shows Charging first and Toilets instead of the petrol Fuel button (on the phone and Android Auto). Settings > Fuel > Show petrol stations too brings it back.
+- Android Auto settings: the 12 / 24-hour clock can be set from the car too.
+- Search while navigating on Android Auto: the Report screen now has a Search tile, for finding a stop on the way.
+
+## 1.0.363 — 3 Nov 2026
+
+### Fixed
+- Android Auto cards white on a dark map: around sunset the map's light dims to dusk before the car switches to night, and the cards stayed white. They now go dark with the map (unless "Always day" is picked).
+- Arrow lagging behind in stop-start traffic: after stopping, the arrow now moves off again as soon as you do. It used to wait until you were going about 9 mph, or had moved up to 20 m.
+
+### New
+- Number-plate cameras on the map: Flock and other automatic number-plate (ALPR) cameras mapped on OpenStreetMap now show as a purple eye badge, within about 10 km of you as you drive. Tap one to see what it is. Shown only, no alerts; switch them off in Settings > Map.
+- Smaller offline downloads: big countries now open up to show their regions in Choose an area (Germany's states, France's regions, England's counties, and regions of Italy, Spain, Poland, the Netherlands, Russia, India, Japan, Indonesia and Brazil), each a much smaller download than the whole country.
+- Near you: Choose an area now starts with the area you're in (your region or state, or all of the country).
+- Clock setting: Settings > Screen & sizes > Units can now set 12 or 24-hour times by hand, as well as following the device.
+- Smaller offline areas: Singapore and Brunei can now be downloaded on their own, instead of together with Malaysia.
+
+### Improved
+- Cooler, longer-lasting phone: when the phone gets warm or battery saver is on, the map draws fewer frames a second (30, or 20 when hot), whatever frame rate is chosen. The feedback report now says how warm the phone was.
+- Zoom out further: − now goes two steps further out than before, for an overview of the traffic around you, and that zoom is remembered too.
+- North up remembered: if you leave the map north up, it opens that way next time, on the phone and on Android Auto separately.
+
+## 1.0.361 — 2 Nov 2026
+
+### Fixed
+- Offline routes failing with "Exceeded maximum circumference for exclude_polygons": with areas to avoid switched on (such as clean air zones), offline routes failed when an area was too big for the offline router. Big areas are now left out of offline routes, and if the router still refuses, the route is planned without them instead of failing.
+- Route stopping at a border: with no signal and a destination outside your downloaded maps, the route used to end at the edge of the map as if that were the destination. It now says the map ends there, doesn't announce "you have arrived" at the border, and plans the rest of the way as soon as there's signal.
+- "No signal" with signal: when the head unit's date and time are wrong, every secure connection fails and looked like no signal. The app now spots this and tells you to check the date and time.
+- Place names for shared offline areas: the towns and villages download now covers every country in the area, for example Singapore and Brunei as well as Malaysia, and the Gulf States pack's countries.
+- Android Auto speed sign jumping: on some screens it kept jumping between beside the cards and above them as their text changed. It now stays put unless there's clearly room.
+
+## 1.0.358 — 31 Oct 2026
+
+### Fixed
+- Update failing with "No such file or directory": trying an update again (or after an earlier try) no longer deletes the file it has just downloaded, so Update works again, including saving to Downloads for AAEnabler.
+- Android Auto arrow under the cards: on cars that report their screen oddly (seen on a Uconnect 8.4), your arrow was pushed left under the turn and trip cards. It now always moves clear of them, and the feedback report includes the car screen's layout.
+
+### Improved
+- Better routes with TomTom and Mapbox together: with a TomTom key and a Mapbox token (and routes left on Auto), a new route is now asked of both at once. The quicker one comes first, and a different road from the other is offered as another choice.
+- Clock times follow your device: arrival and leave-by times now use the phone's or head unit's own 12 or 24-hour setting (for example 4:52 pm instead of 16:52).
+
+## 1.0.355 — 31 Oct 2026
+
+### Fixed
+- Mapbox key "401" errors: a refusal no longer switches the map off straight away. Horizon Nav now asks Mapbox what's wrong with the token and says so plainly (mistyped or cut short, deleted or replaced, or out of date), and if Mapbox says the token is fine the map just loads again. A token that looks cut short or mistyped is flagged as you paste it, and the feedback report says what Mapbox made of the token.
+
+## 1.0.353 — 31 Oct 2026
+
+### Fixed
+- Map shaking when stopped: standing still at lights or parked, the map no longer drifts and turns with the GPS's small wobbles (it was worst on Android Auto, where it shook all the time). It now stays put until you actually move off.
+
+### New
+- Report on Android Auto: a Report button (where the Search button was) opens Police, Crash, Hazard, Broken down and Mobile camera; one tap saves the report where you are, as on the phone. Search is still in the search bar on the map, or at the top of Places on cars that don't pass taps on to the map.
+- Zoom remembered: the zoom you set with + and − when you're not on a route is kept for next time, on the phone and on Android Auto separately. Tap Re-centre while the map is following you to go back to automatic zoom.
+
+### Improved
+- Fold away everything on Android Auto: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent.
+- Your side of divided roads: on dual carriageways and other divided roads, your arrow now sits on the side you're driving on, not whichever side the GPS happened to be nearer.
+
+## 1.0.350 — 31 Oct 2026
+
+### Fixed
+- Closer to 3D lane guidance: where the real painted lanes are found, the lit-up lanes now start 150 m before the junction (was 110 m), the route line sits in your lane from there and bends through the junction, and a small lane bubble rides on the road just ahead of your arrow showing the lanes to use. Where the real lanes can't be matched, the overhead lane sign is shown instead.
+
+## 1.0.348 — 31 Oct 2026
+
+### Fixed
+- The traffic view when stopped no longer kicks in while you wait at a turn, and "Your car" is only saved when the car has stopped (switching apps on the car screen mid-drive could save it).
+- Mapbox's lane data on TomTom routes: Mapbox draws the lanes on the map, so its own lane list suits them best. With a Mapbox token, a TomTom route now gets Mapbox's lane list in the background, junction by junction, wherever Mapbox's route goes the same way (other junctions keep TomTom's). It uses one extra Mapbox request per route and can be switched off in Settings > Turn card. The feedback report says which lane list was used.
+- Lane sign over the road: coming up to a junction with lane guidance, a sign now stands over the road at the junction, like a motorway gantry, with the lanes to use lit up. It replaces the lane strips painted across the road, which often sat a lane or two out from the real lanes. Where the map has real lane data that matches the lanes you need (on many motorways), the lanes are still painted on the road, exactly over the real ones, with the route line through them. With Demo mode on, a short message says which was used (also in the feedback report).
+- Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
+
+### New
+- Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map look, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
+- Traffic overview when stopped: after 30 seconds stopped at lights or in a queue, the map pulls back to a top-down view of the traffic round you, and goes back as soon as you move off. On by default; switch it off in Settings > On the map.
+- Where you parked: when Android Auto disconnects, the phone remembers where the car was. A "Your car" card shows how long ago and how far, with a Walk button and a car pin on the map, for 2 days or until you're back in the car.
+- Send places from your phone: pair the phone with the head unit once (Settings > Places & trips), then "Send to car" on the phone's route screen. The head unit offers it the next time it's on (within 12 hours) and starts it after a few seconds. Places go through a free message relay, scrambled with your pairing code.
+
+## 1.0.341 — 30 Oct 2026
+
+### Fixed
+- Road name under your arrow: it no longer jumps to a side road for a moment at junctions (a new name now has to be confirmed, unless you've clearly turned), it clears in car parks and when it's out of date instead of showing the last road, and after an unnamed slip road it no longer shows the exit sign's text as the road name.
+- Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
+
+## 1.0.339 — 30 Oct 2026
+
+### Fixed
+- Head units that restart while Horizon Nav is open (reported on a built-in Android 9 unit): the app now notices when the whole unit restarted soon after opening it or while driving, and after two it switches to safer drawing one step at a time, starting with drawing the map in the app's own window, which is gentler on some built-in units. What happened just before goes in the feedback report. The background journey-time suggestion also no longer runs the offline router, which loads large files into memory.
+- Updating with AAEnabler: if you installed Horizon Nav with AAEnabler, Update now saves the new version to your Downloads folder to install with AAEnabler, so it stays in Android Auto (updating inside the app used to take it out).
+- Missing 3D buildings: the clear area kept round your arrow no longer cuts through buildings. With no route there's no longer a straight strip ahead (it went through buildings on bends), and on a route the strip is narrower, so buildings in narrow streets stay.
+- The offline maps page now points to Settings > Keys & accounts for the Mapbox token (it still said "Search & keys").
+
+## 1.0.337 — 29 Oct 2026
+
+### New
+- Donate: Horizon Nav is free with no ads, and you can now support it with a donation: Settings > About > Donate, with a QR code to scan on your phone or a button to open PayPal. A one-off card also asks, a day or so after installing (never while you're driving).
+
+## 1.0.335 — 29 Oct 2026
+
+### Fixed
+- Adding a stop on the way (fuel, coffee and so on) no longer hangs: along the route Mapbox is asked first, a few points at once, and a search that gets stuck on a slow server now gives up after 30 seconds as it should (it could spin for minutes).
+
+### Improved
+- The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.
+
+## 1.0.331 — 29 Oct 2026
+
+### Improved
+- Android Auto map page matches the app: Home and Work tiles with the drive time, five round buttons for fuel, charging, food, coffee and parking, and Saved & recent with your first few places (as many as fit) and "All" for the rest, in place of the long scrolling row of chips. Your arrow also sits in the middle of the clear map there when you're not navigating.
+
+## 1.0.327 — 29 Oct 2026
+
+### Fixed
+- Fuel, parking and other nearby searches: they now use Mapbox's category search, which finds the nearest places of that kind, instead of a text search that often came back empty and fell through to the busy free OpenStreetMap servers ("HTTP 429", "HTTP 502"). Along a route, when those servers are busy, Mapbox is asked instead, and errors are in plain words.
+- 2D / 3D is remembered: the map no longer starts in 3D every time if you'd left it in 2D.
+
+### New
+- 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
+
+### Improved
+- Android Auto speed sign: it sits right up against the edge of the screen when Android Auto's buttons hide, and just beside them when they show.
+
+## 1.0.325 — 29 Oct 2026
+
+### Fixed
+- Android Auto trip card on wide screens: it no longer stretches right across a very wide car screen with its sound and end-route buttons hidden under Android Auto's own buttons; it's now just as wide as its figures and buttons.
+
+## 1.0.323 — 29 Oct 2026
+
+### Fixed
+- Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
+- Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.
+
+### Improved
+- Arrow centred in the clear map: when you're not navigating, your arrow sits in the middle of the map between the search panel and the buttons, instead of dead centre behind them.
+- Fewer buttons on the map: just the compass and map options stay up while you drive. Zoom appears when you touch the map or stop, voice and sound are on the trip card, 3D / 2D and sound are quick switches at the top of map options, and Settings is beside the buttons when you're not navigating (and in map options at any time).
+
+## 1.0.321 — 29 Oct 2026
+
+### Improved
+- Map buttons grouped: compass, map options, 3D and sound sit together in one panel at the top right with the zoom buttons straight under it, and Settings just to its left. If zoom would touch the speedometer on a short screen, it moves beside the panel instead.
+
+## 1.0.319 — 29 Oct 2026
+
+### Improved
+- Map buttons grouped: compass, map options, 3D and sound sit together in one panel under the Settings button. Zoom stays halfway down the right-hand edge, and only moves up beside the panel if it would touch it or the speedometer.
+- Car types for the real 3D model: the hatchback, estate, SUV, pickup, van and sports car now have their own 3D models too, not just the saloon, and the car type picker shows for the real 3D car.
+- Map options redesigned: Standard or Satellite as two picture cards, a quick Auto / Day / Night switch, and the map layers as tiles that light up when on. Reports fit on one row, and in landscape the panel is wider, in two columns, so nothing needs scrolling.
+
+## 1.0.317 — 29 Oct 2026
+
+### Improved
+- What's new in landscape: the card now spreads across the screen, with the title and Let's go button on the left and the changes in two columns on the right.
+- Tidier map page: Home and Work are two tiles showing the drive time, and fuel, charging, food, coffee and parking are five round buttons that always fit. Saved & recent shows three places with "All" for the rest, and your own saved places are in it too.
+- Map buttons grouped: compass, map options, 3D and sound sit together in one panel with zoom under it, and Settings is in the search bar. On shorter screens zoom moves beside the panel so it stays clear of the speedometer.
+
+## 1.0.315 — 29 Oct 2026
+
 - New "Say road names" setting (Settings > Sound): turn it off for just the directions, e.g. "In 200 metres, turn left".
 - Bioethanol (E85) as a fuel type: the fuel list then shows stations mapped as selling E85, with prices in France.
 - Live fuel prices outside the UK: France and Austria by themselves, and Germany with a free Tankerkönig key (Settings > Fuel). Prices show the local way, e.g. €1.789.
@@ -40,249 +728,262 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Home and Work can be set or changed from Settings, and favourites can be renamed or made Home or Work.
 - Easier stops: one-tap buttons in the stops box add the best fuel, charger, coffee, food, services or toilets along the route, plus your saved places; holding on the map while driving adds it as a stop.
 - Electric cars: set your battery level and the least you want to arrive with on the route options; a charging stop is suggested when the trip needs one (with the charge you'll arrive at it with), the trip card shows the battery you'll arrive with and a Chargers ahead button, and Eco route uses TomTom's electric eco routing.
-- No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
-
-### Fixed
-- Shortcuts in Settings on a phone: the buttons now wrap onto as many lines as they need, instead of the last one being squashed into a column of single letters
-- Camera alerts in France, Germany and Switzerland: the message saying they're switched off there now shows only the first time in each country instead of every time the app opens, and names the switch that keeps them on ("Off where they're banned" in Settings › Alerts)
-- Signing key: Horizon Nav updates are now signed with a new key kept only in GitHub Secrets, with Android's key rotation so it updates over the current version as normal
-- Always day on Android Auto: the car screen's own Always day / Always night now wins. With the phone set to Night (or to follow a dark phone), picking Always day on the car still left the car's map dark.
-- Average speed checks shown as plain speed cameras: the cameras at the start and end of a check are now announced as the average speed check, instead of a "Speed camera" alert that hid it, and the check is warned about as early as a camera would be. If the search along the route fails on a busy server, the checks are now looked up on their own so they aren't missed.
-- Average speed check limits outside the UK: a check's limit was always read as British, so one mapped as "60" (km/h) showed as 95 km/h. It's now read in the units of the country the check is in, and the card never shows a limit higher than the road's own signed limit.
-- Disappearing from Android Auto after an update: updating from inside the app now asks Android's installer to record Google Play as the installer, which is what Android Auto checks before listing an app from outside the Play Store. Before, an in-app update could quietly take Horizon Nav out of Android Auto (found by marcocebrian). Problem reports now include this install record.
-- Speed cameras along the route: the cameras on a planned route now show along all of it while you choose the route or start a demo, not only within 10 km of where you are. A stretch of road whose cameras couldn't be looked up (a busy server) is now tried again, instead of being skipped for the rest of the trip.
-- Headlight beam: no longer flickers or vanishes for a moment, and no longer slows the map. It now moves with the arrow the way Mapbox moves its own location marker, instead of being redrawn up to 15 times a second.
-- Closing on start: 1.0.535 closed straight away on some Android 13 head units (Unisoc), because of the new spoken roundabout exits. It opens again.
-- Streets missing from the map (GitHub #78, Reddit): in some countries Mapbox's HD roads hid the ordinary streets, leaving only main roads. HD roads (lane markings, turn arrows, 3D overpasses) are now a setting under Settings › Map style, on by themselves only in the UK; elsewhere switch them on if they show properly.
-- Speed limit rules abroad: away from the UK, the app worked out the usual limits from the phone's language region, so an English (UK) phone in France got British rules. It now uses the country you're actually in (GitHub).
-- Searching by name or address with a TomTom key: if TomTom's classic search refuses the key (newer keys can come with only the newer "Orbis" APIs), the same search is now tried on TomTom's Orbis service, so shops, places and addresses are found again instead of only postcodes. If TomTom refuses both, the app now says why once, instead of quietly showing thin results.
-- Speedometer on short Android Auto screens: it now stays put in the bottom-left corner, with the one-line trip strip beside it while navigating. In the bottom right it slid with Android Auto's zoom buttons, covered the Mapbox logo and moved up the side to make room for the trip strip (GitHub #67).
-- Arrow back in the middle with the cards folded: on a wide screen, with Home, Work and Saved & recent folded away (just the search bar left), the arrow now goes back to the middle, as in Waze; it stayed off to the side because the search bar on its own still counted as a card beside it (GitHub #79).
-- Rain and snow on Android Auto: Weather effects now show on the car screen too (they were only ever drawn on the phone), along with the weather haze towards the horizon.
-- Rain effect missing while it rained: the effect went by the hour's weather summary, which often says "cloudy" during showers. It now also checks the rain and snow actually falling in the current quarter hour, and looks every 10 minutes instead of 20.
-- Lane arrows at back-to-back roundabouts: on the way into the first of two roundabouts close together, the lane picture showed the second one's lanes. Each turn now only shows its own lanes.
-- Headlights mode on Teyes and FYT-type units: these units pass the lights on in their own setting instead of switching Android's night mode, so Headlights never went dark. It now reads that too, with a "Lights signal is reversed" switch for the few units that have it the other way round.
-- Wrong-way warnings on divided roads: a GPS drifting towards the middle no longer puts the arrow on the other carriageway or warns that you're going the wrong way. The warning now needs a sharp fix, no road your way nearby, and is never given while you're following your route.
-- "Going to …?" suggestion: switching off "Suggest where you're going" now hides the habit suggestion too (GitHub #73).
-- Traffic pill position: the "Traffic round you" pill sits at the top between the turn card and the map buttons when there's room, and otherwise just above the arrival time card instead of over it.
-- Trip card showing through the add-a-stop panel: the time, arrival and distance card now steps aside while the add-a-stop (or all locations) panel is open, and comes back when it closes. Searching a shop also leaves out places that only mention it (a Western Union counter inside a Sainsbury's).
-- Android Auto on small screens and split screen (#67): the car screen now picks its layout from the space Android Auto leaves for the map instead of shrinking everything. On a short screen (like 800 × 480): a smaller search bar, Home and Work as slim pills, one row of shortcuts plus ⋯, icon-only Report and Places buttons, a narrower turn card with the lanes inside it, a one-line trip card and a smaller speed sign, laid out side by side so nothing overlaps. In a split-screen tile: just the turn, a one-line trip strip and the speed.
-- "Traffic round you" over the search box: the stopped-in-traffic view now only comes on after you've been driving (not with the phone lying still, e.g. when sharing a place from another app), its note sits at the bottom where it can't cover the search box, and tapping it (✕) goes back to the normal view.
-- Mapbox logo halfway down the car screen: on Android Auto it was pushed down by a gap meant to clear the phone's top bar, made bigger by the car display's high density. It now sits in the corner.
-- Wrong side on arrival: "your destination is on the right" for a place on the left. The side is now worked out from where the place actually is against the way you're driving, and the route service's own left / right is only used when that's too close to call.
-- Speed limit sign squashed on Android Auto: the US and Canadian board's words are sized from the sign itself, so a larger car-screen text size can't squash them; the board is a little bigger next to the speedometer; and the next-limit tag above no longer overlaps it, and shows the board instead of a round sign in the US and Canada.
-- Your own locator picture on Android Auto: the car screen now shows your picture too, instead of the arrow.
-- Crash tapping a place on the map: tapping a place that has no name in Mapbox's data closed the app. Nameless places are now ignored, and anything else going wrong in a map tap can no longer close the app.
-- Lane picture under the turn card on Android Auto: on a short car screen it ran on underneath the trip card. It now shrinks to fit the gap, and is left out when even a small one wouldn't fit (the lanes still show in the turn card).
-- Slip-road turns count down to the slip road: when the turn is at the far end of a slip road (common where a main road has no exit numbers), the turn card, the lit lane and the voice now count down to where the slip road leaves the main road ("take the exit on the left"), then to the turn at the end of it. They used to count down to the far end, past where you had to move over.
-- Dashboard and head-up display in feet: on Android Auto, the car's own dashboard and head-up display now show feet close to a turn (then miles), the same as the app, instead of yards.
-- Tapped spot hidden behind route options: on a phone, the card for a spot you tap while choosing a route (Go / Add as a stop) now shows on top of the route options instead of behind them.
-- Traffic colours that never faded: a jam or incident painted on the route line could stay red after it cleared, as each refresh was built on the already-painted line. Each refresh now starts from the route service's own traffic and adds TomTom and incidents on top.
-- Missed-turn detection: made safer against GPS drift in town. It only triggers beyond the GPS's own error and at a sharper angle, so approaching a turn never sets off a reroute.
-- Postcode district search: a district on its own ("M25", "B1") is also how roads are named, so it now shows third, and a search for the M25 still shows the motorway first.
-- Route overview on Android Auto: the route now fills the screen instead of sitting in the top third (it left room for a panel that isn't there on the car), so it's zoomed in further and the place names are easier to read.
-- Missed turns noticed sooner: driving straight past a turn, the arrow no longer carries on round the turn you didn't take. It follows you straight away and a new route is asked for in about 2 seconds (it used to wait until you were 40 m or more off the route).
-- Speeding beep on Android Auto: now plays on the navigation channel (like the spoken directions), so it is heard over the radio or the car's own music too. Before, it only reached the speakers while Android Auto was the sound source.
-- Lanes at two slip roads close together: the second junction's lanes no longer light up at the first one, which made it look like the exit to take.
-- Lanes lit too generously: where Mapbox picks the lanes to be in, only those are lit now, not every lane that could work.
-- Next speed limit: no longer shows a strange "0 in 700 m" sign above the speed when the road ahead has no known limit.
-- Car turn card: the "then" line for the turn after next now shows on small Android Auto screens too.
-- Pinch zoom on Android Auto: zooms smoothly around the middle of the map instead of jumping about.
-- Small Android Auto screens (GitHub, Pioneer SPH-DA160): on 7-inch 800 x 480 units the turn card left out the lanes, the junction close-up and the driving advice, as if the screen were too small. Lanes now always show on the car's turn card, and the close-up and advice show unless the screen is really short.
-- Services on the route bar with the services card off: switching off Next services card now takes them off the route bar too.
-- Traffic jams not added to the route: a jam could be announced ("Traffic jam ahead") without the time left going up or the route line turning amber or red. TomTom's incident details were read wrongly (the kind of incident as a word when it's a number, and the delay under the wrong name), and a jam with no delay given was skipped. Now every jam ahead colours the route (amber, red when it's major), and its hold-up is added to the time left when the route's own traffic doesn't already have it.
-- TomTom roadworks and closures not recognised: the same misreading meant TomTom's closures and roadworks weren't known as such, so they weren't avoided or shown round about. Fixed with the above.
-- Freezing head units not helped: when the map locked the screen up and Android closed the app (the unit itself kept running), it didn't count, so the map's drawing was never turned down for that unit. A lock-up now counts, and turns the drawing down a step straight away at the next start (Lite map at a lower sharpness, then Lightest), with a message saying so.
-- Routes through closed roads: a road closure on your route ahead now makes the route find a way round it, and known closures nearby are kept out of new routes (by TomTom, Mapbox and offline routes alike). A closure with no way round (the only road to where you're going) is still used.
-- Live alternatives not always showing: they're now looked for every 2 minutes (was 3), in slow traffic too (they were skipped under about 7 mph), up to the last 5 minutes of the trip (was 10), half a minute after a reroute, and from both route services when you have keys for both.
-- Android Auto split screen (GitHub #44): with Horizon Nav in the small part of the screen, only the right-hand part of the map showed, not centred, so the route and cards were out of view. The map now fits the part Android Auto gives it, and is laid out again when that part changes size.
-- Arrow turning off the road at lights (GitHub #42): slowing down, the GPS's direction swings about and the arrow turned into a car park or plaza beside the road until you moved off. It now keeps your last real direction and stays on the road down to a crawl.
-- Crash with the driver's display: on cars that show the map behind the steering wheel (seen on a Jaguar), the app could crash as soon as Android Auto started, because that map had nothing to tell it when to start and stop. It now has.
-- Fuel prices on Android Auto: euro and Australian prices showed as pence ("178.9p"); they now show the local way (€1.789, 189.9c).
-- Turn notification with Android Auto on: only the car screen updates it now, so it no longer flicks between two slightly different distances.
-- Speed cameras on a route are matched again whenever a fresh search finds different cameras, not only when the number found changes.
-- Feedback report: it now lists the lanes for the next turn exactly as the route data gives them (which way each lane goes, and the ones to use), so a junction with the wrong lane arrows can be traced.
-- Day and night following the head unit: its night mode is now checked every 1.5 seconds (it was every 4) and straight away when the system's night mode setting changes. The feedback report now shows when each night signal last changed, to track down units that are still slow.
-- Traffic in the time left: with Mapbox routes the time left could stay green with red traffic on the map, because the delay was measured against the usual time for that hour, so everyday rush-hour traffic counted as none. The delay is now the time the amber and red stretches take over their no-traffic time, so the time left turns amber or red and shows "+X min traffic" when there is traffic. (The arrival time already included the traffic.)
-- Speed cameras on a route: cameras found by the search round you are now matched to the route too, so ones the route search missed are shown and warned about. A camera now has to be within 30 m of the route's line (it was 45 m from a point on it), and one mapped twice gives one alert, so cameras on a road alongside no longer set off alerts.
-- Speed cameras without a route: a camera now has to be close to the line you're driving along (within 30 to 40 m to the side) rather than within an angle ahead, which took in cameras on other roads up to a few hundred metres away.
-- Road name under the arrow: it now comes from the road the map draws under you, so it changes as soon as the road does (it used to stay on the old road until the next turn, or until a new route, and could vanish when the lookups failed). On the phone, head unit and Android Auto (GitHub #35, #36).
-- Trip card figures running together in portrait: with an electric car (a fourth figure and a fifth button), or any time they don't fit on one line, the buttons now go on a line under the figures.
-- Miles in metric settings: with kilometres chosen, settings now say km, km per kWh, litres per 100 km and cents, and the route's fuel or charging cost shows in your own currency. Saved figures stay the same.
-- Android Auto cards white on a dark map: around sunset the map's light dims to dusk before the car switches to night, and the cards stayed white. They now go dark with the map (unless "Always day" is picked).
-- Arrow lagging behind in stop-start traffic: after stopping, the arrow now moves off again as soon as you do. It used to wait until you were going about 9 mph, or had moved up to 20 m.
-- Offline routes failing with "Exceeded maximum circumference for exclude_polygons": with areas to avoid switched on (such as clean air zones), offline routes failed when an area was too big for the offline router. Big areas are now left out of offline routes, and if the router still refuses, the route is planned without them instead of failing.
-- Route stopping at a border: with no signal and a destination outside your downloaded maps, the route used to end at the edge of the map as if that were the destination. It now says the map ends there, doesn't announce "you have arrived" at the border, and plans the rest of the way as soon as there's signal.
-- "No signal" with signal: when the head unit's date and time are wrong, every secure connection fails and looked like no signal. The app now spots this and tells you to check the date and time.
-- Place names for shared offline areas: the towns and villages download now covers every country in the area, for example Singapore and Brunei as well as Malaysia, and the Gulf States pack's countries.
-- Android Auto speed sign jumping: on some screens it kept jumping between beside the cards and above them as their text changed. It now stays put unless there's clearly room.
-- Update failing with "No such file or directory": trying an update again (or after an earlier try) no longer deletes the file it has just downloaded, so Update works again, including saving to Downloads for AAEnabler.
-- Android Auto arrow under the cards: on cars that report their screen oddly (seen on a Uconnect 8.4), your arrow was pushed left under the turn and trip cards. It now always moves clear of them, and the feedback report includes the car screen's layout.
-- Mapbox key "401" errors: a refusal no longer switches the map off straight away. Horizon Nav now asks Mapbox what's wrong with the token and says so plainly (mistyped or cut short, deleted or replaced, or out of date), and if Mapbox says the token is fine the map just loads again. A token that looks cut short or mistyped is flagged as you paste it, and the feedback report says what Mapbox made of the token.
-- Map shaking when stopped: standing still at lights or parked, the map no longer drifts and turns with the GPS's small wobbles (it was worst on Android Auto, where it shook all the time). It now stays put until you actually move off.
-- Road name overlap: driving with no route, the road name under your arrow no longer sits on top of the "Heading NW" pill at the bottom (the pill already shows the road, so the one under the arrow steps aside while it's up).
-- Junctions: the view now flattens towards 2D as you reach turns and roundabouts as intended, instead of swinging low enough to fill the screen with horizon. The junction close-up only applies at slip roads, exits and forks, where it moves closer and a little flatter.
-- Android Auto trip card on wide screens: it no longer stretches right across a very wide car screen with its sound and end-route buttons hidden under Android Auto's own buttons; it's now just as wide as its figures and buttons.
-- Fuel, parking and other nearby searches: they now use Mapbox's category search, which finds the nearest places of that kind, instead of a text search that often came back empty and fell through to the busy free OpenStreetMap servers ("HTTP 429", "HTTP 502"). Along a route, when those servers are busy, Mapbox is asked instead, and errors are in plain words.
-- 2D / 3D is remembered: the map no longer starts in 3D every time if you'd left it in 2D.
-- Adding a stop on the way (fuel, coffee and so on) no longer hangs: along the route Mapbox is asked first, a few points at once, and a search that gets stuck on a slow server now gives up after 30 seconds as it should (it could spin for minutes).
-- Head units that restart while Horizon Nav is open (reported on a built-in Android 9 unit): the app now notices when the whole unit restarted soon after opening it or while driving, and after two it switches to safer drawing one step at a time, starting with drawing the map in the app's own window, which is gentler on some built-in units. What happened just before goes in the feedback report. The background journey-time suggestion also no longer runs the offline router, which loads large files into memory.
-- Updating with AAEnabler: if you installed Horizon Nav with AAEnabler, Update now saves the new version to your Downloads folder to install with AAEnabler, so it stays in Android Auto (updating inside the app used to take it out).
-- Missing 3D buildings: the clear area kept round your arrow no longer cuts through buildings. With no route there's no longer a straight strip ahead (it went through buildings on bends), and on a route the strip is narrower, so buildings in narrow streets stay.
-- The offline maps page now points to Settings > Keys & accounts for the Mapbox token (it still said "Search & keys").
-- Road name under your arrow: it no longer jumps to a side road for a moment at junctions (a new name now has to be confirmed, unless you've clearly turned), it clears in car parks and when it's out of date instead of showing the last road, and after an unnamed slip road it no longer shows the exit sign's text as the road name.
-- Trees on Android Auto: the car map is now drawn at close to the phone's zoom, so Mapbox's 3D trees and other close-up detail show there too (it used to sit so far out that they never appeared). Map text on the car screen is a little smaller as a result.
-- The traffic view when stopped no longer kicks in while you wait at a turn, and "Your car" is only saved when the car has stopped (switching apps on the car screen mid-drive could save it).
-- Lane sign over the road: coming up to a junction with lane guidance, a sign now stands over the road at the junction, like a motorway gantry, with the lanes to use lit up. It replaces the lane strips painted across the road, which often sat a lane or two out from the real lanes. Where the map has real lane data that matches the lanes you need (on many motorways), the lanes are still painted on the road, exactly over the real ones, with the route line through them. With Demo mode on, a short message says which was used (also in the feedback report).
-- Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
-
-### New
-- Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
-- Arabic, Hebrew and Urdu: the whole app, the spoken directions and the voice commands, read right to left. The inside of the turn card, trip card, search and settings is laid out right to left, while where the cards sit on the map still follows your driving side
-- Turkish and Serbian: the whole app, the spoken directions and the voice commands are now in Türkçe and Srpski (Latin script). Pick them in Settings › Sound & voice › Language, or leave it on Phone's language
-- Landmarks in directions: when a turn is at traffic lights or a stop sign, the turn card says "At the lights" (with the distance and road below) and the voice says "At the traffic lights, turn right onto…", or "At the second set of lights" when there's one set before it. With more lights on the way it says the distance as before. Turn it off in Settings › Sound & voice › Landmarks in directions
-- Your own 3D model: Settings › Your arrow › Real 3D model › Your model loads a .glb file of your own (up to 8 MB) as the arrow, sized to match the built-in car whatever scale it was made at, with Turn to point it the way you drive and the size slider to fine-tune it. If it can't be shown, the built-in car stands in. Works on Android Auto too.
-- Hungarian: Horizon Nav can now be used in Magyar, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
-- Malay: Horizon Nav can now be used in Bahasa Melayu, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
-- Croatian: Horizon Nav can now be used in Hrvatski, chosen in Settings or picked up from the phone, with spoken directions and voice commands.
-- Simplified Chinese, Slovak and Danish: Horizon Nav can now be used in 简体中文, Slovenčina and Dansk, with spoken directions and voice commands in each. Chinese phones now pick Simplified or Traditional by themselves.
-- Greek, Czech and Finnish: Horizon Nav can now be used in Ελληνικά, Čeština and Suomi, chosen in Settings or picked up from the phone, with spoken directions and voice commands in each.
-- Romanian, Basque and Traditional Chinese: Horizon Nav can now be used in Română, Euskara and 繁體中文, chosen in Settings or picked up from the phone. Directions and voice commands work in all three, and on a Hong Kong or Macau phone the Chinese voice speaks Cantonese.
-- Card positions: Settings › Screen and sizes › Card positions puts the turn card top left or right, the trip card under it or bottom left, centre or right, and the speedometer bottom left or right, with a live picture as you choose. On Android Auto (Settings › Android Auto): the trip card and speedometer (GitHub).
-- Start from here: press and hold the map, then Start from here, and routes are planned from that spot instead of your GPS position (a "Starting from …" pill shows until you tap it, or until you drive off with a GPS fix) (GitHub #88).
-- Sharp bend warnings: bends that need slowing for are striped yellow with black chevrons on the route, and about 9 seconds before each a yellow chevron sign says "Sharp bend · take it at 25 mph" with a chime (only when you're going faster than that). Worked out from the route's shape; junction turns don't count. Settings › Warnings › Sharp bends.
-- Headlight beam: after dark, a soft cone of light lies on the road ahead of your arrow while you're moving, longer at speed. Settings › Your arrow › Headlight beam at night.
-- Destination lit up on arrival: the building stays lit while the arrival card is up, its entrance (the side nearest where you pulled up) gets a marker, and a dotted line shows the walk from the suggested parking. Settings › Arrival › Light up your destination.
-- Demo drive controls: while a demo plays, the map shows its speed (tap to switch 1×, 2× and 4× without restarting), a skip-to-the-next-turn button (jumps to about 250 m before the next junction) and a stop button. On Android Auto: End demo, the speed, Skip turn and Settings.
-- Demo on the route choice: with the demo drive switched on, a Demo button sits beside Start; choose it and Start (or the countdown) begins the trip as a demo drive. On Android Auto too.
-- Keep the arrow to the side: a new switch (Android Auto settings, and Settings › Screen & sizes › While driving) keeps the arrow off to the side on a wide screen when the cards fold away, instead of gliding back to the middle.
-- Slovenian: the whole app, spoken directions and voice commands are now in Slovenian (Settings › Sound & voice › Language, or it follows the phone) (GitHub #75).
-- Trip bar on the driver's display: with a route, the map behind the steering wheel shows time left · distance · arrival in a small bar at the bottom centre, as Google Maps does.
-- Android Auto matches the phone: Day and night on the car now has "Same as your phone", so the car screen goes light or dark with the phone (GitHub #69).
-- Add a stop, seen along your route: when adding a stop, "See them along your route" (or the keyboard's search key) shows every match on the map along the rest of the route, each labelled with the time it adds, in a panel sorted by Least detour, Soonest or Nearest, with how far ahead and how far off the route each one is. Tap one, then Add as a stop. On Android Auto it's a list sorted by detour.
-- Bulgarian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in Bulgarian too. Spoken directions need a Bulgarian text-to-speech voice installed (Google's has one).
-- Delay labels on queues: each queue of a minute or more ahead on your route gets a small "+8 min" pill where it starts, red for heavy traffic and amber for slow. While choosing a route, the other routes' queues show too, dimmed. Each one goes once you're past it.
-- Speed limit changes, your way: Settings › Alerts › Speed › How: chime and voice, voice only, or chime only. With both, the voice now waits for the chime to finish so it isn't lost under it.
-- Prefer simpler routes switch: Settings › Routes › Choosing a route. When a route is only a minute or so slower but has far fewer turns, it's picked first, and it's now labelled Simplest (it used to say Shortest, which made it look like the app defaulted to the shortest route). Switch it off to always start on the fastest.
-- Choose the trip card buttons on Android Auto: Settings › Android Auto › Buttons on the trip card turns Overview, Other routes, Sound and End on or off, with a Normal, Large or Extra large button size. Fewer buttons make the card narrower, so more of the map stays clear.
-- Thai, Japanese and Indonesian: the whole app, spoken directions and Android Auto, in Settings › Sound & voice › Language (or follows the phone). Voice commands work in all three too. Directions are spoken with the phone's or head unit's own voice for that language, so it needs a Thai, Japanese or Indonesian text-to-speech voice installed.
-- Save route: the bookmark on the route options is now Save route. It keeps the destination, your stops and the road you picked ("Croke Park via M9"). Saved routes show under the search bar (and in Places on Android Auto); tap one to plan the same way again with that day's traffic, swipe it away to delete.
-- Red pin where you tap: tapping or holding the map drops a red pin on the exact spot while its card is open.
-- See all locations: search for a shop or chain (Lidl, Sainsbury's, Costa…) and, when there are several nearby, "See all N locations" shows them all. A panel lists them by Quickest (drive time with today's traffic), Nearest or On my route, and the map zooms out to show each as its logo with the drive time. Tap a pin or a row, then Go or Add as a stop. "Search this area" looks again wherever you move the map. On Android Auto it's a list.
-- Logos in search results: shops and brands show their own logo (taken from their website, or a built-in list of common chains). Logos are kept on the unit after the first time, and the usual pin shows without a signal or in offline mode.
-- Your own shortcuts: choose which round "find nearby" buttons show under the search bar (up to 5, in your order) from Fuel, Charging, Food, Coffee, Parking, Toilets and Services, in Settings › Places & trips. Reset brings back the usual ones.
-- Offline mode: a master switch in Settings › Offline maps. Nothing goes online and the app stops looking for a signal, so there is no more flickering and retrying with a weak or missing connection. Everything comes from the downloaded pack. Downloads you start yourself still work.
-- Add a stop while planning: hold on the map on the route options screen, then tap "Add as a stop" on the card. It goes on the route being planned, and you can add as many as you like.
-- Italian, Portuguese and Polish: the whole app (screens, Android Auto, spoken directions, alerts and spoken commands) is now also in Italiano, Português and Polski. Portuguese uses the Brazilian voice on a Brazilian phone.
-- Request a language: Settings › Sound & voice › "Missing your language?" opens a GitHub issue filled in with the language wanted, whether the person can help check the wording, and their phone's language.
-- Languages (part 3c, the last part): the whole app is now in Dutch, German, French and Spanish. This adds the first-time setup, the Offline maps page, the donate and What's new screens, and the settings search (search in your language or in English). Spoken commands work in each language, such as "naar huis", "nächste Tankstelle", "signaler accident" and "ir a Madrid", with voice search listening in that language. Lorry height and weight warnings are spoken in it too.
-- Languages (part 3b): Settings are now in Dutch, German, French and Spanish too. That covers every page, option, description and button, the Custom theme and Your themes, and fuel, Android Auto, keys, feedback and backup. A setting found with the settings search is still highlighted in any language.
-- Languages (part 3a): the phone's main screens are now in Dutch, German, French and Spanish too. That covers the map and its buttons, map options, search, Home and Work, saved and recent places, route choice, stops, plan-ahead, arrival, nearby lists, place cards, the alert banners, the update and Mapbox key screens, ETA sharing and the app's pop-up messages. Changing the language updates the screen straight away.
-- Languages (part 2): the Android Auto screens are now in Dutch, German, French and Spanish too. That covers the map buttons, trip card, route choice, Places, Search, Report, Other routes, nearby lists and car settings. The alert banners (cameras, limits, incidents, zones and the rest) are translated on the phone and in the car.
-- Languages (part 1): spoken directions, voice alerts and the turn card in Dutch, German, French and Spanish, as well as English. Set in Settings › Sound & voice › Language ("Phone's language" by default). Route instructions and search results come in the same language. The rest of the app follows in the next updates.
-- Postcode search: typing a UK postcode now shows the postcode itself at the top of the results (not just addresses in it), on the phone and Android Auto. A half-typed one ("SO17 1") lists the postcodes it could be, and a district ("SO17") works too.
-- Battery estimate toggle: electric car drivers can hide the battery % on the trip card (phone and Android Auto) in Settings › Fuel › Your electric car.
-- 3D flags: a tall red flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance. On by default; Settings > Your arrow & route line > Route line.
-- Hill shading: soft shading on hillsides, so valleys and ridges show even on a flat map, with its own day and night shades. Off by default; Settings > Light & 3D > 3D.
-- Arrive on your side of the road: routes bring you to the kerb side of where you're going, so you don't have to cross the traffic (Mapbox and offline routes). On by default; Settings > Routes > Choosing a route.
-- Next speed limit ahead: a small sign above the limit shows the next limit on your route and how far it is, from about half a mile away. On by default; Settings > Alerts > Speed.
-- What's here: holding on the map now shows a card first: the road as its own sign (blue motorway, green A road, white B road), a mini speed limit sign, what the land is and the area with their own icons and colour, how far it is from you, and Go (or Add as a stop while driving) and a star to save it. On by default; switch it off in Settings > On the map > Holding on the map to go straight there as before.
-- Junction pictures: Mapbox's pictures of motorway junctions, with the lanes to use, in the last kilometre before one. Off by default (Settings > Turn card & lanes > Lanes and junctions); they only show where Mapbox has them and for accounts it offers them to.
-- Custom theme: a Custom tile in Settings > Map style > Colours. Pick the theme it starts from, then change the ground, water, parks, roads, main roads and buildings, and the route line's colour, separately for day and night, plus the route line's width and the night brightness. The live preview at the top shows the Day or Night colours you're editing. Save it under a name (Your themes) to pick again later, and reset a part, a day or night, or everything. It starts as exactly the theme you had, so nothing changes until you change something.
-- Other routes button: while navigating, a button on the map (under map options) folds out a Routes box, as in Google Maps: your route and each other way with its time, how it compares, arrival time, distance, the road it goes by and the traffic. Tap one in the box or on the map (where they're shown in grey) to switch. On Android Auto it's the first row in Settings, as a list you can pick from with a touch or the knob.
-- Roadworks and road closures round about (GitHub #45): with a TomTom key, roadworks and closures within about 7 km are shown on the map whether or not you're on a route, as Google Maps and Waze show them (before, only those on your route showed).
-- More map colours: Ember (warm and dark), Mono Night (greys, with only the route and warnings in colour), Forest, Arctic, High Contrast, Sepia, Neon, Pastel, and Match my car (a hint of your car's interior lighting colour, with how strong). In Settings > Map style > Colours.
-- Light and weather: a new group in Settings > Light & 3D, with Night brightness, Moonlight at night (moved here) and its Moon strength, Shadows on or off, Sun in its real place (by day, light and shadows from where the sun really is), Overcast light (soft daylight, no hard shadows) and Weather light (greyer light when it's raining). Everything starts as before.
-- Moonlight at night: a switch in Settings > Light & 3D > Light and weather. Like dusk, but from the moon: at night the map gets a low, pale blue light from one side with long soft shadows, in place of Mapbox's flat night light. The night sky, street lamps and your colours stay. Off to start with.
-- Speed camera size: a slider in Settings > On the map > On your route, from 50% to 350%, to make the red speed camera badge on the map smaller or bigger (on the head unit, phone and Android Auto).
-- Twilight map colours: a new choice in Settings > Map style > Colours: the deep purple-blue night, more purple than Horizon (its ground and buildings lavender at night).
-- Charger availability: the charging list shows how many chargers are free right now ("8 of 12 free", red when none are), with each charger's top power and plug types, and the suggested charging stop on a long electric trip says how many are free there. Live counts use your TomTom key, where the charger's operator shares them; others say "No live info".
-- Lorry check: with Lorry chosen, the route choice checks the height, weight, width and length limits along the whole route in the background and says "no limits under your lorry" or which it found (e.g. "1 low bridge (3.9 m)").
-- Lorry parks: a "+ Lorry park" stop on the route options, and Lorry parks in place of Parking on the map page, finding lorry parks and services that take lorries (from OpenStreetMap), with opening hours, spaces and showers where mapped.
-- Speed sign position on Android Auto: bottom, middle or top of the side, separate from the phone's (Settings > Android Auto, or the car's own Settings > More settings).
-- Send a crash report from Settings: the problem report now has a Send report button, which sends it with your unit's details like Feedback does.
-- Tilt settings: Settings > Light & 3D > 3D view sets how far the 3D map tilts, separately for a wide screen, a tall screen and Android Auto (30° to 65°, or Auto as before).
-- Full screen switch: Settings > Screen & sizes > Screen. Off keeps the status and navigation bars showing, so a head unit's own bar (climate, home button) isn't covered by the map.
-- North up on Android Auto: a "Map direction" row in Android Auto's Settings switches between North up and turning with you, remembered for the car (GitHub #39).
-- Fuel prices in Australia: New South Wales and Tasmania prices from the NSW government's FuelCheck, with a free API key and secret from api.nsw.gov.au, in cents a litre.
-- Lorry routes: Settings > Routes > Vehicle can now be set to Lorry, with its height, width, length, weight, axle weight and hazardous goods. Routes from TomTom and offline routes then keep off low bridges, weight limits and lorry bans for that size; Mapbox routes use the height, width and weight. A lorry never gets a car route as a fallback. Each route shows a lorry badge: blue when every measurement was used, amber when only height and weight could be (Mapbox).
-- Low bridge and weight limit warnings: for a lorry on a route, height, weight, width and length limits on the road ahead show as signs on the map, and one the lorry is over gets a red card under the turn card and a spoken warning at about 1 km and again at 300 m. On the phone, head unit and Android Auto.
-- Next turn in the notification: while you navigate, Horizon Nav's notification now shows the turn arrow, distance, road and arrival time, marked as a navigation notification. Car launchers, smartwatches and other screens that show navigation notifications can pick it up. Switch it off in Settings > Guidance > Turn card.
-- Speed position: Settings > Screen & sizes > Speed position moves the speed limit and speedometer to the middle or top of its side (away from the cards), for when your hand covers it at the bottom.
-- Map on the driver's display: on cars whose Android Auto offers it, the screen behind the steering wheel now shows the map following you, with your route (it used to show only the app's icon). Switch it off in Android Auto's Settings > Map on the driver's display.
-- Number-plate cameras on the map: Flock and other automatic number-plate (ALPR) cameras mapped on OpenStreetMap now show as a purple eye badge, within about 10 km of you as you drive. Tap one to see what it is. Shown only, no alerts; switch them off in Settings > Map.
-- Smaller offline downloads: big countries now open up to show their regions in Choose an area (Germany's states, France's regions, England's counties, and regions of Italy, Spain, Poland, the Netherlands, Russia, India, Japan, Indonesia and Brazil), each a much smaller download than the whole country.
-- Near you: Choose an area now starts with the area you're in (your region or state, or all of the country).
-- Clock setting: Settings > Screen & sizes > Units can now set 12 or 24-hour times by hand, as well as following the device.
-- Smaller offline areas: Singapore and Brunei can now be downloaded on their own, instead of together with Malaysia.
-- Report on Android Auto: a Report button (where the Search button was) opens Police, Crash, Hazard, Broken down and Mobile camera; one tap saves the report where you are, as on the phone. Search is still in the search bar on the map, or at the top of Places on cars that don't pass taps on to the map.
-- Zoom remembered: the zoom you set with + and − when you're not on a route is kept for next time, on the phone and on Android Auto separately. Tap Re-centre while the map is following you to go back to automatic zoom.
-- Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map style, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
-- Traffic overview when stopped: after 30 seconds stopped at lights or in a queue, the map pulls back to a top-down view of the traffic round you, and goes back as soon as you move off. On by default; switch it off in Settings > On the map.
-- Where you parked: when Android Auto disconnects, the phone remembers where the car was. A "Your car" card shows how long ago and how far, with a Walk button and a car pin on the map, for 2 days or until you're back in the car.
-- Send places from your phone: pair the phone with the head unit once (Settings > Places & trips), then "Send to car" on the phone's route screen. The head unit offers it the next time it's on (within 12 hours) and starts it after a few seconds. Places go through a free message relay, scrambled with your pairing code.
-- Donate: Horizon Nav is free with no ads, and you can now support it with a donation: Settings > About > Donate, with a QR code to scan on your phone or a button to open PayPal. A one-off card also asks, a day or so after installing (never while you're driving).
-- 2D / 3D on Android Auto: a 2D / 3D button in Android Auto's own buttons, as in the app (while navigating it takes the Demo button's place unless Demo is switched on in Settings).
 
 ### Improved
-- Trip card: the voice, sound and stops buttons are gone from the trip card, leaving just End (and chargers in an electric car). Sound is now a big button at the top right while navigating, and Voice and Stops are in Map options › This trip
-- Removing a report: a report made by mistake can be taken back with Undo on the "saved here" message, and tapping one of your reports on the map (phone or Android Auto) offers Remove or Keep for just that one.
-- Chime volume: on the head unit the speeding, limit-change and camera chimes now play on the same channel as the spoken directions (they were on the music channel at full strength), so the head unit's volume turned during a direction turns them down too. Settings › Sound & voice › Chime volume sets them against the voice, with a sample beep.
-- Driver's display map: the map behind the steering wheel is zoomed further out (and further still at speed), the arrow follows the car's Arrow size, and the car settings have a new "Driver's display zoom" (Closer to Furthest out).
-- Arriving on your side without going round the block: when arriving on the kerb side of your destination would mean an extra loop of turns at the end, the route is checked without it, and the simpler one is used when it's clearly quicker or shorter (e.g. straight on and turn across into the drive).
-- Street lamps where they really are: the lamps on the map now come from OpenStreetMap online too (not only from an offline pack), so real lamp positions show wherever people have mapped them. Guessed lamps fill in only the gaps, and roads OpenStreetMap marks as unlit stay dark. In cities with every lamp mapped, guessed ones only go on roads marked lit. Fetched once per area, kept for a month, never in offline mode.
-- Send to car sends the whole trip: from the route options it now sends your stops and the road you picked too, not just the destination. The car's card says how many stops are coming.
-- Headlights mode follows only the lights: with Day and night set to Headlights, the map goes dark in tunnels and back to day straight after, without the sunset and sunrise tint. Settings shows whether your head unit has been seen switching with the lights, and what the lights signal says right now. The Android Auto screen works the same way when it follows the car.
-- Custom theme live preview: every change shows on the preview at the top as you make it, even while a slider is still moving. Nothing is kept until you press Save. Leave without saving (or press Undo changes) and the map goes back to how it was. Giving it a name also keeps it under Your themes.
-- Traffic from both services: on a Mapbox route with a TomTom key, TomTom also times the same road at every traffic refresh. Each stretch of the route line shows whichever service says it's worse, and the time left and arrival time use the longer of the two, so a jam either one knows about is counted.
-- Time left in queues: traffic is refreshed every 2 minutes instead of 3 while you're crawling along, so the arrival time catches up with a jam sooner.
-- Simpler routes: when planning, a route with clearly fewer turns is chosen over one that's only up to about a minute and a half quicker, so it keeps to the main roads instead of cutting through back streets. The quicker one is still offered to pick.
-- Android Auto split screen: in the narrow part of the screen the app's cards and buttons now shrink further by themselves, so they fit beside the map. The Overall size setting (Settings > Android Auto, or the car's own Settings) still sets them bigger or smaller, 40% to 300%.
-- Android Auto: Route overview and Other routes buttons on the trip card (beside sound and end), and Route overview in the car's Settings too.
-- Android Auto arrow size now goes down to 30% (was 60%), for small car screens where even 60% looked big.
-- Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
-- Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
-- Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
-- Other routes: picking a route (or closing the Routes box) goes straight back to following you on the map.
-- Behind the scenes: the light and weather settings only ever change the map from the right place in the app (a change from the car screen could have come from elsewhere and upset the map), and stop cleanly when the map closes; the driver's display, like the main car screen, now stays open when Android resizes it; the Routes box shows "Looking" while a check already under way finishes, rather than "No other routes".
-- Horizon colours: now a cool moonlight blue at night (ground, buildings and the whole map's tint), so it's clearly different from Twilight's purple.
-- Android Auto with a rotary knob or buttons: a Places button is now on every car's top row. It opens a list the knob can move through, with Search first, then the fuel, food and parking shortcuts and saved places (the search bar and chips drawn on the map can't be reached by a knob).
-- Android Auto Settings while navigating: the Settings button now stays while you navigate (Stop, Sound, Report, Settings). 2D / 3D has moved to the first row of the car's Settings.
-- Horizon colours: the night map is now a dark slate blue with just a touch of purple (less obviously purple than before), with the buildings a lighter slate blue. Same brightness as before. The old purple look is now called Twilight.
-- Horizon theme at night: buildings now stand out lighter than the ground instead of being the same shade, on the phone, head unit and Android Auto. Day keeps its own colours.
-- Parking at your destination: the car parks offered near the end of a trip now show their price, opening hours and spaces where OpenStreetMap has them.
-- Your car on the phone: the phone now remembers where you parked at the end of any drive (not only after Android Auto), and the "Your car" card offers Walk back once you've walked away from it.
-- "Hey Google, navigate to …" on Android Auto: a place asked for by name or address now starts its route to the top result by itself (the route choice shows where to, with Cancel), instead of leaving a list to tap while driving.
-- Android Auto settings: on cars that only allow a few rows in a list, the rest now go on a "More settings" page (the last ones used to be cut off). The most used come first: voice, map direction, day and night, route options. "Locator arrow scale" is now "Arrow size" and only changes the car screen's arrow (it used to change the phone's arrow too), and "Map UI scale" is "Overall size", matching the app's Settings > Android Auto.
-- Settings tidied: speed camera icons (On the map) and speed camera warnings (Alerts) now say which is which, and the speed sign size says it's for this screen only (Android Auto has its own).
-- Smoother lanes: while the junction's road is still being looked for, the lanes are only redrawn once it's found, instead of every second.
-- Problem report: crash reports now say which version and when, and one left over from before an update says so (it may already be fixed), so an old report isn't mistaken for a new problem.
-- Lane guidance on the map: all the lanes are drawn on the road again, with the lane to use lit up and its arrows and the other lanes in a darker road colour with clear white lines (so they no longer fade into the map), as the view zooms in before the junction. They're laid out on the road itself (centred on a motorway or one-way road; on a two-way road all on your side of the middle), at a slimmer width, so they no longer spill over the verge; only where the map has no road there is just your lane drawn, under the route line. The route line moves into the lit lane as you come up to the junction, so the two always line up (it keeps looking for the junction's road as you get closer, and moves over even where the lane list only starts at the junction itself, so it no longer happens only some of the time). Settings > Turn card & lanes > Lanes shown as also offers a close-up picture of the junction's lanes under the turn card, or the sign over the road from the last few versions.
-- Settings easier to scan: long lists are split under more headings (3D, Sky and satellite; Speed, Cameras, Hazards, Zones and reminders; Directions, Voice and volume; Brightness, Sizes, Speed display; and on Android Auto, Sizes on the car screen and Setting it up). Nothing has moved section, and the settings search finds everything, now including "Show petrol stations too".
-- Electric cars: with Electric chosen as your fuel, the map page shows Charging first and Toilets instead of the petrol Fuel button (on the phone and Android Auto). Settings > Fuel > Show petrol stations too brings it back.
-- Android Auto settings: the 12 / 24-hour clock can be set from the car too.
-- Search while navigating on Android Auto: the Report screen now has a Search tile, for finding a stop on the way.
-- Cooler, longer-lasting phone: when the phone gets warm or battery saver is on, the map draws fewer frames a second (30, or 20 when hot), whatever frame rate is chosen. The feedback report now says how warm the phone was.
-- Zoom out further: − now goes two steps further out than before, for an overview of the traffic around you, and that zoom is remembered too.
-- North up remembered: if you leave the map north up, it opens that way next time, on the phone and on Android Auto separately.
-- Better routes with TomTom and Mapbox together: with a TomTom key and a Mapbox token (and routes left on Auto), a new route is now asked of both at once. The quicker one comes first, and a different road from the other is offered as another choice.
-- Clock times follow your device: arrival and leave-by times now use the phone's or head unit's own 12 or 24-hour setting (for example 4:52 pm instead of 16:52).
-- Fold away everything on Android Auto: the arrow in the search bar now folds away Home and Work and the fuel, charging, food, coffee and parking buttons as well as Saved & recent.
-- Your side of divided roads: on dual carriageways and other divided roads, your arrow now sits on the side you're driving on, not whichever side the GPS happened to be nearer.
-- The arrow in the search bar that folds Saved & recent away is back, and Android Auto has it too.
-- Android Auto map page matches the app: Home and Work tiles with the drive time, five round buttons for fuel, charging, food, coffee and parking, and Saved & recent with your first few places (as many as fit) and "All" for the rest, in place of the long scrolling row of chips. Your arrow also sits in the middle of the clear map there when you're not navigating.
-- Android Auto speed sign: it sits right up against the edge of the screen when Android Auto's buttons hide, and just beside them when they show.
-- Arrow centred in the clear map: when you're not navigating, your arrow sits in the middle of the map between the search panel and the buttons, instead of dead centre behind them.
 - Settings reorganised: 15 smaller sections in four groups (Map, Driving, You, Device), each split into short headed lists, with Android Auto in a section of its own. Search still finds every setting.
 - What's new card redesigned: each change on its own card with an icon, a headline and a short description, sorted under New, Improved and Fixed.
-- What's new in landscape: the card now spreads across the screen, with the title and Let's go button on the left and the changes in two columns on the right.
-- Tidier map page: Home and Work are two tiles showing the drive time, and fuel, charging, food, coffee and parking are five round buttons that always fit. Saved & recent shows three places with "All" for the rest, and your own saved places are in it too.
-- Fewer buttons on the map: just the compass and map options stay up while you drive. Zoom appears when you touch the map or stop, voice and sound are on the trip card, 3D / 2D and sound are quick switches at the top of map options, and Settings is beside the buttons when you're not navigating (and in map options at any time).
-- Car types for the real 3D model: the hatchback, estate, SUV, pickup, van and sports car now have their own 3D models too, not just the saloon, and the car type picker shows for the real 3D car.
-- Map options redesigned: Standard or Satellite as two picture cards, a quick Auto / Day / Night switch, and the map layers as tiles that light up when on. Reports fit on one row, and in landscape the panel is wider, in two columns, so nothing needs scrolling.
 
+## 1.0.311 — 29 Oct 2026
 
-## 1.0.246 — 2026-10-28
+### Changes
+- The What's new card after an update now shows the changes straight away, even with no connection: the notes are built into the app instead of fetched from GitHub, which often refused.
+
+## 1.0.308 — 29 Oct 2026
+
+### Changes
+- Traffic on the roads around you now stays on the map while you navigate (it used to vanish as soon as a route started). Settings > Map can still limit it to your route.
+- Adding a TomTom key no longer switches the map to TomTom's flat map, which made the 3D buildings and models disappear. Maps that were switched that way go back to the 3D Mapbox map once (TomTom's map can still be picked in Settings).
+- Satellite view now works with the downloaded map chosen, and stays visible at night instead of going almost black.
+- When the map can't load for want of a working Mapbox key (missing, pasted with hidden characters, or turned down by Mapbox), a box now says so and lets you paste a new one, instead of a blank map with stars. Stray spaces and invisible characters are now taken out of pasted keys.
+- Big 3D buildings beside the road no longer vanish as you drive past them (the clear-view area round your arrow is tighter).
+- Offline maps > Around home is no longer squashed to one side.
+- Spoken directions: a new Voice channel setting (Settings > Sound) for head units where the beeps sound but the voice doesn't; a clear message when there's no text-to-speech voice or language installed; and alerts no longer cut a direction off half way.
+- Outside the UK and Ireland, motorway exits are now called "exit 12" rather than "junction 12".
+- If the app fails to start several times in a row (for example when the graphics driver crashes), it starts with the heaviest 3D features turned down and says so.
+- Android Auto: fixed a black car screen when Android Auto starts the app before it has been opened on the phone (after an update, for example); the turn card uses the compact lane strip so it no longer grows huge at junctions; Settings explains how to get the app into Android Auto, and the update card warns AAEnabler users that updating removes it from Android Auto.
+
+## 1.0.305 — 29 Oct 2026
+
+### Changes
+- Left-hand drive: the speedometer moves back to the bottom left (the cards are on the right), so the turn card no longer covers it; the speed limit sign stays on the screen side of it. The exit banner no longer repeats what the road sign on the turn card already says.
+
+## 1.0.303 — 29 Oct 2026
+
+### Changes
+- Android Auto: the speedometer sits down in the bottom-right corner again, level with the trip card, instead of floating halfway up the screen.
+- Android Auto, tidier screen: hazards ahead now sit along the bottom of the turn card, the sound button has moved onto the trip card, the "Use the right lane" line is gone where the lane arrows already show it, the trip card has a slimmer progress bar and bigger labels, and while the next turn is far away the turn card shrinks to one line.
+- Android Auto: the car arrow and route line are a little bigger, so they stand out from the buildings.
+
+## 1.0.301 — 29 Oct 2026
+
+### Changes
+- Android Auto with left-hand drive: your arrow no longer hides under the turn and trip cards, and the speed limit sign no longer runs off the right-hand edge of the screen.
+
+## 1.0.299 — 29 Oct 2026
+
+### Changes
+- Fix lane guidance pushing the route line and lane strips off the road at ordinary junctions. Lanes are now lined up with the road only on motorway and trunk carriageways; elsewhere the lane to be in is drawn under the route line, and lane strips are only painted on the last stretch before the junction.
+- Add alternative-route line colour customisation, with a pale blue-grey default for better contrast against grey roads.
+- Fix the map zooming in and out far too slowly while driving (it could take 10 seconds or more to close in for a turn), and the map starting zoomed out twice as far as intended.
+- Fix roundabout arrows pointing the wrong way: they now show the direction the real exit goes, rather than guessing from the exit number.
+- The "Look for updates by itself" switch works again, and automatic update and map-data checks run at most every half hour instead of every time the app opens or the connection comes back.
+- Changing the alternative-route colour now applies straight away.
+- The car screen's "Navigation arrow size" now sizes the arrow on the map (as on the phone) instead of the turn card.
+- Stop the speedometer covering the trip card on left-hand-drive layouts, and stop the exit banner repeating what the road sign on the turn card already says.
+- Smoother map drawing: the map is no longer capped at 30 frames a second on top of the camera's own pacing, which made it judder.
+- No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
+
+## 1.0.292 — 28 Oct 2026
+
+### Changes
+- Move the road-and-heading pill to the top of the map while driving without a route, preventing it from overlapping the road-name pill beneath the locator.
+- Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
+
+## 1.0.290 — 28 Oct 2026
+
+### Changes
+- Improve Android package-installer access to downloaded update APKs by explicitly granting the content URI through ClipData as well as intent flags.
+
+## 1.0.286 — 28 Oct 2026
+
+### Changes
+- Fetch the installed release notes directly by tag as a fallback if GitHub's releases-list API fails, while retaining notes for skipped releases on multi-version upgrades.
+- Automatically fit the Android Auto speedometer and speed-limit sign to the available display area to prevent edge clipping, including split-screen layouts.
+- Add a dedicated Android Auto speedometer/speed-limit sign size slider.
+
+## 1.0.284 — 28 Oct 2026
+
+### Changes
+- Automatically fit the Android Auto speedometer and speed-limit sign to the available display area to prevent edge clipping, including split-screen layouts.
+- Add a dedicated Android Auto speedometer/speed-limit sign size slider.
+
+## 1.0.282 — 28 Oct 2026
+
+### Changes
+- Automatically fit the Android Auto speedometer and speed-limit sign to the available display area to prevent edge clipping, including split-screen layouts.
+- Add a dedicated Android Auto speedometer/speed-limit sign size slider.
+
+## 1.0.280 — 28 Oct 2026
+
+### Changes
+- Show all published release notes newer than the installed version, including releases skipped during an update.
+
+_Add only changes made since the previous published release. This section is cleared automatically after a successful publish._
+
+## 1.0.278 — 28 Oct 2026
+
+### Added
+- Added settings to enable or disable automatic route starting and configure its countdown from 3 to 30 seconds.
+
+### Improved
+- Increased the Android Auto locator arrow lateral clearance from overlay cards and widened the collision band so it adapts more reliably to full-screen and split-screen map layouts.
+
+### Improved
+- Expanded Android Auto map UI scaling range from 60–160% to 40–300%.
+- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
+
+### Improved
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.276 — 28 Oct 2026
+
+### Improved
+- Increased the Android Auto locator arrow lateral clearance from overlay cards and widened the collision band so it adapts more reliably to full-screen and split-screen map layouts.
+
+### Improved
+- Expanded Android Auto map UI scaling range from 60–160% to 40–300%.
+- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
+
+### Improved
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.274 — 28 Oct 2026
+
+### Improved
+- Expanded Android Auto map UI scaling range from 60–160% to 40–300%.
+- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
+
+### Improved
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.272 — 28 Oct 2026
+
+### Improved
+- Added Android Auto map settings controls for adjusting overlay UI scale and locator arrow scale. The Android Auto template interface uses tap-to-cycle scale levels rather than a continuous slider.
+
+### Improved
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.270 — 28 Oct 2026
+
+### Improved
+- Increased the Android Auto locator arrow scale to almost twice its previous size.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.268 — 28 Oct 2026
+
+### Improved
+- Increased the map locator arrow size by approximately 22% to make it easier to see.
+- Fixed the What's New card to use the app's resolved day/night theme rather than a default dark palette.
+
+## 1.0.266 — 28 Oct 2026
+
+### Improved What's New appearance
+- Added a light/day-mode colour scheme for the What's New card, using the app's active theme so text and release notes remain readable in both day and night modes.
+
+### Fixed initial map zoom
+- Apply the initial two-step zoom-out after the lane zoom floor, so the first-open overview adjustment is not overridden while stationary.
+- Keep the existing automatic zoom behaviour once movement is detected.
+
+## 1.0.264 — 28 Oct 2026
+
+### Fixed initial map zoom
+- Apply the initial two-step zoom-out after the lane zoom floor, so the first-open overview adjustment is not overridden while stationary.
+- Keep the existing automatic zoom behaviour once movement is detected.
+
+## 1.0.262 — 28 Oct 2026
+
+### Improved initial map zoom
+- Start with the map approximately two zoom-out button presses farther out when the app is first opened.
+- Once movement is detected, automatically return to the existing speed-based zoom behaviour.
+
+### Improved Android Auto display scaling
+- Adjusted turn-guidance arrow scaling so it is not unintentionally multiplied by the navigation card scale.
+- Made the interface scale respond to the available display's short edge and aspect ratio.
+- Made map rendering scale adapt to the Android Auto viewport to help reduce excessive zoom on some displays.
+
+## 1.0.260 — 28 Oct 2026
+
+### Improved Android Auto display scaling
+- Adjusted turn-guidance arrow scaling so it is not unintentionally multiplied by the navigation card scale.
+- Made the interface scale respond to the available display's short edge and aspect ratio.
+- Made map rendering scale adapt to the Android Auto viewport to help reduce excessive zoom on some displays.
+
+## 1.0.258 — 28 Oct 2026
+
+<!-- Add entries here before the next publish, for example:
+
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.256 — 28 Oct 2026
+
+<!-- Add entries here before the next publish, for example:
+
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.254 — 28 Oct 2026
+
+<!-- Add entries here before the next publish, for example:
+
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.252 — 28 Oct 2026
+
+<!-- Add entries here before the next publish, for example:
+
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.250 — 28 Oct 2026
+
+<!-- Add entries here before the next publish, for example:
+
+### Added
+- Describe a new app feature.
+
+### Improved
+- Describe an improvement to existing app behaviour.
+
+### Fixed
+- Describe a bug fix.
+-->
+
+## 1.0.246 — 28 Oct 2026
 
 ### Improved in-app updates
 - Show the installed and available app versions in the update prompt.
@@ -292,6 +993,32 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Only open the APK in a browser when the device has no download service, avoiding a browser fallback that could bypass checksum verification after other download failures.
 - Keep update detection working if `version.json` is missing or malformed by falling back to the version number in the release title or notes.
 
-## Historical versions
+## 1.0.244 — 28 Oct 2026
 
-Earlier builds were published by replacing assets on the single `app` release. Their original release notes and assets may not be recoverable from GitHub Releases. The new versioned-release history starts with the first successful publish using this workflow.
+### Changes
+- Preserve a separate, versioned GitHub Release for every published build, with generated release notes.
+- Continue updating the fixed `app` release assets so existing in-app update checks remain compatible.
+- Validate the APK, checksum, and version metadata during the publish workflow.
+
+## 1.0.239 — 27 Oct 2026
+
+## What's changed in Horizon Nav 1.0.239
+
+### Changes
+- Sync Horizon Nav source from uploaded ZIP [skip ci] (b85964e)
+- Add files via upload (d234816)
+
+## 1.0.237 — 27 Oct 2026
+
+## What's changed in Horizon Nav 1.0.237
+
+### Changes
+- Sync Horizon Nav source from uploaded ZIP [skip ci] (68d1bf8)
+- Add files via upload (94c3908)
+- Add files via upload (bbf9a65)
+
+## Earlier versions
+
+Builds before 1.0.234 replaced the single download each time, so their notes weren't kept.
+
+<!-- For whoever prepares a build: add each change under "## Unreleased" (### New, ### Improved or ### Fixed), written as "Headline: what it does"; the app's What's new card shows the headline in bold. Only app changes, not build or GitHub maintenance. After a version is published, move its entries into a "## 1.0.N — date" section below. -->

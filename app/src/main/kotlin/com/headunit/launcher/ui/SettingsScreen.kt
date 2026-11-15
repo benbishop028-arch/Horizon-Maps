@@ -219,10 +219,13 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
           CompositionLocalProvider(LocalSettingHighlight provides highlight) {
            // the map pages show the real map at the top, so every change can be seen as it's made
            val withPreview = cat in 0..3
+           // (in portrait too the preview now stays at the top while the settings scroll under it, as in landscape, so a change
+           // can be seen as it's made, GitHub #124. Only a really short screen still scrolls it away, to leave room for the settings)
+           val pinPreview = !narrowS || androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= 600
            Column(Modifier.fillMaxSize()) {
-            if (withPreview && !narrowS) SettingsMapPreview(engine, 210)
+            if (withPreview && pinPreview) SettingsMapPreview(engine, if (narrowS) 170 else 210)
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 4.dp)) {
-                if (withPreview && narrowS) SettingsMapPreview(engine, 170)
+                if (withPreview && !pinPreview) SettingsMapPreview(engine, 170)
                 if (narrowS) Row(Modifier.padding(bottom = 6.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.ArrowBack, L.t("All settings"), tint = c.text, modifier = Modifier.size(22.dp))
