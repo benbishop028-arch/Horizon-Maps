@@ -84,7 +84,12 @@ final class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         zoomIn.image = UIImage(systemName: "plus.magnifyingglass")
         let zoomOut = CPMapButton { [weak self] _ in self?.mapViewController?.zoom(by: 2) }
         zoomOut.image = UIImage(systemName: "minus.magnifyingglass")
-        mapTemplate.mapButtons = [recenter, zoomIn, zoomOut]
+        let mute = CPMapButton { [weak self] _ in
+            VoiceGuidance.shared.toggleMute()
+            self?.updateBarButtons()
+        }
+        mute.image = UIImage(systemName: VoiceGuidance.shared.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+        mapTemplate.mapButtons = [recenter, zoomIn, zoomOut, mute]
     }
 
     private func showSearch() {

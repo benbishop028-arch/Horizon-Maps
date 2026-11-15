@@ -40,6 +40,7 @@ final class NavigationStore: NSObject, ObservableObject {
     var routing: RoutingProvider
 
     private var engine: RouteGuidance?
+    private var voicePlanner = VoicePromptPlanner()
     private let log = Logger(subsystem: "com.horizonnav.ios", category: "guidance")
 
     static let fallbackCoordinate = CLLocationCoordinate2D(latitude: 51.5072, longitude: -0.1276)
@@ -106,6 +107,7 @@ final class NavigationStore: NSObject, ObservableObject {
     func startGuidance() {
         guard let route = selectedRoute, phase == .previewing || phase == .arrived else { return }
         engine = RouteGuidance(route: route)
+        voicePlanner.reset()
         phase = .guiding
         locationManager.allowsBackgroundLocationUpdates = true
         if let location = locationManager.location { process(location) } else { guidance = engine?.update(with: CLLocation(latitude: route.coordinates[0].latitude, longitude: route.coordinates[0].longitude)) }
@@ -139,7 +141,26 @@ final class NavigationStore: NSObject, ObservableObject {
         phase = .idle
     }
 
+    /// Speaks the call-outs due for the next manoeuvre.
+    private func announce(_ update: GuidanceUpdate, speed: Double) {
+        guard let route = selectedRoute,
+              let index = update.upcomingStepIndex, route.steps.indices.contains(index) else { return }
+        let step = route.steps[index]
+        let fast = Self.isFastRoad(step: step, route: route, progress: update.progress)
+        let lanes = route.laneSection(forStep: index, progress: update.progress, fastRoad: fast)
+        for prompt in voicePlanner.prompts(stepIndex: index, step: step, distance: update.distanceToManeuver, speed: speed,
+                                           lanes: lanes, fastRoad: fast, imperial: AppLocale.usesImperialDistances) {
+            VoiceGuidance.shared.speak(prompt)
+        }
+    }
+
+    /// Motorways and dual carriageways, where lanes are called much earlier: a numbered exit, or a limit of 80 km/h or more.
+    nonisolated static func isFastRoad(step: RouteStep, route: RouteOption, progress: CLLocationDistance) -> Bool {
+        !step.exitNumber.isEmpty || (route.speedLimit(at: progress) ?? 0) >= 80 / 3.6
+    }
+
     private func stopGuidance(notify: Bool) {
+        VoiceGuidance.shared.stop()
         engine = nil
         guidance = nil
         locationManager.allowsBackgroundLocationUpdates = false
@@ -155,6 +176,7 @@ final class NavigationStore: NSObject, ObservableObject {
         guard phase == .guiding, let engine else { return }
         let update = engine.update(with: location)
         guidance = update
+        announce(update, speed: max(location.speed, 0))
         switch update.status {
         case .arrived:
             phase = .arrived
@@ -183,6 +205,7 @@ final class NavigationStore: NSObject, ObservableObject {
             selectedRouteIndex = 0
             saveTrip([route])
             engine = RouteGuidance(route: route)
+            voicePlanner.reset()
             phase = .guiding
             guidance = engine?.update(with: location)
             log.info("Reroute finished, \(route.steps.count, privacy: .public) manoeuvres")

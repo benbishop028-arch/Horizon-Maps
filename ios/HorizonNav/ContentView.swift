@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var showsOfflineMaps = false
     @ObservedObject private var network = NetworkMonitor.shared
     @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
+    @AppStorage(AppSettings.Keys.soundMode) private var soundMode = 0
 
     var body: some View {
         NavigationStack {
@@ -21,9 +22,12 @@ struct ContentView: View {
                     appleMap
                 }
 
-                locationButton
-                    .padding(.trailing)
-                    .padding(.top, 8)
+                VStack(spacing: 10) {
+                    locationButton
+                    muteButton
+                }
+                .padding(.trailing)
+                .padding(.top, 8)
             }
             .safeAreaInset(edge: .top) { maneuverBanner }
             .safeAreaInset(edge: .bottom) { searchPanel }
@@ -97,6 +101,20 @@ struct ContentView: View {
         .buttonStyle(.plain)
         .horizonGlassControl(in: .circle)
         .accessibilityLabel("Show my location")
+    }
+
+    /// Mutes or unmutes spoken guidance (Settings has the alerts-only choice too).
+    private var muteButton: some View {
+        Button {
+            VoiceGuidance.shared.toggleMute()
+        } label: {
+            Image(systemName: soundMode == 2 ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                .font(.title3)
+                .frame(width: 48, height: 48)
+        }
+        .buttonStyle(.plain)
+        .horizonGlassControl(in: .circle)
+        .accessibilityLabel(soundMode == 2 ? "Unmute voice guidance" : "Mute voice guidance")
     }
 
     private var searchPanel: some View {

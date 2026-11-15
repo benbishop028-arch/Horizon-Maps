@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.Keys.routingProvider) private var routingProvider = "auto"
     @AppStorage(AppSettings.Keys.searchProvider) private var searchProvider = "auto"
     @AppStorage(AppSettings.Keys.mapSource) private var mapSource = "apple"
+    @AppStorage(AppSettings.Keys.soundMode) private var soundMode = 0
 
     var body: some View {
         NavigationStack {
@@ -28,6 +29,17 @@ struct SettingsView: View {
                     Text("Routes and search")
                 } footer: {
                     Text("With both keys on Automatic, new routes are asked of TomTom and Mapbox and the quicker one is offered first. Without a key, Apple Maps plans routes and searches.")
+                }
+                Section {
+                    Picker("Voice", selection: $soundMode) {
+                        Text("All directions and alerts").tag(0)
+                        Text("Alerts only").tag(1)
+                        Text("Off").tag(2)
+                    }
+                } header: {
+                    Text("Sound")
+                } footer: {
+                    Text("Directions are spoken before each turn in the app's language. Music is turned down while a direction plays, and podcasts pause, on the phone and in CarPlay.")
                 }
                 Section {
                     Picker("Map", selection: $mapSource) {
