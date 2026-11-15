@@ -16,6 +16,11 @@ on:
 permissions:
   contents: write
 
+# one build at a time: uploading the ZIP and pressing Run workflow at once would otherwise race to save the source
+concurrency:
+  group: build-horizon-nav
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -77,9 +82,12 @@ jobs:
             git commit -m "Sync Horizon Nav source from uploaded ZIP [skip ci]"
 
             # Incorporate newer remote commits before pushing; never force-push.
-            git fetch origin main
-            git rebase origin/main
-            git push origin HEAD:main
+            # (tried up to 3 times, in case something else saved to main in the same moment)
+            for i in 1 2 3; do
+              git fetch origin main && git rebase origin/main && git push origin HEAD:main && break
+              [ "$i" = 3 ] && { echo "ERROR: could not save the source after 3 tries"; exit 1; }
+              sleep 10
+            done
             echo "Source files committed to the repository."
           else
             echo "Source files already match the uploaded ZIP."
@@ -179,29 +187,97 @@ jobs:
         working-directory: ${{ env.PROJECT_DIR }}
         env:
           MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+          # (the old key's passwords, so they don't have to be written in the app's build file)
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
         run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
+
+      # Key rotation: once the new key is in Secrets (made by "Make the new signing key"), the APK is signed again with both
+      # keys and the rotation record. Android 9 and newer then accept it as an update and move the app to the new key; Android 8
+      # still sees the old key, so it keeps updating too. Until the new key exists this step does nothing.
+      # Later, setting the repository variable RETIRE_OLD_KEY to true (Settings > Secrets and variables > Actions > Variables)
+      # stops phones that already have the new key from accepting anything signed only with the old one.
+      - name: Sign with the new key (key rotation)
+        env:
+          NEW_KS_B64: ${{ secrets.NEW_SIGNING_KEYSTORE_BASE64 }}
+          NEW_PW: ${{ secrets.NEW_SIGNING_PASSWORD }}
+          NEW_ALIAS: ${{ secrets.NEW_SIGNING_KEY_ALIAS }}
+          LINEAGE_B64: ${{ secrets.SIGNING_LINEAGE_BASE64 }}
+          OLD_PW: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          OLD_KPW: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          OLD_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          RETIRE_OLD_KEY: ${{ vars.RETIRE_OLD_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [ -z "$NEW_KS_B64" ]; then
+            echo "No new key in Secrets yet: the APK stays signed with the existing key only."
+            exit 0
+          fi
+          [ -n "$NEW_PW" ] && [ -n "$NEW_ALIAS" ] && [ -n "$LINEAGE_B64" ] || { echo "ERROR: the new key's secrets are incomplete."; exit 1; }
+          APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
+          W="$RUNNER_TEMP/rotation"; mkdir -p "$W"
+          printf '%s' "$NEW_KS_B64" | base64 --decode > "$W/new.ks"
+          printf '%s' "$LINEAGE_B64" | base64 --decode > "$W/lineage.bin"
+          export OLD_PW OLD_KPW NEW_PW
+          if [ "$RETIRE_OLD_KEY" = "true" ]; then
+            "$APKSIGNER" lineage --in "$W/lineage.bin" --out "$W/lineage-retired.bin" \
+              --signer --ks "$RUNNER_TEMP/signing.keystore" --ks-key-alias "$OLD_ALIAS" --ks-pass env:OLD_PW --key-pass env:OLD_KPW \
+              --set-installed-data false
+            mv "$W/lineage-retired.bin" "$W/lineage.bin"
+            echo "The old key is retired in this build."
+          fi
+          # (the old key signs for Android 8; the new key, with the rotation record, for Android 9 and newer)
+          "$APKSIGNER" sign --v1-signing-enabled false --v2-signing-enabled true --v3-signing-enabled true \
+            --ks "$RUNNER_TEMP/signing.keystore" --ks-key-alias "$OLD_ALIAS" --ks-pass env:OLD_PW --key-pass env:OLD_KPW \
+            --next-signer --ks "$W/new.ks" --ks-key-alias "$NEW_ALIAS" --ks-pass env:NEW_PW --key-pass env:NEW_PW \
+            --lineage "$W/lineage.bin" --rotation-min-sdk-version 28 \
+            --out "$W/signed.apk" "$APK"
+          mv "$W/signed.apk" "$APK"
+          cp "$W/new.ks" "$RUNNER_TEMP/new-signing.keystore"
+          rm -rf "$W"
+          echo "Signed with the new key and the rotation record."
 
       - name: Verify APK signing certificate matches keystore
         env:
           STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          NEW_PW: ${{ secrets.NEW_SIGNING_PASSWORD }}
+          NEW_ALIAS: ${{ secrets.NEW_SIGNING_KEY_ALIAS }}
         run: |
           set -euo pipefail
           APK="${{ env.PROJECT_DIR }}/app/build/outputs/apk/release/HorizonNav-public.apk"
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n1)"
           [ -f "$APK" ] || { echo "ERROR: APK not found"; exit 1; }
           [ -n "$APKSIGNER" ] && [ -f "$APKSIGNER" ] || { echo "ERROR: apksigner not found"; exit 1; }
+          fp() { sed -n 's/.*SHA-256 digest: //p' | tr -d ': ' | tr '[:upper:]' '[:lower:]'; }
+          ksfp() { keytool -list -v -keystore "$1" -storepass "$2" -alias "$3" | sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]'; }
 
-          KEY_FP="$(keytool -list -v -keystore "$RUNNER_TEMP/signing.keystore" \
-            -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" |
-            sed -n 's/^[[:space:]]*SHA256: //p' | head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          APK_FP="$("$APKSIGNER" verify --print-certs "$APK" |
-            sed -n 's/.*certificate SHA-256 digest: //p' | head -n1 | tr -d ': ' | tr '[:upper:]' '[:lower:]')"
-          [ -n "$KEY_FP" ] && [ -n "$APK_FP" ] || { echo "ERROR: Could not read both certificate fingerprints."; exit 1; }
-          echo "Keystore fingerprint: $KEY_FP"
-          echo "APK fingerprint:      $APK_FP"
-          [ "$KEY_FP" = "$APK_FP" ] || { echo "FAIL: The APK and keystore certificates do not match."; exit 1; }
-          echo "PASS: The APK uses the expected signing certificate."
+          "$APKSIGNER" verify "$APK" || { echo "FAIL: Android would not accept this APK's signature."; exit 1; }
+          OLD_FP="$(ksfp "$RUNNER_TEMP/signing.keystore" "$STORE_PASSWORD" "$KEY_ALIAS")"
+          # what Android 8 checks (the v2 signature): must still be the old key, or those head units couldn't update
+          FP8="$("$APKSIGNER" verify --print-certs --min-sdk-version 26 --max-sdk-version 27 "$APK" | fp | head -n1)"
+          echo "Old key fingerprint:            $OLD_FP"
+          echo "Android 8 sees:                 $FP8"
+          [ -n "$OLD_FP" ] && [ "$OLD_FP" = "$FP8" ] || { echo "FAIL: Android 8 would not see the old key."; exit 1; }
+
+          if [ -f "$RUNNER_TEMP/new-signing.keystore" ]; then
+            NEW_FP="$(ksfp "$RUNNER_TEMP/new-signing.keystore" "$NEW_PW" "$NEW_ALIAS")"
+            echo "New key fingerprint:            $NEW_FP"
+            # the rotation record inside the APK: the old key first, then the new one
+            LINEAGE="$("$APKSIGNER" lineage --in "$APK" --print-certs | fp)"
+            echo "Rotation record in the APK:"; echo "$LINEAGE"
+            [ "$(echo "$LINEAGE" | head -n1)" = "$OLD_FP" ] && [ "$(echo "$LINEAGE" | tail -n1)" = "$NEW_FP" ] || {
+              echo "FAIL: the APK's rotation record isn't old key then new key."; exit 1; }
+            # and what Android 9 and newer check
+            "$APKSIGNER" verify --print-certs --min-sdk-version 28 "$APK" | grep -i 'SHA-256' || true
+            rm -f "$RUNNER_TEMP/new-signing.keystore"
+            echo "PASS: Android 8 sees the old key; Android 9 and newer move to the new key."
+          else
+            echo "PASS: The APK uses the existing signing key (no new key in Secrets yet)."
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
