@@ -102,7 +102,11 @@ object RouteExtras {
             "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;" +
             "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;" +
             "rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;"
-        val els = Overpass.query(q, 12000, 40000, 3)
+        // (the big search can fail on a busy server: then the average speed checks are asked for on their own, a much lighter
+        // request, so a check isn't missed just because the bumps and schools couldn't be fetched)
+        val els = try { Overpass.query(q, 12000, 40000, 3) } catch (e: Exception) {
+            Overpass.query("[out:json][timeout:20];rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;", 10000, 25000, 3)
+        }
         val pois = ArrayList<RoutePoi>()
         // (crossings come from their own set, so they never crowd out the bumps and schools)
         val nodes = HashMap<Long, LL>()

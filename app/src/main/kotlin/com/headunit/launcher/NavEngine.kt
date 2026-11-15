@@ -2637,10 +2637,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val rc = routeCams
         if (navigatingNow() && onRouteNow && rc.isNotEmpty()) {
             // on a route: the cameras along it, by distance along the road (works round bends, where "straight ahead" doesn't)
+            // the cameras that start or end an average speed check (or stand along one) are announced as the check, not as a plain
+            // camera: both used the same banner, so "Speed camera" came up first and hid "Average speed check" (GitHub #107)
+            val zones = if (prefs.b(PreferenceKeys.AVGZONES, true)) placed?.takeIf { it.route === route }?.avg.orEmpty() else emptyList()
             for ((c, off) in rc) {
                 val ahead = off - curProg
                 if (ahead < -15.0 || ahead > warnAt || ahead >= bestD) continue
                 if (!camFacesUs(c, p.heading)) continue
+                if (zones.any { off >= it.start - 150.0 && off <= it.end + 150.0 }) continue
                 best = c; bestD = max(0.0, ahead)
             }
         } else if (p.speed > 3.0) {
@@ -5668,7 +5672,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (avgIn != null) { avgIn = null; toast(L.t("End of average speed check"), 2500) }
                 val next = pl.avg.filter { it.start > progress && it.start - progress < 1200.0 }.minByOrNull { it.start }
                 avgInfo = next?.let { AvgInfo(0.0, it.def.limit ?: speedLimit, it.end - it.start, false, true, it.start - progress) }
-                if (next != null && next.start - progress < 500.0 && avgAlerted.add(next.def.id)) {
+                // (warned as early as a plain camera would be: at least 500 m, or about 18 seconds ahead at speed)
+                if (next != null && next.start - progress < max(500.0, sp * 18.0) && avgAlerted.add(next.def.id)) {
                     chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
                     raiseAlert("avg", L.t("Average speed check ahead, {0} long", Geo.fmtDist(next.end - next.start, imperial)), 6000)
                     speak(L.t("Average speed check ahead"), true)
