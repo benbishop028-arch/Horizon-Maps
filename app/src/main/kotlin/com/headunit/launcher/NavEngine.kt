@@ -3756,15 +3756,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Camera alerts are on: switched on in Settings, and not in a country that bans them (unless you've chosen to keep them there). */
     fun camerasOn(): Boolean = prefs.b(PreferenceKeys.CAMERA_WARNINGS, true) && !(detectedCountry in CAMERA_BANNED && prefs.b(PreferenceKeys.CAMBANOBEY, true))
 
-    private var banNoted = ""
-    /** Says once, on arriving in a country that bans camera warnings, that they've been switched off. */
+    /**
+     * Says that camera warnings have been switched off, the first time you're in a country that bans them, and never again for
+     * that country (it came back every time the app opened, GitHub #120). It names the switch that keeps them on there, as the
+     * main Speed cameras switch being on doesn't (it was taken for a fault).
+     */
     private fun noteCameraBan() {
         val cc = detectedCountry
-        val name = CAMERA_BANNED[cc]
-        if (name == null || !prefs.b(PreferenceKeys.CAMERA_WARNINGS, true) || !prefs.b(PreferenceKeys.CAMBANOBEY, true)) { if (name == null) banNoted = ""; return }
-        if (banNoted == cc) return
-        banNoted = cc
-        toast(L.t("Speed camera alerts are off in {0}, where they aren't allowed. You can change this in Settings > Alerts.", name), 7000)
+        val name = CAMERA_BANNED[cc] ?: return
+        if (!prefs.b(PreferenceKeys.CAMERA_WARNINGS, true) || !prefs.b(PreferenceKeys.CAMBANOBEY, true)) return
+        val seen = prefs.s(PreferenceKeys.CAMBAN_SEEN, "").split(',').filter { it.isNotBlank() }
+        if (cc in seen) return
+        prefs.put(PreferenceKeys.CAMBAN_SEEN, (seen + cc).joinToString(","))
+        toast(L.t("Speed camera alerts are off in {0}, where they aren't allowed. You can change this in Settings > Alerts.", name) +
+            " (" + L.t("Off where they're banned") + ")", 9000)
     }
 
     /** False when the camera is known to check only the other direction (or a road crossing yours), judged against [heading]. */

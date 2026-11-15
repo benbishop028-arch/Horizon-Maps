@@ -114,6 +114,8 @@ internal object PreferenceKeys {
     const val BRIGHT = "bright"
     const val BUMPS = "bumps"
     const val CAMBANOBEY = "cambanobey"
+    /** Countries whose "camera alerts are off here" message has already been shown (comma-separated codes): it's said once, ever. */
+    const val CAMBAN_SEEN = "cambanseen"
     const val CARSCALE = "carscale"
     const val CARTHEME = "cartheme"
     const val CINEMATIC = "cinematic"

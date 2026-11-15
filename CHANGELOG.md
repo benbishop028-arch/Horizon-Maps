@@ -43,6 +43,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - No TomTom key is built into the app any more (anyone could pull it out of a shared APK); paste your own in Settings if you use TomTom search.
 
 ### Fixed
+- Camera alerts in France, Germany and Switzerland: the message saying they're switched off there now shows only the first time in each country instead of every time the app opens, and names the switch that keeps them on ("Off where they're banned" in Settings › Alerts)
 - Signing key: Horizon Nav updates are now signed with a new key kept only in GitHub Secrets, with Android's key rotation so it updates over the current version as normal
 - Always day on Android Auto: the car screen's own Always day / Always night now wins. With the phone set to Night (or to follow a dark phone), picking Always day on the car still left the car's map dark.
 - Average speed checks shown as plain speed cameras: the cameras at the start and end of a check are now announced as the average speed check, instead of a "Speed camera" alert that hid it, and the check is warned about as early as a camera would be. If the search along the route fails on a busy server, the checks are now looked up on their own so they aren't missed.
