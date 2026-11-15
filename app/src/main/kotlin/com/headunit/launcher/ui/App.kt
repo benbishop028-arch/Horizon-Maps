@@ -75,7 +75,7 @@ internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
 
 /** The whole app: the map full screen with its overlays, and the settings screen on top when it is open. */
 @Composable
-fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
+fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { TextSides {
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
     var whatsNewVisible by remember { mutableStateOf(false) }
     var whatsNewNotes by remember { mutableStateOf("") }
@@ -447,4 +447,4 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) {
         }
     }
 
-}
+} }

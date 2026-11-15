@@ -15,7 +15,10 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو")
+
+    /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
+    val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
 
     // (a Compose state: screens showing text redraw in the new language as soon as it's changed)
     var lang: String by androidx.compose.runtime.mutableStateOf(pick("auto"))
@@ -30,6 +33,9 @@ object L {
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
         "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS")
+        "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
+        // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
+        "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
@@ -40,7 +46,8 @@ object L {
     fun pick(setting: String): String {
         // (Android still reports Indonesian by its old code, "in")
         val auto = setting.isBlank() || setting == "auto"
-        val want = (if (auto) Locale.getDefault().language else setting).let { if (it == "in") "id" else it }
+        // (and Hebrew by "iw")
+        val want = (if (auto) Locale.getDefault().language else setting).let { if (it == "in") "id" else if (it == "iw") "he" else it }
         // (Chinese: Traditional for Taiwan, Hong Kong and Macau phones or a Traditional script, Simplified otherwise)
         if (auto && want == "zh") {
             val d = Locale.getDefault()
@@ -60,7 +67,7 @@ object L {
     val en: Boolean get() = lang == "en"
 
     /** The language code Mapbox's search takes (Chinese in the right script). */
-    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur" -> "en"; else -> lang }
 
     fun t(text: String, vararg args: Any?): String {
         val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
@@ -88,6 +95,11 @@ object L {
             val place = m.groupValues[1].trim()
             if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(" $place ") && !Regex(rules[1].first).containsMatchIn(" $place ") &&
                 !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
+        }
+        // Urdu puts the place first as well: "لاہور چلو", "لاہور لے چلو"
+        if (lang == "ur") Regex("^\\s*(.+?)(\\s+(کو|کی طرف|تک))?\\s+(چلو|چلیں|لے چلو|لے چلیں|جانا ہے|جاؤ|راستہ دکھاؤ|نیویگیٹ کرو)\\s*$").find(t.trim())?.let { m ->
+            val place = m.groupValues[1].trim()
+            if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
         }
         // "navigate to …" (the last rule) first: the place's name is kept as it was said, so a name with a word like
         // "restaurant" in it is searched for, not turned into a nearby search
@@ -390,6 +402,45 @@ object L {
                 "uvećaj|približi" to "zoom in", "umanji|udalji" to "zoom out", "sever gore" to "north up", "koliko je sati" to "what time",
                 "^\\s*(vozi me do|vozi me u|navigiraj do|idi do|idemo u|idemo do|do)\\s" to "go to",
             ),
+            "ar" to r(
+                "\\s(المنزل|البيت|إلى البيت|الى البيت|خذني للبيت|خذني إلى البيت)\\s" to "go home", "\\s(العمل|الشغل|المكتب|إلى العمل|الى العمل)\\s" to "go to work",
+                "^\\s*(أبلغ عن|ابلغ عن|بلغ عن)\\s" to "report", "حادث|حادثة" to "accident", "شرطة|الشرطة" to "police", "عطل|معطلة|سيارة معطلة" to "breakdown", "كاميرا|رادار|ساهر" to "camera",
+                "محطة وقود|محطة بنزين|بنزين|وقود|ديزل" to "fuel", "شاحن|شحن|محطة شحن" to "charging", "حمام|دورة مياه|مرحاض" to "toilet", "قهوة|مقهى|كافيه" to "coffee",
+                "طعام|أكل|مطعم" to "food", "استراحة|محطة استراحة" to "services", "موقف|مواقف|موقف سيارات|باركنج" to "parking",
+                "\\s(ابحث عن|جد|أقرب|اقرب|أين|وين|أحتاج)\\s" to "find", "أرخص|ارخص|رخيص" to "cheap",
+                "تجنب الرسوم|بدون رسوم|تجنب الطرق المدفوعة" to "avoid toll", "تجنب الطرق السريعة|بدون طرق سريعة|تجنب الطريق السريع" to "avoid motorway",
+                "تجنب هذا الطريق" to "avoid this road", "متى أصل|متى اوصل|متى سأصل|كم باقي|كم بقي" to "eta", "شارك|أرسل|ارسل" to "share",
+                "شغل الصوت|تشغيل الصوت" to "voice on", "التنبيهات فقط|تنبيهات فقط" to "alerts only", "كتم|اكتم|اسكت|إيقاف الصوت" to "mute",
+                "(أنه|انهي|أوقف|اوقف|ألغ|الغ|إلغاء) (المسار|الملاحة|التوجيه)" to "end route", "نظرة عامة|المسار كامل|كل المسار" to "overview",
+                "تكبير|كبر الخريطة|قرب الخريطة" to "zoom in", "تصغير|صغر الخريطة|بعد الخريطة" to "zoom out", "الشمال للأعلى" to "north up", "كم الساعة|كم الوقت" to "what time",
+                "^\\s*(خذني إلى|خذني الى|اذهب إلى|اذهب الى|روح على|انتقل إلى|وجهني إلى|نوجه إلى|إلى|الى)\\s" to "go to",
+            ),
+            "he" to r(
+                "\\s(הביתה|קח אותי הביתה|סע הביתה)\\s" to "go home", "\\s(לעבודה|למשרד|עבודה)\\s" to "go to work",
+                "^\\s*(דווח על|דווח)\\s" to "report", "תאונה" to "accident", "משטרה|שוטרים|ניידת" to "police", "רכב תקוע|תקלה|רכב מושבת" to "breakdown", "מצלמה|מצלמת מהירות|ממל\"ז" to "camera",
+                "תחנת דלק|דלק|לתדלק|סולר" to "fuel", "עמדת טעינה|טעינה|מטען" to "charging", "שירותים|נוחיות" to "toilet", "קפה|בית קפה" to "coffee",
+                "אוכל|מסעדה|לאכול" to "food", "תחנת שירות|חניון לילה" to "services", "חניה|חנייה|חניון" to "parking",
+                "\\s(מצא|חפש|הכי קרוב|הכי קרובה|הקרוב|הקרובה|איפה|צריך)\\s" to "find", "הכי זול|הכי זולה|זול|זולה" to "cheap",
+                "בלי אגרה|הימנע מאגרה|בלי כביש אגרה|בלי כביש 6" to "avoid toll", "בלי כבישים מהירים|הימנע מכבישים מהירים" to "avoid motorway",
+                "הימנע מהכביש הזה" to "avoid this road", "מתי אגיע|כמה זמן נשאר|כמה עוד" to "eta", "שתף|שלח" to "share",
+                "הפעל קול|הפעל הנחיות קוליות" to "voice on", "רק התראות" to "alerts only", "השתק|שקט|כבה קול" to "mute",
+                "(סיים|עצור|בטל) (מסלול|ניווט|את המסלול|את הניווט)" to "end route", "סקירה|כל המסלול" to "overview",
+                "הגדל|התקרב" to "zoom in", "הקטן|התרחק" to "zoom out", "צפון למעלה" to "north up", "מה השעה" to "what time",
+                "^\\s*(נווט אל|נווט ל-?|סע אל|סע ל-?|קח אותי אל|קח אותי ל-?|תיקח אותי ל-?)" to "go to ",
+            ),
+            "ur" to r(
+                "\\s(گھر|گھر چلو|گھر لے چلو)\\s" to "go home", "\\s(دفتر|کام پر|آفس)\\s" to "go to work",
+                "^\\s*(رپورٹ کرو|رپورٹ)\\s" to "report", "حادثہ|ایکسیڈنٹ" to "accident", "پولیس|ناکہ" to "police", "خراب گاڑی|خرابی|بریک ڈاؤن" to "breakdown", "کیمرہ|سپیڈ کیمرہ|ریڈار" to "camera",
+                "پیٹرول پمپ|پٹرول پمپ|پیٹرول|پٹرول|ڈیزل|ایندھن|فیول" to "fuel", "چارجنگ|چارجر" to "charging", "واش روم|ٹوائلٹ|بیت الخلا" to "toilet", "کافی|چائے" to "coffee",
+                "کھانا|ریسٹورنٹ|ہوٹل" to "food", "سروس ایریا|ریسٹ ایریا" to "services", "پارکنگ" to "parking",
+                "\\s(ڈھونڈو|تلاش کرو|سب سے قریب|قریب ترین|کہاں ہے|چاہیے)\\s" to "find", "سب سے سستا|سستا" to "cheap",
+                "ٹول سے بچو|بغیر ٹول" to "avoid toll", "موٹروے سے بچو|بغیر موٹروے" to "avoid motorway",
+                "اس سڑک سے بچو" to "avoid this road", "کب پہنچیں گے|کب پہنچوں گا|کتنا وقت باقی|کتنا رہ گیا" to "eta", "شیئر کرو|بھیجو" to "share",
+                "آواز چلاؤ|آواز آن" to "voice on", "صرف انتباہ|صرف الرٹ" to "alerts only", "خاموش|آواز بند" to "mute",
+                "(راستہ|نیویگیشن) (ختم کرو|بند کرو|روکو)" to "end route", "پورا راستہ|جائزہ" to "overview",
+                "زوم ان|قریب کرو" to "zoom in", "زوم آؤٹ|دور کرو" to "zoom out", "شمال اوپر" to "north up", "کیا وقت ہے|ٹائم کیا ہے" to "what time",
+                "^\\s*(نیویگیٹ کرو|راستہ دکھاؤ)\\s" to "go to",
+            ),
             "ms" to r(
                 "\\s(balik rumah|pulang ke rumah|pulang|bawa saya pulang)\\s" to "go home", "\\s(pergi kerja|ke tempat kerja|ke pejabat)\\s" to "go to work",
                 "^\\s*laporkan\\s" to "report", "kemalangan|eksiden" to "accident", "polis|sekatan jalan raya" to "police", "kereta rosak|rosak" to "breakdown", "kamera had laju|kamera|perangkap laju" to "camera",
@@ -457,6 +508,7 @@ object L {
         // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
         "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
         "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr" -> "$n."
+        "ar", "he", "ur" -> "$n"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
@@ -513,6 +565,10 @@ object L {
         "hu" -> "az első|a második|a harmadik|a negyedik|az ötödik|a hatodik|a hetedik|a nyolcadik|a kilencedik|a tizedik"
         "ms" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kelapan|kesembilan|kesepuluh"
         "hr", "sr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
+        "ar" -> "الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر"
+        // (with "the" joined on, as the roundabout phrase needs: "ביציאה השנייה")
+        "he" -> "ראשונה|שנייה|שלישית|רביעית|חמישית|שישית|שביעית|שמינית|תשיעית|עשירית"
+        "ur" -> "پہلا|دوسرا|تیسرا|چوتھا|پانچواں|چھٹا|ساتواں|آٹھواں|نواں|دسواں"
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
@@ -538,7 +594,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -559,6 +615,9 @@ object L {
         addOwn(m, "hu", I18nHu.rows())
         addOwn(m, "tr", I18nTr.rows())
         addOwn(m, "sr", I18nSr.rows())
+        addOwn(m, "ar", I18nAr.rows())
+        addOwn(m, "he", I18nHe.rows())
+        addOwn(m, "ur", I18nUr.rows())
         m
     }
 

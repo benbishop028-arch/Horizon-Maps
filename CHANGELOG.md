@@ -134,6 +134,7 @@ Add user-facing Horizon Nav changes under **Unreleased** before publishing each 
 - Where lanes are painted on the road, the route line runs through the lit-up lanes right up to the junction and carries smoothly into the turn arrow, then eases back onto the road over the next 25 m, with no gap or step where the lane guidance ends.
 
 ### New
+- Arabic, Hebrew and Urdu: the whole app, the spoken directions and the voice commands, read right to left. The inside of the turn card, trip card, search and settings is laid out right to left, while where the cards sit on the map still follows your driving side
 - Turkish and Serbian: the whole app, the spoken directions and the voice commands are now in Türkçe and Srpski (Latin script). Pick them in Settings › Sound & voice › Language, or leave it on Phone's language
 - Landmarks in directions: when a turn is at traffic lights or a stop sign, the turn card says "At the lights" (with the distance and road below) and the voice says "At the traffic lights, turn right onto…", or "At the second set of lights" when there's one set before it. With more lights on the way it says the distance as before. Turn it off in Settings › Sound & voice › Landmarks in directions
 - Your own 3D model: Settings › Your arrow › Real 3D model › Your model loads a .glb file of your own (up to 8 MB) as the arrow, sized to match the built-in car whatever scale it was made at, with Turn to point it the way you drive and the size slider to fine-tune it. If it can't be shown, the built-in car stands in. Works on Android Auto too.

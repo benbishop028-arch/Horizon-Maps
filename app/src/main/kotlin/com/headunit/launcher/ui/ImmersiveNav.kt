@@ -142,7 +142,7 @@ fun ImmersiveNav(engine: NavEngine, onSettings: () -> Unit) {
     val base = LocalVw.current
     val glass = engine.prefs.b(PreferenceKeys.GLASS, true)
     val v = remember(base, glass) { navVw(base).let { if (glass) glassVw(it) else it } }
-    CompositionLocalProvider(LocalVw provides v) { MapScreen(engine, onSettings) }
+    CompositionLocalProvider(LocalVw provides v) { FixedSides { MapScreen(engine, onSettings) } }
 }
 
 // ------------------------------------------------------------------ small building blocks
@@ -577,7 +577,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
  * needs scrolling; it still scrolls if a small screen needs it.
  */
 @Composable
-private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, onSettings: () -> Unit = {}, voice: () -> Unit = {}, close: () -> Unit) {
+private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean = false, onSettings: () -> Unit = {}, voice: () -> Unit = {}, close: () -> Unit) { TextSides {
     val c = LocalVw.current
     val p = engine.prefs
     val routing = engine.route != null && !engine.previewing
@@ -678,7 +678,7 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
             tripPart(); mapPart(); restPart()
         }
     }
-}
+} }
 
 /** A row of choices with the chosen one filled in blue (2D / 3D, sound, day and night). */
 @Composable
@@ -781,7 +781,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
             val dens = androidx.compose.ui.platform.LocalDensity.current
             var rowPx by remember { mutableStateOf(0) }
             val rowW = with(dens) { rowPx.toDp() }
-            Column(Modifier.then(if (narrow) Modifier.fillMaxWidth() else Modifier).panel(10.dp, shape, c.surface).animateContentSize()) {
+            TextSides { Column(Modifier.then(if (narrow) Modifier.fillMaxWidth() else Modifier).panel(10.dp, shape, c.surface).animateContentSize()) {
                 val barMod = if (narrow) Modifier.fillMaxWidth() else Modifier.width(rowW)
                 // the route bar across the top of the card, with room to breathe
                 if (engine.showRouteBar && (narrow || rowPx > 0)) {
@@ -844,7 +844,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                         smallButtons(Modifier.align(Alignment.End))
                     }
                 }
-            }
+            } }
         }
     }
 }
@@ -1001,7 +1001,7 @@ internal fun ImmTurnCard(
     slim: Boolean = false,
     /** Extra row along the bottom of the card (Android Auto puts the hazards ahead there). */
     footer: (@Composable () -> Unit)? = null,
-) {
+) { TextSides {
     val shape = RoundedCornerShape(28.dp)
     val frac = ((450.0 - t.dist) / 450.0).coerceIn(0.0, 1.0).toFloat()
     // living card: it grows a touch and starts to glow as the turn comes up, and pulses in the last 80 m
@@ -1110,8 +1110,8 @@ internal fun ImmTurnCard(
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
             // (not in Android Auto: the big lane picture made the card grow to fill much of a car screen as soon as a junction came up)
             val hero = !car && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && ls.lanes.size >= 2 && t.dist < 900.0
-            if (hero) LaneHero(ls, t.maneuver, if (car) null else t.laneAdvice)
-            else Box(Modifier.fillMaxWidth().background(TealDeep).padding(vertical = 4.dp), contentAlignment = Alignment.Center) { LaneRow(ls, t.maneuver, t.dist < 400.0) }
+            if (hero) FixedSides { LaneHero(ls, t.maneuver, if (car) null else t.laneAdvice) }
+            else Box(Modifier.fillMaxWidth().background(TealDeep).padding(vertical = 4.dp), contentAlignment = Alignment.Center) { FixedSides { LaneRow(ls, t.maneuver, t.dist < 400.0) } }
         }
         val heroShown = !car && engine.prefs.b(PreferenceKeys.LANE_STRIP, true) && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && (t.lanes?.lanes?.size ?: 0) >= 2 && t.dist < 900.0
         if (!compact && !heroShown && !(car && t.lanes != null && engine.prefs.b(PreferenceKeys.LANE_STRIP, true))) t.laneAdvice?.let { Text(it, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth().background(TealDeep).padding(horizontal = 18.dp, vertical = 6.dp)) }
@@ -1128,10 +1128,10 @@ internal fun ImmTurnCard(
             Box(Modifier.fillMaxWidth(frac).fillMaxHeight().background(Color.White.copy(alpha = 0.9f)))
         }
     }
-}
+} }
 
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit) {
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit) { TextSides {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -1166,7 +1166,7 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
             modifier = Modifier.fillMaxSize().focusRequester(focus),
         )
     }
-}
+} }
 
 @Composable
 private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
@@ -1558,3 +1558,17 @@ private fun RouteRow(title: String, titleCol: Color, line2: String, line3: Strin
     }
 }
 
+
+/** Arabic, Hebrew and Urdu: the inside of a card reads right to left (arrow on the right, text right-aligned). */
+@Composable
+internal fun TextSides(content: @Composable () -> Unit) {
+    if (!L.rtl) { content(); return }
+    CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Rtl) { content() }
+}
+
+/** The map screen's own layout: where the cards and buttons sit follows the driving side setting, not the language. */
+@Composable
+internal fun FixedSides(content: @Composable () -> Unit) {
+    if (!L.rtl) { content(); return }
+    CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) { content() }
+}
