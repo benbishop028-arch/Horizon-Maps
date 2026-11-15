@@ -8,6 +8,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Ready for Android 16: Horizon Nav is now built for Android 16 (as Google Play requires). On newer phones it keeps clear of the camera notch and, with Full screen off, of the status and navigation bars, exactly as before
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed

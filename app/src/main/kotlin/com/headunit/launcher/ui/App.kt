@@ -16,6 +16,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
@@ -75,7 +80,7 @@ internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
 
 /** The whole app: the map full screen with its overlays, and the settings screen on top when it is open. */
 @Composable
-fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { TextSides {
+fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { TextSides {
     var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
     var whatsNewVisible by remember { mutableStateOf(false) }
     var whatsNewNotes by remember { mutableStateOf("") }
@@ -447,4 +452,18 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { TextSides {
         }
     }
 
-} }
+} } }
+
+/**
+ * Keeps the app clear of the camera notch, and of the status and navigation bars when Full screen is off. Android 15 and newer
+ * draw every app behind them (for apps targeting Android 15 and up); before, Android kept the app clear by itself. This keeps
+ * it looking exactly as it did, with the gap filled black. (On older Android these gaps already come back as nothing.)
+ */
+@Composable
+internal fun SafeArea(prefs: Prefs, content: @Composable () -> Unit) {
+    val full = prefs.b(PreferenceKeys.FULLSCREEN, true)
+    val ins = if (full) WindowInsets.displayCutout else WindowInsets.displayCutout.union(WindowInsets.systemBars)
+    androidx.compose.foundation.layout.Box(
+        Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black).windowInsetsPadding(ins),
+    ) { content() }
+}

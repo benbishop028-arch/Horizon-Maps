@@ -16,7 +16,7 @@ android {
         // Keep the established application ID so releases install as updates to existing Horizon Nav installations.
         applicationId = "com.headunit.nav"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         // each GitHub build gets a higher version number, so Android always treats a new APK as an update
         val run = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0
         versionCode = 100 + run
