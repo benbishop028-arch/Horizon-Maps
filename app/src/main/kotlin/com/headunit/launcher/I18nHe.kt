@@ -1504,5 +1504,12 @@ object I18nHe {
         "Landmarks in directions" to "ציוני דרך בהנחיות",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"ברמזור, פנה ימינה\" במקום המרחק כשהפנייה היא ברמזור או בתמרור עצור, בכרטיס הפנייה ובקול",
         "Your order" to "סדר",
+        "Bottom corner" to "פינה תחתונה",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "פינה תחתונה משתמשת בצד שנבחר במיקומי כרטיסים. במסך רכב נמוך, למעלה מימין דורש את הסגנון קומפקטי: שם הטבעת עוברת אל מתחת לכרטיס הפנייה",
+        "Compact" to "קומפקטי",
+        "Compact is a small dark pill with the limit and your speed side by side" to "קומפקטי הוא כמוסה כהה קטנה עם המגבלה והמהירות שלך זו לצד זו",
+        "Same as the app" to "כמו באפליקציה",
+        "Speedometer style" to "סגנון מד המהירות",
+        "Speedometer style on the car screen" to "סגנון מד המהירות במסך הרכב",
     )
 }

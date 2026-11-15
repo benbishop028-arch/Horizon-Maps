@@ -1504,5 +1504,12 @@ object I18nEu {
         "Landmarks in directions" to "Erreferentziak jarraibideetan",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "«Semaforoan, biratu eskuinera» distantziaren ordez, bira semaforo edo stop seinale batean dagoenean, bira-txartelean eta ahotsean",
         "Your order" to "Ordena",
+        "Bottom corner" to "Beheko izkina",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Beheko izkinak Txartelen kokapena atalean aukeratutako aldea erabiltzen du. Autoko pantaila baxu batean, Goian eskuinean aukerak Trinkoa estiloa behar du: han eraztuna biraketa-txartelaren azpian jartzen da",
+        "Compact" to "Trinkoa",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Trinkoa pilula ilun txiki bat da, muga eta zure abiadura elkarren ondoan dituena",
+        "Same as the app" to "Aplikazioan bezala",
+        "Speedometer style" to "Abiadura-neurgailuaren estiloa",
+        "Speedometer style on the car screen" to "Abiadura-neurgailuaren estiloa autoko pantailan",
     )
 }

@@ -57,6 +57,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.headunit.launcher.KEEP_LEFT
 import com.headunit.launcher.MapBinding
 import com.headunit.launcher.MapboxRest
+import com.headunit.launcher.carArrowScale
 import com.headunit.launcher.locatorSpec
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.NavEngine
@@ -221,7 +222,7 @@ class CarNavSession : Session() {
         // Keep the locator proportionate to the more compact Android Auto overlay sizing.
         // Android Auto uses a smaller map surface than the main head-unit app. Keep the
         // user preference, but normalise it so the 240% main-app default doesn't create an enormous car-screen locator.
-        map.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180) / 100f))
+        map.setArrowScale(prefs.carArrowScale())
         map.setMapDetail(prefs.mapDetail())
         map.setTrafficGreen(prefs.b(PreferenceKeys.TRAFFIC_GREEN, false))
         map.setCarModel(prefs.s(PreferenceKeys.CAR_MODEL, "saloon"))
@@ -403,6 +404,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
 
     override fun onVisibleAreaChanged(visibleArea: Rect) {
         lastVisible = Rect(visibleArea)
+        // (in the log, for working out layouts on a head unit or the Desktop Head Unit)
+        android.util.Log.i("CarNav", "visible area ${visibleArea.toShortString()} of ${width}x$height at $currentDpi dpi")
         CarLayout.short = visibleArea.height() in 1..519 || visibleArea.width() in 1..699
         try { com.headunit.launcher.CarDiag.screen = "${width}x$height, visible ${visibleArea.left},${visibleArea.top},${visibleArea.right},${visibleArea.bottom}" } catch (e: Exception) { }
         // some head units report a visible area that can't be right (a sliver of the screen, or one off the edge): going by it put
@@ -1270,14 +1273,24 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
                 val levels = listOf(30, 45, 60, 80, 100, 120, 140, 160, 180)
                 val next = levels[(levels.indexOf(arrowSize).takeIf { it >= 0 } ?: 2).let { (it + 1) % levels.size }]
                 prefs.put(PreferenceKeys.CAR_ARROW_SIZE, next)
-                try { holder.map?.setArrowScale(((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(1f, 5f) * 0.9f * (next / 100f)) } catch (_: Exception) { }
+                try { holder.map?.setArrowScale(prefs.carArrowScale()) } catch (_: Exception) { }
                 invalidate()
             }.build()
         // where the speed sign sits on the car screen (the same setting as the app's Settings > Android Auto)
         val spPos = prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom")
         rows += Row.Builder().setTitle(L.t("Speed sign position"))
-            .addText(L.t(when (spPos) { "middle" -> "Middle"; "top" -> "Top"; else -> "Bottom" }) + L.t(" · tap to change"))
-            .setOnClickListener { prefs.put(PreferenceKeys.SPEED_POS_CAR, when (spPos) { "bottom" -> "middle"; "middle" -> "top"; else -> "bottom" }); invalidate() }.build()
+            .addText(L.t(when (spPos) { "middle" -> "Under the turn card"; "top" -> "Top right"; else -> "Bottom corner" }) + L.t(" · tap to change"))
+            // (a short car screen has no room top right for the ring, between Android Auto's own buttons: it's only offered there
+            // with the compact speedometer)
+            .setOnClickListener {
+                val topFits = !CarLayout.short || prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app") == "compact"
+                prefs.put(PreferenceKeys.SPEED_POS_CAR, when (spPos) { "bottom" -> "middle"; "middle" -> if (topFits) "top" else "bottom"; else -> "bottom" }); invalidate()
+            }.build()
+        // the ring (or block) as in the app, or the small dark pill
+        val spStyle = prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app")
+        rows += Row.Builder().setTitle(L.t("Speedometer style"))
+            .addText(L.t(if (spStyle == "compact") "Compact" else "Same as the app") + L.t(" · tap to change"))
+            .setOnClickListener { prefs.put(PreferenceKeys.CAR_SPEED_STYLE, if (spStyle == "compact") "app" else "compact"); invalidate() }.build()
         // the arrow stays to the side when the cards on the left fold away (GitHub), rather than moving back to the middle
         rows += toggleRow("Keep the arrow to the side", PreferenceKeys.ARROW_SIDE, false, "When the cards fold away, instead of moving to the middle")
         // 12 or 24-hour times (the same setting as the app's Settings > Units)

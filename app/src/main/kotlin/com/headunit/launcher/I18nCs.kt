@@ -1504,5 +1504,12 @@ object I18nCs {
         "Landmarks in directions" to "Orientační body v pokynech",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„Na semaforech odbočte vpravo“ místo vzdálenosti, když je odbočka na semaforech nebo u značky stop, na kartě odbočení i v hlasu",
         "Your order" to "Pořadí",
+        "Bottom corner" to "Spodní roh",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Spodní roh používá stranu zvolenou v Rozmístění karet. Na nízké obrazovce auta potřebuje Vpravo nahoře styl Kompaktní: kruh tam jde pod kartu odbočení",
+        "Compact" to "Kompaktní",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Kompaktní je malá tmavá kapsle s omezením a vaší rychlostí vedle sebe",
+        "Same as the app" to "Stejně jako v aplikaci",
+        "Speedometer style" to "Styl tachometru",
+        "Speedometer style on the car screen" to "Styl tachometru na obrazovce auta",
     )
 }

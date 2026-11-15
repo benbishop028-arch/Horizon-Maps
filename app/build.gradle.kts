@@ -47,6 +47,12 @@ android {
     // A release build runs noticeably faster than the debug one (no debug overhead, and the libraries' built-in speed-up profiles are applied).
     // It is signed with the debug key so it installs like before; code shrinking stays off to avoid breaking the map library.
     buildTypes {
+        // Local test builds install beside the released app (com.headunit.nav.public.dev) under their own name, so the
+        // real one needn't be uninstalled to try a change on a phone or the Desktop Head Unit.
+        debug {
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "Horizon Nav Dev")
+        }
         release {
             isMinifyEnabled = false
             isShrinkResources = false

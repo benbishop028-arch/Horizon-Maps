@@ -1504,5 +1504,12 @@ object I18nRo {
         "Landmarks in directions" to "Repere în indicații",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„La semafor, virați la dreapta” în loc de distanță când virajul este la semafor sau la un semn stop, pe cardul de viraj și în voce",
         "Your order" to "Ordinea",
+        "Bottom corner" to "Colțul de jos",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Colțul de jos folosește partea aleasă la Poziția cardurilor. Pe un ecran de mașină scund, Dreapta sus are nevoie de stilul Compact: acolo inelul trece sub cardul de viraj",
+        "Compact" to "Compact",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Compact este o capsulă mică și închisă la culoare, cu limita și viteza ta una lângă alta",
+        "Same as the app" to "La fel ca în aplicație",
+        "Speedometer style" to "Stilul vitezometrului",
+        "Speedometer style on the car screen" to "Stilul vitezometrului pe ecranul mașinii",
     )
 }

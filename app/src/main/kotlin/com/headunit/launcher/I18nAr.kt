@@ -1504,5 +1504,12 @@ object I18nAr {
         "Landmarks in directions" to "معالم في الاتجاهات",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"عند إشارة المرور، انعطف يمينًا\" بدل المسافة عندما يكون الانعطاف عند إشارة أو علامة قف، على بطاقة الانعطاف وفي الصوت",
         "Your order" to "الترتيب",
+        "Bottom corner" to "الزاوية السفلية",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "الزاوية السفلية تستخدم الجانب المختار في مواضع البطاقات. على شاشة سيارة قصيرة، يحتاج أعلى اليمين إلى النمط المضغوط: تنتقل الحلقة هناك تحت بطاقة الانعطاف",
+        "Compact" to "مضغوط",
+        "Compact is a small dark pill with the limit and your speed side by side" to "المضغوط كبسولة داكنة صغيرة تعرض الحد وسرعتك جنبًا إلى جنب",
+        "Same as the app" to "مثل التطبيق",
+        "Speedometer style" to "نمط عداد السرعة",
+        "Speedometer style on the car screen" to "نمط عداد السرعة على شاشة السيارة",
     )
 }

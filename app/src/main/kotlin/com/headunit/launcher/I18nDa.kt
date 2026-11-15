@@ -1504,5 +1504,12 @@ object I18nDa {
         "Landmarks in directions" to "Kendemærker i vejledningen",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"Ved lyskrydset, drej til højre\" i stedet for afstanden, når svinget er ved et lyskryds eller et stopskilt, på svingkortet og i stemmen",
         "Your order" to "Rækkefølge",
+        "Bottom corner" to "Nederste hjørne",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Nederste hjørne bruger den side, der er valgt under Kortplacering. På en lav bilskærm kræver Øverst til højre stilen Kompakt: der kommer ringen under svingkortet",
+        "Compact" to "Kompakt",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Kompakt er en lille mørk pille med grænsen og din fart side om side",
+        "Same as the app" to "Som i appen",
+        "Speedometer style" to "Speedometerstil",
+        "Speedometer style on the car screen" to "Speedometerstil på bilskærmen",
     )
 }

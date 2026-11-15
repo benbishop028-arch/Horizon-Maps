@@ -1504,5 +1504,12 @@ object I18nUr {
         "Landmarks in directions" to "ہدایات میں نشانیاں",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "جب موڑ سگنل یا رکنے کے نشان پر ہو تو فاصلے کے بجائے \"ٹریفک سگنل پر، دائیں مڑیں\"، موڑ کارڈ پر اور آواز میں",
         "Your order" to "ترتیب",
+        "Bottom corner" to "نیچے کا کونا",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "نیچے کا کونا وہ طرف استعمال کرتا ہے جو کارڈز کی جگہیں میں چنی گئی ہو۔ گاڑی کی چھوٹی اسکرین پر اوپر دائیں کے لیے مختصر انداز ضروری ہے: وہاں دائرہ موڑ کارڈ کے نیچے چلا جاتا ہے",
+        "Compact" to "مختصر",
+        "Compact is a small dark pill with the limit and your speed side by side" to "مختصر ایک چھوٹا گہرا کیپسول ہے جس میں حد اور آپ کی رفتار ساتھ ساتھ ہوں",
+        "Same as the app" to "ایپ جیسا",
+        "Speedometer style" to "سپیڈومیٹر کا انداز",
+        "Speedometer style on the car screen" to "گاڑی کی اسکرین پر سپیڈومیٹر کا انداز",
     )
 }

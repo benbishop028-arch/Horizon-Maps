@@ -1504,5 +1504,12 @@ object I18nHr {
         "Landmarks in directions" to "Orijentiri u uputama",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„Na semaforu skrenite desno” umjesto udaljenosti kad je skretanje na semaforu ili kod znaka stop, na kartici skretanja i u glasu",
         "Your order" to "Redoslijed",
+        "Bottom corner" to "Donji kut",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Donji kut koristi stranu odabranu pod Položaj kartica. Na niskom zaslonu automobila Gore desno treba stil Kompaktno: prsten tamo ide ispod kartice skretanja",
+        "Compact" to "Kompaktno",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Kompaktno je mala tamna kapsula s ograničenjem i vašom brzinom jedno uz drugo",
+        "Same as the app" to "Kao u aplikaciji",
+        "Speedometer style" to "Stil brzinomjera",
+        "Speedometer style on the car screen" to "Stil brzinomjera na zaslonu automobila",
     )
 }

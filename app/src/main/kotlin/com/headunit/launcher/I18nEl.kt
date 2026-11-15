@@ -1504,5 +1504,12 @@ object I18nEl {
         "Landmarks in directions" to "Ορόσημα στις οδηγίες",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "«Στα φανάρια, στρίψτε δεξιά» αντί για την απόσταση όταν η στροφή είναι σε φανάρια ή σήμα STOP, στην κάρτα στροφής και στη φωνή",
         "Your order" to "Σειρά",
+        "Bottom corner" to "Κάτω γωνία",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Η Κάτω γωνία χρησιμοποιεί την πλευρά που επιλέχθηκε στις Θέσεις καρτών. Σε χαμηλή οθόνη αυτοκινήτου, το Πάνω δεξιά χρειάζεται το στυλ Συμπαγές: εκεί ο δακτύλιος πηγαίνει κάτω από την κάρτα στροφής",
+        "Compact" to "Συμπαγές",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Το Συμπαγές είναι μια μικρή σκούρα κάψουλα με το όριο και την ταχύτητά σας δίπλα-δίπλα",
+        "Same as the app" to "Όπως στην εφαρμογή",
+        "Speedometer style" to "Στυλ ταχύμετρου",
+        "Speedometer style on the car screen" to "Στυλ ταχύμετρου στην οθόνη του αυτοκινήτου",
     )
 }

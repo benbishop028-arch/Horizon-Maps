@@ -1513,5 +1513,12 @@ object I18nC {
         "Landmarks in directions" to listOf("จุดสังเกตในคำแนะนำเส้นทาง", "目印での案内", "Patokan dalam petunjuk arah"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("\"ที่สัญญาณไฟ เลี้ยวขวา\" แทนระยะทางเมื่อจุดเลี้ยวอยู่ที่สัญญาณไฟหรือป้ายหยุด บนการ์ดเลี้ยวและในเสียงนำทาง", "曲がる場所が信号や一時停止の標識のとき、距離の代わりに「信号で右折」と案内します(案内カードと音声)", "\"Di lampu merah, belok kanan\" sebagai ganti jarak saat belokan ada di lampu merah atau rambu berhenti, di kartu belokan dan dalam suara"),
         "Your order" to listOf("ลำดับ", "並び順", "Urutan"),
+        "Bottom corner" to listOf("มุมล่าง", "下の隅", "Sudut bawah"),
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to listOf("มุมล่างใช้ด้านที่เลือกไว้ในตำแหน่งการ์ด บนหน้าจอรถที่เตี้ย ขวาบนต้องใช้แบบกะทัดรัด: วงแหวนจะอยู่ใต้การ์ดเลี้ยวแทน", "下の隅はカードの位置で選んだ側を使います。高さの低い車の画面では、右上にはコンパクトスタイルが必要です。その場合リングは曲がり角カードの下に入ります", "Sudut bawah memakai sisi yang dipilih di Posisi kartu. Di layar mobil yang pendek, Kanan atas memerlukan gaya Ringkas: di sana cincin pindah ke bawah kartu belokan"),
+        "Compact" to listOf("กะทัดรัด", "コンパクト", "Ringkas"),
+        "Compact is a small dark pill with the limit and your speed side by side" to listOf("แบบกะทัดรัดคือแถบสีเข้มเล็กๆ ที่แสดงขีดจำกัดและความเร็วของคุณคู่กัน", "コンパクトは、制限速度と現在の速度を横に並べた小さな暗いピルです", "Ringkas adalah kapsul gelap kecil berisi batas dan kecepatan Anda berdampingan"),
+        "Same as the app" to listOf("เหมือนในแอป", "アプリと同じ", "Sama seperti di aplikasi"),
+        "Speedometer style" to listOf("รูปแบบมาตรวัดความเร็ว", "スピードメーターのスタイル", "Gaya spidometer"),
+        "Speedometer style on the car screen" to listOf("รูปแบบมาตรวัดความเร็วบนหน้าจอรถ", "車の画面のスピードメーターのスタイル", "Gaya spidometer di layar mobil"),
     )
 }

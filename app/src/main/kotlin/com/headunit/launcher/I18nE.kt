@@ -1504,5 +1504,12 @@ object I18nE {
         "Landmarks in directions" to listOf("Orientirji v navodilih"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("»Na semaforju zavijte desno« namesto razdalje, ko je zavoj pri semaforju ali znaku stop, na kartici zavoja in v glasu"),
         "Your order" to listOf("Vrstni red"),
+        "Bottom corner" to listOf("Spodnji kot"),
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to listOf("Spodnji kot uporabi stran, izbrano pri Položaj kartic. Na nizkem zaslonu avtomobila Zgoraj desno potrebuje slog Kompakten: tam gre obroč pod kartico zavoja"),
+        "Compact" to listOf("Kompakten"),
+        "Compact is a small dark pill with the limit and your speed side by side" to listOf("Kompakten je majhna temna kapsula z omejitvijo in vašo hitrostjo drugo ob drugi"),
+        "Same as the app" to listOf("Kot v aplikaciji"),
+        "Speedometer style" to listOf("Slog merilnika hitrosti"),
+        "Speedometer style on the car screen" to listOf("Slog merilnika hitrosti na zaslonu avtomobila"),
     )
 }

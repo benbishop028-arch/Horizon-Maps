@@ -1504,5 +1504,12 @@ object I18nZhHans {
         "Landmarks in directions" to "用地标指示方向",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "转弯处有红绿灯或停车标志时，转弯卡片和语音会说“在红绿灯处右转”，而不是距离",
         "Your order" to "排列顺序",
+        "Bottom corner" to "下方角落",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "下方角落会使用在“卡片位置”中选择的那一侧。在较矮的车载屏幕上，“右上”需要搭配“紧凑”样式：在那里圆环会改放在转向卡片下方",
+        "Compact" to "紧凑",
+        "Compact is a small dark pill with the limit and your speed side by side" to "紧凑是一个深色小胶囊，限速和你的车速并排显示",
+        "Same as the app" to "与应用相同",
+        "Speedometer style" to "速度表样式",
+        "Speedometer style on the car screen" to "车载屏幕上的速度表样式",
     )
 }

@@ -1504,5 +1504,12 @@ object I18nMs {
         "Landmarks in directions" to "Mercu tanda dalam arahan",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "\"Di lampu isyarat, belok kanan\" menggantikan jarak apabila belokan berada di lampu isyarat atau papan tanda berhenti, pada kad belokan dan dalam suara",
         "Your order" to "Susunan",
+        "Bottom corner" to "Sudut bawah",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Sudut bawah menggunakan sisi yang dipilih di Kedudukan kad. Pada skrin kereta yang rendah, Atas kanan memerlukan gaya Padat: di situ cincin dialih ke bawah kad belokan",
+        "Compact" to "Padat",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Padat ialah kapsul gelap kecil dengan had dan kelajuan anda bersebelahan",
+        "Same as the app" to "Sama seperti dalam aplikasi",
+        "Speedometer style" to "Gaya meter laju",
+        "Speedometer style on the car screen" to "Gaya meter laju pada skrin kereta",
     )
 }

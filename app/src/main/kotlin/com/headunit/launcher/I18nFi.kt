@@ -1504,5 +1504,12 @@ object I18nFi {
         "Landmarks in directions" to "Maamerkit ohjeissa",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "”Liikennevaloissa käänny oikealle” etäisyyden sijaan, kun käännös on liikennevaloissa tai stop-merkillä, käännöskortissa ja puheessa",
         "Your order" to "Järjestys",
+        "Bottom corner" to "Alakulma",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Alakulma käyttää Korttien sijainnit -kohdassa valittua puolta. Matalalla auton näytöllä Ylhäällä oikealla vaatii Tiivis-tyylin: siellä rengas siirtyy käännöskortin alle",
+        "Compact" to "Tiivis",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Tiivis on pieni tumma kapseli, jossa rajoitus ja nopeutesi ovat vierekkäin",
+        "Same as the app" to "Kuten sovelluksessa",
+        "Speedometer style" to "Nopeusmittarin tyyli",
+        "Speedometer style on the car screen" to "Nopeusmittarin tyyli auton näytöllä",
     )
 }

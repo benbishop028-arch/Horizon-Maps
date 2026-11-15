@@ -1504,5 +1504,12 @@ object I18nTr {
         "Landmarks in directions" to "Yönlendirmelerde yer işaretleri",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "Dönüş ışıklarda veya dur levhasındaysa mesafe yerine \"Trafik ışıklarında sağa dönün\"; dönüş kartında ve seste",
         "Your order" to "Sıralama",
+        "Bottom corner" to "Alt köşe",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Alt köşe, Kart konumları altında seçilen tarafı kullanır. Alçak bir araç ekranında Sağ üst, Kompakt stilini gerektirir: orada halka dönüş kartının altına geçer",
+        "Compact" to "Kompakt",
+        "Compact is a small dark pill with the limit and your speed side by side" to "Kompakt, sınır ve hızınızın yan yana olduğu küçük koyu bir kapsüldür",
+        "Same as the app" to "Uygulamadaki gibi",
+        "Speedometer style" to "Hız göstergesi stili",
+        "Speedometer style on the car screen" to "Araç ekranında hız göstergesi stili",
     )
 }

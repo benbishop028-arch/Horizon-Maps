@@ -1117,8 +1117,10 @@ private fun AndroidAutoSection(prefs: Prefs) {
     SGroup(L.t("Sizes on the car screen")) {
         SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay"), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
-        SChoice(L.t("Speed position on the car screen"), listOf("bottom" to L.t("Bottom"), "middle" to L.t("Middle"), "top" to L.t("Top")), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
-            L.t("On the side away from the cards. Separate from this screen's own setting")) { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
+        SChoice(L.t("Speed position on the car screen"), listOf("bottom" to L.t("Bottom corner"), "middle" to L.t("Under the turn card"), "top" to L.t("Top right")), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
+            L.t("Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there")) { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
+        SChoice(L.t("Speedometer style on the car screen"), listOf("app" to L.t("Same as the app"), "compact" to L.t("Compact")), prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app"),
+            L.t("Compact is a small dark pill with the limit and your speed side by side")) { prefs.put(PreferenceKeys.CAR_SPEED_STYLE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
             SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }

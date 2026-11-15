@@ -1504,5 +1504,12 @@ object I18nD {
         "Landmarks in directions" to listOf("Ориентири в указанията"),
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to listOf("„На светофара завийте надясно\" вместо разстоянието, когато завоят е на светофар или знак стоп, на картата за завой и в гласа"),
         "Your order" to listOf("Подредба"),
+        "Bottom corner" to listOf("Долен ъгъл"),
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to listOf("Долен ъгъл използва страната, избрана в Позиции на картите. На нисък екран в колата Горе вдясно изисква стил Компактен: там кръгът отива под картата за завоя"),
+        "Compact" to listOf("Компактен"),
+        "Compact is a small dark pill with the limit and your speed side by side" to listOf("Компактен е малка тъмна капсула с ограничението и скоростта ви една до друга"),
+        "Same as the app" to listOf("Като в приложението"),
+        "Speedometer style" to listOf("Стил на скоростомера"),
+        "Speedometer style on the car screen" to listOf("Стил на скоростомера на екрана в колата"),
     )
 }

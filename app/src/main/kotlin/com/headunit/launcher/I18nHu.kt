@@ -1504,5 +1504,12 @@ object I18nHu {
         "Landmarks in directions" to "Tájékozódási pontok az utasításokban",
         "\"At the traffic lights, turn right\" in place of the distance when the turn is at the lights or a stop sign, on the turn card and in the voice" to "„A lámpánál forduljon jobbra” a távolság helyett, ha a kanyar lámpánál vagy stoptáblánál van, a kanyarkártyán és a hangban",
         "Your order" to "Sorrend",
+        "Bottom corner" to "Alsó sarok",
+        "Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there" to "Az Alsó sarok a Kártyák helye alatt választott oldalt használja. Alacsony autós képernyőn a Jobb felül a Kompakt stílust igényli: ott a gyűrű a fordulókártya alá kerül",
+        "Compact" to "Kompakt",
+        "Compact is a small dark pill with the limit and your speed side by side" to "A Kompakt egy kis sötét kapszula, benne egymás mellett a korlátozás és a sebességed",
+        "Same as the app" to "Mint az alkalmazásban",
+        "Speedometer style" to "Sebességmérő stílusa",
+        "Speedometer style on the car screen" to "Sebességmérő stílusa az autó képernyőjén",
     )
 }
