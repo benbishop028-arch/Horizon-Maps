@@ -1,0 +1,437 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0664A1BD5E3D990137505D78 /* Routing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5977C187B264C02BD1341F29 /* Routing.swift */; };
+		222B3B2F82457B28DC17030D /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */; };
+		59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */; };
+		A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5039D498498215F2014D9995 /* ContentView.swift */; };
+		A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */; };
+		AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42ADA62D6A65A34506330EBA /* AppDelegate.swift */; };
+		C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */; };
+		C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */; };
+		D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */; };
+		E68B800CA2B1E9793647CD5F /* CarPlayMapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */; };
+		FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480671AE6B396154B1004202 /* RouteGuidance.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		08DDBC812A425AC2F69AB01F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F5F2A7D751F798B476E42D9C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BAABDE709003C35C15F28219;
+			remoteInfo = HorizonNav;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlayMapViewController.swift; sourceTree = "<group>"; };
+		12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HorizonNav.entitlements; sourceTree = "<group>"; };
+		42ADA62D6A65A34506330EBA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidanceTests.swift; sourceTree = "<group>"; };
+		447F39C57098FCA199888C7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		480671AE6B396154B1004202 /* RouteGuidance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteGuidance.swift; sourceTree = "<group>"; };
+		4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HorizonNav.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5039D498498215F2014D9995 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		5977C187B264C02BD1341F29 /* Routing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routing.swift; sourceTree = "<group>"; };
+		67906EF6E63724FD6D5CC95E /* HorizonNavTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HorizonNavTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HorizonNavApp.swift; sourceTree = "<group>"; };
+		BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPolicy.swift; sourceTree = "<group>"; };
+		C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStore.swift; sourceTree = "<group>"; };
+		FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureSheet.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		3A533796CB8529A29D0D6E4E /* HorizonNavTests */ = {
+			isa = PBXGroup;
+			children = (
+				4396885FAA2FDB1ADF2152C3 /* GuidanceTests.swift */,
+			);
+			path = HorizonNavTests;
+			sourceTree = "<group>";
+		};
+		852C65FA0699F9C68C35D134 /* HorizonNav */ = {
+			isa = PBXGroup;
+			children = (
+				42ADA62D6A65A34506330EBA /* AppDelegate.swift */,
+				0EDC71B9B25B7AD31784DF76 /* CarPlayMapViewController.swift */,
+				C987D1A71B7F9E37407D60C1 /* CarPlaySceneDelegate.swift */,
+				5039D498498215F2014D9995 /* ContentView.swift */,
+				FC322B048AB36FEB74AAF681 /* FeatureSheet.swift */,
+				12B0595D302F36C1C3D85A2B /* HorizonNav.entitlements */,
+				A9930A1F40AF88D9A86B361A /* HorizonNavApp.swift */,
+				447F39C57098FCA199888C7C /* Info.plist */,
+				BB09CEB1C6777A95A3FE7F03 /* NavigationPolicy.swift */,
+				CD1AEA8DD4AF1E5B600039F6 /* NavigationStore.swift */,
+				480671AE6B396154B1004202 /* RouteGuidance.swift */,
+				5977C187B264C02BD1341F29 /* Routing.swift */,
+			);
+			path = HorizonNav;
+			sourceTree = "<group>";
+		};
+		CEE623A1ADC602EBB11FB385 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */,
+				67906EF6E63724FD6D5CC95E /* HorizonNavTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		EDFC35D6A5FAA1D9F5C1FB1B = {
+			isa = PBXGroup;
+			children = (
+				852C65FA0699F9C68C35D134 /* HorizonNav */,
+				3A533796CB8529A29D0D6E4E /* HorizonNavTests */,
+				CEE623A1ADC602EBB11FB385 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BAABDE709003C35C15F28219 /* HorizonNav */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B2E0D0E5E0353347E1A94B33 /* Build configuration list for PBXNativeTarget "HorizonNav" */;
+			buildPhases = (
+				18D19F1739B14E8BAAAA5983 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HorizonNav;
+			packageProductDependencies = (
+			);
+			productName = HorizonNav;
+			productReference = 4BC67BBE6ED3DBFA8F961B27 /* HorizonNav.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BC01E64E25DFCB597DAA072F /* HorizonNavTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E93D0A3EC75F23E3D31F0BC5 /* Build configuration list for PBXNativeTarget "HorizonNavTests" */;
+			buildPhases = (
+				3DD3A16D0381167D849F80B3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3B1FF5913C52C78C91BF1E38 /* PBXTargetDependency */,
+			);
+			name = HorizonNavTests;
+			packageProductDependencies = (
+			);
+			productName = HorizonNavTests;
+			productReference = 67906EF6E63724FD6D5CC95E /* HorizonNavTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F5F2A7D751F798B476E42D9C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BAABDE709003C35C15F28219 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					BC01E64E25DFCB597DAA072F = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = B2120122CECF5FF1CC5A6CE4 /* Build configuration list for PBXProject "HorizonNav" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = EDFC35D6A5FAA1D9F5C1FB1B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CEE623A1ADC602EBB11FB385 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BAABDE709003C35C15F28219 /* HorizonNav */,
+				BC01E64E25DFCB597DAA072F /* HorizonNavTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		18D19F1739B14E8BAAAA5983 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE50142935E59CD6EEA2C1FA /* AppDelegate.swift in Sources */,
+				E68B800CA2B1E9793647CD5F /* CarPlayMapViewController.swift in Sources */,
+				222B3B2F82457B28DC17030D /* CarPlaySceneDelegate.swift in Sources */,
+				A583A12AE3B60173B3FB5E71 /* ContentView.swift in Sources */,
+				A71A15093CCE5F50917EBD04 /* FeatureSheet.swift in Sources */,
+				D7E8071741B728DBB13A3A41 /* HorizonNavApp.swift in Sources */,
+				C4578D48645E733B7D391534 /* NavigationPolicy.swift in Sources */,
+				59DD550B34028B1AF4A0AF0D /* NavigationStore.swift in Sources */,
+				FCBB74BE74D87400D07AB2B0 /* RouteGuidance.swift in Sources */,
+				0664A1BD5E3D990137505D78 /* Routing.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3DD3A16D0381167D849F80B3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C36A3D7D3A3DC8E8D0D813F4 /* GuidanceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3B1FF5913C52C78C91BF1E38 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BAABDE709003C35C15F28219 /* HorizonNav */;
+			targetProxy = 08DDBC812A425AC2F69AB01F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		01973C62EC1970B86EE183AE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.horizonnav.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HorizonNav.app/HorizonNav";
+			};
+			name = Release;
+		};
+		223A46842980BB43BAEDF7F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HorizonNav/HorizonNav.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HorizonNav/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.horizonnav.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		47DED70614892C487F0F9E53 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		6C0D2134CB1736F7FFD70364 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		6DE276D09F1967EEE7890E9A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.horizonnav.ios.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HorizonNav.app/HorizonNav";
+			};
+			name = Debug;
+		};
+		EC8604FE7BDA1A35B853C84F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HorizonNav/HorizonNav.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = HorizonNav/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.horizonnav.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B2120122CECF5FF1CC5A6CE4 /* Build configuration list for PBXProject "HorizonNav" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C0D2134CB1736F7FFD70364 /* Debug */,
+				47DED70614892C487F0F9E53 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B2E0D0E5E0353347E1A94B33 /* Build configuration list for PBXNativeTarget "HorizonNav" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EC8604FE7BDA1A35B853C84F /* Debug */,
+				223A46842980BB43BAEDF7F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E93D0A3EC75F23E3D31F0BC5 /* Build configuration list for PBXNativeTarget "HorizonNavTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6DE276D09F1967EEE7890E9A /* Debug */,
+				01973C62EC1970B86EE183AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = F5F2A7D751F798B476E42D9C /* Project object */;
+}
