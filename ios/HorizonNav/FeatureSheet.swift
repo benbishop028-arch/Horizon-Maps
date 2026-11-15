@@ -9,7 +9,7 @@ struct FeatureSheet: View {
         var id: String { rawValue }
     }
 
-    static let featureRevision = 2
+    static let featureRevision = 3
     private static let seenKey = "featureSheetRevisionSeen"
 
     /// The guide on first launch, what's new after an update with new features, otherwise nothing.
@@ -45,6 +45,14 @@ struct FeatureSheet: View {
                  detail: "Apple Maps traffic is shown on the phone and in the car, and route times take current traffic into account."),
             Item(symbol: "car.fill", title: "CarPlay",
                  detail: "Connect to CarPlay to search, compare routes and follow turn-by-turn directions on the car screen. A trip started on the phone continues in the car."),
+            Item(symbol: "key.fill", title: "TomTom and Mapbox",
+                 detail: "Add your own free TomTom or Mapbox key in Settings (the gear button) for their routes, search, traffic, lanes and speed limits. With both, the quicker route is offered first. Without a key, Apple Maps is used."),
+            Item(symbol: "arrow.down.circle", title: "Offline maps",
+                 detail: "Tap the download button to save a map area, or a routing pack for a country or region. With no signal the map draws saved areas, routes are planned on the phone, and the last route is kept so guidance carries on."),
+            Item(symbol: "speaker.wave.2.fill", title: "Spoken directions",
+                 detail: "Turns are announced before each junction, with the lane to be in. Use the speaker button to mute, or Settings for alerts only."),
+            Item(symbol: "road.lanes", title: "Lanes, speed limits and cameras",
+                 detail: "The lanes to use, the speed limit and your speed show on the phone and in CarPlay, and speed cameras ahead are warned about. CarPlay follows the car's day and night look, or your choice in Settings."),
         ]
         if kind == .guide {
             list.insert(Item(symbol: "magnifyingglass", title: "Search anywhere",
