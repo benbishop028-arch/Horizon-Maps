@@ -536,6 +536,27 @@ private fun VehicleGroup(prefs: Prefs, imperial: Boolean) {
     SGroup(L.t("Vehicle"), footer = if (lorry) L.t("Used by TomTom and offline routes, and by Mapbox for height, width and weight. Limits come from the map data, so some may be missing: always follow the road signs.") else null) {
         SChoice(L.t("Vehicle"), listOf("car" to L.t("Car"), "lorry" to L.t("Lorry")), if (lorry) "lorry" else "car",
             if (lorry) L.t("Routes avoid low bridges, weight limits and lorry bans for your size") else null) { prefs.put(PreferenceKeys.VEHICLE, it) }
+        // your top speed for arrival times (vans, lorries, towing), in the units you drive in (GitHub #134)
+        run {
+            val c = LocalVw.current
+            val mph = imperial
+            val steps = if (mph) Vehicle.TOP_MPH else Vehicle.TOP_KMH
+            val savedUnit = prefs.s(PreferenceKeys.TOP_SPEED_UNIT, "mph")
+            val savedV = prefs.i(PreferenceKeys.TOP_SPEED, 0)
+            // a value saved in the other unit is shown at the nearest step of this one
+            val cur = if (savedV <= 0) 0 else {
+                val inUnit = if ((savedUnit == "mph") == mph) savedV.toDouble() else if (mph) savedV / 1.609344 else savedV * 1.609344
+                steps.filter { it > 0 }.minByOrNull { kotlin.math.abs(it - inUnit) } ?: 0
+            }
+            val idx = steps.indexOf(cur).coerceAtLeast(0)
+            fun save(v: Int) { prefs.put(PreferenceKeys.TOP_SPEED_UNIT, if (mph) "mph" else "kmh"); prefs.put(PreferenceKeys.TOP_SPEED, v); Vehicle.load(prefs) }
+            SItem(L.t("Top speed for arrival times"), L.t("Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds")) {
+                SButton("−") { save(steps[(idx - 1).coerceAtLeast(0)]) }
+                Text(if (cur == 0) L.t("Off") else "$cur ${if (mph) "mph" else "km/h"}", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.widthIn(min = 92.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                SButton("+") { save(steps[(idx + 1).coerceAtMost(steps.size - 1)]) }
+            }
+        }
         if (lorry) {
             SStep(L.t("Height"), L.t("Including the load. Low bridges are checked against this"), prefs, PreferenceKeys.LORRY_HEIGHT, 400, 200, 500, 5) { Vehicle.heightText(it, imperial) }
             SStep(L.t("Width"), L.t("Without mirrors"), prefs, PreferenceKeys.LORRY_WIDTH, 255, 180, 300, 5) { String.format(java.util.Locale.US, "%.2f m", it / 100.0) }
@@ -745,6 +766,7 @@ private fun PlaceItem(label: String, p: Place?, onChange: () -> Unit, onClear: (
     }
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 private fun PlacesSection(engine: NavEngine) {
     val pl = engine.places
@@ -761,21 +783,61 @@ private fun PlacesSection(engine: NavEngine) {
     val mine = remember(raw) { pl.customs() }
     var renaming by remember { mutableStateOf<String?>(null) }
     var adding by remember { mutableStateOf(false) }
+    // (filed in groups if you like, GitHub #138: a group folds open to its places; each place has a Group button)
+    var grouping by remember { mutableStateOf<String?>(null) }
+    var openGroups by remember { mutableStateOf(setOf<String>()) }
+    var renamingGroup by remember { mutableStateOf<String?>(null) }
+    val groups = remember(raw) { pl.groups() }
     SGroup(L.t("Your places"), footer = L.t("Shown as pills under the search bar, after Home and Work. Add one with the + pill there.")) {
         if (mine.isEmpty()) SNote(L.t("No places of your own yet."))
-        mine.forEachIndexed { i, lp ->
-            if (renaming == lp.label) {
-                var t by remember(lp.label) { mutableStateOf(lp.label) }
-                SItem(L.t("Rename {0}", lp.label)) {
-                    SField(t, { t = it.take(24) }, width = 220.dp)
-                    SButton(L.t("Save"), primary = true) { pl.renameCustom(lp.label, t); renaming = null }
+        @Composable
+        fun placeRow(i: Int, lp: com.headunit.launcher.LabeledPlace, indent: Boolean) {
+            val ind = if (indent) Modifier.padding(start = 18.dp) else Modifier
+            Column(ind) {
+                if (renaming == lp.label) {
+                    var t by remember(lp.label) { mutableStateOf(lp.label) }
+                    SItem(L.t("Rename {0}", lp.label)) {
+                        SField(t, { t = it.take(24) }, width = 220.dp)
+                        SButton(L.t("Save"), primary = true) { pl.renameCustom(lp.label, t); renaming = null }
+                    }
+                } else SItem(lp.label, lp.place.name + if (lp.place.sub.isNotBlank()) ", " + lp.place.sub else "") {
+                    if (i > 0) SButton("↑") { pl.moveCustom(lp.label, -1) }
+                    SButton(L.t("Group")) { grouping = if (grouping == lp.label) null else lp.label }
+                    SButton(L.t("Rename")) { renaming = lp.label }
+                    SButton(L.t("Remove"), danger = true) { pl.removeCustom(lp.label) }
                 }
-            } else SItem(lp.label, lp.place.name + if (lp.place.sub.isNotBlank()) ", " + lp.place.sub else "") {
-                if (i > 0) SButton("↑") { pl.moveCustom(lp.label, -1) }
-                SButton(L.t("Rename")) { renaming = lp.label }
-                SButton(L.t("Remove"), danger = true) { pl.removeCustom(lp.label) }
+                if (grouping == lp.label) {
+                    var newName by remember(lp.label) { mutableStateOf("") }
+                    androidx.compose.foundation.layout.FlowRow(
+                        Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        for (g in groups) if (g != lp.group) SButton(g) { pl.setGroup(lp.label, g); grouping = null; openGroups = openGroups + g }
+                        SField(newName, { newName = it.take(24) }, placeholder = L.t("New group"), width = 180.dp)
+                        if (newName.isNotBlank()) SButton(L.t("Add"), primary = true) { pl.setGroup(lp.label, newName); openGroups = openGroups + newName.trim(); grouping = null }
+                        if (lp.group.isNotBlank()) SButton(L.t("No group")) { pl.setGroup(lp.label, ""); grouping = null }
+                        SButton(L.t("Cancel")) { grouping = null }
+                    }
+                }
             }
         }
+        // the groups first, each folding open; then the places in no group
+        for (g in groups) {
+            val inG = mine.withIndex().filter { it.value.group == g }
+            val open = g in openGroups
+            if (renamingGroup == g) {
+                var t by remember(g) { mutableStateOf(g) }
+                SItem(L.t("Rename {0}", g)) {
+                    SField(t, { t = it.take(24) }, width = 220.dp)
+                    SButton(L.t("Save"), primary = true) { pl.renameGroup(g, t); if (open) openGroups = openGroups - g + t.trim(); renamingGroup = null }
+                }
+            } else SItem((if (open) "▾ " else "▸ ") + g, if (inG.size == 1) L.t("1 place") else L.t("{0} places", inG.size),
+                onClick = { openGroups = if (open) openGroups - g else openGroups + g }) {
+                SButton(L.t("Rename")) { renamingGroup = g }
+            }
+            if (open) for ((i, lp) in inG) placeRow(i, lp, true)
+        }
+        mine.forEachIndexed { i, lp -> if (lp.group.isBlank()) placeRow(i, lp, false) }
         SItem(L.t("Add a place")) { SButton(L.t("Add"), primary = true) { adding = true } }
     }
     if (adding) AddPlaceDialog(engine, null) { adding = false }

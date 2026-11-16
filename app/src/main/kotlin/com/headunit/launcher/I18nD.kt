@@ -1511,5 +1511,12 @@ object I18nD {
         "Same as the app" to listOf("Като в приложението"),
         "Speedometer style" to listOf("Стил на скоростомера"),
         "Speedometer style on the car screen" to listOf("Стил на скоростомера на екрана в колата"),
+        "Group" to listOf("Група"),
+        "New group" to listOf("Нова група"),
+        "No group" to listOf("Без група"),
+        "1 place" to listOf("1 място"),
+        "{0} places" to listOf("{0} места"),
+        "Top speed for arrival times" to listOf("Максимална скорост за времето на пристигане"),
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to listOf("Маршрутите се изчисляват не по-бързо от това: за бусове, камиони или с ремарке. Изкл. използва нормалните скорости"),
     )
 }

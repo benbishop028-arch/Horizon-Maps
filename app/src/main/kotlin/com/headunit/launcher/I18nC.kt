@@ -1520,5 +1520,12 @@ object I18nC {
         "Same as the app" to listOf("เหมือนในแอป", "アプリと同じ", "Sama seperti di aplikasi"),
         "Speedometer style" to listOf("รูปแบบมาตรวัดความเร็ว", "スピードメーターのスタイル", "Gaya spidometer"),
         "Speedometer style on the car screen" to listOf("รูปแบบมาตรวัดความเร็วบนหน้าจอรถ", "車の画面のスピードメーターのスタイル", "Gaya spidometer di layar mobil"),
+        "Group" to listOf("กลุ่ม", "グループ", "Grup"),
+        "New group" to listOf("กลุ่มใหม่", "新しいグループ", "Grup baru"),
+        "No group" to listOf("ไม่มีกลุ่ม", "グループなし", "Tanpa grup"),
+        "1 place" to listOf("1 สถานที่", "1 か所", "1 tempat"),
+        "{0} places" to listOf("{0} สถานที่", "{0} か所", "{0} tempat"),
+        "Top speed for arrival times" to listOf("ความเร็วสูงสุดสำหรับเวลาถึง", "到着時刻の最高速度", "Kecepatan maksimum untuk waktu tiba"),
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to listOf("เวลาเส้นทางคำนวณไม่เร็วกว่านี้: สำหรับรถตู้ รถบรรทุก หรือการลากจูง ปิดจะใช้ความเร็วปกติของถนน", "ルートの所要時間をこの速度以下で計算します（バン、トラック、牽引時向け）。オフでは通常の道路速度を使います", "Waktu rute dihitung tidak lebih cepat dari ini: untuk van, truk, atau menarik trailer. Mati memakai kecepatan jalan biasa"),
     )
 }

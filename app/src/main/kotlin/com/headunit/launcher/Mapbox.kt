@@ -291,7 +291,7 @@ object MapboxRest {
         val ex = listOf(excludes(TomTomRest.avoid), enc(pointEx)).filter { it.isNotEmpty() }.joinToString(",")
         // (Mapbox's directions have no Thai, Bulgarian, Slovenian, Basque or Traditional Chinese: an unknown language would fail the
         // route, so English instructions are asked for there, and for Romanian, Greek, Czech and Finnish too; the app speaks its own translated directions anyway)
-        val lang = if (L.lang in setOf("th", "bg", "sl", "ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv")) "en" else L.lang
+        val lang = if (L.lang in setOf("th", "bg", "sl", "ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn")) "en" else L.lang
         var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
@@ -419,6 +419,9 @@ object MapboxRest {
         val laneSecs = ArrayList<LaneSec>()
         val sevList = ArrayList<Int>()
         val segDur = ArrayList<Double>()
+        // your top speed for arrival times (Settings > Vehicle): the extra time where the route expects you to go faster, GitHub #134
+        val topMs = Vehicle.topMs()
+        var capExtra = 0.0
         // what each stretch would take with no traffic (from Mapbox's free-flow speed), -1 where it isn't given
         val segFree = ArrayList<Double>()
         val limits = ArrayList<LimitSec>()
@@ -561,6 +564,7 @@ object MapboxRest {
                 segDur += dur?.optDouble(i, 0.0) ?: 0.0
                 val ffKmh = ffs?.optDouble(i, -1.0) ?: -1.0
                 val dm = dists?.optDouble(i, -1.0) ?: -1.0
+                if (topMs > 0.0 && dm > 0.0) capExtra += max(0.0, dm / topMs - (dur?.optDouble(i, 0.0) ?: 0.0))
                 segFree += if (ffKmh > 3.0 && dm >= 0.0) dm / (ffKmh / 3.6) else -1.0
                 val idx = legPtStart + i
                 val spd = ms?.optJSONObject(i)
@@ -589,8 +593,8 @@ object MapboxRest {
         }
         // traffic level per segment of the line (filled to its length if the counts differ)
         val sev = IntArray(max(0, pts.size - 1)) { i -> sevList.getOrElse(i) { 0 } }
-        val time = r.optDouble("duration", 0.0)
-        val typical = r.optDouble("duration_typical", time)
+        val time = r.optDouble("duration", 0.0) + capExtra
+        val typical = r.optDouble("duration_typical", time - capExtra) + capExtra
         // the traffic delay: on the stretches Mapbox shows as slow (amber or red), the time over what they take with no traffic.
         // It used to be the time over the *usual* time for that hour, so traffic that's there every rush hour counted as none:
         // the time left stayed green with red on the map (the total time always included the traffic; only the delay was missing)

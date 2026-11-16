@@ -19,6 +19,12 @@ object Vehicle {
     @Volatile var weightT10 = 440
     @Volatile var axleT10 = 115
     @Volatile var hazmat = false
+    /** Your top speed for arrival times in metres a second, 0 when off (GitHub #134): vans, lorries, towing. */
+    @Volatile var topSpeedMs = 0.0
+    fun topMs(): Double = topSpeedMs
+    /** The steps offered for it, in mph and in km/h (0 = off). */
+    val TOP_MPH = listOf(0, 40, 45, 50, 52, 55, 56, 60, 62, 65, 70)
+    val TOP_KMH = listOf(0, 60, 70, 80, 90, 100, 110, 120)
 
     fun load(prefs: Prefs) {
         lorry = prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry"
@@ -28,13 +34,18 @@ object Vehicle {
         weightT10 = prefs.i(PreferenceKeys.LORRY_WEIGHT, 440).coerceIn(35, 1000)
         axleT10 = prefs.i(PreferenceKeys.LORRY_AXLE, 115).coerceIn(10, 300)
         hazmat = prefs.b(PreferenceKeys.LORRY_HAZMAT, false)
+        val top = prefs.i(PreferenceKeys.TOP_SPEED, 0)
+        topSpeedMs = if (top <= 0) 0.0 else if (prefs.s(PreferenceKeys.TOP_SPEED_UNIT, "mph") == "mph") top * 0.44704 else top / 3.6
     }
+
+    /** The top speed as TomTom takes it (km/h), or "" when off. */
+    private fun tomtomTop(): String = if (topSpeedMs > 0.0) "&vehicleMaxSpeed=" + Math.round(topSpeedMs * 3.6) else ""
 
     private fun f(v: Double) = String.format(Locale.US, "%.2f", v)
 
     /** TomTom's lorry mode (empty for a car). Weights in kilograms, sizes in metres. */
     fun tomtom(): String {
-        if (!lorry) return ""
+        if (!lorry) return tomtomTop()
         val sb = StringBuilder("&travelMode=truck&vehicleCommercial=true")
         sb.append("&vehicleHeight=").append(f(heightCm / 100.0))
         sb.append("&vehicleWidth=").append(f(widthCm / 100.0))
@@ -42,7 +53,7 @@ object Vehicle {
         sb.append("&vehicleWeight=").append(weightT10 * 100)
         sb.append("&vehicleAxleWeight=").append(axleT10 * 100)
         if (hazmat) sb.append("&vehicleLoadType=otherHazmatGeneral")
-        return sb.toString()
+        return sb.toString() + tomtomTop()
     }
 
     /** Mapbox's limits (empty for a car): it can only take height, width (both up to 10 m) and weight (up to 100 t). */
@@ -55,7 +66,12 @@ object Vehicle {
 
     /** The offline router's way of travelling: "truck" with the lorry's measurements, or "auto" for a car. */
     fun valhalla(req: JSONObject) {
-        if (!lorry) { req.put("costing", "auto"); return }
+        val topKmh = if (topSpeedMs > 0.0) Math.round(topSpeedMs * 3.6).toInt().coerceIn(10, 252) else 0
+        if (!lorry) {
+            req.put("costing", "auto")
+            if (topKmh > 0) req.put("costing_options", JSONObject().put("auto", JSONObject().put("top_speed", topKmh)))
+            return
+        }
         req.put("costing", "truck")
         req.put("costing_options", JSONObject().put("truck", JSONObject()
             .put("height", heightCm / 100.0)
@@ -63,7 +79,7 @@ object Vehicle {
             .put("length", lengthCm / 100.0)
             .put("weight", weightT10 / 10.0)
             .put("axle_load", axleT10 / 10.0)
-            .put("hazmat", hazmat)))
+            .put("hazmat", hazmat).also { if (topKmh > 0) it.put("top_speed", topKmh) }))
     }
 
     /** A height in metres, with feet and inches too when [imperial] ("4.20 m · 13′ 9″"). */

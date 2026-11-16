@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Bosnian and Kannada: Horizon Nav now speaks Bosanski and ಕನ್ನಡ: directions, screens, Android Auto and voice commands. Pick them in Settings › Sound & voice › Language, or they follow a phone set to either (thanks to enesvrabac-lab and srinidhisharma)
+- Groups for your places: file your own places in groups (Family, Customers…) in Settings › Places & trips › Your places. A group shows as one row in the saved list that opens to its places (thanks to bijindas)
+- Top speed for arrival times: in Settings › Routes › Vehicle, set the speed you actually drive at (for vans, lorries or towing) and routes are timed no faster than that (thanks to clayts450)
 - Sun times on the car screen: Day and night on Android Auto can now follow sunrise and sunset, for cars that go dark whenever the headlights are on, even in daylight (thanks to SonicBjork and nickblears-rgb)
 - Swedish: Horizon Nav now speaks Swedish (Svenska): directions, screens, Android Auto and voice commands. Pick it in Settings › Sound & voice › Language, or it follows a phone set to Swedish
 - Compact speedometer on Android Auto: an optional small dark pill with the limit sign and your speed side by side (Settings › Android Auto › Speedometer style on the car screen, or Speedometer style in the car's own settings). It's small enough to sit top right even on a short car screen (thanks to yurividal)

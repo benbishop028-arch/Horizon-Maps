@@ -262,6 +262,9 @@ internal object PreferenceKeys {
     /** What routes are planned for: "car" or "lorry" (Settings > Routes > Vehicle), and the lorry's measurements:
      *  height, width and length in cm, weight and axle weight in tonnes x 10, and whether it carries hazardous goods. */
     const val VEHICLE = "vehicle"
+    /** Top speed for arrival times (GitHub #134): the number, and whether it's in "mph" or "kmh"; 0 = off. */
+    const val TOP_SPEED = "top_speed"
+    const val TOP_SPEED_UNIT = "top_speed_unit"
     const val LORRY_HEIGHT = "lorryh"
     const val LORRY_WIDTH = "lorryw"
     const val LORRY_LENGTH = "lorryl"

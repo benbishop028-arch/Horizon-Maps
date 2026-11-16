@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -67,7 +67,7 @@ object L {
     val en: Boolean get() = lang == "en"
 
     /** The language code Mapbox's search takes (Chinese in the right script). */
-    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur" -> "en"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn" -> "en"; else -> lang }
 
     fun t(text: String, vararg args: Any?): String {
         val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
@@ -82,7 +82,8 @@ object L {
      * look for ("naar huis" becomes "go home", "nächste Tankstelle" becomes "find fuel"). English is returned as it is.
      */
     fun voiceToEnglish(text: String): String {
-        val rules = voiceRules[lang] ?: return text
+        // (Bosnian voice commands are close enough to Croatian to share its words)
+        val rules = voiceRules[if (lang == "bs") "hr" else lang] ?: return text
         // (a capital İ made lower-case the English way leaves a stray dot mark, so "İşe" wouldn't match "işe")
         var t = " " + text.lowercase(locale).replace("\u0307", "").trim() + " "
         // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
@@ -98,6 +99,11 @@ object L {
         }
         // Urdu puts the place first as well: "لاہور چلو", "لاہور لے چلو"
         if (lang == "ur") Regex("^\\s*(.+?)(\\s+(کو|کی طرف|تک))?\\s+(چلو|چلیں|لے چلو|لے چلیں|جانا ہے|جاؤ|راستہ دکھاؤ|نیویگیٹ کرو)\\s*$").find(t.trim())?.let { m ->
+            val place = m.groupValues[1].trim()
+            if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
+        }
+        // Kannada puts the place first as well: "ಮೈಸೂರಿಗೆ ಹೋಗು", "ಮೈಸೂರು ಗೆ ಕರೆದುಕೊಂಡು ಹೋಗು"
+        if (lang == "kn") Regex("^\\s*(.+?)\\s*(ಗೆ|ಕ್ಕೆ|ಕಡೆಗೆ|ವರೆಗೆ)?\\s+(ಹೋಗು|ಹೋಗಿ|ಹೋಗೋಣ|ಕರೆದುಕೊಂಡು ಹೋಗು|ಕರೆದೊಯ್ಯಿ|ದಾರಿ ತೋರಿಸು|ನ್ಯಾವಿಗೇಟ್ ಮಾಡು|ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ)\\s*$").find(t.trim())?.let { m ->
             val place = m.groupValues[1].trim()
             if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
         }
@@ -480,6 +486,19 @@ object L {
                 "zoom ind" to "zoom in", "zoom ud" to "zoom out", "nord op" to "north up", "hvad er klokken" to "what time",
                 "^\\s*(naviger til|kør til|tag mig til|før mig til|til)\\s" to "go to",
             ),
+            "kn" to r(
+                "\\s(ಮನೆಗೆ|ಮನೆಗೆ ಹೋಗು|ಮನೆಗೆ ಕರೆದುಕೊಂಡು ಹೋಗು)\\s" to "go home", "\\s(ಕೆಲಸಕ್ಕೆ|ಆಫೀಸಿಗೆ|ಕಚೇರಿಗೆ)\\s" to "go to work",
+                "^\\s*(ವರದಿ ಮಾಡು|ವರದಿ)\\s" to "report", "ಅಪಘಾತ|ಆಕ್ಸಿಡೆಂಟ್" to "accident", "ಪೊಲೀಸ್" to "police", "ಕೆಟ್ಟು ನಿಂತ|ಬ್ರೇಕ್ ಡೌನ್" to "breakdown", "ಕ್ಯಾಮೆರಾ|ಸ್ಪೀಡ್ ಕ್ಯಾಮೆರಾ" to "camera",
+                "ಪೆಟ್ರೋಲ್ ಬಂಕ್|ಪೆಟ್ರೋಲ್|ಡೀಸೆಲ್|ಇಂಧನ" to "fuel", "ಚಾರ್ಜಿಂಗ್|ಚಾರ್ಜರ್" to "charging", "ಶೌಚಾಲಯ|ಟಾಯ್ಲೆಟ್" to "toilet", "ಕಾಫಿ|ಟೀ" to "coffee",
+                "ಊಟ|ಆಹಾರ|ಹೋಟೆಲ್|ರೆಸ್ಟೋರೆಂಟ್" to "food", "ಸೇವಾ ಕೇಂದ್ರ" to "services", "ಪಾರ್ಕಿಂಗ್" to "parking",
+                "\\s(ಹುಡುಕು|ಹತ್ತಿರದ|ಎಲ್ಲಿದೆ|ಬೇಕು)\\s" to "find", "ಅಗ್ಗದ" to "cheap",
+                "ಟೋಲ್ ತಪ್ಪಿಸು|ಟೋಲ್ ಇಲ್ಲದೆ" to "avoid toll", "ಎಕ್ಸ್‌ಪ್ರೆಸ್‌ವೇ ತಪ್ಪಿಸು|ಹೆದ್ದಾರಿ ತಪ್ಪಿಸು" to "avoid motorway",
+                "ಈ ರಸ್ತೆ ತಪ್ಪಿಸು" to "avoid this road", "ಯಾವಾಗ ತಲುಪುತ್ತೇನೆ|ಎಷ್ಟು ಸಮಯ|ಎಷ್ಟು ದೂರ" to "eta", "ಹಂಚಿಕೊ|ಕಳುಹಿಸು" to "share",
+                "ಧ್ವನಿ ಆನ್" to "voice on", "ಎಚ್ಚರಿಕೆಗಳು ಮಾತ್ರ" to "alerts only", "ಮ್ಯೂಟ್|ಧ್ವನಿ ಆಫ್" to "mute",
+                "(ಮಾರ್ಗ|ನ್ಯಾವಿಗೇಶನ್) (ನಿಲ್ಲಿಸು|ಮುಗಿಸು|ರದ್ದುಮಾಡು)" to "end route", "ಅವಲೋಕನ|ಪೂರ್ತಿ ಮಾರ್ಗ" to "overview",
+                "ಜೂಮ್ ಇನ್" to "zoom in", "ಜೂಮ್ ಔಟ್" to "zoom out", "ಉತ್ತರ ಮೇಲೆ" to "north up", "ಸಮಯ ಎಷ್ಟು|ಗಂಟೆ ಎಷ್ಟು" to "what time",
+                "^\\s*(ನ್ಯಾವಿಗೇಟ್ ಮಾಡು|ದಾರಿ ತೋರಿಸು)\\s" to "go to",
+            ),
             "sv" to r(
                 "\\s(hem|kör hem|ta mig hem|åk hem)\\s" to "go home", "\\s(till jobbet|till kontoret|på jobbet)\\s" to "go to work",
                 "^\\s*(rapportera|anmäl)\\s" to "report", "olycka|krock" to "accident", "polis|polisen|poliskontroll" to "police", "motorstopp|trasig bil|haveri" to "breakdown", "fartkamera|kamera|trafiksäkerhetskamera" to "camera",
@@ -520,10 +539,11 @@ object L {
         "id", "ms" -> "ke-$n"
         // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
         "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
-        "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr" -> "$n."
+        "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr", "bs" -> "$n."
         // (1:a, 2:a, 3:e … but 11:e and 12:e)
         "sv" -> if (n % 10 in 1..2 && n % 100 !in 11..12) "$n:a" else "$n:e"
         "ar", "he", "ur" -> "$n"
+        "kn" -> "${n}ನೇ"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
@@ -579,13 +599,14 @@ object L {
         // (with "the", as the roundabout phrase needs: "hajtson ki a második kijáraton")
         "hu" -> "az első|a második|a harmadik|a negyedik|az ötödik|a hatodik|a hetedik|a nyolcadik|a kilencedik|a tizedik"
         "ms" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kelapan|kesembilan|kesepuluh"
-        "hr", "sr" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
+        "hr", "sr", "bs" -> "prvi|drugi|treći|četvrti|peti|šesti|sedmi|osmi|deveti|deseti"
         "ar" -> "الأول|الثاني|الثالث|الرابع|الخامس|السادس|السابع|الثامن|التاسع|العاشر"
         // (with "the" joined on, as the roundabout phrase needs: "ביציאה השנייה")
         "he" -> "ראשונה|שנייה|שלישית|רביעית|חמישית|שישית|שביעית|שמינית|תשיעית|עשירית"
         "ur" -> "پہلا|دوسرا|تیسرا|چوتھا|پانچواں|چھٹا|ساتواں|آٹھواں|نواں|دسواں"
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
+        "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
         else -> ""
@@ -610,7 +631,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -635,6 +656,8 @@ object L {
         addOwn(m, "he", I18nHe.rows())
         addOwn(m, "ur", I18nUr.rows())
         addOwn(m, "sv", I18nSv.rows())
+        addOwn(m, "bs", I18nBs.rows())
+        addOwn(m, "kn", I18nKn.rows())
         m
     }
 
@@ -2159,6 +2182,13 @@ object L {
         "Same as the app" to listOf("Zoals in de app", "Wie in der App", "Comme dans l'appli", "Igual que en la app"),
         "Speedometer style" to listOf("Stijl snelheidsmeter", "Tacho-Stil", "Style du compteur", "Estilo del velocímetro"),
         "Speedometer style on the car screen" to listOf("Stijl snelheidsmeter op het autoscherm", "Tacho-Stil auf dem Autobildschirm", "Style du compteur sur l'écran de la voiture", "Estilo del velocímetro en la pantalla del coche"),
+        "Group" to listOf("Groep", "Gruppe", "Groupe", "Grupo"),
+        "New group" to listOf("Nieuwe groep", "Neue Gruppe", "Nouveau groupe", "Nuevo grupo"),
+        "No group" to listOf("Geen groep", "Keine Gruppe", "Aucun groupe", "Sin grupo"),
+        "1 place" to listOf("1 plaats", "1 Ort", "1 lieu", "1 lugar"),
+        "{0} places" to listOf("{0} plaatsen", "{0} Orte", "{0} lieux", "{0} lugares"),
+        "Top speed for arrival times" to listOf("Topsnelheid voor aankomsttijden", "Höchstgeschwindigkeit für Ankunftszeiten", "Vitesse maximale pour les heures d'arrivée", "Velocidad máxima para las horas de llegada"),
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to listOf("Routes worden niet sneller dan dit berekend: voor bestelbussen, vrachtwagens of met aanhanger. Uit gebruikt de normale snelheden", "Routen werden nicht schneller als damit berechnet: für Transporter, Lkw oder mit Anhänger. Aus nutzt die normalen Straßengeschwindigkeiten", "Les itinéraires sont chronométrés sans dépasser cette vitesse : pour les utilitaires, poids lourds ou avec remorque. Désactivé utilise les vitesses normales", "Las rutas se calculan sin superar esta velocidad: para furgonetas, camiones o con remolque. Desactivado usa las velocidades normales"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3671,5 +3701,12 @@ object L {
         "Same as the app" to listOf("Come nell'app", "Igual à app", "Jak w aplikacji"),
         "Speedometer style" to listOf("Stile del tachimetro", "Estilo do velocímetro", "Styl prędkościomierza"),
         "Speedometer style on the car screen" to listOf("Stile del tachimetro sullo schermo dell'auto", "Estilo do velocímetro no ecrã do carro", "Styl prędkościomierza na ekranie samochodu"),
+        "Group" to listOf("Gruppo", "Grupo", "Grupa"),
+        "New group" to listOf("Nuovo gruppo", "Novo grupo", "Nowa grupa"),
+        "No group" to listOf("Nessun gruppo", "Sem grupo", "Bez grupy"),
+        "1 place" to listOf("1 luogo", "1 local", "1 miejsce"),
+        "{0} places" to listOf("{0} luoghi", "{0} locais", "Miejsca: {0}"),
+        "Top speed for arrival times" to listOf("Velocità massima per gli orari di arrivo", "Velocidade máxima para as horas de chegada", "Prędkość maksymalna do czasu przyjazdu"),
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to listOf("I percorsi sono calcolati senza superare questa velocità: per furgoni, camion o con rimorchio. Spento usa le velocità normali", "As rotas são calculadas sem ultrapassar esta velocidade: para carrinhas, camiões ou com reboque. Desligado usa as velocidades normais", "Czas tras liczony jest nie szybciej niż ta prędkość: dla dostawczaków, ciężarówek lub z przyczepą. Wyłączone używa zwykłych prędkości"),
     )
 }

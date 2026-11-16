@@ -952,7 +952,7 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             val all = ArrayList<Triple<String, Place, Pair<Int, Int>>>()
             e.places.slot("home")?.let { all += Triple(L.t("Home"), it, R.drawable.ic_car_home to 0xFF4C8DFF.toInt()) }
             e.places.slot("work")?.let { all += Triple(L.t("Work"), it, R.drawable.ic_car_work to 0xFFF29900.toInt()) }
-            for (c in e.places.customs()) all += Triple(c.label, c.place, R.drawable.ic_car_star to 0xFF12A4B4.toInt())
+            for (c in e.places.customs()) all += Triple(if (c.group.isNotBlank()) "${c.label} · ${c.group}" else c.label, c.place, R.drawable.ic_car_star to 0xFF12A4B4.toInt())
             for (p in e.places.favourites()) all += Triple(p.name, p, R.drawable.ic_car_star to 0xFFF2C230.toInt())
             for (p in e.places.recents()) all += Triple(p.name, p, R.drawable.ic_car_history to 0xFF9CA4BF.toInt())
             // saved routes (planned on the phone with Save route): the same stops and the same way, with today's traffic

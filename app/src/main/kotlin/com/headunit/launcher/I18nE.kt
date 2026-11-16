@@ -1511,5 +1511,12 @@ object I18nE {
         "Same as the app" to listOf("Kot v aplikaciji"),
         "Speedometer style" to listOf("Slog merilnika hitrosti"),
         "Speedometer style on the car screen" to listOf("Slog merilnika hitrosti na zaslonu avtomobila"),
+        "Group" to listOf("Skupina"),
+        "New group" to listOf("Nova skupina"),
+        "No group" to listOf("Brez skupine"),
+        "1 place" to listOf("1 kraj"),
+        "{0} places" to listOf("Krajev: {0}"),
+        "Top speed for arrival times" to listOf("Najvišja hitrost za čas prihoda"),
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to listOf("Čas poti se računa največ s to hitrostjo: za kombije, tovornjake ali vleko. Izklop uporablja običajne hitrosti"),
     )
 }

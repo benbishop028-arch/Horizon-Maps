@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /** A place you saved yourself under your own name ("Mum's", "Gym"). */
-class LabeledPlace(val label: String, val place: Place)
+class LabeledPlace(val label: String, val place: Place, val group: String = "")
 
 /** Saved places (home, work, your own labelled places, favourites, recents), stored as JSON in [Prefs]. */
 class PlaceStore(private val prefs: Prefs) {
@@ -44,26 +44,39 @@ class PlaceStore(private val prefs: Prefs) {
         if (s.isBlank()) return emptyList()
         return try {
             val a = JSONArray(s)
-            (0 until a.length()).mapNotNull { i -> try { val o = a.getJSONObject(i); LabeledPlace(o.optString("l"), dec(o)) } catch (e: Exception) { null } }
+            (0 until a.length()).mapNotNull { i -> try { val o = a.getJSONObject(i); LabeledPlace(o.optString("l"), dec(o), o.optString("g")) } catch (e: Exception) { null } }
         } catch (e: Exception) { emptyList() }
     }
 
     private fun writeCustoms(list: List<LabeledPlace>) {
         val a = JSONArray()
-        list.forEach { a.put(enc(it.place).put("l", it.label)) }
+        list.forEach { a.put(enc(it.place).put("l", it.label).also { o -> if (it.group.isNotBlank()) o.put("g", it.group) }) }
         prefs.put(PreferenceKeys.PLACES_CUSTOM, a.toString())
     }
 
     /** Saves [p] as [label]; a place already saved there (or a label already used) is replaced. */
     fun addCustom(label: String, p: Place) {
         val l = label.trim().take(24).ifBlank { p.name.take(24) }
-        writeCustoms(customs().filterNot { it.label.equals(l, true) || same(it.place, p) } + LabeledPlace(l, p))
+        // (a place saved again keeps the group it was in)
+        val old = customs().firstOrNull { it.label.equals(l, true) || same(it.place, p) }
+        writeCustoms(customs().filterNot { it.label.equals(l, true) || same(it.place, p) } + LabeledPlace(l, p, old?.group.orEmpty()))
     }
 
     fun removeCustom(label: String) = writeCustoms(customs().filterNot { it.label == label })
     fun renameCustom(old: String, new: String) {
         val n = new.trim().take(24); if (n.isBlank()) return
-        writeCustoms(customs().map { if (it.label == old) LabeledPlace(n, it.place) else it })
+        writeCustoms(customs().map { if (it.label == old) LabeledPlace(n, it.place, it.group) else it })
+    }
+
+    /** The groups your places are filed in (GitHub #138), in the order they first appear. */
+    fun groups(): List<String> = customs().map { it.group }.filter { it.isNotBlank() }.distinct()
+    /** Puts the place [label] in [group] ("" for no group). */
+    fun setGroup(label: String, group: String) =
+        writeCustoms(customs().map { if (it.label == label) LabeledPlace(it.label, it.place, group.trim().take(24)) else it })
+    /** Renames a group for every place in it. */
+    fun renameGroup(old: String, new: String) {
+        val n = new.trim().take(24); if (n.isBlank()) return
+        writeCustoms(customs().map { if (it.group == old) LabeledPlace(it.label, it.place, n) else it })
     }
     fun moveCustom(label: String, by: Int) {
         val l = customs().toMutableList(); val i = l.indexOfFirst { it.label == label }; val j = i + by

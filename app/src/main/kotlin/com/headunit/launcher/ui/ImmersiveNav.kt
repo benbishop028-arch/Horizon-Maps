@@ -51,6 +51,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.Park
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.foundation.layout.offset
@@ -1370,12 +1374,20 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
     val rawRecent = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
     val rawRoutes = engine.prefs.s(PreferenceKeys.PLACES_ROUTES, "[]")
     val routes = remember(rawRoutes) { engine.savedRoutes() }
-    // (kind 0 = one of your own labelled places, 1 = a favourite, 2 = recent, 3 = a saved route; the label is the name shown)
-    val saved: List<Triple<com.headunit.launcher.Place, Int, String>> = remember(rawCustom, rawFav, rawRecent, routes) {
+    // (kind 0 = one of your own labelled places, 1 = a favourite, 2 = recent, 3 = a saved route, 4 = a group of your places; the
+    // label is the name shown). A group is one row that opens to its places (GitHub #138).
+    var openGroup by rememberSaveable { mutableStateOf("") }
+    val groupCount = remember(rawCustom) { engine.places.customs().filter { it.group.isNotBlank() }.groupingBy { it.group }.eachCount() }
+    val inOpen = remember(rawCustom, openGroup) { engine.places.customs().filter { it.group == openGroup && openGroup.isNotEmpty() }.map { it.label }.toSet() }
+    val saved: List<Triple<com.headunit.launcher.Place, Int, String>> = remember(rawCustom, rawFav, rawRecent, routes, openGroup) {
         val mine = engine.places.customs()
         val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
         val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
-        mine.map { Triple(it.place, 0, it.label) } + routes.map { Triple(it.dest, 3, it.name) } + favs.map { Triple(it, 1, it.name) } + recents.take(4).map { Triple(it, 2, it.name) }
+        val grouped = mine.map { it.group }.filter { it.isNotBlank() }.distinct().flatMap { g ->
+            val members = mine.filter { it.group == g }
+            listOf(Triple(members.first().place, 4, g)) + (if (g == openGroup) members.map { Triple(it.place, 0, it.label) } else emptyList())
+        }
+        grouped + mine.filter { it.group.isBlank() }.map { Triple(it.place, 0, it.label) } + routes.map { Triple(it.dest, 3, it.name) } + favs.map { Triple(it, 1, it.name) } + recents.take(4).map { Triple(it, 2, it.name) }
     }
     var showAll by rememberSaveable { mutableStateOf(false) }
     var adding by remember { mutableStateOf(false) }
@@ -1440,7 +1452,22 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             }
             if (saved.isEmpty()) Text(L.t("Places you save or drive to show up here"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 8.dp))
             LazyColumn(Modifier.heightIn(max = 250.dp)) {
-                items(if (showAll) saved else saved.take(3)) { (p, kind, label) ->
+                items(if (showAll || openGroup.isNotEmpty()) saved else saved.take(3)) { (p, kind, label) ->
+                    if (kind == 4) {
+                        val open = label == openGroup
+                        Row(Modifier.fillMaxWidth().clickable { openGroup = if (open) "" else label }.padding(horizontal = 16.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(44.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
+                                Icon(if (open) Icons.Rounded.FolderOpen else Icons.Rounded.Folder, null, tint = c.accent, modifier = Modifier.size(22.dp))
+                            }
+                            Column(Modifier.padding(start = 14.dp).weight(1f)) {
+                                Text(label, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                val n = groupCount[label] ?: 0
+                                Text(if (n == 1) L.t("1 place") else L.t("{0} places", n), color = c.sub, fontSize = 13.sp, maxLines = 1)
+                            }
+                            Icon(if (open) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = c.sub, modifier = Modifier.size(24.dp))
+                        }
+                        return@items
+                    }
                     val fav = kind != 2
                     val sr = if (kind == 3) routes.firstOrNull { it.dest === p && it.name == label } else null
                     // swipe a place sideways to take it off the list (a favourite is unstarred, a recent one forgotten, your own place removed)
@@ -1463,7 +1490,8 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
                             ) { change, amount -> change.consume(); dx += amount }
                         }
                         .graphicsLayer { translationX = shown; alpha = 1f - (kotlin.math.abs(shown) / w.toFloat()).coerceIn(0f, 0.7f) }
-                        .clickable { if (sr != null) engine.startSavedRoute(sr) else engine.startRoute(p) }.padding(horizontal = 16.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+                        .clickable { if (sr != null) engine.startSavedRoute(sr) else engine.startRoute(p) }
+                        .padding(start = if (kind == 0 && label in inOpen) 34.dp else 16.dp, end = 16.dp, top = 9.dp, bottom = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(44.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
                             if (kind == 3) Icon(Icons.Rounded.Route, null, tint = c.accent, modifier = Modifier.size(22.dp))
                             else Icon(if (fav) Icons.Rounded.Star else Icons.Rounded.History, null, tint = if (fav) Warn else c.sub, modifier = Modifier.size(22.dp))
