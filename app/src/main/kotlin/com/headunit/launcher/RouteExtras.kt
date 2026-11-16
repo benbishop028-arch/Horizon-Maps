@@ -13,6 +13,55 @@ class RoutePoi(val kind: String, val name: String, val pos: LL)
 /** An average speed check from OpenStreetMap: where it starts and ends, and its limit (m/s, or null when not mapped). */
 class AvgDef(val id: Long, val name: String, val starts: List<LL>, val ends: List<LL>, val limit: Double?)
 
+/**
+ * Average speed checks found before, kept on the device (files/avgzones.json), so a road driven before shows its check straight
+ * away, even with no signal or a busy lookup server (GitHub #135). Refreshed whenever a lookup of the same area succeeds.
+ */
+object AvgCache {
+    private var all: List<AvgDef> = emptyList()
+    @Volatile private var loaded = false
+    private fun file(ctx: android.content.Context) = java.io.File(ctx.filesDir, "avgzones.json")
+
+    @Synchronized fun load(ctx: android.content.Context) {
+        if (loaded) return
+        loaded = true
+        all = try {
+            val a = org.json.JSONArray(file(ctx).readText())
+            (0 until a.length()).map { i ->
+                val o = a.getJSONObject(i)
+                fun pts(k: String) = o.getJSONArray(k).let { p -> (0 until p.length()).map { j -> p.getJSONArray(j).let { LL(it.getDouble(0), it.getDouble(1)) } } }
+                AvgDef(o.getLong("id"), o.optString("name"), pts("s"), pts("e"), if (o.has("lim")) o.getDouble("lim") else null)
+            }
+        } catch (e: Exception) { emptyList() }
+    }
+
+    /** The ones round this stretch of road (with a few km to spare). */
+    @Synchronized fun near(line: List<LL>): List<AvgDef> {
+        if (line.isEmpty() || all.isEmpty()) return emptyList()
+        var minLat = 90.0; var maxLat = -90.0; var minLon = 180.0; var maxLon = -180.0
+        for (p in line) { minLat = min(minLat, p.lat); maxLat = max(maxLat, p.lat); minLon = min(minLon, p.lon); maxLon = max(maxLon, p.lon) }
+        return all.filter { d -> (d.starts + d.ends).any { it.lat in (minLat - 0.03)..(maxLat + 0.03) && it.lon in (minLon - 0.045)..(maxLon + 0.045) } }
+    }
+
+    /** Stores what a lookup of [line]'s area found: new ones added, changed ones replaced, ones gone from the map dropped. */
+    @Synchronized fun put(ctx: android.content.Context, line: List<LL>, found: List<AvgDef>) {
+        if (line.isEmpty()) return
+        var minLat = 90.0; var maxLat = -90.0; var minLon = 180.0; var maxLon = -180.0
+        for (p in line) { minLat = min(minLat, p.lat); maxLat = max(maxLat, p.lat); minLon = min(minLon, p.lon); maxLon = max(maxLon, p.lon) }
+        fun inside(d: AvgDef) = (d.starts + d.ends).all { it.lat in (minLat - 0.01)..(maxLat + 0.01) && it.lon in (minLon - 0.015)..(maxLon + 0.015) }
+        val ids = found.map { it.id }.toSet()
+        all = (all.filter { it.id !in ids && !inside(it) } + found).takeLast(500)
+        try {
+            val a = org.json.JSONArray()
+            for (d in all) {
+                fun arr(p: List<LL>) = org.json.JSONArray().also { j -> p.forEach { j.put(org.json.JSONArray().put(it.lat).put(it.lon)) } }
+                a.put(JSONObject().put("id", d.id).put("name", d.name).put("s", arr(d.starts)).put("e", arr(d.ends)).also { o -> d.limit?.let { o.put("lim", it) } })
+            }
+            val f = file(ctx); val tmp = java.io.File(f.path + ".tmp"); tmp.writeText(a.toString()); tmp.renameTo(f)
+        } catch (e: Exception) { }
+    }
+}
+
 /** The same things placed on a particular route, by distance from the route start (metres). */
 class PoiOnRoute(val poi: RoutePoi, val off: Double, val side: Double)
 class AvgOnRoute(val def: AvgDef, val start: Double, val end: Double)
@@ -100,13 +149,10 @@ object RouteExtras {
             "node(around:90,$pl)[\"amenity\"=\"school\"];way(around:90,$pl)[\"amenity\"=\"school\"];)->.a;.a out center tags 300;" +
             "node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"]->.c;.c out body 400;" +
             "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;" +
-            "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;" +
-            "rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;"
-        // (the big search can fail on a busy server: then the average speed checks are asked for on their own, a much lighter
-        // request, so a check isn't missed just because the bumps and schools couldn't be fetched)
-        val els = try { Overpass.query(q, 12000, 40000, 3) } catch (e: Exception) {
-            Overpass.query("[out:json][timeout:20];rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;", 10000, 25000, 3)
-        }
+            "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;"
+        // (average speed checks are no longer part of this big request: they have their own, see avgZones, so a slow or failed
+        // search for bumps and schools can't take them down with it, GitHub #135)
+        val els = Overpass.query(q, 12000, 40000, 3)
         val pois = ArrayList<RoutePoi>()
         // (crossings come from their own set, so they never crowd out the bumps and schools)
         val nodes = HashMap<Long, LL>()
@@ -129,6 +175,29 @@ object RouteExtras {
                 }
             }
         }
+        return pois to parseAvgs(rels, nodes)
+    }
+
+    /**
+     * The average speed checks round a stretch of route, in a small request of their own with a generous wait (busy Overpass servers
+     * took 26 to 34 seconds for it, longer than the old 25-second limit), GitHub #135.
+     */
+    fun avgZones(line: List<LL>): List<AvgDef> {
+        if (line.size < 2) return emptyList()
+        var minLat = 90.0; var maxLat = -90.0; var minLon = 180.0; var maxLon = -180.0
+        for (p in line) { minLat = min(minLat, p.lat); maxLat = max(maxLat, p.lat); minLon = min(minLon, p.lon); maxLon = max(maxLon, p.lon) }
+        val bbox = String.format(java.util.Locale.US, "%.5f,%.5f,%.5f,%.5f", minLat - 0.01, minLon - 0.015, maxLat + 0.01, maxLon + 0.015)
+        val els = Overpass.query("[out:json][timeout:40];rel($bbox)[\"enforcement\"=\"average_speed\"]->.r;.r out body;node(r.r);out skel qt;", 10000, 45000, 3)
+        val nodes = HashMap<Long, LL>(); val rels = ArrayList<JSONObject>()
+        for (i in 0 until els.length()) {
+            val e = els.getJSONObject(i)
+            if (e.optString("type") == "relation") rels += e
+            else if (e.optString("type") == "node" && e.has("lat")) nodes[e.optLong("id")] = LL(e.getDouble("lat"), e.getDouble("lon"))
+        }
+        return parseAvgs(rels, nodes)
+    }
+
+    private fun parseAvgs(rels: List<JSONObject>, nodes: Map<Long, LL>): List<AvgDef> {
         val avgs = ArrayList<AvgDef>()
         for (rel in rels) {
             val ms = rel.optJSONArray("members") ?: continue
@@ -147,7 +216,7 @@ object RouteExtras {
             val lim = t.optString("maxspeed").takeIf { it.isNotBlank() }?.let { Overpass.parseSpeed(it, Overpass.countryAt(starts.first())) }
             avgs += AvgDef(rel.optLong("id"), t.optString("name").ifBlank { "Average speed check" }, starts, ends, lim)
         }
-        return pois to avgs
+        return avgs
     }
 
     /** Places an average speed check on the route: it runs from its first start point to its last end point. */

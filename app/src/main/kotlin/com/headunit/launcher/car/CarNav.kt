@@ -152,8 +152,32 @@ class CarNavSession : Session() {
         "day" -> false
         "night" -> true
         "phone" -> phoneDark()
+        // sunrise and sunset where you are: for cars that go dark whenever the headlights are on, even by day (GitHub #140)
+        "sun" -> sunDark() ?: carContext.isDarkMode
         else -> carContext.isDarkMode
     }
+
+    private fun sunDark(): Boolean? {
+        val p = Prefs(carContext.applicationContext)
+        val pos = holder.engine?.fix?.pos
+        val lat = pos?.lat ?: p.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull() ?: return null
+        val lon = pos?.lon ?: p.s(PreferenceKeys.LASTLON, "").toDoubleOrNull() ?: return null
+        return !com.headunit.launcher.Sun.isDay(lat, lon, System.currentTimeMillis())
+    }
+
+    /** With Sun times chosen, the car screen is checked once a minute so it changes at sunrise and sunset. */
+    private val sunTick = object : Runnable {
+        var last: Boolean? = null
+        override fun run() {
+            try {
+                if (Prefs(carContext.applicationContext).s(PreferenceKeys.CARTHEME, "car") == "sun") {
+                    val d = carDark(); if (d != last) { last = d; applyTheme() }
+                } else last = null
+            } catch (e: Exception) { }
+            sunHandler.postDelayed(this, 60_000L)
+        }
+    }
+    private val sunHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     /** The phone's own light / dark mode (the system setting, not the car's), GitHub #69. */
     private fun phoneDark(): Boolean = try {
@@ -191,6 +215,7 @@ class CarNavSession : Session() {
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 screen.stop()
+                sunHandler.removeCallbacks(sunTick)
                 try { carContext.applicationContext.unregisterComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
                 pendingNavWaitToken++
                 pendingNavWait?.interrupt()
@@ -205,6 +230,7 @@ class CarNavSession : Session() {
             }
         })
         try { carContext.applicationContext.registerComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
+        sunHandler.postDelayed(sunTick, 60_000L)
         pendingNav = intent
         return screen
     }
@@ -1243,9 +1269,9 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             .setOnClickListener { if (e != null) e.toggleNorthUp() else prefs.put(PreferenceKeys.NORTH_UP_CAR, !nu); invalidate() }.build()
         val th = prefs.s(PreferenceKeys.CARTHEME, "car")
         rows += Row.Builder().setTitle(L.t("Day and night"))
-            .addText(L.t(when (th) { "day" -> "Always day"; "night" -> "Always night"; "phone" -> "Same as your phone"; else -> "Follows the car" }))
+            .addText(L.t(when (th) { "day" -> "Always day"; "night" -> "Always night"; "phone" -> "Same as your phone"; "sun" -> "Sun times"; else -> "Follows the car" }))
             .setOnClickListener {
-                prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "phone"; "phone" -> "day"; "day" -> "night"; else -> "car" })
+                prefs.put(PreferenceKeys.CARTHEME, when (th) { "car" -> "sun"; "sun" -> "phone"; "phone" -> "day"; "day" -> "night"; else -> "car" })
                 onTheme(); invalidate()
             }.build()
         val reroute: (Boolean) -> Unit = { holder.engine?.rerouteForSettings() }

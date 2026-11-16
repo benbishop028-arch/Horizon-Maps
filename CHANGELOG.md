@@ -5,11 +5,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Sun times on the car screen: Day and night on Android Auto can now follow sunrise and sunset, for cars that go dark whenever the headlights are on, even in daylight (thanks to SonicBjork and nickblears-rgb)
 - Swedish: Horizon Nav now speaks Swedish (Svenska): directions, screens, Android Auto and voice commands. Pick it in Settings › Sound & voice › Language, or it follows a phone set to Swedish
 - Compact speedometer on Android Auto: an optional small dark pill with the limit sign and your speed side by side (Settings › Android Auto › Speedometer style on the car screen, or Speedometer style in the car's own settings). It's small enough to sit top right even on a short car screen (thanks to yurividal)
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Average speed checks: looked up on their own with a longer wait for busy servers, tried again sooner, and kept on your device, so a road you have driven before shows its check straight away, even with no signal (thanks to magnazan)
 - Route choice on a phone held sideways: the route panel is now a column down the left with the routes shown beside it, instead of covering nearly the whole map
 - Fly over route: the route panel steps aside while the flight plays, so you can see it, with a small Stop button to end it
 - Android Auto follows your settings straight away: the map theme and your own colours, map detail, your arrow or car (its kind, model, colour and size), the road name and camera sizes, the 3D extras and the light now change on the car screen as you change them, instead of after reconnecting (thanks to yurividal)
@@ -20,6 +22,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Map dark all day on a phone: with Day and night on Auto, a phone set to dark theme kept the map in night colours in daylight. On phones Auto now follows sunrise and sunset
+- Rain on the car screen: a patch between the turn card and the trip card stayed free of rain and snow. The weather now covers the whole map
 - Black map after Settings or the demo: now and then only the top part of the map showed and the rest stayed black until the app was restarted. The map now always fills the screen again
 - Speed limit sign off the edge: with the speed set to the right on a left-hand-drive layout, the limit sign could sit off the edge of the screen. It now always sits on the side facing the middle
 - Headlight beam: the beam now shines from the front of your arrow, rather than starting underneath it

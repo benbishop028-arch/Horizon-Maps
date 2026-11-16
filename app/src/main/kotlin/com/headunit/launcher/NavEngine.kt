@@ -249,6 +249,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var hzBusy = false
     private var hzRetryAt = 0L
     private var hzLastAt = 0L
+    // average speed checks: looked up on their own (see RouteExtras.avgZones), with a shorter wait before trying again
+    private var avgWinEnd = -1.0
+    private var avgWinRoute: Route? = null
+    private var avgBusy = false
+    private var avgRetryAt = 0L
+    private var avgLastAt = 0L
+    private var avgCacheFor: Route? = null
     private var placed: Placed? = null
     private var placing = false
     private var placedSig = 0
@@ -2364,7 +2371,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         clearLiveAlts(); liveSaid.clear(); radar = emptyList(); radarSig = 0; bendsFor = null; bends = emptyList()
         flushRoads()
         sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; nextLimit = null; routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
-        rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0
+        rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0; avgWinRoute = null; avgWinEnd = -1.0; avgCacheFor = null
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
         jamSig = 0; map.showJams(emptyList())
         sharpFor = null; sharpBends = emptyList(); map.setBends(emptyList())
@@ -5648,12 +5655,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val line = RouteExtras.line(r, progress - 300.0, to, 250.0, 90)
             scope.launch {
                 try {
-                    val (p, a) = withContext(Dispatchers.IO) { RouteExtras.hazards(line) }
+                    val (p, _) = withContext(Dispatchers.IO) { RouteExtras.hazards(line) }
                     rawHz = (rawHz + p).distinctBy { "${it.kind}${Math.round(it.pos.lat * 1e5)},${Math.round(it.pos.lon * 1e5)}" }.takeLast(1500)
-                    rawAvg = (rawAvg + a).distinctBy { it.id }.takeLast(60)
                     hzWinRoute = r; hzWinEnd = to
                 } catch (e: Exception) { hzRetryAt = System.currentTimeMillis() + 60_000L }
                 finally { hzBusy = false }
+            }
+        }
+        // average speed checks: first the ones kept from earlier drives along this route (shown straight away, signal or not), then
+        // a lookup of the next 30 km of their own, tried again after 20 seconds if the server is busy
+        if (prefs.b(PreferenceKeys.AVGZONES, true)) {
+            if (avgCacheFor !== r) {
+                avgCacheFor = r
+                val whole = RouteExtras.line(r, progress, progress + 400_000.0, 2000.0, 220)
+                scope.launch {
+                    val kept = withContext(Dispatchers.IO) { AvgCache.load(ctx); AvgCache.near(whole) }
+                    if (kept.isNotEmpty()) rawAvg = (rawAvg + kept).distinctBy { it.id }.takeLast(120)
+                }
+            }
+            if (!avgBusy && (progress + 8000.0 > avgWinEnd || (avgWinRoute !== r && now - avgLastAt > 45_000L)) && now > avgRetryAt && online()) {
+                avgBusy = true; avgLastAt = now
+                val to = progress + 30_000.0
+                val line = RouteExtras.line(r, progress - 300.0, to, 250.0, 90)
+                scope.launch {
+                    try {
+                        val a = withContext(Dispatchers.IO) { RouteExtras.avgZones(line).also { AvgCache.put(ctx, line, it) } }
+                        rawAvg = (rawAvg + a).distinctBy { it.id }.takeLast(120)
+                        avgWinRoute = r; avgWinEnd = to
+                    } catch (e: Exception) { avgRetryAt = System.currentTimeMillis() + 20_000L }
+                    finally { avgBusy = false }
+                }
             }
         }
         // place everything on this route (in the background) whenever the route or what was found changes

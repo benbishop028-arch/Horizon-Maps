@@ -104,9 +104,11 @@ internal object Sky {
         val isSnow = c in 71..77 || c == 85 || c == 86
         val isRain = c in 51..67 || c in 80..82 || c in 95..99
         val heavy = c == 63 || c == 65 || c == 81 || c == 82 || c >= 95 || c == 75 || c == 86
-        if (isRain) st.setRain(rain { density(if (heavy) 0.9 else 0.5); intensity(if (heavy) 1.0 else 0.6); opacity(if (heavy) 0.55 else 0.4); vignette(if (heavy) 0.4 else 0.2) })
+        // (centre thinning off: Mapbox thins the rain and snow round the middle of the map, which on the car screen, with the map's
+        // middle moved aside for the cards, left a dry patch between the turn card and the trip card, GitHub #139)
+        if (isRain) st.setRain(rain { density(if (heavy) 0.9 else 0.5); intensity(if (heavy) 1.0 else 0.6); opacity(if (heavy) 0.55 else 0.4); vignette(if (heavy) 0.4 else 0.2); centerThinning(0.0) })
         else try { st.removeRain() } catch (e: Throwable) { }
-        if (isSnow) st.setSnow(snow { density(if (heavy) 0.9 else 0.55); intensity(if (heavy) 1.0 else 0.7); opacity(0.8); vignette(0.2) })
+        if (isSnow) st.setSnow(snow { density(if (heavy) 0.9 else 0.55); intensity(if (heavy) 1.0 else 0.7); opacity(0.8); vignette(0.2); centerThinning(0.0) })
         else try { st.removeSnow() } catch (e: Throwable) { }
         true
     } catch (e: Throwable) { android.util.Log.w("MapExtras", "weather: ${e.message}"); false }
