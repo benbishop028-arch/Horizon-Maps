@@ -411,28 +411,40 @@ private fun ArrivalStat(value: String, label: String) {
 
 /** Shown for a few seconds after arriving, with how the trip went and a button to save the place. */
 @Composable
-internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier = Modifier) {
+internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier = Modifier, compact: Boolean = false) {
     val c = LocalVw.current
     val imp = engine.imperial
     val k = if (imp) 2.23694 else 3.6
+    // on the car screen taps come through Android Auto (see CarTaps), not as touches on the card
+    val car = engine.isCar
+    // ([compact]: a short car screen. The tick sits beside "You've arrived" and the gaps are tighter, so the card is lower)
     Column(
-        modifier.widthIn(min = 380.dp, max = 460.dp).floating(28.dp).padding(22.dp),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp),
+        modifier.widthIn(min = 380.dp, max = 460.dp).floating(28.dp).padding(if (compact) 14.dp else 22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp),
     ) {
-        Box(Modifier.size(64.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Good.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
-            Icon(Icons.Rounded.Check, null, tint = Good, modifier = Modifier.size(38.dp))
+        if (compact) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.size(30.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Good.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Check, null, tint = Good, modifier = Modifier.size(20.dp))
+            }
+            Text(L.t("You've arrived"), color = c.sub, fontSize = 14.sp)
+        } else {
+            Box(Modifier.size(64.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Good.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Check, null, tint = Good, modifier = Modifier.size(38.dp))
+            }
+            Text(L.t("You've arrived"), color = c.sub, fontSize = 14.sp)
         }
-        Text(L.t("You've arrived"), color = c.sub, fontSize = 14.sp)
         Text(a.name, color = c.text, fontSize = 24.sp, fontWeight = FontWeight.Bold, maxLines = 2, overflow = TextOverflow.Ellipsis)
         if (a.side.isNotEmpty()) Text(L.t(if (a.side == "left") "On the left" else "On the right"), color = c.accent, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        Row(Modifier.fillMaxWidth().padding(vertical = if (compact) 0.dp else 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
             ArrivalStat(Geo.fmtDist(a.dist, imp), "distance")
             ArrivalStat(Geo.fmtDur(a.secs), "time")
             ArrivalStat("${Math.round(a.avgMs * k)} ${if (imp) "mph" else "km/h"}", "average")
         }
         engine.arrivalParking?.let { pk ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.tile).clickable { engine.dismissArrival(); engine.startRoute(pk.place) }.padding(horizontal = 14.dp, vertical = 10.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.tile).clickable { engine.dismissArrival(); engine.startRoute(pk.place) }
+                    .then(if (car) Modifier.carTap("arr-park") { engine.dismissArrival(); engine.startRoute(pk.place) } else Modifier)
+                    .padding(horizontal = 14.dp, vertical = if (compact) 6.dp else 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Rounded.LocalParking, null, tint = Color(0xFF4C8DFF), modifier = Modifier.size(26.dp))
@@ -447,11 +459,13 @@ internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier =
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             a.place?.let { p ->
                 var fav by remember { mutableStateOf(engine.places.isFavourite(p)) }
-                Pill(if (fav) L.t("Saved") else L.t("Save place"), fav, { fav = engine.places.toggleFavourite(p) })
+                Pill(if (fav) L.t("Saved") else L.t("Save place"), fav, { fav = engine.places.toggleFavourite(p) },
+                    if (car) Modifier.carTap("arr-save") { fav = engine.places.toggleFavourite(p) } else Modifier)
             }
             // the way back to where this trip started (home, if it started there)
-            if (engine.tripFrom != null && engine.prefs.b(PreferenceKeys.ROUTEBACK, true)) Pill(L.t("Route back"), false, { engine.routeBack() })
-            Pill(L.t("Done"), true, { engine.dismissArrival() })
+            if (engine.tripFrom != null && engine.prefs.b(PreferenceKeys.ROUTEBACK, true)) Pill(L.t("Route back"), false, { engine.routeBack() },
+                if (car) Modifier.carTap("arr-back") { engine.routeBack() } else Modifier)
+            Pill(L.t("Done"), true, { engine.dismissArrival() }, if (car) Modifier.carTap("arr-done") { engine.dismissArrival() } else Modifier)
         }
     }
 }

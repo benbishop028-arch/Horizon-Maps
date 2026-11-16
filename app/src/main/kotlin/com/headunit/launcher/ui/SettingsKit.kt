@@ -125,13 +125,32 @@ internal fun Segmented(options: List<Pair<String, String>>, value: String, onPic
 
 /** A choice between a few options. Short lists sit on the right; longer ones go under the title. */
 @Composable
-internal fun SChoice(title: String, options: List<Pair<String, String>>, value: String, sub: String? = null, onPick: (String) -> Unit) {
+internal fun SChoice(title: String, options: List<Pair<String, String>>, value: String, sub: String? = null, wrap: Boolean = false, onPick: (String) -> Unit) {
     val narrow = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 720
     val long = options.size > 3 || options.sumOf { it.second.length } > (if (narrow) 12 else 26)
     if (!long) SItem(title, sub) { Segmented(options, value, onPick) }
     else Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         SItem(title, sub)
-        Segmented(options, value, onPick)
+        if (wrap) WrappedChoices(options, value, onPick) else Segmented(options, value, onPick)
+    }
+}
+
+/**
+ * The choices as separate pills that wrap onto more lines ([SChoice] with wrap): several long names in one scrolling strip ran
+ * off the side of a phone with nothing to say there were more (Top right, on Speed position on the car screen, went unseen).
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun WrappedChoices(options: List<Pair<String, String>>, value: String, onPick: (String) -> Unit) {
+    val c = LocalVw.current
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        for ((k, label) in options) {
+            val sel = k == value
+            Box(Modifier.clip(RoundedCornerShape(50)).background(if (sel) c.accent else c.tile).clickable { onPick(k) }.padding(horizontal = 14.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+                Text(label, color = if (sel) (if (c.accent.luminance() > 0.6f) Color(0xFF10131C) else Color.White) else c.text, fontSize = 14.sp,
+                    fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Medium, maxLines = 1)
+            }
+        }
     }
 }
 

@@ -156,7 +156,9 @@ internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color
 /** Which trip card buttons are switched on (all of them unless changed). */
 internal fun carTripButtonsOn(prefs: com.headunit.launcher.Prefs): Set<String> {
     val raw = prefs.s(PreferenceKeys.CAR_TRIP_BTNS, "*")
-    return if (raw == "*") carTripButtons.map { it.first }.toSet() else raw.split(',').filter { it.isNotBlank() }.toSet()
+    // (unless picked otherwise, just the button that ends the route: Overview and Other routes are among Android Auto's own round
+    // buttons in the top corner while navigating, which fold away, so the trip card stays small)
+    return if (raw == "*") setOf("end") else raw.split(',').filter { it.isNotBlank() }.toSet()
 }
 
 /** Settings > Android Auto: which buttons the trip card has, and how big they are (a narrower card leaves more of the map clear). */

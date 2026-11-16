@@ -882,17 +882,27 @@ internal fun ImmSpeed(engine: NavEngine) {
     ) { SpeedWithNext(engine) }
 }
 
+/**
+ * True where the speed sits at the top of the screen (Android Auto's Top right): what goes with it then hangs below it instead
+ * of standing on top, the next limit under the speedometer and the limit sign on the ring's bottom corner, so the speedometer
+ * itself stays right up in the corner.
+ */
+internal val LocalSpeedAtTop = androidx.compose.runtime.staticCompositionLocalOf { false }
+
 /** The speed, with the next speed limit on the route (when it changes within about half a mile) small above it. */
 @Composable
 private fun SpeedWithNext(engine: NavEngine) {
+    val atTop = LocalSpeedAtTop.current
     val nx = engine.nextLimit
-    if (nx == null || !engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true)) { SpeedBlock(engine); return }
+    // (the compact pill on the car carries the next limit inside it: a second chip stacked on the pill looked like two odd bits)
+    if (nx == null || !engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true) || carCompactSpeed(engine)) { SpeedBlock(engine); return }
     val c = LocalVw.current
     val k = if (engine.imperial) 2.23694 else 3.6
     // with the speedometer ring, the limit sign pokes up above the ring's top corner: the gap leaves room for it, so the two
     // don't overlap (on the car screen they did)
     val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true) && !carCompactSpeed(engine)
     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign) 26.dp else 6.dp)) {
+        if (atTop) SpeedBlock(engine)
         Row(
             Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -909,7 +919,7 @@ private fun SpeedWithNext(engine: NavEngine) {
             }
             Text(L.t("in {0}", Geo.fmtDist(nx.second, engine.imperial)), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
-        SpeedBlock(engine)
+        if (!atTop) SpeedBlock(engine)
     }
 }
 
@@ -933,6 +943,23 @@ private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
         if (show) Column(Modifier.widthIn(min = 48.dp).padding(horizontal = if (lim != null) 6.dp else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
             Text(if (engine.imperial) "mph" else "km/h", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        }
+        // the next limit on the route, in the same pill after a thin line: a smaller sign with how far it is under it
+        val nx = engine.nextLimit
+        if (nx != null && engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true)) {
+            Box(Modifier.padding(start = if (lim != null || show) 4.dp else 0.dp, end = 8.dp).width(1.dp).height(34.dp).background(Color.White.copy(alpha = 0.22f)))
+            Column(Modifier.padding(end = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                val num = "${(Math.round(nx.first * k / 5.0) * 5)}"
+                val numSize = with(androidx.compose.ui.platform.LocalDensity.current) { 12.dp.toSp() }
+                if (engine.limitSignStyle != "round") Box(Modifier.size(width = 26.dp, height = 30.dp).clip(RoundedCornerShape(4.dp)).background(Color.White)
+                    .border(2.dp, Color(0xFF151515), RoundedCornerShape(4.dp)), contentAlignment = Alignment.Center) {
+                    Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
+                }
+                else Box(Modifier.size(30.dp).clip(CircleShape).background(Color.White).border(3.5.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
+                    Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
+                }
+                Text(Geo.fmtDist(nx.second, engine.imperial), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+            }
         }
     }
 }
@@ -1025,9 +1052,11 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
             }
         })
         val signRight = onLeftHalf
+        // (on the ring's top corner; its bottom corner where the speed is at the top of the screen)
+        val atTop = LocalSpeedAtTop.current
         if (lim != null) Box(
-            Modifier.align(if (!show) Alignment.Center else if (signRight) Alignment.TopEnd else Alignment.TopStart)
-                .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (show) (-18).dp else 0.dp)
+            Modifier.align(if (!show) Alignment.Center else if (atTop) (if (signRight) Alignment.BottomEnd else Alignment.BottomStart) else if (signRight) Alignment.TopEnd else Alignment.TopStart)
+                .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (!show) 0.dp else if (atTop) 18.dp else (-18).dp)
         ) {
             // (the upright North American board is narrower than the round sign, so it gets a little more height to stay readable)
             SpeedLimitSign(engine, if (!show) 70.dp else if (engine.limitSignStyle != "round") 58.dp else 50.dp)
@@ -1259,11 +1288,13 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
     // the drive times: the engine throttles this itself (online only, every 10 minutes or after moving 3 km), so a minute's tick is cheap
     LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); delay(60_000) } }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"]) {
+        // (each can be left off: Settings › Places & trips)
+        val showHome = engine.prefs.b(PreferenceKeys.HOME_BTN, true); val showWork = engine.prefs.b(PreferenceKeys.WORK_BTN, true)
+        if (showHome || showWork) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (showHome) PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"]) {
                 if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast(L.t("Search for your home address"), 3500); focusSearch() }
             }
-            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"]) {
+            if (showWork) PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"]) {
                 if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast(L.t("Search for your work address"), 3500); focusSearch() }
             }
         }
@@ -1565,14 +1596,17 @@ private fun ItineraryCard(engine: NavEngine) {
 
 /** The routes box (Other routes): your route first, then each other way, with how it compares. */
 @Composable
-private fun RoutesBox(engine: NavEngine) {
+internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier) {
     val c = LocalVw.current
     val eta = engine.eta
     val alts = engine.liveAlts
-    Column(Modifier.width(340.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 8.dp)) {
+    // on the car screen taps come through Android Auto (see CarTaps), not as touches on the box
+    val car = engine.isCar
+    Column(modifier.width(340.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 8.dp)) {
         Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(L.t("Routes"), color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).pressClick { engine.closeAlternatives() }, contentAlignment = Alignment.Center) {
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(22.dp)).pressClick { engine.closeAlternatives() }
+                .then(if (car) Modifier.carTap("alt-close") { engine.closeAlternatives() } else Modifier), contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(22.dp))
             }
         }
@@ -1581,6 +1615,7 @@ private fun RoutesBox(engine: NavEngine) {
             title = Geo.fmtDur(eta.secs), titleCol = c.text,
             line2 = L.t("Arrive {0} · {1}", eta.arrive, Geo.fmtDist(eta.dist, engine.imperial)),
             line3 = L.t("Your route") + (if (eta.delayMin >= 2) L.t(" · {0} min in traffic", eta.delayMin) else ""), selected = true,
+            tap = if (car) "alt-mine" else null,
         ) { engine.closeAlternatives() }
         for ((i, a) in alts.withIndex()) {
             val secs = (eta?.secs ?: 0.0) + a.diffMin * 60.0
@@ -1598,6 +1633,7 @@ private fun RoutesBox(engine: NavEngine) {
                 titleCol = if (a.diffMin < 0) Good else if (a.diffMin > 0) Warn else c.text,
                 line2 = L.t("Arrive {0} · {1}", arrive, Geo.fmtDist(dist, engine.imperial)),
                 line3 = (if (via != null) L.t("Via {0} · ", via) else "") + traffic, selected = false,
+                tap = if (car) "alt-$i" else null,
             ) { engine.switchToAlt(i) }
         }
         if (alts.isEmpty()) Text(
@@ -1609,10 +1645,10 @@ private fun RoutesBox(engine: NavEngine) {
 }
 
 @Composable
-private fun RouteRow(title: String, titleCol: Color, line2: String, line3: String, selected: Boolean, onClick: () -> Unit) {
+private fun RouteRow(title: String, titleCol: Color, line2: String, line3: String, selected: Boolean, tap: String? = null, onClick: () -> Unit) {
     val c = LocalVw.current
     Row(
-        Modifier.fillMaxWidth().pressClick(onClick).padding(horizontal = 18.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().pressClick(onClick).then(if (tap != null) Modifier.carTap(tap, onClick) else Modifier).padding(horizontal = 18.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(4.dp).height(46.dp).clip(RoundedCornerShape(2.dp)).background(if (selected) c.accent else c.line))
