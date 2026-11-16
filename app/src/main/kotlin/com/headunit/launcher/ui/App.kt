@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.ui.layout.layout
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -293,11 +294,13 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                         SettingsScreen(prefs, engine, onClose = { settings = false })
                     }
                 } else {
-                    MapHost(map, Modifier.fillMaxSize())
+                    // (in full screen the map reaches right up round the camera, while the cards and buttons stay clear of it, GitHub)
+                    val bleed = prefs.b(PreferenceKeys.FULLSCREEN, true)
+                    MapHost(map, Modifier.fillMaxSize().bleedCutout(bleed))
                     // at night in 3D, stars and the real moon phase in the sky above the horizon
                     if (c.dark && engine.tilt3d && !sat && prefs.b(PreferenceKeys.NIGHTSKY, true)) NightSky(Modifier.fillMaxWidth().fillMaxHeight(0.2f))
                     // in a tunnel (no GPS) the map is dimmed a little, as the car's own screen would be
-                    if (engine.deadReckoning && !c.dark && prefs.b(PreferenceKeys.TUNNELDIM, true)) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)))
+                    if (engine.deadReckoning && !c.dark && prefs.b(PreferenceKeys.TUNNELDIM, true)) Box(Modifier.fillMaxSize().bleedCutout(bleed).background(Color.Black.copy(alpha = 0.35f)))
                     val wxCode = engine.weather?.code
                     // rain, snow or fog over the map to match the real weather where you are
                     // (the map draws rain and snow itself now; the screen overlay is kept for fog, and for when the map can't)
@@ -313,7 +316,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     // coming back from the settings, the map fades up from the background instead of flashing in
                     val back = remember { androidx.compose.animation.core.Animatable(1f) }
                     LaunchedEffect(Unit) { back.animateTo(0f, androidx.compose.animation.core.tween(320)) }
-                    if (back.value > 0.01f) Box(Modifier.fillMaxSize().graphicsLayer { alpha = back.value }.background(c.bg))
+                    if (back.value > 0.01f) Box(Modifier.fillMaxSize().bleedCutout(prefs.b(PreferenceKeys.FULLSCREEN, true)).graphicsLayer { alpha = back.value }.background(c.bg))
                 }
                 // once, after updating from the old map: what the Mapbox key adds, and where to paste it
                 // ...and any time the map can't show for want of a working key (missing, half pasted, or turned down by Mapbox): the blank
@@ -469,9 +472,33 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
  */
 @Composable
 internal fun SafeArea(prefs: Prefs, content: @Composable () -> Unit) {
+    // (the cards, buttons and screens stay clear of the camera; the map itself reaches round it in full screen: see bleedCutout)
     val full = prefs.b(PreferenceKeys.FULLSCREEN, true)
     val ins = if (full) WindowInsets.displayCutout else WindowInsets.displayCutout.union(WindowInsets.systemBars)
     androidx.compose.foundation.layout.Box(
         Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black).windowInsetsPadding(ins),
     ) { content() }
+}
+
+
+/**
+ * Lets the map run under the camera notch in full screen: the screen's contents are kept clear of the notch, and this stretches the
+ * map back out over that strip, so the camera sits on the map rather than in a black band (Samsung S24 Ultra, GitHub).
+ */
+@Composable
+internal fun Modifier.bleedCutout(on: Boolean): Modifier {
+    if (!on) return this
+    val ins = WindowInsets.displayCutout
+    val d = androidx.compose.ui.platform.LocalDensity.current
+    val dir = androidx.compose.ui.platform.LocalLayoutDirection.current
+    val l = ins.getLeft(d, dir); val t = ins.getTop(d); val rr = ins.getRight(d, dir); val b = ins.getBottom(d)
+    if (l == 0 && t == 0 && rr == 0 && b == 0) return this
+    return this.layout { m, c ->
+        if (!c.hasBoundedWidth || !c.hasBoundedHeight) {
+            val p = m.measure(c); layout(p.width, p.height) { p.place(0, 0) }
+        } else {
+            val p = m.measure(androidx.compose.ui.unit.Constraints.fixed(c.maxWidth + l + rr, c.maxHeight + t + b))
+            layout(c.maxWidth, c.maxHeight) { p.place(-l, -t) }
+        }
+    }
 }
