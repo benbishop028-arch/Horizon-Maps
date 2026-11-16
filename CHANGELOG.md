@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Marathi: Horizon Nav now speaks मराठी: directions, screens, Android Auto and voice commands ("पुण्याला जा", "घरी चल"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Marathi. Place names on the map and in search stay in English, as Mapbox and TomTom have no Marathi (thanks to samadhanraut)
 - Trip card as a column in split screen: in Android Auto's split screen, the trip card can now be a narrow column on the left under the turn card instead of a bar along the bottom, leaving the road ahead of the car clear. Settings › Android Auto › Trip card in split screen (thanks to Simsam53)
 - Argentine Spanish (Español rioplatense): directions and screens with "vos" and local words (doblá, mantenete, auto, estacionamiento, celular). Phones set to Spanish in Argentina or Uruguay pick it up by themselves, or choose Español (Argentina) in Settings › Sound & voice › Language (thanks to ParquePatricense)
 - Bosnian and Kannada: Horizon Nav now speaks Bosanski and ಕನ್ನಡ: directions, screens, Android Auto and voice commands. Pick them in Settings › Sound & voice › Language, or they follow a phone set to either (thanks to enesvrabac-lab and srinidhisharma)

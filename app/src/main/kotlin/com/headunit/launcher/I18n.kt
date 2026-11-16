@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "esar" to "Español (Argentina)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "esar" to "Español (Argentina)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "esar" -> Locale("es", "AR")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "esar" -> Locale("es", "AR")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -69,7 +69,7 @@ object L {
     val en: Boolean get() = lang == "en"
 
     /** The language code Mapbox's search takes (Chinese in the right script). */
-    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn" -> "en"; "esar" -> "es"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar" -> "es"; else -> lang }
 
     fun t(text: String, vararg args: Any?): String {
         val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
@@ -106,6 +106,11 @@ object L {
         }
         // Kannada puts the place first as well: "ಮೈಸೂರಿಗೆ ಹೋಗು", "ಮೈಸೂರು ಗೆ ಕರೆದುಕೊಂಡು ಹೋಗು"
         if (lang == "kn") Regex("^\\s*(.+?)\\s*(ಗೆ|ಕ್ಕೆ|ಕಡೆಗೆ|ವರೆಗೆ)?\\s+(ಹೋಗು|ಹೋಗಿ|ಹೋಗೋಣ|ಕರೆದುಕೊಂಡು ಹೋಗು|ಕರೆದೊಯ್ಯಿ|ದಾರಿ ತೋರಿಸು|ನ್ಯಾವಿಗೇಟ್ ಮಾಡು|ನ್ಯಾವಿಗೇಟ್ ಮಾಡಿ)\\s*$").find(t.trim())?.let { m ->
+            val place = m.groupValues[1].trim()
+            if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
+        }
+        // Marathi puts the place first as well: "पुण्याला जा", "पुणे ला घेऊन चल"
+        if (lang == "mr") Regex("^\\s*(.+?)\\s*(ला|कडे|पर्यंत)?\\s+(जा|चल|चला|जायचे आहे|घेऊन चल|घेऊन जा|रस्ता दाखव|मार्ग दाखव|नेव्हिगेट कर)\\s*$").find(t.trim())?.let { m ->
             val place = m.groupValues[1].trim()
             if (place.isNotEmpty() && !Regex(rules[0].first).containsMatchIn(t) && !Regex(rules[1].first).containsMatchIn(t)) return "go to $place"
         }
@@ -501,6 +506,19 @@ object L {
                 "ಜೂಮ್ ಇನ್" to "zoom in", "ಜೂಮ್ ಔಟ್" to "zoom out", "ಉತ್ತರ ಮೇಲೆ" to "north up", "ಸಮಯ ಎಷ್ಟು|ಗಂಟೆ ಎಷ್ಟು" to "what time",
                 "^\\s*(ನ್ಯಾವಿಗೇಟ್ ಮಾಡು|ದಾರಿ ತೋರಿಸು)\\s" to "go to",
             ),
+            "mr" to r(
+                "\\s(घरी|घरी जा|घरी चल|घरी घेऊन चल)\\s" to "go home", "\\s(कामावर|ऑफिसला|कार्यालयात)\\s" to "go to work",
+                "^\\s*(नोंद कर|तक्रार कर|कळव)\\s" to "report", "अपघात|ॲक्सिडेंट" to "accident", "पोलीस|पोलिस" to "police", "बंद पडलेली|ब्रेकडाउन" to "breakdown", "कॅमेरा|स्पीड कॅमेरा" to "camera",
+                "पेट्रोल पंप|पेट्रोल|डिझेल|इंधन" to "fuel", "चार्जिंग|चार्जर" to "charging", "शौचालय|टॉयलेट|स्वच्छतागृह" to "toilet", "कॉफी|चहा" to "coffee",
+                "जेवण|खाणे|हॉटेल|रेस्टॉरंट" to "food", "सेवा केंद्र" to "services", "पार्किंग" to "parking",
+                "\\s(शोध|शोधा|जवळचा|जवळचे|जवळची|कुठे आहे|हवे आहे)\\s" to "find", "स्वस्त" to "cheap",
+                "टोल टाळा|टोलशिवाय" to "avoid toll", "द्रुतगती मार्ग टाळा|हायवे टाळा|एक्सप्रेसवे टाळा" to "avoid motorway",
+                "हा रस्ता टाळा" to "avoid this road", "कधी पोहोचेन|किती वेळ|किती दूर" to "eta", "शेअर कर|पाठव" to "share",
+                "आवाज चालू" to "voice on", "फक्त सूचना" to "alerts only", "म्यूट|आवाज बंद" to "mute",
+                "(मार्ग|नेव्हिगेशन) (थांबव|संपव|रद्द कर)" to "end route", "आढावा|संपूर्ण मार्ग" to "overview",
+                "झूम इन" to "zoom in", "झूम आउट" to "zoom out", "उत्तर वर" to "north up", "किती वाजले|वेळ किती" to "what time",
+                "^\\s*(नेव्हिगेट कर|रस्ता दाखव|मार्ग दाखव)\\s" to "go to",
+            ),
             "sv" to r(
                 "\\s(hem|kör hem|ta mig hem|åk hem)\\s" to "go home", "\\s(till jobbet|till kontoret|på jobbet)\\s" to "go to work",
                 "^\\s*(rapportera|anmäl)\\s" to "report", "olycka|krock" to "accident", "polis|polisen|poliskontroll" to "police", "motorstopp|trasig bil|haveri" to "breakdown", "fartkamera|kamera|trafiksäkerhetskamera" to "camera",
@@ -546,6 +564,7 @@ object L {
         "sv" -> if (n % 10 in 1..2 && n % 100 !in 11..12) "$n:a" else "$n:e"
         "ar", "he", "ur" -> "$n"
         "kn" -> "${n}ನೇ"
+        "mr" -> "${n}वा"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
         "zh" -> "第${n}個"
@@ -609,6 +628,7 @@ object L {
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
         "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
+        "mr" -> "पहिला|दुसरा|तिसरा|चौथा|पाचवा|सहावा|सातवा|आठवा|नववा|दहावा"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
         else -> ""
@@ -633,7 +653,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "esar")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "esar")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -660,6 +680,7 @@ object L {
         addOwn(m, "sv", I18nSv.rows())
         addOwn(m, "bs", I18nBs.rows())
         addOwn(m, "kn", I18nKn.rows())
+        addOwn(m, "mr", I18nMr.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         m
     }
