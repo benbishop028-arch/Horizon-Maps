@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Norwegian: Horizon Nav now speaks Norsk bokmål: directions, screens, Android Auto and voice commands ("kjør hjem", "naviger til Bergen"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Norwegian (thanks to mthjensen)
+- What's new, any time: missed the update notes? Settings › About & backup › Version now has a What's new button that brings the card back (thanks to leedank93)
 - Marathi: Horizon Nav now speaks मराठी: directions, screens, Android Auto and voice commands ("पुण्याला जा", "घरी चल"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Marathi. Place names on the map and in search stay in English, as Mapbox and TomTom have no Marathi (thanks to samadhanraut)
 - Trip card as a column in split screen: in Android Auto's split screen, the trip card can now be a narrow column on the left under the turn card instead of a bar along the bottom, leaving the road ahead of the car clear. Settings › Android Auto › Trip card in split screen (thanks to Simsam53)
 - Argentine Spanish (Español rioplatense): directions and screens with "vos" and local words (doblá, mantenete, auto, estacionamiento, celular). Phones set to Spanish in Argentina or Uruguay pick it up by themselves, or choose Español (Argentina) in Settings › Sound & voice › Language (thanks to ParquePatricense)
@@ -49,6 +51,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Arrow on the wrong side of a divided road: with no route running, the arrow could jump to the other carriageway when the GPS drifted towards the middle, as if driving against the traffic. It now keeps to the side going your way, even before the speed-limit roads have loaded (thanks to leedank93)
 - 3D buildings switch: turning 3D buildings off left landmarks and building fronts standing, and Android Auto's map kept all its 3D buildings and trees whatever the settings. Both now follow the switches (thanks to VITMAD1964)
 - Missing translations: in 20 of the languages (including Swedish, Turkish, Arabic and Kannada), the newest settings such as Groups and Top speed for arrival times were still in English. They are now translated
 - Favourites in settings: a favourite's name and address no longer squeeze into a one-letter column beside its buttons on a phone; the buttons sit on their own line under it (thanks to yurividal)

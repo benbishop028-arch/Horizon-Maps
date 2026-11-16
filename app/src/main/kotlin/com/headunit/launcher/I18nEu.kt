@@ -1553,5 +1553,6 @@ object I18nEu {
         "Trip card in split screen" to "Bidaia-txartela pantaila zatituan",
         "Bar along the bottom" to "Barra behean",
         "Column on the left" to "Zutabea ezkerrean",
+        "What's new" to "Berrikuntzak",
     )
 }

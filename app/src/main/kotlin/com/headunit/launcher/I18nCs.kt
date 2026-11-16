@@ -1553,5 +1553,6 @@ object I18nCs {
         "Trip card in split screen" to "Karta cesty na rozdělené obrazovce",
         "Bar along the bottom" to "Pruh dole",
         "Column on the left" to "Sloupec vlevo",
+        "What's new" to "Co je nového",
     )
 }

@@ -1553,5 +1553,6 @@ object I18nTr {
         "Trip card in split screen" to "Bölünmüş ekranda yolculuk kartı",
         "Bar along the bottom" to "Altta çubuk",
         "Column on the left" to "Solda sütun",
+        "What's new" to "Yenilikler",
     )
 }

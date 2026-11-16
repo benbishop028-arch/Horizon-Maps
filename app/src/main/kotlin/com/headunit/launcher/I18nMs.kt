@@ -1553,5 +1553,6 @@ object I18nMs {
         "Trip card in split screen" to "Kad perjalanan dalam skrin terbahagi",
         "Bar along the bottom" to "Bar di bawah",
         "Column on the left" to "Lajur di kiri",
+        "What's new" to "Apa yang baharu",
     )
 }

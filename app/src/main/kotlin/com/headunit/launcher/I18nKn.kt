@@ -1553,5 +1553,6 @@ object I18nKn {
         "Trip card in split screen" to "ವಿಭಜಿತ ಪರದೆಯಲ್ಲಿ ಪ್ರಯಾಣ ಕಾರ್ಡ್",
         "Bar along the bottom" to "ಕೆಳಗೆ ಪಟ್ಟಿ",
         "Column on the left" to "ಎಡಭಾಗದಲ್ಲಿ ಕಾಲಮ್",
+        "What's new" to "ಹೊಸತೇನು",
     )
 }

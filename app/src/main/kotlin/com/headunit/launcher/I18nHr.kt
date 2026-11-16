@@ -1553,5 +1553,6 @@ object I18nHr {
         "Trip card in split screen" to "Kartica putovanja na podijeljenom zaslonu",
         "Bar along the bottom" to "Traka na dnu",
         "Column on the left" to "Stupac lijevo",
+        "What's new" to "Novosti",
     )
 }

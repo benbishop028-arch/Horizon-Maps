@@ -1553,5 +1553,6 @@ object I18nUr {
         "Trip card in split screen" to "تقسیم اسکرین میں سفر کارڈ",
         "Bar along the bottom" to "نیچے پٹی",
         "Column on the left" to "بائیں طرف کالم",
+        "What's new" to "نیا کیا ہے",
     )
 }

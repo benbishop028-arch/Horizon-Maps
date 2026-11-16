@@ -1553,5 +1553,6 @@ object I18nMr {
         "Trip card in split screen" to "स्प्लिट स्क्रीनमध्ये प्रवास कार्ड",
         "Bar along the bottom" to "खाली पट्टी",
         "Column on the left" to "डावीकडे स्तंभ",
+        "What's new" to "नवीन काय",
     )
 }

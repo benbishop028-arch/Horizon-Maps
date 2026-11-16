@@ -100,6 +100,8 @@ internal object PreferenceKeys {
     const val PERFORMANCE_METER = "perfmeter"
     const val UPDATE_LAST_CHECK = "updlast"
     const val WHATS_NEW_SEEN_VERSION = "whatsnew_seen_version"
+    /** The notes the What's new card last showed, so Settings › Version › What's new can bring them back (GitHub #149). */
+    const val WHATS_NEW_LAST_NOTES = "whatsnew_last_notes"
     const val AUTO_START_ROUTE = "autostartroute"
     const val AUTO_START_SECONDS = "autostartseconds"
     // Additional legacy keys centralised without changing their persisted names.

@@ -1553,5 +1553,6 @@ object I18nAr {
         "Trip card in split screen" to "بطاقة الرحلة في الشاشة المقسومة",
         "Bar along the bottom" to "شريط في الأسفل",
         "Column on the left" to "عمود على اليسار",
+        "What's new" to "ما الجديد",
     )
 }

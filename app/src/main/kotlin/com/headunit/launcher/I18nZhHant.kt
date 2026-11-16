@@ -1553,5 +1553,6 @@ object I18nZhHant {
         "Trip card in split screen" to "分割畫面時的行程卡",
         "Bar along the bottom" to "底部橫條",
         "Column on the left" to "左側直欄",
+        "What's new" to "新功能",
     )
 }

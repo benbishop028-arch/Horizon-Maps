@@ -4508,16 +4508,22 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /**
      * Moves a GPS position onto the nearest drawn road that runs the way you are heading, or returns null when none is close enough.
      * It never waits on the map: it uses the roads the map last reported (the engine tries the speed-limit roads first anyway).
+     * A one-way road (each side of a divided road is drawn as one) only counts going its own way, so on a dual carriageway the arrow
+     * stays on your side even when the GPS drifts towards the middle (GitHub #150). As with the speed-limit roads, your side is
+     * looked for up to 45 m off when the nearer line is the other side's; with only the other side close, the GPS position is kept.
      */
     fun snapToRoad(p: LL, heading: Double): LL? {
-        val segs = roadSegs
-        if (segs.isEmpty() || android.os.SystemClock.uptimeMillis() - roadSegsAt > 20_000L) return null
+        val list = roadInfo
+        if (list.isEmpty() || android.os.SystemClock.uptimeMillis() - roadSegsAt > 20_000L) return null
         return try {
             val k = Math.cos(Math.toRadians(p.lat)) * 111320.0
             val k2 = 110574.0
             var best: LL? = null
-            var bd = 24.0
-            for (pts in segs) {
+            var bd = 45.0
+            var againstNear = false
+            for (rp in list) {
+                val pts = rp.pts
+                val oneway = rp.oneway == true
                 for (i in 0 until pts.size - 1) {
                     val ax = (pts[i].longitude() - p.lon) * k; val ay = (pts[i].latitude() - p.lat) * k2
                     val bx = (pts[i + 1].longitude() - p.lon) * k; val by = (pts[i + 1].latitude() - p.lat) * k2
@@ -4528,14 +4534,21 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                     val t = (-(ax * dx + ay * dy) / l2).coerceIn(0.0, 1.0)
                     val d = Math.hypot(ax + dx * t, ay + dy * t)
                     if (d >= bd) continue
-                    // only roads that run the way you are heading (either direction), so a parallel street or a crossing road is not chosen
+                    // only roads that run the way you are heading (a two-way road either way along its line), so a parallel street
+                    // or a crossing road is not chosen
                     val segB = (Math.toDegrees(Math.atan2(dx, dy)) + 360.0) % 360.0
                     var diff = Math.abs(segB - heading) % 360.0
                     if (diff > 180.0) diff = 360.0 - diff
                     if (diff > 35.0 && diff < 145.0) continue
+                    // a one-way line drawn against you is the other carriageway (or a one-way street you shouldn't be on)
+                    if (oneway && diff >= 145.0) { if (d < 24.0) againstNear = true; continue }
                     bd = d
                     best = LL(p.lat + (ay + dy * t) / k2, p.lon + (ax + dx * t) / k)
                 }
+            }
+            if (bd > 24.0) {
+                if (best == null) return if (againstNear) p else null
+                if (!againstNear) return null
             }
             best
         } catch (e: Exception) { null }

@@ -92,6 +92,20 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
             whatsNewVisible = true
             val previousVersion = prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "")
             whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
+            if (whatsNewNotes.isNotBlank()) prefs.put(PreferenceKeys.WHATS_NEW_LAST_NOTES, whatsNewNotes)
+        }
+    }
+    // Settings › Horizon Nav › Version › What's new: the card again, with the notes it showed last (every version since the one before,
+    // after a jump of several), or this version's own notes when it hasn't shown any yet (GitHub #149)
+    LaunchedEffect(WhatsNewCard.reopen) {
+        if (!WhatsNewCard.reopen) return@LaunchedEffect
+        WhatsNewCard.reopen = false
+        val saved = prefs.s(PreferenceKeys.WHATS_NEW_LAST_NOTES, "")
+        whatsNewNotes = saved
+        whatsNewVisible = true
+        if (saved.isBlank()) {
+            val prev = installedVersion.substringAfterLast('.').toIntOrNull()?.let { "1.0.${it - 1}" } ?: ""
+            whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, prev, appCtx) } } catch (_: Exception) { "" }
         }
     }
     LaunchedEffect(Unit) { while (true) { delay(60_000); nowMs = System.currentTimeMillis() } }

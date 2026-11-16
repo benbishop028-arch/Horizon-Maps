@@ -1297,7 +1297,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
         SItem(L.t("Donate"), L.t("Free, no ads. Donations help keep it going (PayPal)")) { SButton(L.t("Donate"), primary = true) { donating = true } }
     }
     SGroup(L.t("Horizon Nav")) {
-        SItem(L.t("Version"), BuildConfig.VERSION_NAME)
+        SItem(L.t("Version"), BuildConfig.VERSION_NAME) { SButton(L.t("What's new")) { WhatsNewCard.reopen = true } }
         if (com.headunit.launcher.Updater.enabled) {
             SItem(L.t("Check for updates"), engine.updateStatus.ifBlank { null }) {
                 val u = engine.appUpdate

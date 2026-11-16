@@ -1553,5 +1553,6 @@ object I18nSv {
         "Trip card in split screen" to "Resekort i delad skärm",
         "Bar along the bottom" to "Fält längst ned",
         "Column on the left" to "Kolumn till vänster",
+        "What's new" to "Nyheter",
     )
 }

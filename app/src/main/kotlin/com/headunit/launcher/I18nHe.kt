@@ -1553,5 +1553,6 @@ object I18nHe {
         "Trip card in split screen" to "כרטיס הנסיעה במסך מפוצל",
         "Bar along the bottom" to "פס בתחתית",
         "Column on the left" to "עמודה משמאל",
+        "What's new" to "מה חדש",
     )
 }

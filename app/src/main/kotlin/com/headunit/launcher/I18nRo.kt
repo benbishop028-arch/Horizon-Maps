@@ -1553,5 +1553,6 @@ object I18nRo {
         "Trip card in split screen" to "Cardul călătoriei pe ecran împărțit",
         "Bar along the bottom" to "Bară jos",
         "Column on the left" to "Coloană în stânga",
+        "What's new" to "Noutăți",
     )
 }

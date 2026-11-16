@@ -1550,5 +1550,6 @@ object I18nD {
         "Trip card in split screen" to listOf("Карта на пътуването при разделен екран"),
         "Bar along the bottom" to listOf("Лента отдолу"),
         "Column on the left" to listOf("Колона вляво"),
+        "What's new" to listOf("Какво ново"),
     )
 }

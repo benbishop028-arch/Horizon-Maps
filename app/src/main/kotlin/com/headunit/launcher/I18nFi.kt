@@ -1553,5 +1553,6 @@ object I18nFi {
         "Trip card in split screen" to "Matkakortti jaetussa näytössä",
         "Bar along the bottom" to "Palkki alareunassa",
         "Column on the left" to "Sarake vasemmalla",
+        "What's new" to "Uutta",
     )
 }

@@ -1553,5 +1553,6 @@ object I18nHu {
         "Trip card in split screen" to "Útkártya osztott képernyőn",
         "Bar along the bottom" to "Sáv alul",
         "Column on the left" to "Oszlop bal oldalt",
+        "What's new" to "Újdonságok",
     )
 }

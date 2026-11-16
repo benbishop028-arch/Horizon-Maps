@@ -1553,5 +1553,6 @@ object I18nEsAr {
         "Trip card in split screen" to "Tarjeta del viaje en pantalla dividida",
         "Bar along the bottom" to "Barra abajo",
         "Column on the left" to "Columna a la izquierda",
+        "What's new" to "Novedades",
     )
 }

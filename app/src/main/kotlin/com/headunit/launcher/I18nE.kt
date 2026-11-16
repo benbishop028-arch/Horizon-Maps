@@ -1550,5 +1550,6 @@ object I18nE {
         "Trip card in split screen" to listOf("Kartica poti na deljenem zaslonu"),
         "Bar along the bottom" to listOf("Vrstica spodaj"),
         "Column on the left" to listOf("Stolpec na levi"),
+        "What's new" to listOf("Novosti"),
     )
 }

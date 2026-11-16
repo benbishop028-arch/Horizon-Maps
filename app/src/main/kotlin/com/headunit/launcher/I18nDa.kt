@@ -1553,5 +1553,6 @@ object I18nDa {
         "Trip card in split screen" to "Turkort i delt skærm",
         "Bar along the bottom" to "Bjælke forneden",
         "Column on the left" to "Kolonne til venstre",
+        "What's new" to "Nyheder",
     )
 }

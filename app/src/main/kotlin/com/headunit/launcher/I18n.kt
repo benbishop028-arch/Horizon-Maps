@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "esar" to "Español (Argentina)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "esar" to "Español (Argentina)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "esar" -> Locale("es", "AR")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "esar" -> Locale("es", "AR")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -47,7 +47,7 @@ object L {
         // (Android still reports Indonesian by its old code, "in")
         val auto = setting.isBlank() || setting == "auto"
         // (and Hebrew by "iw")
-        val want = (if (auto) Locale.getDefault().language else setting).let { if (it == "in") "id" else if (it == "iw") "he" else it }
+        val want = (if (auto) Locale.getDefault().language else setting).let { if (it == "in") "id" else if (it == "iw") "he" else if (it == "no" || it == "nn") "nb" else it }
         // (Chinese: Traditional for Taiwan, Hong Kong and Macau phones or a Traditional script, Simplified otherwise)
         // (Spanish from Argentina or Uruguay: the River Plate Spanish, with "vos", GitHub #145)
         if (auto && want == "es" && Locale.getDefault().country in setOf("AR", "UY")) return "esar"
@@ -480,6 +480,19 @@ object L {
                 "povećaj|približi" to "zoom in", "smanji|udalji" to "zoom out", "sjever gore" to "north up", "koliko je sati" to "what time",
                 "^\\s*(vozi me do|vozi me u|navigiraj do|idi do|idemo u|idemo do|do)\\s" to "go to",
             ),
+            "nb" to r(
+                "\\s(hjem|kjør hjem|ta meg hjem)\\s" to "go home", "\\s(på jobb|til jobben|til jobb|til kontoret)\\s" to "go to work",
+                "^\\s*(meld fra|rapporter|meld)\\s" to "report", "ulykke|kollisjon" to "accident", "politi|politiet|politikontroll" to "police", "motorstopp|havari|stanset bil" to "breakdown", "fotoboks|fartskamera|kamera|fartskontroll" to "camera",
+                "bensinstasjon|bensin|drivstoff|tanke|diesel" to "fuel", "ladestasjon|lading|lader|ladepunkt" to "charging", "toalett|do|wc" to "toilet", "kaffe|kafé" to "coffee",
+                "\\smat\\s|restaurant|spise" to "food", "rasteplass|veikro" to "services", "parkering|parkeringsplass|parkere" to "parking",
+                "\\s(finn|søk|søk etter|nærmeste|hvor er|jeg trenger)\\s" to "find", "billigste|billig" to "cheap",
+                "unngå bomveier|uten bomveier|unngå bompenger" to "avoid toll", "unngå motorveier|uten motorvei" to "avoid motorway",
+                "unngå denne veien" to "avoid this road", "når er jeg fremme|hvor lang tid|hvor langt" to "eta", "\\s(del|send) (min |ankomst)" to "share",
+                "stemme på|slå på stemmen|tale på" to "voice on", "bare varsler|kun varsler" to "alerts only", "demp|stille|slå av stemmen|tale av" to "mute",
+                "(avslutt|stopp|avbryt) (ruten|navigasjonen|navigasjon)" to "end route", "oversikt|hele ruten" to "overview",
+                "zoom inn" to "zoom in", "zoom ut" to "zoom out", "nord opp" to "north up", "hva er klokka|hva er klokken" to "what time",
+                "^\\s*(naviger til|kjør til|ta meg til|før meg til|til)\\s" to "go to",
+            ),
             "da" to r(
                 "\\s(hjem|kør hjem|tag mig hjem)\\s" to "go home", "\\s(på arbejde|til arbejde|til kontoret)\\s" to "go to work",
                 "^\\s*(rapportér|rapporter|meld)\\s" to "report", "ulykke|uheld" to "accident", "politi|politiet" to "police", "i stykker|motorstop|nedbrud" to "breakdown", "fartkamera|kamera|fotovogn" to "camera",
@@ -559,7 +572,7 @@ object L {
         "id", "ms" -> "ke-$n"
         // (with "the": "az" before a vowel sound, "a" otherwise: az 1., a 2., az 5.)
         "hu" -> if (n == 1 || n == 5 || n in 50..59) "az $n." else "a $n."
-        "eu", "cs", "fi", "sk", "da", "hr", "tr", "sr", "bs" -> "$n."
+        "eu", "cs", "fi", "sk", "da", "nb", "hr", "tr", "sr", "bs" -> "$n."
         // (1:a, 2:a, 3:e … but 11:e and 12:e)
         "sv" -> if (n % 10 in 1..2 && n % 100 !in 11..12) "$n:a" else "$n:e"
         "ar", "he", "ur" -> "$n"
@@ -627,6 +640,7 @@ object L {
         "ur" -> "پہلا|دوسرا|تیسرا|چوتھا|پانچواں|چھٹا|ساتواں|آٹھواں|نواں|دسواں"
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
+        "nb" -> "første|andre|tredje|fjerde|femte|sjette|sjuende|åttende|niende|tiende"
         "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
         "mr" -> "पहिला|दुसरा|तिसरा|चौथा|पाचवा|सहावा|सातवा|आठवा|नववा|दहावा"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
@@ -653,7 +667,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "esar")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "esar")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -681,6 +695,7 @@ object L {
         addOwn(m, "bs", I18nBs.rows())
         addOwn(m, "kn", I18nKn.rows())
         addOwn(m, "mr", I18nMr.rows())
+        addOwn(m, "nb", I18nNb.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         m
     }
@@ -2245,6 +2260,7 @@ object L {
         "Trip card in split screen" to listOf("Reiskaart in gesplitst scherm", "Fahrtkarte im geteilten Bildschirm", "Carte du trajet en écran partagé", "Tarjeta del viaje en pantalla dividida"),
         "Bar along the bottom" to listOf("Balk onderaan", "Leiste unten", "Barre en bas", "Barra en la parte inferior"),
         "Column on the left" to listOf("Kolom links", "Spalte links", "Colonne à gauche", "Columna a la izquierda"),
+        "What's new" to listOf("Wat is er nieuw", "Neuigkeiten", "Nouveautés", "Novedades"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3796,5 +3812,6 @@ object L {
         "Trip card in split screen" to listOf("Scheda del viaggio a schermo diviso", "Cartão da viagem em ecrã dividido", "Karta podróży na podzielonym ekranie"),
         "Bar along the bottom" to listOf("Barra in basso", "Barra em baixo", "Pasek na dole"),
         "Column on the left" to listOf("Colonna a sinistra", "Coluna à esquerda", "Kolumna po lewej"),
+        "What's new" to listOf("Novità", "Novidades", "Co nowego"),
     )
 }

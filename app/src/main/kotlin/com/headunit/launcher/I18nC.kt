@@ -1559,5 +1559,6 @@ object I18nC {
         "Trip card in split screen" to listOf("การ์ดการเดินทางในโหมดแบ่งหน้าจอ", "分割画面でのトリップカード", "Kartu perjalanan di layar terpisah"),
         "Bar along the bottom" to listOf("แถบด้านล่าง", "下部のバー", "Bilah di bawah"),
         "Column on the left" to listOf("คอลัมน์ด้านซ้าย", "左側の縦列", "Kolom di kiri"),
+        "What's new" to listOf("มีอะไรใหม่", "新機能", "Yang baru"),
     )
 }

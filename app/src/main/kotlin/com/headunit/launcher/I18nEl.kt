@@ -1553,5 +1553,6 @@ object I18nEl {
         "Trip card in split screen" to "Κάρτα διαδρομής σε διαιρεμένη οθόνη",
         "Bar along the bottom" to "Μπάρα στο κάτω μέρος",
         "Column on the left" to "Στήλη αριστερά",
+        "What's new" to "Τι νέο υπάρχει",
     )
 }
