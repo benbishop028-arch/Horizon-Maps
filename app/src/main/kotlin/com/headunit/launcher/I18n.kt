@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "esar" to "Español (Argentina)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "esar" -> Locale("es", "AR")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -49,6 +49,8 @@ object L {
         // (and Hebrew by "iw")
         val want = (if (auto) Locale.getDefault().language else setting).let { if (it == "in") "id" else if (it == "iw") "he" else it }
         // (Chinese: Traditional for Taiwan, Hong Kong and Macau phones or a Traditional script, Simplified otherwise)
+        // (Spanish from Argentina or Uruguay: the River Plate Spanish, with "vos", GitHub #145)
+        if (auto && want == "es" && Locale.getDefault().country in setOf("AR", "UY")) return "esar"
         if (auto && want == "zh") {
             val d = Locale.getDefault()
             return if (d.script == "Hant" || d.country in setOf("TW", "HK", "MO")) "zh" else "zhs"
@@ -67,7 +69,7 @@ object L {
     val en: Boolean get() = lang == "en"
 
     /** The language code Mapbox's search takes (Chinese in the right script). */
-    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn" -> "en"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn" -> "en"; "esar" -> "es"; else -> lang }
 
     fun t(text: String, vararg args: Any?): String {
         val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
@@ -83,7 +85,7 @@ object L {
      */
     fun voiceToEnglish(text: String): String {
         // (Bosnian voice commands are close enough to Croatian to share its words)
-        val rules = voiceRules[if (lang == "bs") "hr" else lang] ?: return text
+        val rules = voiceRules[when (lang) { "bs" -> "hr"; "esar" -> "es"; else -> lang }] ?: return text
         // (a capital İ made lower-case the English way leaves a stray dot mark, so "İşe" wouldn't match "işe")
         var t = " " + text.lowercase(locale).replace("\u0307", "").trim() + " "
         // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
@@ -532,7 +534,7 @@ object L {
     fun ordShort(n: Int): String = when (lang) {
         "nl", "fr" -> "${n}e"
         "de", "pl", "sl" -> "$n."
-        "es", "pt" -> "$n.ª"
+        "es", "esar", "pt" -> "$n.ª"
         "it" -> "${n}ª"
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
@@ -583,7 +585,7 @@ object L {
         "nl" -> "eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende"
         "de" -> "erste|zweite|dritte|vierte|fünfte|sechste|siebte|achte|neunte|zehnte"
         "fr" -> "première|deuxième|troisième|quatrième|cinquième|sixième|septième|huitième|neuvième|dixième"
-        "es" -> "primera|segunda|tercera|cuarta|quinta|sexta|séptima|octava|novena|décima"
+        "es", "esar" -> "primera|segunda|tercera|cuarta|quinta|sexta|séptima|octava|novena|décima"
         "it" -> "prima|seconda|terza|quarta|quinta|sesta|settima|ottava|nona|decima"
         "pt" -> "primeira|segunda|terceira|quarta|quinta|sexta|sétima|oitava|nona|décima"
         "pl" -> "pierwszy|drugi|trzeci|czwarty|piąty|szósty|siódmy|ósmy|dziewiąty|dziesiąty"
@@ -631,7 +633,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "esar")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -658,6 +660,7 @@ object L {
         addOwn(m, "sv", I18nSv.rows())
         addOwn(m, "bs", I18nBs.rows())
         addOwn(m, "kn", I18nKn.rows())
+        addOwn(m, "esar", I18nEsAr.rows())
         m
     }
 

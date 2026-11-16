@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Argentine Spanish (Español rioplatense): directions and screens with "vos" and local words (doblá, mantenete, auto, estacionamiento, celular). Phones set to Spanish in Argentina or Uruguay pick it up by themselves, or choose Español (Argentina) in Settings › Sound & voice › Language (thanks to ParquePatricense)
 - Bosnian and Kannada: Horizon Nav now speaks Bosanski and ಕನ್ನಡ: directions, screens, Android Auto and voice commands. Pick them in Settings › Sound & voice › Language, or they follow a phone set to either (thanks to enesvrabac-lab and srinidhisharma)
 - Groups for your places: file your own places in groups (Family, Customers…) in Settings › Places & trips › Your places. A group shows as one row in the saved list that opens to its places (thanks to bijindas)
 - Top speed for arrival times: in Settings › Routes › Vehicle, set the speed you actually drive at (for vans, lorries or towing) and routes are timed no faster than that (thanks to clayts450)
@@ -14,6 +15,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Saved places while driving: your own places and favourites now follow Home and Work in the row under the search bar, which scrolls sideways, so they are one tap away even while you drive and the Saved & recent list is folded away (thanks to Seali7Aut)
 - Average speed checks: looked up on their own with a longer wait for busy servers, tried again sooner, and kept on your device, so a road you have driven before shows its check straight away, even with no signal (thanks to magnazan)
 - Route choice on a phone held sideways: the route panel is now a column down the left with the routes shown beside it, instead of covering nearly the whole map
 - Fly over route: the route panel steps aside while the flight plays, so you can see it, with a small Stop button to end it

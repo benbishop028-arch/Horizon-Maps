@@ -299,6 +299,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                 if (engine.dataUpdates.isNotEmpty()) DataUpdateCard(engine) else PackAgeCard(engine)
                             }
                         }
+                        // (your saved places are also in the row with Home and Work, so they're still a tap away once this folds, #143)
                         ImmQuick(engine, showSaved = !cruising)
                     }
                 }
@@ -1259,12 +1260,28 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
     // the drive times: the engine throttles this itself (online only, every 10 minutes or after moving 3 km), so a minute's tick is cheap
     LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); delay(60_000) } }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"]) {
-                if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast(L.t("Search for your home address"), 3500); focusSearch() }
-            }
-            PlaceTile(engine, Modifier.weight(1f), Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"]) {
-                if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast(L.t("Search for your work address"), 3500); focusSearch() }
+        // Home and Work, then your own places and favourites in the same row, which scrolls sideways: so a saved place is still one
+        // tap away while you drive, when the Saved & recent list has folded away (GitHub #143). With more than Home and Work, the
+        // next tile peeks in at the edge so it's clear there's more.
+        val rawCustom = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
+        val rawFav = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+        val extra: List<Pair<String, com.headunit.launcher.Place>> = remember(rawCustom, rawFav) {
+            val mine = engine.places.customs()
+            val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } &&
+                listOfNotNull(home, work).none { Geo.dist(it.pos, f.pos) < 60 } }
+            (mine.map { it.label to it.place } + favs.map { it.name to it }).take(12)
+        }
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val half = (maxWidth - 8.dp) / 2
+            val tileW = if (extra.isEmpty()) half else half - 22.dp
+            Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                PlaceTile(engine, Modifier.width(tileW), Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"]) {
+                    if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast(L.t("Search for your home address"), 3500); focusSearch() }
+                }
+                PlaceTile(engine, Modifier.width(tileW), Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"]) {
+                    if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast(L.t("Search for your work address"), 3500); focusSearch() }
+                }
+                for ((label, pl) in extra) PlaceTile(engine, Modifier.width(tileW), Icons.Rounded.Star, Color(0xFF12A4B4), label, pl, null) { engine.startRoute(pl) }
             }
         }
         // things to find nearby: the ones picked in Settings › Places & trips (up to five, all on show, no scrolling sideways);
