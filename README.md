@@ -68,6 +68,9 @@ Android Auto only lists apps from outside the Play Store once you allow it:
 
 Phones running **GrapheneOS, LineageOS** or other versions of Android without Google's own apps may not be able to show it on Android Auto at all. It still works on the phone itself.
 
+### On iPhone (unofficial)
+There's no official iPhone version, but **[peterdsp](https://github.com/peterdsp)** has made an independent iPhone and CarPlay app based on Horizon Nav: **[horizon-ios](https://github.com/peterdsp/horizon-ios)**. It's a separate project, not made or supported here, so please send questions and bug reports about it to that project.
+
 ---
 
 ## 🔑 Your free keys: TomTom and Mapbox
@@ -145,8 +148,13 @@ See [CHANGELOG.md](CHANGELOG.md) for what's changed in each version.
 
 A big thank you to the people who have sent code, not just reports:
 
-- **[yurividal](https://github.com/yurividal)**: Android Auto settings that apply straight away, the new speedometer positions and compact style, the split-screen trip bar, and wider Button and Card sizes ([#128](https://github.com/benbishop028-arch/Horizon-Maps/pull/128))
+- **[yurividal](https://github.com/yurividal)**: Android Auto settings that apply straight away, the new speedometer positions and compact style, the split-screen trip bar, and wider Button and Card sizes ([#128](https://github.com/benbishop028-arch/Horizon-Maps/pull/128)); then the search and settings cards, voice search, the routes box and the app's look on the car screen ([#144](https://github.com/benbishop028-arch/Horizon-Maps/pull/144))
 - **[Smile9799](https://github.com/Smile9799)**: fixes that got the app's automatic tests compiling and passing again
 
 Thanks for all the testing! 🙏
 
+---
+
+## 📄 Licence
+
+Horizon Nav is free software under the **[GNU General Public License v3.0](LICENSE)**. You can use, study, change and share it, and anything you build from it and share must also be released under the GPL with its source code.
