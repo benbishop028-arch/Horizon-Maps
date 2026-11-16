@@ -853,17 +853,17 @@ private fun PlacesSection(engine: NavEngine) {
             when {
                 renamingFav == f -> {
                     var t by remember(f) { mutableStateOf(f.name) }
-                    SItem(L.t("Rename {0}", f.name)) {
+                    SItemStacked(L.t("Rename {0}", f.name)) {
                         SField(t, { t = it.take(40) }, width = 220.dp)
                         SButton(L.t("Save"), primary = true) { pl.renameFavourite(f, t); renamingFav = null }
                     }
                 }
-                slotFor == f -> SItem(L.t("Make {0}…", f.name)) {
+                slotFor == f -> SItemStacked(L.t("Make {0}…", f.name)) {
                     SButton(L.t("Home"), primary = true) { pl.setSlot("home", f); slotFor = null; engine.toast(L.t("{0} is now Home", f.name), 2500) }
                     SButton(L.t("Work"), primary = true) { pl.setSlot("work", f); slotFor = null; engine.toast(L.t("{0} is now Work", f.name), 2500) }
                     SButton(L.t("Cancel")) { slotFor = null }
                 }
-                else -> SItem(f.name, f.sub) {
+                else -> SItemStacked(f.name, f.sub) {
                     SButton(L.t("Rename")) { renamingFav = f }
                     SButton(L.t("Make Home / Work")) { slotFor = f }
                     SButton(L.t("Remove"), danger = true) { pl.toggleFavourite(f) }

@@ -97,6 +97,21 @@ internal fun SItem(title: String, sub: String? = null, onClick: (() -> Unit)? = 
     }
 }
 
+/** A setting whose controls are too wide to sit beside its title (three buttons on a phone): the title on top, the controls on their own line under it, wrapping. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+internal fun SItemStacked(title: String, sub: String? = null, controls: @Composable () -> Unit) {
+    val c = LocalVw.current
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Text(title, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        if (!sub.isNullOrBlank()) Text(sub, color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
+        androidx.compose.foundation.layout.FlowRow(
+            Modifier.padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) { controls() }
+    }
+}
+
 /** An on/off setting stored under [key]. The whole row can be tapped. */
 @Composable
 internal fun SToggle(prefs: Prefs, title: String, key: String, def: Boolean, sub: String? = null) {

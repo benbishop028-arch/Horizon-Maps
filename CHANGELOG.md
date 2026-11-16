@@ -43,6 +43,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Favourites in settings: a favourite's name and address no longer squeeze into a one-letter column beside its buttons on a phone; the buttons sit on their own line under it
 - Full screen round the camera: on phones with a camera notch (such as the Samsung S24 Ultra), full screen left a black band across the top. The map now runs right up round the camera, while the cards and buttons stay clear of it
 - Day and night on a phone: Auto now simply follows the phone's own light or dark setting. For the map to change at sunrise and sunset instead, pick Sun times
 - Rain on the car screen: a patch between the turn card and the trip card stayed free of rain and snow. The weather now covers the whole map
