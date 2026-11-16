@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** tr: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/tr.tsv. */
 object I18nTr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "varış, hedef solda",
@@ -1511,5 +1511,44 @@ object I18nTr {
         "Same as the app" to "Uygulamadaki gibi",
         "Speedometer style" to "Hız göstergesi stili",
         "Speedometer style on the car screen" to "Araç ekranında hız göstergesi stili",
+        "Group" to "Grup",
+        "New group" to "Yeni grup",
+        "No group" to "Grup yok",
+        "1 place" to "1 yer",
+        "{0} places" to "{0} yer",
+        "Top speed for arrival times" to "Varış süreleri için azami hız",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Rotaların süresi bundan hızlı hesaplanmaz: kamyonet, kamyon veya römork için. Kapalı normal yol hızlarını kullanır",
+        "Categories" to "Kategoriler",
+        "Didn't catch that" to "Anlayamadım",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Ekran",
+        "Driving" to "Sürüş",
+        "Home and Work under the search bar" to "Arama çubuğunun altında Ev ve İş",
+        "Home button" to "Ev düğmesi",
+        "Include API keys" to "API anahtarlarını ekle",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Ayarları ve kayıtlı yerleri içerir, çevrimdışı paketi içermez. API anahtarları yalnızca anahtar açıkken eklenir. Horizon Launcher yedeği de burada geri yüklenebilir.",
+        "Larger" to "Daha büyük",
+        "Listening…" to "Dinliyorum…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Kuzey yukarıda",
+        "Not allowed" to "İzin verilmedi",
+        "On cars that offer it" to "Bunu sunan araçlarda",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Bu ekranda ve Android Auto'da. Ev ve İş yerleriniz her durumda korunur.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "TomTom ve Mapbox anahtarlarınızı yedek dosyasına koyar, böylece Geri Yükle onları geri getirir. Dosya düz metindir: güvenli bir yerde saklayın",
+        "Recent" to "Son",
+        "Smaller" to "Daha küçük",
+        "Sun" to "Güneş",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Hemen dinlemesi için telefondaki Horizon Nav'da mikrofona izin verin: Ayarlar › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Sağ üst tam köşededir ve Android Auto'nun düğmeleri orada göründüğü sürece kenara çekilir",
+        "Under the search bar" to "Arama çubuğunun altında",
+        "Under turn" to "Dönüşün altında",
+        "Voice search isn't available on this phone" to "Bu telefonda sesli arama kullanılamıyor",
+        "Voice search on the car screen" to "Araç ekranında sesli arama",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Mikrofona izin verildiğinde araç ekranındaki mikrofon düğmesi hemen dinler. İzin yoksa düğme, kendi mikrofonu olan Android Auto arama ekranını açar.",
+        "Work button" to "İş düğmesi",
+        "No matches. Try adding a town or postcode." to "Sonuç yok. Bir ilçe veya posta kodu eklemeyi deneyin.",
     )
 }

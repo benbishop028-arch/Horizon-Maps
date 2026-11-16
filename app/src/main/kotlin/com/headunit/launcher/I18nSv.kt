@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** sv: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/sv.tsv. */
 object I18nSv {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "du är framme, destinationen ligger till vänster",
@@ -1511,5 +1511,44 @@ object I18nSv {
         "Same as the app" to "Samma som appen",
         "Speedometer style" to "Hastighetsmätarstil",
         "Speedometer style on the car screen" to "Hastighetsmätarstil på bilens skärm",
+        "Group" to "Grupp",
+        "New group" to "Ny grupp",
+        "No group" to "Ingen grupp",
+        "1 place" to "1 plats",
+        "{0} places" to "{0} platser",
+        "Top speed for arrival times" to "Toppfart för ankomsttider",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Rutter beräknas inte snabbare än så här: för skåpbilar, lastbilar eller med släp. Av använder vanliga hastigheter",
+        "Categories" to "Kategorier",
+        "Didn't catch that" to "Det uppfattade jag inte",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Skärm",
+        "Driving" to "Körning",
+        "Home and Work under the search bar" to "Hem och Jobb under sökfältet",
+        "Home button" to "Hem-knapp",
+        "Include API keys" to "Ta med API-nycklar",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Innehåller inställningar och sparade platser, inte offlinepaketet. Dina API-nycklar tas bara med när reglaget är på. En säkerhetskopia från Horizon Launcher kan också återställas här.",
+        "Larger" to "Större",
+        "Listening…" to "Lyssnar…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Norr uppåt",
+        "Not allowed" to "Inte tillåten",
+        "On cars that offer it" to "I bilar som har det",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "På den här skärmen och i Android Auto. Dina platser Hem och Jobb sparas i vilket fall.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Lägger dina TomTom- och Mapbox-nycklar i säkerhetskopian, så att Återställ hämtar tillbaka dem. Filen är vanlig text: förvara den säkert",
+        "Recent" to "Senaste",
+        "Smaller" to "Mindre",
+        "Sun" to "Sol",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "För att lyssna direkt, tillåt mikrofonen i Horizon Nav på telefonen: Inställningar › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Uppe till höger sitter i själva hörnet och viker undan medan Android Autos knappar visas där",
+        "Under the search bar" to "Under sökfältet",
+        "Under turn" to "Under svängen",
+        "Voice search isn't available on this phone" to "Röstsökning är inte tillgänglig på den här telefonen",
+        "Voice search on the car screen" to "Röstsökning på bilens skärm",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Med mikrofonen tillåten lyssnar mikrofonknappen på bilens skärm direkt. Utan den öppnar knappen Android Autos sökskärm, som har en egen mikrofon.",
+        "Work button" to "Jobb-knapp",
+        "No matches. Try adding a town or postcode." to "Inga träffar. Prova att lägga till en ort eller ett postnummer.",
     )
 }

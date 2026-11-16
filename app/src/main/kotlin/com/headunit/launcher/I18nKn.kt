@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** kn: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/kn.tsv. */
 object I18nKn {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "ತಲುಪಿದ್ದೀರಿ, ಗಮ್ಯಸ್ಥಾನ ಎಡಭಾಗದಲ್ಲಿದೆ",
@@ -1511,5 +1511,44 @@ object I18nKn {
         "Same as the app" to "ಆ್ಯಪ್‌ನಂತೆಯೇ",
         "Speedometer style" to "ಸ್ಪೀಡೋಮೀಟರ್ ಶೈಲಿ",
         "Speedometer style on the car screen" to "ಕಾರಿನ ಪರದೆಯಲ್ಲಿ ಸ್ಪೀಡೋಮೀಟರ್ ಶೈಲಿ",
+        "Group" to "ಗುಂಪು",
+        "New group" to "ಹೊಸ ಗುಂಪು",
+        "No group" to "ಗುಂಪು ಇಲ್ಲ",
+        "1 place" to "1 ಸ್ಥಳ",
+        "{0} places" to "{0} ಸ್ಥಳಗಳು",
+        "Top speed for arrival times" to "ತಲುಪುವ ಸಮಯಕ್ಕೆ ಗರಿಷ್ಠ ವೇಗ",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "ಮಾರ್ಗದ ಸಮಯವನ್ನು ಇದಕ್ಕಿಂತ ವೇಗವಾಗಿ ಲೆಕ್ಕಹಾಕುವುದಿಲ್ಲ: ವ್ಯಾನ್, ಲಾರಿ ಅಥವಾ ಟ್ರೈಲರ್ ಎಳೆಯುವಾಗ. ಆಫ್ ಆದರೆ ಸಾಮಾನ್ಯ ರಸ್ತೆ ವೇಗ ಬಳಸುತ್ತದೆ",
+        "Categories" to "ವರ್ಗಗಳು",
+        "Didn't catch that" to "ಅರ್ಥವಾಗಲಿಲ್ಲ",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "ಪ್ರದರ್ಶನ",
+        "Driving" to "ಚಾಲನೆ",
+        "Home and Work under the search bar" to "ಹುಡುಕಾಟ ಪಟ್ಟಿಯ ಕೆಳಗೆ ಮನೆ ಮತ್ತು ಕೆಲಸ",
+        "Home button" to "ಮನೆ ಬಟನ್",
+        "Include API keys" to "API ಕೀಗಳನ್ನು ಸೇರಿಸಿ",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ಉಳಿಸಿದ ಸ್ಥಳಗಳನ್ನು ಒಳಗೊಂಡಿದೆ, ಆಫ್‌ಲೈನ್ ಪ್ಯಾಕ್ ಅಲ್ಲ. ಸ್ವಿಚ್ ಆನ್ ಇದ್ದಾಗ ಮಾತ್ರ API ಕೀಗಳು ಸೇರುತ್ತವೆ. Horizon Launcher ನ ಬ್ಯಾಕಪ್ ಅನ್ನೂ ಇಲ್ಲಿ ಮರುಸ್ಥಾಪಿಸಬಹುದು.",
+        "Larger" to "ದೊಡ್ಡದು",
+        "Listening…" to "ಆಲಿಸುತ್ತಿದೆ…",
+        "Microphone" to "ಮೈಕ್ರೊಫೋನ್",
+        "North up" to "ಉತ್ತರ ಮೇಲೆ",
+        "Not allowed" to "ಅನುಮತಿ ಇಲ್ಲ",
+        "On cars that offer it" to "ಇದನ್ನು ನೀಡುವ ಕಾರುಗಳಲ್ಲಿ",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "ಈ ಪರದೆಯಲ್ಲಿ ಮತ್ತು Android Auto ನಲ್ಲಿ. ನಿಮ್ಮ ಮನೆ ಮತ್ತು ಕೆಲಸದ ಸ್ಥಳಗಳು ಹೇಗಿದ್ದರೂ ಉಳಿಯುತ್ತವೆ.",
+        "Phone" to "ಫೋನ್",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "ನಿಮ್ಮ TomTom ಮತ್ತು Mapbox ಕೀಗಳನ್ನು ಬ್ಯಾಕಪ್ ಫೈಲ್‌ನಲ್ಲಿ ಇಡುತ್ತದೆ, ಆದ್ದರಿಂದ ಮರುಸ್ಥಾಪಿಸಿ ಅವನ್ನು ಮರಳಿ ತರುತ್ತದೆ. ಫೈಲ್ ಸಾದಾ ಪಠ್ಯ: ಸುರಕ್ಷಿತ ಸ್ಥಳದಲ್ಲಿ ಇಡಿ",
+        "Recent" to "ಇತ್ತೀಚಿನವು",
+        "Smaller" to "ಚಿಕ್ಕದು",
+        "Sun" to "ಸೂರ್ಯ",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "ತಕ್ಷಣ ಆಲಿಸಲು, ನಿಮ್ಮ ಫೋನ್‌ನ Horizon Nav ನಲ್ಲಿ ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಸಿ: ಸೆಟ್ಟಿಂಗ್‌ಗಳು › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "ಮೇಲೆ ಬಲ ಮೂಲೆಯಲ್ಲೇ ಇರುತ್ತದೆ, Android Auto ನ ಬಟನ್‌ಗಳು ಅಲ್ಲಿ ಕಾಣುತ್ತಿರುವಾಗ ಪಕ್ಕಕ್ಕೆ ಸರಿಯುತ್ತದೆ",
+        "Under the search bar" to "ಹುಡುಕಾಟ ಪಟ್ಟಿಯ ಕೆಳಗೆ",
+        "Under turn" to "ತಿರುವಿನ ಕೆಳಗೆ",
+        "Voice search isn't available on this phone" to "ಈ ಫೋನ್‌ನಲ್ಲಿ ಧ್ವನಿ ಹುಡುಕಾಟ ಲಭ್ಯವಿಲ್ಲ",
+        "Voice search on the car screen" to "ಕಾರಿನ ಪರದೆಯಲ್ಲಿ ಧ್ವನಿ ಹುಡುಕಾಟ",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಸಿದರೆ, ಕಾರಿನ ಪರದೆಯ ಮೈಕ್ರೊಫೋನ್ ಬಟನ್ ತಕ್ಷಣ ಆಲಿಸುತ್ತದೆ. ಇಲ್ಲದಿದ್ದರೆ, ಬಟನ್ ತನ್ನದೇ ಮೈಕ್ರೊಫೋನ್ ಇರುವ Android Auto ಹುಡುಕಾಟ ಪರದೆಯನ್ನು ತೆರೆಯುತ್ತದೆ.",
+        "Work button" to "ಕೆಲಸ ಬಟನ್",
+        "No matches. Try adding a town or postcode." to "ಯಾವುದೂ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ. ಊರು ಅಥವಾ ಪಿನ್‌ಕೋಡ್ ಸೇರಿಸಿ ನೋಡಿ.",
     )
 }

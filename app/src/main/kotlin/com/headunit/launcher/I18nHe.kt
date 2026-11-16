@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** he: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/he.tsv. */
 object I18nHe {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "הגעה, היעד משמאל",
@@ -1511,5 +1511,44 @@ object I18nHe {
         "Same as the app" to "כמו באפליקציה",
         "Speedometer style" to "סגנון מד המהירות",
         "Speedometer style on the car screen" to "סגנון מד המהירות במסך הרכב",
+        "Group" to "קבוצה",
+        "New group" to "קבוצה חדשה",
+        "No group" to "ללא קבוצה",
+        "1 place" to "מקום אחד",
+        "{0} places" to "{0} מקומות",
+        "Top speed for arrival times" to "מהירות מרבית לזמני הגעה",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "זמני המסלולים מחושבים לא מהר מזה: לטנדרים, משאיות או גרירה. כבוי משתמש במהירויות הרגילות",
+        "Categories" to "קטגוריות",
+        "Didn't catch that" to "לא הבנתי",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "תצוגה",
+        "Driving" to "נהיגה",
+        "Home and Work under the search bar" to "בית ועבודה מתחת לשורת החיפוש",
+        "Home button" to "כפתור בית",
+        "Include API keys" to "לכלול מפתחות API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "כולל הגדרות ומקומות שמורים, לא את החבילה הלא מקוונת. מפתחות ה-API נכללים רק כשהמתג פועל. אפשר לשחזר כאן גם גיבוי מ-Horizon Launcher.",
+        "Larger" to "גדול יותר",
+        "Listening…" to "מקשיב…",
+        "Microphone" to "מיקרופון",
+        "North up" to "צפון למעלה",
+        "Not allowed" to "לא מורשה",
+        "On cars that offer it" to "במכוניות שתומכות בזה",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "במסך הזה וב-Android Auto. המקומות בית ועבודה נשמרים בכל מקרה.",
+        "Phone" to "טלפון",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "שומר את מפתחות TomTom ו-Mapbox בקובץ הגיבוי, כך ששחזור מחזיר אותם. הקובץ הוא טקסט רגיל: שמרו אותו במקום בטוח",
+        "Recent" to "אחרונים",
+        "Smaller" to "קטן יותר",
+        "Sun" to "שמש",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "כדי להאזין מיד, אפשרו את המיקרופון ב-Horizon Nav בטלפון: הגדרות › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "למעלה מימין נמצא בפינה עצמה, וזז הצידה כל עוד הכפתורים של Android Auto מוצגים שם",
+        "Under the search bar" to "מתחת לשורת החיפוש",
+        "Under turn" to "מתחת לפנייה",
+        "Voice search isn't available on this phone" to "חיפוש קולי אינו זמין בטלפון הזה",
+        "Voice search on the car screen" to "חיפוש קולי במסך המכונית",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "כשהמיקרופון מורשה, כפתור המיקרופון במסך המכונית מאזין מיד. בלעדיו הכפתור פותח את מסך החיפוש של Android Auto, שיש לו מיקרופון משלו.",
+        "Work button" to "כפתור עבודה",
+        "No matches. Try adding a town or postcode." to "אין תוצאות. נסו להוסיף יישוב או מיקוד.",
     )
 }

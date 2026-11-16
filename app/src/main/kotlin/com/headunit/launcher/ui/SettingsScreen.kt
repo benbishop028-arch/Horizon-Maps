@@ -79,6 +79,8 @@ import com.headunit.launcher.OwnModel
 import com.headunit.launcher.Place
 import com.headunit.launcher.Prefs
 import com.headunit.launcher.PreferenceKeys
+import com.headunit.launcher.carSpeedSpot
+import com.headunit.launcher.setCarSpeedSpot
 import com.headunit.launcher.mapSource
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.setApiKey
@@ -851,17 +853,17 @@ private fun PlacesSection(engine: NavEngine) {
             when {
                 renamingFav == f -> {
                     var t by remember(f) { mutableStateOf(f.name) }
-                    SItem(L.t("Rename {0}", f.name)) {
+                    SItemStacked(L.t("Rename {0}", f.name)) {
                         SField(t, { t = it.take(40) }, width = 220.dp)
                         SButton(L.t("Save"), primary = true) { pl.renameFavourite(f, t); renamingFav = null }
                     }
                 }
-                slotFor == f -> SItem(L.t("Make {0}…", f.name)) {
+                slotFor == f -> SItemStacked(L.t("Make {0}…", f.name)) {
                     SButton(L.t("Home"), primary = true) { pl.setSlot("home", f); slotFor = null; engine.toast(L.t("{0} is now Home", f.name), 2500) }
                     SButton(L.t("Work"), primary = true) { pl.setSlot("work", f); slotFor = null; engine.toast(L.t("{0} is now Work", f.name), 2500) }
                     SButton(L.t("Cancel")) { slotFor = null }
                 }
-                else -> SItem(f.name, f.sub) {
+                else -> SItemStacked(f.name, f.sub) {
                     SButton(L.t("Rename")) { renamingFav = f }
                     SButton(L.t("Make Home / Work")) { slotFor = f }
                     SButton(L.t("Remove"), danger = true) { pl.toggleFavourite(f) }
@@ -869,6 +871,11 @@ private fun PlacesSection(engine: NavEngine) {
             }
         }
         if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
+    }
+    // (the Home and Work buttons under the search bar, in the app and on Android Auto: each can be left off)
+    SGroup(L.t("Home and Work under the search bar"), footer = L.t("On this screen and on Android Auto. Your Home and Work places are kept either way.")) {
+        SToggle(engine.prefs, L.t("Home button"), PreferenceKeys.HOME_BTN, true)
+        SToggle(engine.prefs, L.t("Work button"), PreferenceKeys.WORK_BTN, true)
     }
     ShortcutsGroup(engine)
     SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
@@ -1171,18 +1178,30 @@ private fun AndroidAutoSection(prefs: Prefs) {
         } catch (e: Exception) { L.t("Unknown") }
     }
     CarTripButtonsGroup(prefs)
+    // Voice search from the car screen's microphone button listens through the app, which needs the microphone allowed. Android
+    // only lets an app ask from its own screen (asking from the car screen is refused on newer Android), so it's asked here
+    run {
+        var micOk by remember { mutableStateOf(ctx.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) }
+        val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> micOk = granted }
+        SGroup(L.t("Voice search on the car screen"), footer = L.t("With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own.")) {
+            SItem(L.t("Microphone"), if (micOk) L.t("Allowed") else L.t("Not allowed")) {
+                if (!micOk) SButton(L.t("Allow"), primary = true) { askMic.launch(android.Manifest.permission.RECORD_AUDIO) }
+            }
+        }
+    }
     SGroup(L.t("Card positions on the car screen"), L.t("The turn card stays top left on Android Auto, where its own buttons leave room")) {
         CardPositionsPreview(prefs, car = true)
         SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto")) { prefs.put(PreferenceKeys.CAR_TRIP_POS, it) }
-        SChoice(L.t("Speedometer"), listOf("auto" to L.t("Away from the cards"), "left" to L.t("Bottom left"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_SPEED_SIDE, "auto")) { prefs.put(PreferenceKeys.CAR_SPEED_SIDE, it) }
+        // (one choice for where the speedometer goes: it used to be two, "Speedometer" here for the bottom corner and "Speed
+        // position on the car screen" further down, and the first did nothing unless the second was on Bottom)
+        SChoice(L.t("Speedometer"), listOf("bl" to L.t("Bottom left"), "br" to L.t("Bottom right"), "middle" to L.t("Under the turn card"), "top" to L.t("Top right")), prefs.carSpeedSpot(),
+            L.t("Top right is in the corner itself, and makes way while Android Auto's buttons are showing there"), wrap = true) { prefs.setCarSpeedSpot(it) }
+        SChoice(L.t("Speedometer style on the car screen"), listOf("app" to L.t("Same as the app"), "compact" to L.t("Compact")), prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app"),
+            L.t("Compact is a small dark pill with the limit and your speed side by side")) { prefs.put(PreferenceKeys.CAR_SPEED_STYLE, it) }
     }
     SGroup(L.t("Sizes on the car screen")) {
         SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay"), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
-        SChoice(L.t("Speed position on the car screen"), listOf("bottom" to L.t("Bottom corner"), "middle" to L.t("Under the turn card"), "top" to L.t("Top right")), prefs.s(PreferenceKeys.SPEED_POS_CAR, "bottom"),
-            L.t("Bottom corner uses the side picked under Card positions. On a short car screen, Top right needs the Compact style: the ring goes under the turn card there")) { prefs.put(PreferenceKeys.SPEED_POS_CAR, it) }
-        SChoice(L.t("Speedometer style on the car screen"), listOf("app" to L.t("Same as the app"), "compact" to L.t("Compact")), prefs.s(PreferenceKeys.CAR_SPEED_STYLE, "app"),
-            L.t("Compact is a small dark pill with the limit and your speed side by side")) { prefs.put(PreferenceKeys.CAR_SPEED_STYLE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
             SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }
@@ -1297,7 +1316,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             val ok = try {
-                ctx.contentResolver.openOutputStream(uri)?.use { it.write(prefs.exportJson().toByteArray()) }
+                ctx.contentResolver.openOutputStream(uri)?.use { it.write(prefs.exportJson(prefs.b(PreferenceKeys.BACKUP_KEYS, false)).toByteArray()) }
                 true
             } catch (e: Exception) { false }
             android.widget.Toast.makeText(ctx, if (ok) L.t("Backup saved") else L.t("Could not save the backup"), android.widget.Toast.LENGTH_SHORT).show()
@@ -1312,7 +1331,8 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show()
         }
     }
-    SGroup(L.t("Backup"), footer = L.t("Includes settings and saved places, not the API key or the offline pack. A backup from Horizon Launcher can be restored here too.")) {
+    SGroup(L.t("Backup"), footer = L.t("Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
+        SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
         SItem(L.t("Settings and saved places")) {
             SButton(L.t("Back up")) { exporter.launch("horizon-nav-backup.json") }
             SButton(L.t("Restore")) { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }

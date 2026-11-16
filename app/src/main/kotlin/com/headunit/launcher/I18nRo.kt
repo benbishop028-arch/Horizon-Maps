@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** ro: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ro.tsv. */
 object I18nRo {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "sosire, destinația este pe stânga",
@@ -1511,5 +1511,44 @@ object I18nRo {
         "Same as the app" to "La fel ca în aplicație",
         "Speedometer style" to "Stilul vitezometrului",
         "Speedometer style on the car screen" to "Stilul vitezometrului pe ecranul mașinii",
+        "Group" to "Grup",
+        "New group" to "Grup nou",
+        "No group" to "Fără grup",
+        "1 place" to "1 loc",
+        "{0} places" to "{0} locuri",
+        "Top speed for arrival times" to "Viteză maximă pentru orele de sosire",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Traseele sunt calculate nu mai repede de atât: pentru dube, camioane sau cu remorcă. Oprit folosește vitezele obișnuite",
+        "Categories" to "Categorii",
+        "Didn't catch that" to "Nu am înțeles",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Afișaj",
+        "Driving" to "Condus",
+        "Home and Work under the search bar" to "Acasă și Serviciu sub bara de căutare",
+        "Home button" to "Butonul Acasă",
+        "Include API keys" to "Include cheile API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Include setările și locurile salvate, nu pachetul offline. Cheile API sunt incluse doar cu comutatorul pornit. Aici se poate restaura și o copie din Horizon Launcher.",
+        "Larger" to "Mai mare",
+        "Listening…" to "Ascult…",
+        "Microphone" to "Microfon",
+        "North up" to "Nordul sus",
+        "Not allowed" to "Nepermis",
+        "On cars that offer it" to "La mașinile care oferă asta",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Pe acest ecran și în Android Auto. Locurile Acasă și Serviciu se păstrează oricum.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Pune cheile TomTom și Mapbox în fișierul de rezervă, ca Restaurare să le aducă înapoi. Fișierul este text simplu: păstrați-l într-un loc sigur",
+        "Recent" to "Recente",
+        "Smaller" to "Mai mic",
+        "Sun" to "Soare",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Pentru ascultare imediată, permiteți microfonul în Horizon Nav pe telefon: Setări › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Dreapta sus stă chiar în colț și se retrage cât timp butoanele Android Auto sunt afișate acolo",
+        "Under the search bar" to "Sub bara de căutare",
+        "Under turn" to "Sub viraj",
+        "Voice search isn't available on this phone" to "Căutarea vocală nu este disponibilă pe acest telefon",
+        "Voice search on the car screen" to "Căutare vocală pe ecranul mașinii",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Cu microfonul permis, butonul de microfon de pe ecranul mașinii ascultă imediat. Fără el, butonul deschide ecranul de căutare Android Auto, care are propriul microfon.",
+        "Work button" to "Butonul Serviciu",
+        "No matches. Try adding a town or postcode." to "Niciun rezultat. Încercați să adăugați un oraș sau un cod poștal.",
     )
 }

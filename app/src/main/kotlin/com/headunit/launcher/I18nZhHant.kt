@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** zh: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/zh.tsv. */
 object I18nZhHant {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "抵達，目的地在左側",
@@ -1511,5 +1511,44 @@ object I18nZhHant {
         "Same as the app" to "與 App 相同",
         "Speedometer style" to "速度表樣式",
         "Speedometer style on the car screen" to "車用螢幕上的速度表樣式",
+        "Group" to "群組",
+        "New group" to "新群組",
+        "No group" to "無群組",
+        "1 place" to "1 個地點",
+        "{0} places" to "{0} 個地點",
+        "Top speed for arrival times" to "抵達時間的最高速度",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "路線時間不會以快於此速度計算：適用於廂型車、貨車或拖車。關閉則使用一般道路速度",
+        "Categories" to "類別",
+        "Didn't catch that" to "沒聽清楚",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "顯示",
+        "Driving" to "駕駛",
+        "Home and Work under the search bar" to "搜尋列下方的住家與公司",
+        "Home button" to "住家按鈕",
+        "Include API keys" to "包含 API 金鑰",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "包含設定與已儲存地點，不含離線套件。只有開啟開關時才會包含 API 金鑰。也可在此還原 Horizon Launcher 的備份。",
+        "Larger" to "較大",
+        "Listening…" to "正在聆聽…",
+        "Microphone" to "麥克風",
+        "North up" to "北方朝上",
+        "Not allowed" to "未允許",
+        "On cars that offer it" to "在支援的車輛上",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "在此畫面及 Android Auto 上。住家與公司地點都會保留。",
+        "Phone" to "手機",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "將 TomTom 與 Mapbox 金鑰放入備份檔，讓還原時一併取回。檔案為純文字：請妥善保存",
+        "Recent" to "最近",
+        "Smaller" to "較小",
+        "Sun" to "太陽",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "若要立即聆聽，請在手機的 Horizon Nav 中允許麥克風：設定 › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "右上角會緊貼角落，Android Auto 的按鈕出現時會讓開",
+        "Under the search bar" to "搜尋列下方",
+        "Under turn" to "轉彎卡片下方",
+        "Voice search isn't available on this phone" to "此手機無法使用語音搜尋",
+        "Voice search on the car screen" to "車輛螢幕上的語音搜尋",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "允許麥克風後，車輛螢幕上的麥克風按鈕會立即聆聽。未允許時，按鈕會開啟 Android Auto 的搜尋畫面，它有自己的麥克風。",
+        "Work button" to "公司按鈕",
+        "No matches. Try adding a town or postcode." to "找不到結果。請試著加入城鎮或郵遞區號。",
     )
 }

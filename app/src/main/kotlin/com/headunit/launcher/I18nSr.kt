@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** sr: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/sr.tsv. */
 object I18nSr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "dolazak, odredište je levo",
@@ -1511,5 +1511,44 @@ object I18nSr {
         "Same as the app" to "Kao u aplikaciji",
         "Speedometer style" to "Stil brzinomera",
         "Speedometer style on the car screen" to "Stil brzinomera na ekranu automobila",
+        "Group" to "Grupa",
+        "New group" to "Nova grupa",
+        "No group" to "Bez grupe",
+        "1 place" to "1 mesto",
+        "{0} places" to "Mesta: {0}",
+        "Top speed for arrival times" to "Najveća brzina za vreme dolaska",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Rute se računaju najviše ovom brzinom: za kombije, kamione ili sa prikolicom. Isključeno koristi uobičajene brzine",
+        "Categories" to "Kategorije",
+        "Didn't catch that" to "Nisam razumeo",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Prikaz",
+        "Driving" to "Vožnja",
+        "Home and Work under the search bar" to "Kuća i Posao ispod trake za pretragu",
+        "Home button" to "Dugme Kuća",
+        "Include API keys" to "Uključi API ključeve",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Sadrži podešavanja i sačuvana mesta, ne oflajn paket. API ključevi se uključuju samo sa uključenim prekidačem. Ovde se može vratiti i rezervna kopija iz Horizon Launchera.",
+        "Larger" to "Veće",
+        "Listening…" to "Slušam…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Sever gore",
+        "Not allowed" to "Nije dozvoljeno",
+        "On cars that offer it" to "U kolima koja to nude",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Na ovom ekranu i u Android Autu. Mesta Kuća i Posao se čuvaju u svakom slučaju.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Upisuje TomTom i Mapbox ključeve u datoteku rezervne kopije, da ih Vrati vrati. Datoteka je običan tekst: čuvajte je na sigurnom",
+        "Recent" to "Nedavno",
+        "Smaller" to "Manje",
+        "Sun" to "Sunce",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Za trenutno slušanje dozvolite mikrofon u Horizon Navu na telefonu: Podešavanja › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Gore desno stoji u samom uglu i pomera se dok su tamo prikazana dugmad Android Auta",
+        "Under the search bar" to "Ispod trake za pretragu",
+        "Under turn" to "Ispod skretanja",
+        "Voice search isn't available on this phone" to "Glasovna pretraga nije dostupna na ovom telefonu",
+        "Voice search on the car screen" to "Glasovna pretraga na ekranu kola",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Sa dozvoljenim mikrofonom dugme mikrofona na ekranu kola odmah sluša. Bez toga dugme otvara ekran pretrage Android Auta, koji ima sopstveni mikrofon.",
+        "Work button" to "Dugme Posao",
+        "No matches. Try adding a town or postcode." to "Nema rezultata. Pokušajte da dodate mesto ili poštanski broj.",
     )
 }

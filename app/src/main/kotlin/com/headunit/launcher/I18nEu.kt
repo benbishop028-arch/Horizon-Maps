@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** eu: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/eu.tsv. */
 object I18nEu {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "helmuga ezkerrean dago",
@@ -1511,5 +1511,44 @@ object I18nEu {
         "Same as the app" to "Aplikazioan bezala",
         "Speedometer style" to "Abiadura-neurgailuaren estiloa",
         "Speedometer style on the car screen" to "Abiadura-neurgailuaren estiloa autoko pantailan",
+        "Group" to "Taldea",
+        "New group" to "Talde berria",
+        "No group" to "Talderik ez",
+        "1 place" to "Leku 1",
+        "{0} places" to "{0} leku",
+        "Top speed for arrival times" to "Iristeko orduetarako abiadura maximoa",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Ibilbideak ez dira hau baino azkarrago kalkulatzen: furgonetetarako, kamioietarako edo atoiarekin. Itzalita ohiko abiadurak erabiltzen ditu",
+        "Categories" to "Kategoriak",
+        "Didn't catch that" to "Ez dut ulertu",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Pantaila",
+        "Driving" to "Gidatzea",
+        "Home and Work under the search bar" to "Etxea eta Lana bilaketa-barraren azpian",
+        "Home button" to "Etxea botoia",
+        "Include API keys" to "Sartu API gakoak",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Ezarpenak eta gordetako lekuak ditu, ez lineaz kanpoko paketea. API gakoak etengailua piztuta dagoenean bakarrik sartzen dira. Horizon Launcher-en babeskopia ere hemen leheneratu daiteke.",
+        "Larger" to "Handiagoa",
+        "Listening…" to "Entzuten…",
+        "Microphone" to "Mikrofonoa",
+        "North up" to "Iparra gora",
+        "Not allowed" to "Baimendu gabe",
+        "On cars that offer it" to "Aukera hori duten autoetan",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Pantaila honetan eta Android Auto-n. Etxea eta Lana lekuak gorde egiten dira kasu guztietan.",
+        "Phone" to "Telefonoa",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "TomTom eta Mapbox gakoak babeskopia-fitxategian jartzen ditu, Leheneratu aukerak berreskura ditzan. Fitxategia testu arrunta da: gorde leku seguruan",
+        "Recent" to "Azkenak",
+        "Smaller" to "Txikiagoa",
+        "Sun" to "Eguzkia",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Berehala entzuteko, baimendu mikrofonoa telefonoko Horizon Nav-en: Ezarpenak › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Goian eskuinean izkinan bertan dago, eta alde egiten du Android Auto-ren botoiak bertan ikusten diren bitartean",
+        "Under the search bar" to "Bilaketa-barraren azpian",
+        "Under turn" to "Bira azpian",
+        "Voice search isn't available on this phone" to "Ahots bidezko bilaketa ez dago erabilgarri telefono honetan",
+        "Voice search on the car screen" to "Ahots bidezko bilaketa autoaren pantailan",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Mikrofonoa baimenduta, autoaren pantailako mikrofono-botoiak berehala entzuten du. Gabe, botoiak Android Auto-ren bilaketa-pantaila irekitzen du, mikrofono propioa duena.",
+        "Work button" to "Lana botoia",
+        "No matches. Try adding a town or postcode." to "Ez dago emaitzarik. Saiatu herri bat edo posta-kodea gehitzen.",
     )
 }

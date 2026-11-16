@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** zhs: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/zhs.tsv. */
 object I18nZhHans {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "到达时目的地在左侧",
@@ -1511,5 +1511,44 @@ object I18nZhHans {
         "Same as the app" to "与应用相同",
         "Speedometer style" to "速度表样式",
         "Speedometer style on the car screen" to "车载屏幕上的速度表样式",
+        "Group" to "分组",
+        "New group" to "新分组",
+        "No group" to "无分组",
+        "1 place" to "1 个地点",
+        "{0} places" to "{0} 个地点",
+        "Top speed for arrival times" to "到达时间的最高速度",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "路线时间不会以快于此速度计算：适用于面包车、货车或拖车。关闭则使用一般道路速度",
+        "Categories" to "类别",
+        "Didn't catch that" to "没听清",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "显示",
+        "Driving" to "驾驶",
+        "Home and Work under the search bar" to "搜索栏下方的家和公司",
+        "Home button" to "家按钮",
+        "Include API keys" to "包含 API 密钥",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "包含设置和已保存地点，不含离线包。只有开启开关时才包含 API 密钥。也可以在这里恢复 Horizon Launcher 的备份。",
+        "Larger" to "更大",
+        "Listening…" to "正在聆听…",
+        "Microphone" to "麦克风",
+        "North up" to "北方朝上",
+        "Not allowed" to "未允许",
+        "On cars that offer it" to "在支持的车辆上",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "在此屏幕和 Android Auto 上。家和公司地点都会保留。",
+        "Phone" to "手机",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "将 TomTom 和 Mapbox 密钥放入备份文件，恢复时一并取回。文件为纯文本：请妥善保存",
+        "Recent" to "最近",
+        "Smaller" to "更小",
+        "Sun" to "太阳",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "要立即聆听，请在手机的 Horizon Nav 中允许麦克风：设置 › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "右上角紧贴角落，Android Auto 的按钮显示时会让开",
+        "Under the search bar" to "搜索栏下方",
+        "Under turn" to "转弯卡片下方",
+        "Voice search isn't available on this phone" to "此手机无法使用语音搜索",
+        "Voice search on the car screen" to "车辆屏幕上的语音搜索",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "允许麦克风后，车辆屏幕上的麦克风按钮会立即聆听。未允许时，按钮会打开 Android Auto 的搜索屏幕，它有自己的麦克风。",
+        "Work button" to "公司按钮",
+        "No matches. Try adding a town or postcode." to "没有结果。请尝试加上城镇或邮政编码。",
     )
 }

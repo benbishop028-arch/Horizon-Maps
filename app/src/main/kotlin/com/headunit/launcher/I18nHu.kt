@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** hu: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/hu.tsv. */
 object I18nHu {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "érkezéskor a célállomás a bal oldalon van",
@@ -1511,5 +1511,44 @@ object I18nHu {
         "Same as the app" to "Mint az alkalmazásban",
         "Speedometer style" to "Sebességmérő stílusa",
         "Speedometer style on the car screen" to "Sebességmérő stílusa az autó képernyőjén",
+        "Group" to "Csoport",
+        "New group" to "Új csoport",
+        "No group" to "Nincs csoport",
+        "1 place" to "1 hely",
+        "{0} places" to "{0} hely",
+        "Top speed for arrival times" to "Legnagyobb sebesség az érkezési időkhöz",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Az útvonalak ideje legfeljebb ezzel a sebességgel számol: kisteherautóhoz, teherautóhoz vagy utánfutóval. Ki: a szokásos sebességek",
+        "Categories" to "Kategóriák",
+        "Didn't catch that" to "Nem értettem",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Kijelző",
+        "Driving" to "Vezetés",
+        "Home and Work under the search bar" to "Otthon és Munka a keresősáv alatt",
+        "Home button" to "Otthon gomb",
+        "Include API keys" to "API-kulcsok mentése",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "A beállításokat és a mentett helyeket tartalmazza, az offline csomagot nem. Az API-kulcsok csak bekapcsolt kapcsolóval kerülnek bele. Itt a Horizon Launcher mentése is visszaállítható.",
+        "Larger" to "Nagyobb",
+        "Listening…" to "Figyelek…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Észak felül",
+        "Not allowed" to "Nincs engedélyezve",
+        "On cars that offer it" to "Az ezt támogató autókban",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Ezen a képernyőn és az Android Autóban. Az Otthon és Munka helyek mindenképp megmaradnak.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "A TomTom- és Mapbox-kulcsokat a mentésbe teszi, így a Visszaállítás visszahozza őket. A fájl egyszerű szöveg: tartsa biztonságos helyen",
+        "Recent" to "Legutóbbiak",
+        "Smaller" to "Kisebb",
+        "Sun" to "Nap",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Az azonnali figyeléshez engedélyezze a mikrofont a telefon Horizon Nav alkalmazásában: Beállítások › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "A jobb felső a sarokban van, és félrehúzódik, amíg ott az Android Auto gombjai látszanak",
+        "Under the search bar" to "A keresősáv alatt",
+        "Under turn" to "A kanyar alatt",
+        "Voice search isn't available on this phone" to "A hangalapú keresés nem érhető el ezen a telefonon",
+        "Voice search on the car screen" to "Hangalapú keresés az autó képernyőjén",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Engedélyezett mikrofonnal az autó képernyőjén lévő mikrofongomb azonnal figyel. Enélkül a gomb az Android Auto keresőképernyőjét nyitja meg, amelynek saját mikrofonja van.",
+        "Work button" to "Munka gomb",
+        "No matches. Try adding a town or postcode." to "Nincs találat. Próbáljon hozzáadni települést vagy irányítószámot.",
     )
 }

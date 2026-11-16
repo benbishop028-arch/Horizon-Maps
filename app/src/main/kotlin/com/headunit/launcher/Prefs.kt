@@ -250,11 +250,20 @@ internal object PreferenceKeys {
     /** Where the speed limit and speedometer sit, on the side away from the cards: "bottom" (as it always was), "middle" or "top". */
     const val SPEED_POS = "speedpos"
     /** The same for the Android Auto screen: "bottom" (the bottom corner), "middle" (under the turn card; the name is from when
-     *  it was the middle of the right-hand side) or "top" (top right, under Android Auto's buttons). */
+     *  it was the middle of the right-hand side) or "top" (top right: in the corner itself while navigating, making way while
+     *  Android Auto's buttons are showing there; under those buttons otherwise). */
     const val SPEED_POS_CAR = "speedposcar"
     /** The speedometer's look on the Android Auto screen: "app" (the same as the app: the ring or the block) or "compact"
      *  (a small dark pill with the limit sign and your speed side by side, easy to tuck into a corner). */
     const val CAR_SPEED_STYLE = "carspeedstyle"
+    /** Set the first time a car passes a tap on its screen to the app (not every car does): only then can the app's own
+     *  buttons stand in for Android Auto's (the trip card's red button for Stop). */
+    const val CAR_TAPS_SEEN = "cartapsseen"
+    /** The Home and Work buttons under the search bar (the app and the Android Auto screen alike): each can be left off. */
+    const val HOME_BTN = "homebtn"
+    const val WORK_BTN = "workbtn"
+    /** Settings > Backup: put the API keys (TomTom, Mapbox) in the backup file too. Off unless switched on: the file is plain text. */
+    const val BACKUP_KEYS = "backupkeys"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
     /** While navigating, the notification shows the next turn (arrow, distance, road) for launchers, watches and other screens. */
@@ -359,6 +368,8 @@ class Prefs(ctx: Context) {
 
     private companion object {
         val LOCK = Any()
+        /** The API keys: only in a backup when asked for. */
+        val SECRET_KEYS = setOf(PreferenceKeys.API_KEY, PreferenceKeys.MAPBOX_TOKEN, PreferenceKeys.GOOGLE_API_KEY)
         var RAW: HashMap<String, String>? = null
         val STATES = HashMap<String, MutableState<String?>>()
     }
@@ -370,10 +381,13 @@ class Prefs(ctx: Context) {
     fun i(k: String, d: Int) = state(k).value?.toIntOrNull() ?: d
     fun f(k: String, d: Float) = state(k).value?.toFloatOrNull() ?: d
 
-    /** Everything except the API key, as JSON text (settings, saved places, logs...). */
-    fun exportJson(): String = synchronized(LOCK) {
+    /**
+     * Everything as JSON text (settings, saved places, logs...). The API keys go in only with [includeKeys] (Settings > Backup >
+     * Include API keys): the file is plain text, so they're left out unless asked for.
+     */
+    fun exportJson(includeKeys: Boolean = false): String = synchronized(LOCK) {
         val o = JSONObject()
-        raw.forEach { (k, v) -> if (k != PreferenceKeys.API_KEY) o.put(k, v) }
+        raw.forEach { (k, v) -> if (includeKeys || k !in SECRET_KEYS) o.put(k, v) }
         o.toString(2)
     }
 
@@ -387,10 +401,13 @@ class Prefs(ctx: Context) {
         while (keys.hasNext()) {
             val k = keys.next()
             require(k.isNotBlank() && k.length <= 200) { "Invalid setting name" }
-            if (k == PreferenceKeys.API_KEY) continue // API keys are intentionally never imported from backups.
             val value = o.get(k)
             require(value !is JSONObject && value !is org.json.JSONArray) { "Invalid setting value" }
-            pending[k] = if (value == JSONObject.NULL) "" else value.toString()
+            val text0 = if (value == JSONObject.NULL) "" else value.toString()
+            // API keys are restored when the backup has them (it was made with "Include API keys"); an empty one in the file
+            // never wipes a key that's already set here
+            if (k in SECRET_KEYS && text0.isBlank()) continue
+            pending[k] = text0
         }
         pending.forEach { (k, v) -> put(k, v) }
         return pending.size
@@ -430,6 +447,26 @@ fun Prefs.migrateToMapbox() {
     if (!b(PreferenceKeys.TT_MAP_FIX, false)) {
         if (s(PreferenceKeys.MAP_STYLE, "") == "tomtom") put(PreferenceKeys.MAP_STYLE, "mapbox")
         put(PreferenceKeys.TT_MAP_FIX, true)
+    }
+}
+
+/**
+ * Where the speedometer sits on the Android Auto screen, as one choice: "bl" / "br" (a bottom corner), "middle" (under the turn
+ * card) or "top" (the top right corner). It's kept as two settings (SPEED_POS_CAR, and CAR_SPEED_SIDE for which bottom corner),
+ * which used to be two separate choices in Settings, one of which did nothing unless the other was on Bottom.
+ */
+fun Prefs.carSpeedSpot(): String = when (s(PreferenceKeys.SPEED_POS_CAR, "bottom")) {
+    "middle" -> "middle"
+    "top", "corner" -> "top"
+    // ("auto": away from the trip card, which is on the right only when it's been put there)
+    else -> when (s(PreferenceKeys.CAR_SPEED_SIDE, "auto")) { "left" -> "bl"; "right" -> "br"; else -> if (s(PreferenceKeys.CAR_TRIP_POS, "auto") == "right") "bl" else "br" }
+}
+
+fun Prefs.setCarSpeedSpot(spot: String) {
+    when (spot) {
+        "bl" -> { put(PreferenceKeys.SPEED_POS_CAR, "bottom"); put(PreferenceKeys.CAR_SPEED_SIDE, "left") }
+        "br" -> { put(PreferenceKeys.SPEED_POS_CAR, "bottom"); put(PreferenceKeys.CAR_SPEED_SIDE, "right") }
+        else -> put(PreferenceKeys.SPEED_POS_CAR, spot)
     }
 }
 

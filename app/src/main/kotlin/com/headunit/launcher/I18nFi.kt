@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** fi: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/fi.tsv. */
 object I18nFi {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "perillä määränpää on vasemmalla",
@@ -1511,5 +1511,44 @@ object I18nFi {
         "Same as the app" to "Kuten sovelluksessa",
         "Speedometer style" to "Nopeusmittarin tyyli",
         "Speedometer style on the car screen" to "Nopeusmittarin tyyli auton näytöllä",
+        "Group" to "Ryhmä",
+        "New group" to "Uusi ryhmä",
+        "No group" to "Ei ryhmää",
+        "1 place" to "1 paikka",
+        "{0} places" to "{0} paikkaa",
+        "Top speed for arrival times" to "Huippunopeus saapumisajoille",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Reittien ajat lasketaan enintään tällä nopeudella: pakettiautoille, kuorma-autoille tai perävaunun kanssa. Pois käyttää tavallisia nopeuksia",
+        "Categories" to "Luokat",
+        "Didn't catch that" to "En saanut selvää",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Näyttö",
+        "Driving" to "Ajo",
+        "Home and Work under the search bar" to "Koti ja Työ hakupalkin alla",
+        "Home button" to "Koti-painike",
+        "Include API keys" to "Sisällytä API-avaimet",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Sisältää asetukset ja tallennetut paikat, ei offline-pakettia. API-avaimet ovat mukana vain kytkin päällä. Myös Horizon Launcherin varmuuskopion voi palauttaa tässä.",
+        "Larger" to "Suurempi",
+        "Listening…" to "Kuuntelen…",
+        "Microphone" to "Mikrofoni",
+        "North up" to "Pohjoinen ylös",
+        "Not allowed" to "Ei sallittu",
+        "On cars that offer it" to "Autoissa, jotka tukevat sitä",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Tällä näytöllä ja Android Autossa. Koti- ja Työ-paikat säilyvät joka tapauksessa.",
+        "Phone" to "Puhelin",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Tallentaa TomTom- ja Mapbox-avaimet varmuuskopiotiedostoon, jotta Palauta tuo ne takaisin. Tiedosto on pelkkää tekstiä: säilytä se turvassa",
+        "Recent" to "Viimeisimmät",
+        "Smaller" to "Pienempi",
+        "Sun" to "Aurinko",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Jotta kuuntelu alkaa heti, salli mikrofoni puhelimen Horizon Navissa: Asetukset › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Oikea yläkulma on aivan kulmassa ja väistää, kun Android Auton painikkeet näkyvät siinä",
+        "Under the search bar" to "Hakupalkin alla",
+        "Under turn" to "Käännöksen alla",
+        "Voice search isn't available on this phone" to "Äänihaku ei ole käytettävissä tässä puhelimessa",
+        "Voice search on the car screen" to "Äänihaku auton näytöllä",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Kun mikrofoni on sallittu, auton näytön mikrofonipainike kuuntelee heti. Muuten painike avaa Android Auton hakunäkymän, jossa on oma mikrofoni.",
+        "Work button" to "Työ-painike",
+        "No matches. Try adding a town or postcode." to "Ei osumia. Kokeile lisätä paikkakunta tai postinumero.",
     )
 }

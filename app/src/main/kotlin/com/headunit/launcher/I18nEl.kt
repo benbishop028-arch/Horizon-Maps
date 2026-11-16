@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** el: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/el.tsv. */
 object I18nEl {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "κατά την άφιξη, ο προορισμός είναι στα αριστερά",
@@ -1511,5 +1511,44 @@ object I18nEl {
         "Same as the app" to "Όπως στην εφαρμογή",
         "Speedometer style" to "Στυλ ταχύμετρου",
         "Speedometer style on the car screen" to "Στυλ ταχύμετρου στην οθόνη του αυτοκινήτου",
+        "Group" to "Ομάδα",
+        "New group" to "Νέα ομάδα",
+        "No group" to "Χωρίς ομάδα",
+        "1 place" to "1 μέρος",
+        "{0} places" to "{0} μέρη",
+        "Top speed for arrival times" to "Μέγιστη ταχύτητα για ώρες άφιξης",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Οι διαδρομές υπολογίζονται όχι ταχύτερα από αυτό: για βαν, φορτηγά ή ρυμούλκηση. Το Ανενεργό χρησιμοποιεί τις κανονικές ταχύτητες",
+        "Categories" to "Κατηγορίες",
+        "Didn't catch that" to "Δεν το κατάλαβα",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Οθόνη",
+        "Driving" to "Οδήγηση",
+        "Home and Work under the search bar" to "Σπίτι και Δουλειά κάτω από τη γραμμή αναζήτησης",
+        "Home button" to "Κουμπί Σπίτι",
+        "Include API keys" to "Συμπερίληψη κλειδιών API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Περιλαμβάνει ρυθμίσεις και αποθηκευμένα μέρη, όχι το πακέτο εκτός σύνδεσης. Τα κλειδιά API περιλαμβάνονται μόνο με τον διακόπτη ενεργό. Εδώ μπορεί να επαναφερθεί και αντίγραφο από το Horizon Launcher.",
+        "Larger" to "Μεγαλύτερο",
+        "Listening…" to "Ακούω…",
+        "Microphone" to "Μικρόφωνο",
+        "North up" to "Βορράς πάνω",
+        "Not allowed" to "Δεν επιτρέπεται",
+        "On cars that offer it" to "Σε αυτοκίνητα που το υποστηρίζουν",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Σε αυτή την οθόνη και στο Android Auto. Τα μέρη Σπίτι και Δουλειά διατηρούνται σε κάθε περίπτωση.",
+        "Phone" to "Τηλέφωνο",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Βάζει τα κλειδιά TomTom και Mapbox στο αρχείο αντιγράφου, ώστε η Επαναφορά να τα επιστρέφει. Το αρχείο είναι απλό κείμενο: φυλάξτε το κάπου ασφαλές",
+        "Recent" to "Πρόσφατα",
+        "Smaller" to "Μικρότερο",
+        "Sun" to "Ήλιος",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Για άμεση ακρόαση, επιτρέψτε το μικρόφωνο στο Horizon Nav στο τηλέφωνο: Ρυθμίσεις › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Το πάνω δεξιά είναι ακριβώς στη γωνία και παραμερίζει όσο εμφανίζονται εκεί τα κουμπιά του Android Auto",
+        "Under the search bar" to "Κάτω από τη γραμμή αναζήτησης",
+        "Under turn" to "Κάτω από τη στροφή",
+        "Voice search isn't available on this phone" to "Η φωνητική αναζήτηση δεν είναι διαθέσιμη σε αυτό το τηλέφωνο",
+        "Voice search on the car screen" to "Φωνητική αναζήτηση στην οθόνη του αυτοκινήτου",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Με επιτρεπόμενο μικρόφωνο, το κουμπί μικροφώνου στην οθόνη του αυτοκινήτου ακούει αμέσως. Χωρίς αυτό, ανοίγει την οθόνη αναζήτησης του Android Auto, που έχει δικό της μικρόφωνο.",
+        "Work button" to "Κουμπί Δουλειά",
+        "No matches. Try adding a town or postcode." to "Κανένα αποτέλεσμα. Δοκιμάστε να προσθέσετε πόλη ή ταχυδρομικό κώδικα.",
     )
 }

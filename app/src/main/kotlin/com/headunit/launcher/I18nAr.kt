@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** ar: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ar.tsv. */
 object I18nAr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "الوصول، الوجهة على اليسار",
@@ -1511,5 +1511,44 @@ object I18nAr {
         "Same as the app" to "مثل التطبيق",
         "Speedometer style" to "نمط عداد السرعة",
         "Speedometer style on the car screen" to "نمط عداد السرعة على شاشة السيارة",
+        "Group" to "مجموعة",
+        "New group" to "مجموعة جديدة",
+        "No group" to "بلا مجموعة",
+        "1 place" to "مكان واحد",
+        "{0} places" to "{0} أماكن",
+        "Top speed for arrival times" to "السرعة القصوى لأوقات الوصول",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "تُحسب أوقات المسارات بسرعة لا تتجاوز هذه: للشاحنات الصغيرة أو الشاحنات أو عند القطر. الإيقاف يستخدم سرعات الطرق العادية",
+        "Categories" to "الفئات",
+        "Didn't catch that" to "لم أفهم ذلك",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "العرض",
+        "Driving" to "القيادة",
+        "Home and Work under the search bar" to "المنزل والعمل أسفل شريط البحث",
+        "Home button" to "زر المنزل",
+        "Include API keys" to "تضمين مفاتيح API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "يتضمن الإعدادات والأماكن المحفوظة، وليس الحزمة دون اتصال. لا تُضمَّن مفاتيح API إلا عند تشغيل المفتاح. يمكن أيضًا استعادة نسخة احتياطية من Horizon Launcher هنا.",
+        "Larger" to "أكبر",
+        "Listening…" to "جارٍ الاستماع…",
+        "Microphone" to "الميكروفون",
+        "North up" to "الشمال للأعلى",
+        "Not allowed" to "غير مسموح",
+        "On cars that offer it" to "في السيارات التي تدعمه",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "على هذه الشاشة وفي Android Auto. يُحتفظ بمكاني المنزل والعمل في كل الأحوال.",
+        "Phone" to "الهاتف",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "يضع مفاتيح TomTom وMapbox في ملف النسخة الاحتياطية، لتعيدها الاستعادة. الملف نص عادي: احفظه في مكان آمن",
+        "Recent" to "الأخيرة",
+        "Smaller" to "أصغر",
+        "Sun" to "الشمس",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "للاستماع فورًا، اسمح بالميكروفون في Horizon Nav على هاتفك: الإعدادات › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "أعلى اليمين يكون في الزاوية نفسها، ويتنحى ما دامت أزرار Android Auto ظاهرة هناك",
+        "Under the search bar" to "أسفل شريط البحث",
+        "Under turn" to "أسفل المنعطف",
+        "Voice search isn't available on this phone" to "البحث الصوتي غير متاح على هذا الهاتف",
+        "Voice search on the car screen" to "البحث الصوتي على شاشة السيارة",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "عند السماح بالميكروفون، يستمع زر الميكروفون على شاشة السيارة فورًا. ومن دونه يفتح الزر شاشة البحث في Android Auto التي لها ميكروفونها الخاص.",
+        "Work button" to "زر العمل",
+        "No matches. Try adding a town or postcode." to "لا توجد نتائج. جرّب إضافة مدينة أو رمز بريدي.",
     )
 }

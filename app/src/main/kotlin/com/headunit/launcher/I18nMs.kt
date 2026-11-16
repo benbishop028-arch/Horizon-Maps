@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** ms: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ms.tsv. */
 object I18nMs {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "sebaik tiba, destinasi di sebelah kiri",
@@ -1511,5 +1511,44 @@ object I18nMs {
         "Same as the app" to "Sama seperti dalam aplikasi",
         "Speedometer style" to "Gaya meter laju",
         "Speedometer style on the car screen" to "Gaya meter laju pada skrin kereta",
+        "Group" to "Kumpulan",
+        "New group" to "Kumpulan baharu",
+        "No group" to "Tiada kumpulan",
+        "1 place" to "1 tempat",
+        "{0} places" to "{0} tempat",
+        "Top speed for arrival times" to "Had laju untuk masa tiba",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Masa laluan dikira tidak lebih laju daripada ini: untuk van, lori atau menunda. Mati menggunakan kelajuan jalan biasa",
+        "Categories" to "Kategori",
+        "Didn't catch that" to "Tidak dapat menangkapnya",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Paparan",
+        "Driving" to "Memandu",
+        "Home and Work under the search bar" to "Rumah dan Kerja di bawah bar carian",
+        "Home button" to "Butang Rumah",
+        "Include API keys" to "Sertakan kunci API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Mengandungi tetapan dan tempat disimpan, bukan pek luar talian. Kunci API hanya disertakan apabila suis dihidupkan. Sandaran daripada Horizon Launcher juga boleh dipulihkan di sini.",
+        "Larger" to "Lebih besar",
+        "Listening…" to "Mendengar…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Utara di atas",
+        "Not allowed" to "Tidak dibenarkan",
+        "On cars that offer it" to "Pada kereta yang menyokongnya",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Pada skrin ini dan dalam Android Auto. Tempat Rumah dan Kerja tetap disimpan.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Meletakkan kunci TomTom dan Mapbox dalam fail sandaran, supaya Pulihkan membawanya kembali. Fail ini teks biasa: simpan di tempat selamat",
+        "Recent" to "Terkini",
+        "Smaller" to "Lebih kecil",
+        "Sun" to "Matahari",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Untuk mendengar serta-merta, benarkan mikrofon dalam Horizon Nav pada telefon: Tetapan › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Atas kanan terletak di sudut itu sendiri, dan memberi laluan semasa butang Android Auto dipaparkan di situ",
+        "Under the search bar" to "Di bawah bar carian",
+        "Under turn" to "Di bawah belokan",
+        "Voice search isn't available on this phone" to "Carian suara tidak tersedia pada telefon ini",
+        "Voice search on the car screen" to "Carian suara pada skrin kereta",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Dengan mikrofon dibenarkan, butang mikrofon pada skrin kereta terus mendengar. Tanpanya, butang membuka skrin carian Android Auto yang mempunyai mikrofon sendiri.",
+        "Work button" to "Butang Kerja",
+        "No matches. Try adding a town or postcode." to "Tiada padanan. Cuba tambah bandar atau poskod.",
     )
 }

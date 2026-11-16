@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** esar: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/esar.tsv. */
 object I18nEsAr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "llegada, destino a la izquierda",
@@ -1518,5 +1518,37 @@ object I18nEsAr {
         "{0} places" to "{0} lugares",
         "Top speed for arrival times" to "Velocidad máxima para las horas de llegada",
         "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Las rutas se calculan sin superar esta velocidad: para utilitarios, camiones o con remolque. Desactivado usa las velocidades normales",
+        "Categories" to "Categorías",
+        "Didn't catch that" to "No te entendí",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Pantalla",
+        "Driving" to "Manejo",
+        "Home and Work under the search bar" to "Casa y Trabajo bajo la barra de búsqueda",
+        "Home button" to "Botón Casa",
+        "Include API keys" to "Incluir claves API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Incluye la configuración y los lugares guardados, no el paquete sin conexión. Tus claves API solo se incluyen con el interruptor activado. Acá también se puede restaurar una copia de Horizon Launcher.",
+        "Larger" to "Más grande",
+        "Listening…" to "Escuchando…",
+        "Microphone" to "Micrófono",
+        "North up" to "Norte arriba",
+        "Not allowed" to "No permitido",
+        "On cars that offer it" to "En los autos que lo ofrecen",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "En esta pantalla y en Android Auto. Tus lugares Casa y Trabajo se conservan igual.",
+        "Phone" to "Teléfono",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Guarda tus claves de TomTom y Mapbox en el archivo de copia, para que Restaurar las recupere. El archivo es texto plano: guardalo en un lugar seguro",
+        "Recent" to "Recientes",
+        "Smaller" to "Más chico",
+        "Sun" to "Sol",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Para que escuche al toque, permití el micrófono en Horizon Nav en tu teléfono: Configuración › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Arriba a la derecha va en la misma esquina y se corre mientras los botones de Android Auto están ahí",
+        "Under the search bar" to "Bajo la barra de búsqueda",
+        "Under turn" to "Bajo el giro",
+        "Voice search isn't available on this phone" to "La búsqueda por voz no está disponible en este teléfono",
+        "Voice search on the car screen" to "Búsqueda por voz en la pantalla del auto",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Con el micrófono permitido, el botón de micrófono de la pantalla del auto escucha al toque. Sin él, el botón abre la pantalla de búsqueda de Android Auto, que tiene su propio micrófono.",
+        "Work button" to "Botón Trabajo",
+        "No matches. Try adding a town or postcode." to "No hay resultados. Probá agregando una localidad o código postal.",
     )
 }

@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** cs: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/cs.tsv. */
 object I18nCs {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "po příjezdu je cíl vlevo",
@@ -1511,5 +1511,44 @@ object I18nCs {
         "Same as the app" to "Stejně jako v aplikaci",
         "Speedometer style" to "Styl tachometru",
         "Speedometer style on the car screen" to "Styl tachometru na obrazovce auta",
+        "Group" to "Skupina",
+        "New group" to "Nová skupina",
+        "No group" to "Bez skupiny",
+        "1 place" to "1 místo",
+        "{0} places" to "Míst: {0}",
+        "Top speed for arrival times" to "Nejvyšší rychlost pro časy příjezdu",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "Trasy se počítají nejvýše touto rychlostí: pro dodávky, kamiony nebo s přívěsem. Vypnuto používá běžné rychlosti",
+        "Categories" to "Kategorie",
+        "Didn't catch that" to "Nerozuměl jsem",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "Zobrazení",
+        "Driving" to "Jízda",
+        "Home and Work under the search bar" to "Domov a Práce pod vyhledávacím polem",
+        "Home button" to "Tlačítko Domov",
+        "Include API keys" to "Zahrnout klíče API",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "Obsahuje nastavení a uložená místa, ne offline balíček. Klíče API jsou zahrnuty jen se zapnutým přepínačem. Zde lze obnovit i zálohu z Horizon Launcher.",
+        "Larger" to "Větší",
+        "Listening…" to "Poslouchám…",
+        "Microphone" to "Mikrofon",
+        "North up" to "Sever nahoře",
+        "Not allowed" to "Nepovoleno",
+        "On cars that offer it" to "U aut, která to nabízejí",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "Na této obrazovce i v Android Auto. Místa Domov a Práce zůstanou zachována v každém případě.",
+        "Phone" to "Telefon",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "Uloží klíče TomTom a Mapbox do souboru zálohy, aby je Obnovit vrátilo. Soubor je prostý text: uchovejte ho v bezpečí",
+        "Recent" to "Nedávné",
+        "Smaller" to "Menší",
+        "Sun" to "Slunce",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "Aby poslouchal hned, povolte mikrofon v Horizon Nav v telefonu: Nastavení › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "Vpravo nahoře je přímo v rohu a uhne, dokud jsou tam vidět tlačítka Android Auto",
+        "Under the search bar" to "Pod vyhledávacím polem",
+        "Under turn" to "Pod odbočkou",
+        "Voice search isn't available on this phone" to "Hlasové vyhledávání není na tomto telefonu dostupné",
+        "Voice search on the car screen" to "Hlasové vyhledávání na obrazovce auta",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "S povoleným mikrofonem tlačítko mikrofonu na obrazovce auta poslouchá hned. Bez něj otevře vyhledávání Android Auto, které má vlastní mikrofon.",
+        "Work button" to "Tlačítko Práce",
+        "No matches. Try adding a town or postcode." to "Žádné výsledky. Zkuste přidat obec nebo PSČ.",
     )
 }

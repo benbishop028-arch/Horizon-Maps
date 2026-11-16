@@ -2,7 +2,7 @@ package com.headunit.launcher
 
 /** ur: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ur.tsv. */
 object I18nUr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "پہنچ گئے، منزل بائیں جانب ہے",
@@ -1511,5 +1511,44 @@ object I18nUr {
         "Same as the app" to "ایپ جیسا",
         "Speedometer style" to "سپیڈومیٹر کا انداز",
         "Speedometer style on the car screen" to "گاڑی کی اسکرین پر سپیڈومیٹر کا انداز",
+        "Group" to "گروپ",
+        "New group" to "نیا گروپ",
+        "No group" to "کوئی گروپ نہیں",
+        "1 place" to "1 جگہ",
+        "{0} places" to "{0} جگہیں",
+        "Top speed for arrival times" to "پہنچنے کے وقت کے لیے زیادہ سے زیادہ رفتار",
+        "Routes are timed no faster than this: for vans, lorries or towing. Off uses normal road speeds" to "راستوں کا وقت اس سے تیز نہیں لگایا جاتا: وین، ٹرک یا ٹریلر کے لیے۔ بند ہونے پر عام سڑک کی رفتار استعمال ہوتی ہے",
+        "Categories" to "زمرے",
+        "Didn't catch that" to "سمجھ نہیں آیا",
+    )
+
+    private fun p6(): List<Pair<String, String>> = listOf(
+        "Display" to "ڈسپلے",
+        "Driving" to "ڈرائیونگ",
+        "Home and Work under the search bar" to "سرچ بار کے نیچے گھر اور کام",
+        "Home button" to "گھر کا بٹن",
+        "Include API keys" to "API کیز شامل کریں",
+        "Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too." to "ترتیبات اور محفوظ جگہیں شامل ہیں، آف لائن پیک نہیں۔ API کیز صرف سوئچ آن ہونے پر شامل ہوتی ہیں۔ Horizon Launcher کا بیک اپ بھی یہاں بحال کیا جا سکتا ہے۔",
+        "Larger" to "بڑا",
+        "Listening…" to "سن رہا ہے…",
+        "Microphone" to "مائیکروفون",
+        "North up" to "شمال اوپر",
+        "Not allowed" to "اجازت نہیں",
+        "On cars that offer it" to "ان گاڑیوں میں جو یہ سہولت دیتی ہیں",
+        "On this screen and on Android Auto. Your Home and Work places are kept either way." to "اس اسکرین اور Android Auto پر۔ آپ کی گھر اور کام کی جگہیں ہر صورت محفوظ رہتی ہیں۔",
+        "Phone" to "فون",
+        "Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe" to "آپ کی TomTom اور Mapbox کیز بیک اپ فائل میں رکھتا ہے تاکہ بحال کرنے پر واپس آ جائیں۔ فائل سادہ متن ہے: اسے محفوظ جگہ رکھیں",
+        "Recent" to "حالیہ",
+        "Smaller" to "چھوٹا",
+        "Sun" to "سورج",
+        "To listen straight away, allow the microphone in Horizon Nav on your phone: Settings › Android Auto" to "فوراً سننے کے لیے فون پر Horizon Nav میں مائیکروفون کی اجازت دیں: ترتیبات › Android Auto",
+        "Top right is in the corner itself, and makes way while Android Auto's buttons are showing there" to "اوپر دائیں بالکل کونے میں ہوتا ہے، اور جب تک وہاں Android Auto کے بٹن دکھائی دیں ہٹ جاتا ہے",
+        "Under the search bar" to "سرچ بار کے نیچے",
+        "Under turn" to "موڑ کے نیچے",
+        "Voice search isn't available on this phone" to "اس فون پر آواز سے تلاش دستیاب نہیں",
+        "Voice search on the car screen" to "گاڑی کی اسکرین پر آواز سے تلاش",
+        "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "مائیکروفون کی اجازت ہو تو گاڑی کی اسکرین پر مائیکروفون بٹن فوراً سنتا ہے۔ اجازت نہ ہو تو بٹن Android Auto کی تلاش والی اسکرین کھولتا ہے، جس کا اپنا مائیکروفون ہے۔",
+        "Work button" to "کام کا بٹن",
+        "No matches. Try adding a town or postcode." to "کوئی نتیجہ نہیں۔ شہر یا پوسٹ کوڈ شامل کر کے دیکھیں۔",
     )
 }
