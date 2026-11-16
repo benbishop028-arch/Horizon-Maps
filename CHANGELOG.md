@@ -20,6 +20,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Dutch wording: "Glazen panelen" is now "Transparante panelen", and the Screen and sizes summary says "transparantie" (thanks to hvdwolf)
 - Saved places while driving: your own places and favourites now follow Home and Work in the row under the search bar, which scrolls sideways, so they are one tap away even while you drive and the Saved & recent list is folded away (thanks to Seali7Aut)
 - Average speed checks: looked up on their own with a longer wait for busy servers, tried again sooner, and kept on your device, so a road you have driven before shows its check straight away, even with no signal (thanks to magnazan)
 - Route choice on a phone held sideways: the route panel is now a column down the left with the routes shown beside it, instead of covering nearly the whole map
