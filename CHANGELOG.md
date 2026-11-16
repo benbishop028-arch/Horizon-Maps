@@ -20,6 +20,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Faster rerouting after a missed turn: the new route is now asked for as soon as you start to leave the old one, before it is certain you have, and with both a TomTom key and a Mapbox token both are asked at once and the first answer is used. It used to take 6 to 8 seconds (thanks to karthikeyansr-lgtm)
 - Dutch wording: "Glazen panelen" is now "Transparante panelen", and the Screen and sizes summary says "transparantie" (thanks to hvdwolf)
 - Saved places while driving: your own places and favourites now follow Home and Work in the row under the search bar, which scrolls sideways, so they are one tap away even while you drive and the Saved & recent list is folded away (thanks to Seali7Aut)
 - Average speed checks: looked up on their own with a longer wait for busy servers, tried again sooner, and kept on your device, so a road you have driven before shows its check straight away, even with no signal (thanks to magnazan)

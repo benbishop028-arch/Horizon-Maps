@@ -2315,6 +2315,53 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         reroute()
     }
 
+    /**
+     * A new route from [from] for rerouting. Online, with both a TomTom key and a Mapbox token, both are asked at once and the first
+     * answer is used: a missed turn used to wait 6 to 8 seconds for one service (GitHub #147). Returns the routes, and whether they
+     * came from the downloaded map.
+     */
+    private suspend fun fetchReroute(from: LL, to: LL, viaPts: List<LL>, hd: Double): Pair<List<Route>, Boolean> = withContext(Dispatchers.IO) {
+        val haveOffline = OfflineRouter.installed(ctx)
+        if (haveOffline && (!hasOnline || !online())) return@withContext OfflineRouter.routes(ctx, from, to, viaPts, hd) to true
+        val now = System.currentTimeMillis()
+        val race = hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" && !Vehicle.lorry &&
+            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && now >= ttDownUntil && now >= mbDownUntil
+        if (race) {
+            val ch = kotlinx.coroutines.channels.Channel<Pair<String, List<Route>>>(2)
+            val jobs = listOf("tomtom", "mapbox").map { p ->
+                launch {
+                    val rs = try { routesFrom(p, from, to, false, 0L, viaPts, hd, true) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList() }
+                    ch.trySend(p to rs)
+                }
+            }
+            var got: Pair<String, List<Route>>? = null
+            repeat(2) { if (got == null) { val a = ch.receive(); if (a.second.isNotEmpty()) got = a } }
+            jobs.forEach { it.cancel() }
+            val g = got
+            if (g != null) { lastRouteProvider = g.first; return@withContext g.second to false }
+        }
+        try { netRoutes(from, to, false, 0L, viaPts, hd, true) to false }
+        catch (e: Exception) {
+            if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) OfflineRouter.routes(ctx, from, to, viaPts, hd) to true else throw e
+        }
+    }
+
+    // A reroute asked for as soon as you start to leave the route, before it's certain you have: when it is, the new route is
+    // usually already here, so it shows at once. Forgotten if you stay on the route.
+    private var preReroute: kotlinx.coroutines.Deferred<Pair<List<Route>, Boolean>>? = null
+    private var preRerouteAt = 0L
+    private var preRerouteFrom: LL? = null
+    private fun startPreReroute() {
+        val d = dest ?: return
+        val f = fix ?: return
+        val now = System.currentTimeMillis()
+        if (rerouting || simMode != 0 || (preReroute != null && now - preRerouteAt < 15_000L)) return
+        preRerouteAt = now; preRerouteFrom = f.pos
+        val hd = if (f.speed > 2.0) f.heading else -1.0
+        val viaPts = via.map { it.pos }
+        preReroute = scope.async { try { fetchReroute(f.pos, d.pos, viaPts, hd) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList<Route>() to false } }
+    }
+
     private fun reroute() {
         val d = dest ?: return
         if (rerouting || fix == null) return
@@ -2325,6 +2372,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the new route's alternatives are looked for half a minute after it's found, not the usual couple of minutes
         lastFasterCheck = System.currentTimeMillis() - 90_000L
         toast(L.t("Rerouting…"), 2500)
+        // the one asked for a moment ago, as you started to leave the route, if it's recent and from near here
+        val pre = preReroute?.takeIf { System.currentTimeMillis() - preRerouteAt < 15_000L && preRerouteFrom?.let { p -> fix?.let { Geo.dist(p, it.pos) < 350.0 } } == true }
+        preReroute = null
         scope.launch {
             var err: String? = null
             try {
@@ -2332,15 +2382,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val f = fix ?: break
                     try {
                         val hd = if (f.speed > 2.0) f.heading else -1.0
-                        var offlineNow = false
-                        val rs = withContext(Dispatchers.IO) {
-                            val haveOffline = OfflineRouter.installed(ctx)
-                            if (haveOffline && (!hasOnline || !online())) { offlineNow = true; OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd) }
-                            else try { netRoutes(f.pos, d.pos, false, 0L, via.map { it.pos }, hd, true) }
-                            catch (e: Exception) {
-                                if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { offlineNow = true; OfflineRouter.routes(ctx, f.pos, d.pos, via.map { it.pos }, hd) } else throw e
-                            }
-                        }
+                        val early = if (attempt == 1 && pre != null) kotlinx.coroutines.withTimeoutOrNull(6000L) { pre.await() } else null
+                        val (rs, offlineNow) = early?.takeIf { it.first.isNotEmpty() } ?: fetchReroute(f.pos, d.pos, via.map { it.pos }, hd)
                         if (rs.isNotEmpty()) shortRoute = offlineNow && OfflineRouter.endsShort
                         if (rs.isNotEmpty()) { routes = rs; active = 0; said.clear(); offCount = 0; lastIdx = 0; trustProg = -1.0; clearLiveAlts(); drawRoutes(); cardsForStartAlts(); err = null; break }
                         err = "no route found"
@@ -3465,12 +3508,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (newFix) {
                 // well off the route counts double, so a wrong turn is noticed in about two seconds instead of four or more
                 offCount += NavigationPolicy.offRouteStrikeCount(jump, s.dist, offLim)
-                if (offCount >= 3) reroute()
+                if (offCount >= 3) reroute() else startPreReroute()
             }
         } else if (headingOff && newFix) {
             // past the turn and going another way: two strikes a fix, so two fixes in a row reroute
             offCount += 2
-            if (offCount >= 3) reroute()
+            if (offCount >= 3) reroute() else startPreReroute()
         } else if (gpsReliableForReroute && newFix) {
             // Still close to the route, but a vehicle moving away from its direction can indicate a wrong turn.
             val seg = Geo.bearing(r.pts[s.segmentIndex], r.pts[min(s.segmentIndex + 1, r.pts.size - 1)])
