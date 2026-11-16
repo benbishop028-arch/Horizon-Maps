@@ -1022,6 +1022,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!isCar && theme == "day") return "day"
         if (!isCar && theme == "night") return "night"
         if (theme == "times") return if (dark) "night" else "day"
+        // (on a phone, Auto is the phone's own light / dark setting, so the map simply matches it)
+        if (!isCar && theme == "auto" && onPhone()) return if (dark) "night" else "day"
         // Headlights (and the car screen following the car): only the lights decide, so a tunnel at midday goes properly dark and
         // coming out goes straight back to day. The sun's dawn and dusk light is left out, as it would tint the map whatever the
         // lights say. (Until the head unit has been seen switching with the lights, sun times stand in, so dark already follows them.)

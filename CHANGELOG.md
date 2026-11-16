@@ -25,7 +25,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
-- Map dark all day on a phone: with Day and night on Auto, a phone set to dark theme kept the map in night colours in daylight. On phones Auto now follows sunrise and sunset
+- Day and night on a phone: Auto now simply follows the phone's own light or dark setting. For the map to change at sunrise and sunset instead, pick Sun times
 - Rain on the car screen: a patch between the turn card and the trip card stayed free of rain and snow. The weather now covers the whole map
 - Black map after Settings or the demo: now and then only the top part of the map showed and the rest stayed black until the app was restarted. The map now always fills the screen again
 - Speed limit sign off the edge: with the speed set to the right on a left-hand-drive layout, the limit sign could sit off the edge of the screen. It now always sits on the side facing the middle
