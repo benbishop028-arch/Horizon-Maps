@@ -1550,5 +1550,8 @@ object I18nHe {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "כשהמיקרופון מורשה, כפתור המיקרופון במסך המכונית מאזין מיד. בלעדיו הכפתור פותח את מסך החיפוש של Android Auto, שיש לו מיקרופון משלו.",
         "Work button" to "כפתור עבודה",
         "No matches. Try adding a town or postcode." to "אין תוצאות. נסו להוסיף יישוב או מיקוד.",
+        "Trip card in split screen" to "כרטיס הנסיעה במסך מפוצל",
+        "Bar along the bottom" to "פס בתחתית",
+        "Column on the left" to "עמודה משמאל",
     )
 }

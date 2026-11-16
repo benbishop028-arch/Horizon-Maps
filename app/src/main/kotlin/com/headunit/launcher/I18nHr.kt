@@ -1550,5 +1550,8 @@ object I18nHr {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "S dopuštenim mikrofonom gumb mikrofona na zaslonu automobila odmah sluša. Bez toga gumb otvara zaslon pretraživanja Android Auta, koji ima vlastiti mikrofon.",
         "Work button" to "Gumb Posao",
         "No matches. Try adding a town or postcode." to "Nema rezultata. Pokušajte dodati mjesto ili poštanski broj.",
+        "Trip card in split screen" to "Kartica putovanja na podijeljenom zaslonu",
+        "Bar along the bottom" to "Traka na dnu",
+        "Column on the left" to "Stupac lijevo",
     )
 }

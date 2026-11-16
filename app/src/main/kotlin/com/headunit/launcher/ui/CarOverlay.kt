@@ -395,6 +395,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         //            (see CarButtons). The same with or without a route
         val speedCorner = carSpeedPos == "top" && !portrait
         val speedUnderTurn = !portrait && showTurn && carSpeedPos == "middle"
+        // Android Auto's split screen, with Settings › Android Auto › Trip card in split screen on "Column on the left": the trip
+        // card is a narrow column under the turn card instead of a bar along the bottom, leaving the road ahead of the car clear
+        val tripCol = splitView && guiding && showTurn && !portrait && engine.prefs.s(PreferenceKeys.CAR_SPLIT_TRIP, "bar") == "column"
         val speedTopRight = carSpeedPos == "top" && topRightFits && !speedCorner
         var stripShown by remember { mutableStateOf(true) }
         LaunchedEffect(CarButtons.shownAt) { stripShown = true; kotlinx.coroutines.delay(11_000L); stripShown = false }
@@ -433,6 +436,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 if (speedUnderTurn) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                 }
+                if (tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripColumn(engine, showEnd = !tile) }
             }
         }
 
@@ -520,7 +524,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 // tile's part of it is visible): while navigating, the trip strip is a bar docked along the tile's bottom edge,
                 // centred, as Google Maps has it, instead of floating above the edge beside the other cards
                 val split = splitView
-                val tripDocked = split && small && guiding
+                val tripDocked = split && small && guiding && !tripCol
                 var dockH by remember { mutableStateOf(0) }
                 // (right down on the edge: Android Auto leaves a small margin for the tile's rounded corners, which the bar's
                 // own rounded top doesn't need. A big bottom inset is something really covering the map, so that's kept clear)
@@ -542,9 +546,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                             // (allowed to shrink, so on the narrowest tiles it gives way rather than pushing past the edge)
-                            if (guiding && carTripAt == "auto" && !tripDocked) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
+                            if (guiding && carTripAt == "auto" && !tripDocked && !tripCol) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
                         }
-                    } else if (guiding && carTripAt == "auto" && !tripDocked) {
+                    } else if (guiding && carTripAt == "auto" && !tripDocked && !tripCol) {
                         // as wide as the turn card above it (with more than a couple of buttons picked for it, it needs its own width)
                         val sameW = carTripButtonsOn(engine.prefs).size <= 2
                         Box(if (sameW) Modifier.width(turnCardW) else Modifier) {
@@ -586,7 +590,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                         Box(Modifier.onSizeChanged { dockH = it.height }) { TripCard(engine, false, oneLine = true, buttonsShown = !tile, docked = true) }
                     }
                 }
-                if (guiding && carTripAt != "auto" && !tripDocked) Box(
+                if (guiding && carTripAt != "auto" && !tripDocked && !tripCol) Box(
                     Modifier.align(if (carTripAt == "centre") Alignment.BottomCenter else Alignment.BottomEnd)
                         .padding(bottom = bottom, end = if (carTripAt == "right") speedEnd else 0.dp)
                 ) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
@@ -694,6 +698,26 @@ private fun SoundPill(engine: NavEngine) {
             )
         }
         Text(L.t(when (sm) { 0 -> "Sound on"; 1 -> "Alerts only"; else -> "Muted" }), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+/** The trip card standing up: time left, arrival and distance one under the other, then the button that ends the route (Android
+ *  Auto's split screen with Trip card in split screen on "Column on the left"). */
+@Composable
+private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
+    val e = engine.eta ?: return
+    val c = LocalVw.current
+    val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
+    Column(Modifier.panel(10.dp, RoundedCornerShape(18.dp), c.surface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+        Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        if (showEnd && "end" in carTripButtonsOn(engine.prefs)) {
+            val sz = 34.dp * carButtonScale(engine)
+            Box(Modifier.padding(top = 6.dp).size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Close, null, tint = Color.White, modifier = Modifier.size(sz * 0.52f))
+            }
+        }
     }
 }
 

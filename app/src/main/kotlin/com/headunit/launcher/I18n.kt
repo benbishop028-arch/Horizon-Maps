@@ -2221,6 +2221,9 @@ object L {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to listOf("Met de microfoon toegestaan luistert de microfoonknop op het autoscherm meteen. Zonder opent de knop het zoekscherm van Android Auto, dat een eigen microfoon heeft.", "Mit erlaubtem Mikrofon hört die Mikrofontaste auf dem Autobildschirm sofort zu. Ohne öffnet sie den Suchbildschirm von Android Auto, der ein eigenes Mikrofon hat.", "Avec le micro autorisé, le bouton micro de l'écran de la voiture écoute tout de suite. Sinon, il ouvre l'écran de recherche d'Android Auto, qui a son propre micro.", "Con el micrófono permitido, el botón de micrófono de la pantalla del coche escucha al instante. Sin él, el botón abre la pantalla de búsqueda de Android Auto, que tiene su propio micrófono."),
         "Work button" to listOf("Knop Werk", "Taste Arbeit", "Bouton Travail", "Botón Trabajo"),
         "No matches. Try adding a town or postcode." to listOf("Geen resultaten. Voeg een plaats of postcode toe.", "Keine Treffer. Füge einen Ort oder eine Postleitzahl hinzu.", "Aucun résultat. Ajoutez une ville ou un code postal.", "Sin resultados. Pruebe a añadir una población o código postal."),
+        "Trip card in split screen" to listOf("Reiskaart in gesplitst scherm", "Fahrtkarte im geteilten Bildschirm", "Carte du trajet en écran partagé", "Tarjeta del viaje en pantalla dividida"),
+        "Bar along the bottom" to listOf("Balk onderaan", "Leiste unten", "Barre en bas", "Barra en la parte inferior"),
+        "Column on the left" to listOf("Kolom links", "Spalte links", "Colonne à gauche", "Columna a la izquierda"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3769,5 +3772,8 @@ object L {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to listOf("Con il microfono consentito, il pulsante del microfono sullo schermo dell'auto ascolta subito. Senza, il pulsante apre la schermata di ricerca di Android Auto, che ha un suo microfono.", "Com o microfone permitido, o botão do microfone no ecrã do carro ouve de imediato. Sem ele, o botão abre o ecrã de pesquisa do Android Auto, que tem microfone próprio.", "Z dostępem do mikrofonu przycisk mikrofonu na ekranie auta słucha od razu. Bez niego przycisk otwiera ekran wyszukiwania Android Auto z własnym mikrofonem."),
         "Work button" to listOf("Pulsante Lavoro", "Botão Trabalho", "Przycisk Praca"),
         "No matches. Try adding a town or postcode." to listOf("Nessun risultato. Prova ad aggiungere una città o un CAP.", "Sem resultados. Experimente adicionar uma localidade ou código postal.", "Brak wyników. Dodaj miejscowość lub kod pocztowy."),
+        "Trip card in split screen" to listOf("Scheda del viaggio a schermo diviso", "Cartão da viagem em ecrã dividido", "Karta podróży na podzielonym ekranie"),
+        "Bar along the bottom" to listOf("Barra in basso", "Barra em baixo", "Pasek na dole"),
+        "Column on the left" to listOf("Colonna a sinistra", "Coluna à esquerda", "Kolumna po lewej"),
     )
 }

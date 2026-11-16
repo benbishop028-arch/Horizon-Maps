@@ -85,6 +85,8 @@ internal object PreferenceKeys {
     const val PLACES_ROUTES = "places_routes"
     const val CAR_TRIP_BTNS = "car_trip_btns"
     const val CAR_TRIP_BTN_SIZE = "car_trip_btn_size"
+    /** Android Auto split screen: the trip card as a "bar" along the bottom or a "column" on the left (GitHub). */
+    const val CAR_SPLIT_TRIP = "car_split_trip"
     const val PLACES_RECENT = "places_recent"
     const val PLACES_SEEN = "places_seen"
     const val PLACE_PARKED = "place_parked"

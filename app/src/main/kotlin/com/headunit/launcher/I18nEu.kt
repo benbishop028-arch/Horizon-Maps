@@ -1550,5 +1550,8 @@ object I18nEu {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Mikrofonoa baimenduta, autoaren pantailako mikrofono-botoiak berehala entzuten du. Gabe, botoiak Android Auto-ren bilaketa-pantaila irekitzen du, mikrofono propioa duena.",
         "Work button" to "Lana botoia",
         "No matches. Try adding a town or postcode." to "Ez dago emaitzarik. Saiatu herri bat edo posta-kodea gehitzen.",
+        "Trip card in split screen" to "Bidaia-txartela pantaila zatituan",
+        "Bar along the bottom" to "Barra behean",
+        "Column on the left" to "Zutabea ezkerrean",
     )
 }

@@ -1550,5 +1550,8 @@ object I18nUr {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "مائیکروفون کی اجازت ہو تو گاڑی کی اسکرین پر مائیکروفون بٹن فوراً سنتا ہے۔ اجازت نہ ہو تو بٹن Android Auto کی تلاش والی اسکرین کھولتا ہے، جس کا اپنا مائیکروفون ہے۔",
         "Work button" to "کام کا بٹن",
         "No matches. Try adding a town or postcode." to "کوئی نتیجہ نہیں۔ شہر یا پوسٹ کوڈ شامل کر کے دیکھیں۔",
+        "Trip card in split screen" to "تقسیم اسکرین میں سفر کارڈ",
+        "Bar along the bottom" to "نیچے پٹی",
+        "Column on the left" to "بائیں طرف کالم",
     )
 }

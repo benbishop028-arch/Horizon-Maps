@@ -1550,5 +1550,8 @@ object I18nDa {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Med mikrofonen tilladt lytter mikrofonknappen på bilens skærm med det samme. Uden åbner knappen Android Autos søgeskærm, som har sin egen mikrofon.",
         "Work button" to "Arbejde-knap",
         "No matches. Try adding a town or postcode." to "Ingen resultater. Prøv at tilføje en by eller et postnummer.",
+        "Trip card in split screen" to "Turkort i delt skærm",
+        "Bar along the bottom" to "Bjælke forneden",
+        "Column on the left" to "Kolonne til venstre",
     )
 }

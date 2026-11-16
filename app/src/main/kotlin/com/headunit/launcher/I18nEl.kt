@@ -1550,5 +1550,8 @@ object I18nEl {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Με επιτρεπόμενο μικρόφωνο, το κουμπί μικροφώνου στην οθόνη του αυτοκινήτου ακούει αμέσως. Χωρίς αυτό, ανοίγει την οθόνη αναζήτησης του Android Auto, που έχει δικό της μικρόφωνο.",
         "Work button" to "Κουμπί Δουλειά",
         "No matches. Try adding a town or postcode." to "Κανένα αποτέλεσμα. Δοκιμάστε να προσθέσετε πόλη ή ταχυδρομικό κώδικα.",
+        "Trip card in split screen" to "Κάρτα διαδρομής σε διαιρεμένη οθόνη",
+        "Bar along the bottom" to "Μπάρα στο κάτω μέρος",
+        "Column on the left" to "Στήλη αριστερά",
     )
 }

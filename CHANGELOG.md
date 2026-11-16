@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Trip card as a column in split screen: in Android Auto's split screen, the trip card can now be a narrow column on the left under the turn card instead of a bar along the bottom, leaving the road ahead of the car clear. Settings › Android Auto › Trip card in split screen (thanks to Simsam53)
 - Argentine Spanish (Español rioplatense): directions and screens with "vos" and local words (doblá, mantenete, auto, estacionamiento, celular). Phones set to Spanish in Argentina or Uruguay pick it up by themselves, or choose Español (Argentina) in Settings › Sound & voice › Language (thanks to ParquePatricense)
 - Bosnian and Kannada: Horizon Nav now speaks Bosanski and ಕನ್ನಡ: directions, screens, Android Auto and voice commands. Pick them in Settings › Sound & voice › Language, or they follow a phone set to either (thanks to enesvrabac-lab and srinidhisharma)
 - Groups for your places: file your own places in groups (Family, Customers…) in Settings › Places & trips › Your places. A group shows as one row in the saved list that opens to its places (thanks to bijindas)

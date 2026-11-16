@@ -1547,5 +1547,8 @@ object I18nD {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to listOf("С разрешен микрофон бутонът за микрофон на екрана на колата слуша веднага. Без него бутонът отваря екрана за търсене на Android Auto, който има собствен микрофон."),
         "Work button" to listOf("Бутон Работа"),
         "No matches. Try adding a town or postcode." to listOf("Няма резултати. Добавете населено място или пощенски код."),
+        "Trip card in split screen" to listOf("Карта на пътуването при разделен екран"),
+        "Bar along the bottom" to listOf("Лента отдолу"),
+        "Column on the left" to listOf("Колона вляво"),
     )
 }

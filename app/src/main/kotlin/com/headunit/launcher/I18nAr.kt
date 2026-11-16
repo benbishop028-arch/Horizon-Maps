@@ -1550,5 +1550,8 @@ object I18nAr {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "عند السماح بالميكروفون، يستمع زر الميكروفون على شاشة السيارة فورًا. ومن دونه يفتح الزر شاشة البحث في Android Auto التي لها ميكروفونها الخاص.",
         "Work button" to "زر العمل",
         "No matches. Try adding a town or postcode." to "لا توجد نتائج. جرّب إضافة مدينة أو رمز بريدي.",
+        "Trip card in split screen" to "بطاقة الرحلة في الشاشة المقسومة",
+        "Bar along the bottom" to "شريط في الأسفل",
+        "Column on the left" to "عمود على اليسار",
     )
 }

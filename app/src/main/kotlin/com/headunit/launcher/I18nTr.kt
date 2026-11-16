@@ -1550,5 +1550,8 @@ object I18nTr {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Mikrofona izin verildiğinde araç ekranındaki mikrofon düğmesi hemen dinler. İzin yoksa düğme, kendi mikrofonu olan Android Auto arama ekranını açar.",
         "Work button" to "İş düğmesi",
         "No matches. Try adding a town or postcode." to "Sonuç yok. Bir ilçe veya posta kodu eklemeyi deneyin.",
+        "Trip card in split screen" to "Bölünmüş ekranda yolculuk kartı",
+        "Bar along the bottom" to "Altta çubuk",
+        "Column on the left" to "Solda sütun",
     )
 }

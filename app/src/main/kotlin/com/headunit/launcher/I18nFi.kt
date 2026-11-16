@@ -1550,5 +1550,8 @@ object I18nFi {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Kun mikrofoni on sallittu, auton näytön mikrofonipainike kuuntelee heti. Muuten painike avaa Android Auton hakunäkymän, jossa on oma mikrofoni.",
         "Work button" to "Työ-painike",
         "No matches. Try adding a town or postcode." to "Ei osumia. Kokeile lisätä paikkakunta tai postinumero.",
+        "Trip card in split screen" to "Matkakortti jaetussa näytössä",
+        "Bar along the bottom" to "Palkki alareunassa",
+        "Column on the left" to "Sarake vasemmalla",
     )
 }

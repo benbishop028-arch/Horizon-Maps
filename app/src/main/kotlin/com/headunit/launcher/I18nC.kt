@@ -1556,5 +1556,8 @@ object I18nC {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to listOf("เมื่ออนุญาตไมโครโฟน ปุ่มไมโครโฟนบนหน้าจอรถจะฟังทันที หากไม่อนุญาต ปุ่มจะเปิดหน้าค้นหาของ Android Auto ซึ่งมีไมโครโฟนของตัวเอง", "マイクを許可すると、車の画面のマイクボタンですぐに聞き取ります。許可しない場合は、独自のマイクがあるAndroid Autoの検索画面が開きます。", "Dengan izin mikrofon, tombol mikrofon di layar mobil langsung mendengarkan. Tanpa izin, tombol membuka layar pencarian Android Auto yang punya mikrofon sendiri."),
         "Work button" to listOf("ปุ่มที่ทำงาน", "職場ボタン", "Tombol Kantor"),
         "No matches. Try adding a town or postcode." to listOf("ไม่พบผลลัพธ์ ลองเพิ่มชื่อเมืองหรือรหัสไปรษณีย์", "一致するものがありません。町名か郵便番号を加えてみてください。", "Tidak ada hasil. Coba tambahkan kota atau kode pos."),
+        "Trip card in split screen" to listOf("การ์ดการเดินทางในโหมดแบ่งหน้าจอ", "分割画面でのトリップカード", "Kartu perjalanan di layar terpisah"),
+        "Bar along the bottom" to listOf("แถบด้านล่าง", "下部のバー", "Bilah di bawah"),
+        "Column on the left" to listOf("คอลัมน์ด้านซ้าย", "左側の縦列", "Kolom di kiri"),
     )
 }

@@ -1547,5 +1547,8 @@ object I18nE {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to listOf("Z dovoljenim mikrofonom gumb za mikrofon na zaslonu avtomobila takoj posluša. Brez tega gumb odpre iskalni zaslon Android Auto, ki ima svoj mikrofon."),
         "Work button" to listOf("Gumb Služba"),
         "No matches. Try adding a town or postcode." to listOf("Ni zadetkov. Dodajte kraj ali poštno številko."),
+        "Trip card in split screen" to listOf("Kartica poti na deljenem zaslonu"),
+        "Bar along the bottom" to listOf("Vrstica spodaj"),
+        "Column on the left" to listOf("Stolpec na levi"),
     )
 }

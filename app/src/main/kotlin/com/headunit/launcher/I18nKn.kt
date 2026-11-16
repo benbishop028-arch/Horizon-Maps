@@ -1550,5 +1550,8 @@ object I18nKn {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "ಮೈಕ್ರೊಫೋನ್ ಅನುಮತಿಸಿದರೆ, ಕಾರಿನ ಪರದೆಯ ಮೈಕ್ರೊಫೋನ್ ಬಟನ್ ತಕ್ಷಣ ಆಲಿಸುತ್ತದೆ. ಇಲ್ಲದಿದ್ದರೆ, ಬಟನ್ ತನ್ನದೇ ಮೈಕ್ರೊಫೋನ್ ಇರುವ Android Auto ಹುಡುಕಾಟ ಪರದೆಯನ್ನು ತೆರೆಯುತ್ತದೆ.",
         "Work button" to "ಕೆಲಸ ಬಟನ್",
         "No matches. Try adding a town or postcode." to "ಯಾವುದೂ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ. ಊರು ಅಥವಾ ಪಿನ್‌ಕೋಡ್ ಸೇರಿಸಿ ನೋಡಿ.",
+        "Trip card in split screen" to "ವಿಭಜಿತ ಪರದೆಯಲ್ಲಿ ಪ್ರಯಾಣ ಕಾರ್ಡ್",
+        "Bar along the bottom" to "ಕೆಳಗೆ ಪಟ್ಟಿ",
+        "Column on the left" to "ಎಡಭಾಗದಲ್ಲಿ ಕಾಲಮ್",
     )
 }

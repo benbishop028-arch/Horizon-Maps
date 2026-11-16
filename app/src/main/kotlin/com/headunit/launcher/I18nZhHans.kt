@@ -1550,5 +1550,8 @@ object I18nZhHans {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "允许麦克风后，车辆屏幕上的麦克风按钮会立即聆听。未允许时，按钮会打开 Android Auto 的搜索屏幕，它有自己的麦克风。",
         "Work button" to "公司按钮",
         "No matches. Try adding a town or postcode." to "没有结果。请尝试加上城镇或邮政编码。",
+        "Trip card in split screen" to "分屏时的行程卡",
+        "Bar along the bottom" to "底部横条",
+        "Column on the left" to "左侧竖栏",
     )
 }

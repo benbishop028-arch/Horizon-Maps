@@ -1550,5 +1550,8 @@ object I18nEsAr {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Con el micrófono permitido, el botón de micrófono de la pantalla del auto escucha al toque. Sin él, el botón abre la pantalla de búsqueda de Android Auto, que tiene su propio micrófono.",
         "Work button" to "Botón Trabajo",
         "No matches. Try adding a town or postcode." to "No hay resultados. Probá agregando una localidad o código postal.",
+        "Trip card in split screen" to "Tarjeta del viaje en pantalla dividida",
+        "Bar along the bottom" to "Barra abajo",
+        "Column on the left" to "Columna a la izquierda",
     )
 }

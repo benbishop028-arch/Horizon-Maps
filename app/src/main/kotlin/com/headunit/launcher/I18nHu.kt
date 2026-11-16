@@ -1550,5 +1550,8 @@ object I18nHu {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Engedélyezett mikrofonnal az autó képernyőjén lévő mikrofongomb azonnal figyel. Enélkül a gomb az Android Auto keresőképernyőjét nyitja meg, amelynek saját mikrofonja van.",
         "Work button" to "Munka gomb",
         "No matches. Try adding a town or postcode." to "Nincs találat. Próbáljon hozzáadni települést vagy irányítószámot.",
+        "Trip card in split screen" to "Útkártya osztott képernyőn",
+        "Bar along the bottom" to "Sáv alul",
+        "Column on the left" to "Oszlop bal oldalt",
     )
 }

@@ -1550,5 +1550,8 @@ object I18nMs {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Dengan mikrofon dibenarkan, butang mikrofon pada skrin kereta terus mendengar. Tanpanya, butang membuka skrin carian Android Auto yang mempunyai mikrofon sendiri.",
         "Work button" to "Butang Kerja",
         "No matches. Try adding a town or postcode." to "Tiada padanan. Cuba tambah bandar atau poskod.",
+        "Trip card in split screen" to "Kad perjalanan dalam skrin terbahagi",
+        "Bar along the bottom" to "Bar di bawah",
+        "Column on the left" to "Lajur di kiri",
     )
 }

@@ -1550,5 +1550,8 @@ object I18nRo {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "Cu microfonul permis, butonul de microfon de pe ecranul mașinii ascultă imediat. Fără el, butonul deschide ecranul de căutare Android Auto, care are propriul microfon.",
         "Work button" to "Butonul Serviciu",
         "No matches. Try adding a town or postcode." to "Niciun rezultat. Încercați să adăugați un oraș sau un cod poștal.",
+        "Trip card in split screen" to "Cardul călătoriei pe ecran împărțit",
+        "Bar along the bottom" to "Bară jos",
+        "Column on the left" to "Coloană în stânga",
     )
 }

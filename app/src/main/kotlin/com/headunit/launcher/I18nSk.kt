@@ -1550,5 +1550,8 @@ object I18nSk {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "S povoleným mikrofónom tlačidlo mikrofónu na obrazovke auta počúva hneď. Bez neho otvorí vyhľadávanie Android Auto, ktoré má vlastný mikrofón.",
         "Work button" to "Tlačidlo Práca",
         "No matches. Try adding a town or postcode." to "Žiadne výsledky. Skúste pridať obec alebo PSČ.",
+        "Trip card in split screen" to "Karta cesty na rozdelenej obrazovke",
+        "Bar along the bottom" to "Pruh dole",
+        "Column on the left" to "Stĺpec vľavo",
     )
 }

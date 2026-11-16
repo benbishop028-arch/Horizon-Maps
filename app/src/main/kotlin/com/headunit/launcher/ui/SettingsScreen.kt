@@ -1192,6 +1192,8 @@ private fun AndroidAutoSection(prefs: Prefs) {
     SGroup(L.t("Card positions on the car screen"), L.t("The turn card stays top left on Android Auto, where its own buttons leave room")) {
         CardPositionsPreview(prefs, car = true)
         SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto")) { prefs.put(PreferenceKeys.CAR_TRIP_POS, it) }
+        // (Android Auto's split screen, the map in a tile beside another app: a bar along the bottom, or a narrow column, GitHub)
+        SChoice(L.t("Trip card in split screen"), listOf("bar" to L.t("Bar along the bottom"), "column" to L.t("Column on the left")), prefs.s(PreferenceKeys.CAR_SPLIT_TRIP, "bar")) { prefs.put(PreferenceKeys.CAR_SPLIT_TRIP, it) }
         // (one choice for where the speedometer goes: it used to be two, "Speedometer" here for the bottom corner and "Speed
         // position on the car screen" further down, and the first did nothing unless the second was on Bottom)
         SChoice(L.t("Speedometer"), listOf("bl" to L.t("Bottom left"), "br" to L.t("Bottom right"), "middle" to L.t("Under the turn card"), "top" to L.t("Top right")), prefs.carSpeedSpot(),

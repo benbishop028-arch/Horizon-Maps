@@ -1550,5 +1550,8 @@ object I18nCs {
         "With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own." to "S povoleným mikrofonem tlačítko mikrofonu na obrazovce auta poslouchá hned. Bez něj otevře vyhledávání Android Auto, které má vlastní mikrofon.",
         "Work button" to "Tlačítko Práce",
         "No matches. Try adding a town or postcode." to "Žádné výsledky. Zkuste přidat obec nebo PSČ.",
+        "Trip card in split screen" to "Karta cesty na rozdělené obrazovce",
+        "Bar along the bottom" to "Pruh dole",
+        "Column on the left" to "Sloupec vlevo",
     )
 }
