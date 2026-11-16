@@ -925,7 +925,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (tapSelect != tapSelectOn) { tapSelectOn = tapSelect; if (!tapSelect) clearSelection() }
         main0.post {
             setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
-            setBase("show3dLandmarks", Value.valueOf(landmarksOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("show3dLandmarks", Value.valueOf(landmarksOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("showPedestrianRoads", Value.valueOf(pathsOn))
             if (rebuild && style != null) reinstall()
         }
@@ -2178,7 +2178,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             setBase("showHdRoads", Value.valueOf(hdRoadsOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             // detailed building fronts, landmark buildings, footpaths (Settings > Map)
             setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
-            setBase("show3dLandmarks", Value.valueOf(landmarksOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("show3dLandmarks", Value.valueOf(landmarksOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("showPedestrianRoads", Value.valueOf(pathsOn))
             // your destination's building is lit up in the app's blue as you get close
             setBase("colorBuildingHighlight", Value.valueOf("#7FB3FF"))
@@ -2470,13 +2470,21 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         pushRadar()
     }
 
+    /** Just the 3D buildings setting, keeping the map as it is otherwise (the car screen, which has no satellite choice). */
+    fun setBuildings3d(b3d: Boolean) = setView(satellite, b3d)
+
     fun setView(sat: Boolean, b3d: Boolean) {
         val satChanged = sat != satellite
         satellite = sat
         buildings3d = b3d
         // satellite is Mapbox's Standard Satellite style (a style of its own, so the map reloads); 3D buildings is one of Standard's settings
         if (satChanged && wantedStyle != null) { val r = onRestyle; if (r != null) r() else setStyleUrl(baseStyle()) }
-        else if (!sat && slotsOn) setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+        else if (!sat && slotsOn) {
+            setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            // (landmarks and building fronts are buildings too: with 3D buildings off they went on showing, GitHub)
+            setBase("show3dLandmarks", Value.valueOf(landmarksOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+            setBase("show3dFacades", Value.valueOf(facadesOn && buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
+        }
         else if (!sat) style?.let { st ->
             // the Horizon colours' own 3D buildings
             try {

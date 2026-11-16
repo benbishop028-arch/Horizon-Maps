@@ -179,6 +179,10 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     OnChange(xFacades, xLand, xPaths, xTerrain, xFurn, xClear) { map.setExtras(xFacades, xLand, xPaths, xTerrain, false, xFurn, xClear) }
     val xHd = hdRoadsWanted(prefs, prefs.s(PreferenceKeys.COUNTRYDETECTED, ""))
     OnChange(xHd) { map.setHdRoads(xHd) }
+    val b3d = prefs.b(PreferenceKeys.BUILDINGS_3D, true)
+    OnChange(b3d) { map.setBuildings3d(b3d) }
+    val treesOn = prefs.b(PreferenceKeys.TREES, true)
+    OnChange(treesOn) { map.treesEnabled(treesOn) }
     val signalsOn = prefs.b(PreferenceKeys.SIGNALS, true)
     OnChange(signalsOn) { map.signalsEnabled(signalsOn) }
     // the map source, traffic, keys and Mapbox look are read when the style is applied: apply it again in the car's current day / night

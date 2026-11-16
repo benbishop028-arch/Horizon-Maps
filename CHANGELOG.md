@@ -47,6 +47,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- 3D buildings switch: turning 3D buildings off left landmarks and building fronts standing, and Android Auto's map kept all its 3D buildings and trees whatever the settings. Both now follow the switches (thanks to VITMAD1964)
 - Missing translations: in 20 of the languages (including Swedish, Turkish, Arabic and Kannada), the newest settings such as Groups and Top speed for arrival times were still in English. They are now translated
 - Favourites in settings: a favourite's name and address no longer squeeze into a one-letter column beside its buttons on a phone; the buttons sit on their own line under it (thanks to yurividal)
 - Full screen round the camera: on phones with a camera notch (such as the Samsung S24 Ultra), full screen left a black band across the top. The map now runs right up round the camera, while the cards and buttons stay clear of it
