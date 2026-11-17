@@ -262,8 +262,8 @@ private fun NoGlesPage(gl: Int) {
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp),
     ) {
         androidx.compose.material3.Text("This head unit can't draw the Mapbox map", color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-        androidx.compose.material3.Text("Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version ${gl shr 16}.${gl and 0xFFFF}. " +
-            "Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one.", color = fg.copy(alpha = 0.8f), fontSize = 16.sp)
+        androidx.compose.material3.Text(L.branded("Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version ${gl shr 16}.${gl and 0xFFFF}. " +
+            "Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one."), color = fg.copy(alpha = 0.8f), fontSize = 16.sp)
     }
 }
 
@@ -297,7 +297,7 @@ private fun StartupCrashPage(report: String, onRetry: () -> Unit) {
         androidx.compose.ui.Modifier.fillMaxSize().background(bg).verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(32.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp),
     ) {
-        androidx.compose.material3.Text("Horizon Nav keeps closing while it starts", color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        androidx.compose.material3.Text(L.branded("Horizon Nav keeps closing while it starts"), color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
         androidx.compose.material3.Text("Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it.", color = fg.copy(alpha = 0.75f), fontSize = 15.sp)
         androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
             androidx.compose.material3.Button({

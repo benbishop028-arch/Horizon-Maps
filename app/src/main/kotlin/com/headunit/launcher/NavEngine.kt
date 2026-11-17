@@ -779,7 +779,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun toast(msg: String, ms: Long = 4000) {
-        message = msg
+        message = L.branded(msg)
         msgAction = null
         val token = ++msgToken
         scope.launch { delay(ms); if (token == msgToken) { message = null; msgAction = null } }

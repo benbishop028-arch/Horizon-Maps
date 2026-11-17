@@ -87,6 +87,8 @@ android {
         create("play") {
             dimension = "key"
             applicationIdSuffix = ".play"
+            // called Horizon Maps on the home screen, in Android Auto and in its own messages, so it's easy to tell from the GitHub one
+            resValue("string", "app_name", "Horizon Maps")
             buildConfigField("String", "TOMTOM_API_KEY", "\"\"")
             buildConfigField("String", "DEFAULT_MAP", "\"mapbox\"")
             // (kept for the feedback and issue links, which still go to GitHub)

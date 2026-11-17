@@ -79,8 +79,19 @@ object L {
 
     val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar" -> "es"; else -> lang }
 
+    /** The Google Play edition is called Horizon Maps, so it can be told apart from the GitHub one (Horizon Nav). */
+    private val playName = BuildConfig.STORE == "play"
+
+    /** The app's name in this edition. */
+    val appName: String get() = if (playName) "Horizon Maps" else "Horizon Nav"
+
+    /** [text] with the app's name as this edition's (for the few messages that don't go through [t]). */
+    fun branded(text: String): String = if (playName && text.contains("Horizon Nav")) text.replace("Horizon Nav", "Horizon Maps") else text
+
     fun t(text: String, vararg args: Any?): String {
-        val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
+        val s0 = if (lang == "en") text else (table[lang]?.get(text) ?: text)
+        // (every message that names the app, in every language, says Horizon Maps in the Play edition)
+        val s = if (playName && s0.contains("Horizon Nav")) s0.replace("Horizon Nav", "Horizon Maps") else s0
         if (args.isEmpty()) return s
         var out = s
         for (i in args.indices) out = out.replace("{$i}", args[i]?.toString() ?: "")

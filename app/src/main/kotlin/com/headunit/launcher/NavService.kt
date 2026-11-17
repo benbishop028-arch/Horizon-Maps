@@ -81,7 +81,7 @@ class NavService : Service() {
         private fun notification(ctx: Context, text: String): Notification {
             channel(ctx)
             return Notification.Builder(ctx, CHANNEL).setSmallIcon(R.drawable.ic_stat_nav)
-                .setContentTitle("Horizon Nav")
+                .setContentTitle(L.appName)
                 .setContentText(text)
                 .setContentIntent(openApp(ctx))
                 .setCategory(Notification.CATEGORY_NAVIGATION)
