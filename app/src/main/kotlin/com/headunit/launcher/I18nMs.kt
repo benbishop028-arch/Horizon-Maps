@@ -1589,5 +1589,9 @@ object I18nMs {
         "Road name when driving without a route" to "Nama jalan semasa memandu tanpa laluan",
         "Heading next to the road name" to "Arah di sebelah nama jalan",
         "\"Heading E\" after the road. Off shows just the road" to "“Arah T” selepas nama jalan. Mati hanya menunjukkan jalan",
+        "Recent places under the search bar" to "Tempat terkini di bawah bar carian",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tempat yang disimpan berada dalam baris jubin di bawah bar carian, yang berakhir dengan Tambah tempat",
+        "Places you drive to show up here" to "Tempat yang anda pandu ke akan muncul di sini",
+        "Save somewhere" to "Simpan tempat",
     )
 }

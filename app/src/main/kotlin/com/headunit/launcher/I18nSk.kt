@@ -1589,5 +1589,9 @@ object I18nSk {
         "Road name when driving without a route" to "Názov cesty pri jazde bez trasy",
         "Heading next to the road name" to "Smer vedľa názvu cesty",
         "\"Heading E\" after the road. Off shows just the road" to "„Smer V“ za cestou. Vypnuté ukazuje len cestu",
+        "Recent places under the search bar" to "Nedávne miesta pod vyhľadávacím panelom",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Uložené miesta sú v rade dlaždíc pod vyhľadávacím panelom, ktorý končí tlačidlom Pridať miesto",
+        "Places you drive to show up here" to "Tu sa zobrazia miesta, kam idete",
+        "Save somewhere" to "Uložiť miesto",
     )
 }

@@ -1586,5 +1586,9 @@ object I18nD {
         "Road name when driving without a route" to listOf("Име на пътя при шофиране без маршрут"),
         "Heading next to the road name" to listOf("Посока до името на пътя"),
         "\"Heading E\" after the road. Off shows just the road" to listOf("„Посока И\" след пътя. Изключено показва само пътя"),
+        "Recent places under the search bar" to listOf("Скорошни места под лентата за търсене"),
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Запазените места са в реда плочки под лентата за търсене, който завършва с Добави място"),
+        "Places you drive to show up here" to listOf("Местата, до които шофирате, се показват тук"),
+        "Save somewhere" to listOf("Запазване на място"),
     )
 }

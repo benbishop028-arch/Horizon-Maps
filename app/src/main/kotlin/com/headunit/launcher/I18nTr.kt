@@ -1589,5 +1589,9 @@ object I18nTr {
         "Road name when driving without a route" to "Rotasız sürüşte yol adı",
         "Heading next to the road name" to "Yol adının yanında yön",
         "\"Heading E\" after the road. Off shows just the road" to "Yoldan sonra “Yön D”. Kapalıyken yalnızca yol görünür",
+        "Recent places under the search bar" to "Arama çubuğunun altında son yerler",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Kayıtlı yerleriniz arama çubuğunun altındaki kutucuk sırasında, sonunda Bir yer ekle var",
+        "Places you drive to show up here" to "Gittiğiniz yerler burada görünür",
+        "Save somewhere" to "Bir yer kaydet",
     )
 }

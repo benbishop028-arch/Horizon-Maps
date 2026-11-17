@@ -1589,5 +1589,9 @@ object I18nMr {
         "Road name when driving without a route" to "मार्गाशिवाय चालवताना रस्त्याचे नाव",
         "Heading next to the road name" to "रस्त्याच्या नावाशेजारी दिशा",
         "\"Heading E\" after the road. Off shows just the road" to "रस्त्यानंतर “दिशा पूर्व”. बंद केल्यास फक्त रस्ता",
+        "Recent places under the search bar" to "शोध पट्टीखाली अलीकडील ठिकाणे",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "तुमची जतन केलेली ठिकाणे शोध पट्टीखालील टाइल्सच्या रांगेत आहेत, जी «ठिकाण जोडा» ने संपते",
+        "Places you drive to show up here" to "तुम्ही जिथे जाता ती ठिकाणे इथे दिसतात",
+        "Save somewhere" to "ठिकाण जतन करा",
     )
 }

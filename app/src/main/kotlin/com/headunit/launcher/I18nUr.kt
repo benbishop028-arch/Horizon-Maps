@@ -1589,5 +1589,9 @@ object I18nUr {
         "Road name when driving without a route" to "روٹ کے بغیر ڈرائیونگ میں سڑک کا نام",
         "Heading next to the road name" to "سڑک کے نام کے ساتھ سمت",
         "\"Heading E\" after the road. Off shows just the road" to "سڑک کے بعد “سمت مشرق”۔ بند ہونے پر صرف سڑک",
+        "Recent places under the search bar" to "تلاش بار کے نیچے حالیہ جگہیں",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "آپ کی محفوظ جگہیں تلاش بار کے نیچے ٹائلوں کی قطار میں ہیں، جو «جگہ شامل کریں» پر ختم ہوتی ہے",
+        "Places you drive to show up here" to "جن جگہوں پر آپ جاتے ہیں وہ یہاں دکھائی دیں گی",
+        "Save somewhere" to "کوئی جگہ محفوظ کریں",
     )
 }

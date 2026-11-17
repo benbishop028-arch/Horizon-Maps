@@ -1589,5 +1589,9 @@ object I18nHu {
         "Road name when driving without a route" to "Útnév útvonal nélküli vezetéskor",
         "Heading next to the road name" to "Irány az útnév mellett",
         "\"Heading E\" after the road. Off shows just the road" to "„Irány: K” az út után. Kikapcsolva csak az út látszik",
+        "Recent places under the search bar" to "Legutóbbi helyek a keresősáv alatt",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "A mentett helyek a keresősáv alatti csempesorban vannak, amely a(z) Hely hozzáadása gombbal végződik",
+        "Places you drive to show up here" to "Ide kerülnek a helyek, ahová vezet",
+        "Save somewhere" to "Hely mentése",
     )
 }

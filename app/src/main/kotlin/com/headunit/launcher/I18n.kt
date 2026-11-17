@@ -2316,6 +2316,10 @@ object L {
         "Road name when driving without a route" to listOf("Wegnaam bij rijden zonder route", "Straßenname beim Fahren ohne Route", "Nom de la route en conduisant sans itinéraire", "Nombre de la vía al conducir sin ruta"),
         "Heading next to the road name" to listOf("Richting naast de wegnaam", "Richtung neben dem Straßennamen", "Direction à côté du nom de la route", "Dirección junto al nombre de la vía"),
         "\"Heading E\" after the road. Off shows just the road" to listOf("„Richting O\" na de weg. Uit toont alleen de weg", "„Richtung O\" nach der Straße. Aus zeigt nur die Straße", "« Direction E » après la route. Désactivé n'affiche que la route", "«Dirección E» después de la vía. Desactivado muestra solo la vía"),
+        "Recent places under the search bar" to listOf("Recente plaatsen onder de zoekbalk", "Letzte Orte unter der Suchleiste", "Lieux récents sous la barre de recherche", "Lugares recientes bajo la barra de búsqueda"),
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Je opgeslagen plaatsen staan in de rij tegels onder de zoekbalk, die eindigt met Plaats toevoegen", "Ihre gespeicherten Orte stehen in der Kachelreihe unter der Suchleiste, die mit Ort hinzufügen endet", "Vos lieux enregistrés sont dans la rangée de tuiles sous la barre de recherche, qui se termine par Ajouter un lieu", "Tus lugares guardados están en la fila de mosaicos bajo la barra de búsqueda, que termina con Añadir un lugar"),
+        "Places you drive to show up here" to listOf("Plaatsen waar je naartoe rijdt verschijnen hier", "Orte, zu denen Sie fahren, erscheinen hier", "Les lieux où vous allez apparaissent ici", "Los lugares a los que conduces aparecen aquí"),
+        "Save somewhere" to listOf("Sla een plek op", "Einen Ort speichern", "Enregistrer un lieu", "Guardar un lugar"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3903,5 +3907,9 @@ object L {
         "Road name when driving without a route" to listOf("Nome della strada guidando senza percorso", "Nome da estrada ao conduzir sem rota", "Nazwa drogi podczas jazdy bez trasy"),
         "Heading next to the road name" to listOf("Direzione accanto al nome della strada", "Direção junto ao nome da estrada", "Kierunek obok nazwy drogi"),
         "\"Heading E\" after the road. Off shows just the road" to listOf("«Direzione E» dopo la strada. Disattivato mostra solo la strada", "«Direção E» depois da estrada. Desligado mostra só a estrada", "„Kierunek E\" po nazwie drogi. Wyłączone pokazuje tylko drogę"),
+        "Recent places under the search bar" to listOf("Luoghi recenti sotto la barra di ricerca", "Locais recentes sob a barra de pesquisa", "Ostatnie miejsca pod paskiem wyszukiwania"),
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("I tuoi luoghi salvati sono nella fila di riquadri sotto la barra di ricerca, che termina con Aggiungi un luogo", "Os seus locais guardados estão na fila de mosaicos sob a barra de pesquisa, que termina com Adicionar um local", "Zapisane miejsca są w rzędzie kafelków pod paskiem wyszukiwania, który kończy się przyciskiem Dodaj miejsce"),
+        "Places you drive to show up here" to listOf("I luoghi in cui vai compaiono qui", "Os locais para onde conduz aparecem aqui", "Tu pojawią się miejsca, do których jedziesz"),
+        "Save somewhere" to listOf("Salva un luogo", "Guardar um local", "Zapisz miejsce"),
     )
 }

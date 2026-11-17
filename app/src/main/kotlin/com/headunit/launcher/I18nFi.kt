@@ -1589,5 +1589,9 @@ object I18nFi {
         "Road name when driving without a route" to "Tien nimi ajettaessa ilman reittiä",
         "Heading next to the road name" to "Suunta tien nimen vieressä",
         "\"Heading E\" after the road. Off shows just the road" to "”Suunta I” tien jälkeen. Pois päältä näyttää vain tien",
+        "Recent places under the search bar" to "Viimeisimmät paikat hakupalkin alla",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tallennetut paikat ovat hakupalkin alla olevassa ruuturivissä, joka päättyy painikkeeseen Lisää paikka",
+        "Places you drive to show up here" to "Paikat, joihin ajat, näkyvät tässä",
+        "Save somewhere" to "Tallenna paikka",
     )
 }

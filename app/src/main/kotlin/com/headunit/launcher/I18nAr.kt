@@ -1589,5 +1589,9 @@ object I18nAr {
         "Road name when driving without a route" to "اسم الطريق عند القيادة بدون مسار",
         "Heading next to the road name" to "الاتجاه بجانب اسم الطريق",
         "\"Heading E\" after the road. Off shows just the road" to "«الاتجاه شرق» بعد الطريق. عند الإيقاف يظهر الطريق فقط",
+        "Recent places under the search bar" to "الأماكن الأخيرة أسفل شريط البحث",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "أماكنك المحفوظة في صف المربعات أسفل شريط البحث، الذي ينتهي بـ «أضف مكانًا»",
+        "Places you drive to show up here" to "تظهر هنا الأماكن التي تقود إليها",
+        "Save somewhere" to "احفظ مكانًا",
     )
 }

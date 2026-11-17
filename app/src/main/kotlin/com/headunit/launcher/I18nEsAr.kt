@@ -1589,5 +1589,9 @@ object I18nEsAr {
         "Road name when driving without a route" to "Nombre de la calle al manejar sin ruta",
         "Heading next to the road name" to "Dirección junto al nombre de la calle",
         "\"Heading E\" after the road. Off shows just the road" to "«Dirección E» después de la calle. Desactivado muestra solo la calle",
+        "Recent places under the search bar" to "Lugares recientes bajo la barra de búsqueda",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tus lugares guardados están en la fila de mosaicos bajo la barra de búsqueda, que termina con Agregar un lugar",
+        "Places you drive to show up here" to "Los lugares a los que manejás aparecen acá",
+        "Save somewhere" to "Guardar un lugar",
     )
 }

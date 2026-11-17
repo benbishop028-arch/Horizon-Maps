@@ -1586,5 +1586,9 @@ object I18nE {
         "Road name when driving without a route" to listOf("Ime ceste med vožnjo brez poti"),
         "Heading next to the road name" to listOf("Smer poleg imena ceste"),
         "\"Heading E\" after the road. Off shows just the road" to listOf("»Smer V« za cesto. Izklopljeno prikaže samo cesto"),
+        "Recent places under the search bar" to listOf("Nedavni kraji pod iskalno vrstico"),
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Shranjeni kraji so v vrsti ploščic pod iskalno vrstico, ki se konča z Dodaj kraj"),
+        "Places you drive to show up here" to listOf("Tu se prikažejo kraji, kamor se peljete"),
+        "Save somewhere" to listOf("Shrani kraj"),
     )
 }

@@ -1356,16 +1356,23 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
         val showHome = engine.prefs.b(PreferenceKeys.HOME_BTN, true); val showWork = engine.prefs.b(PreferenceKeys.WORK_BTN, true)
         val rawCustom = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
         val rawFav = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+        // every saved place lives in this row now (your own places, saved routes and favourites), and the list below is only
+        // recent places; the row always ends with "Add a place"
+        val rawRoutes = engine.prefs.s(PreferenceKeys.PLACES_ROUTES, "[]")
+        val routes = remember(rawRoutes) { engine.savedRoutes() }
         val extra: List<Pair<String, com.headunit.launcher.Place>> = remember(rawCustom, rawFav) {
             val mine = engine.places.customs()
             val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } &&
                 listOfNotNull(home, work).none { Geo.dist(it.pos, f.pos) < 60 } }
-            (mine.map { it.label to it.place } + favs.map { it.name to it }).take(12)
+            (mine.map { it.label to it.place } + favs.map { it.name to it }).take(40)
         }
-        if (showHome || showWork || extra.isNotEmpty()) androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+        var adding by remember { mutableStateOf(false) }
+        if (adding) AddPlaceDialog(engine, null) { adding = false }
+        androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
             val half = (maxWidth - 8.dp) / 2
             val fixed = (if (showHome) 1 else 0) + (if (showWork) 1 else 0)
-            val tileW = if (extra.isEmpty()) (if (fixed == 1) maxWidth else half) else half - 22.dp
+            // (with more than two tiles, the next one peeks in at the edge so it's clear the row scrolls)
+            val tileW = if (fixed + extra.size + routes.size + 1 <= 2) half else half - 22.dp
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (showHome) PlaceTile(engine, Modifier.width(tileW), Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"]) {
                     if (home != null) engine.startRoute(home) else { engine.pendingSave = "home"; engine.toast(L.t("Search for your home address"), 3500); focusSearch() }
@@ -1374,6 +1381,8 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
                     if (work != null) engine.startRoute(work) else { engine.pendingSave = "work"; engine.toast(L.t("Search for your work address"), 3500); focusSearch() }
                 }
                 for ((label, pl) in extra) PlaceTile(engine, Modifier.width(tileW), Icons.Rounded.Star, Color(0xFF12A4B4), label, pl, null) { engine.startRoute(pl) }
+                for (sr in routes) RouteTile(engine, Modifier.width(tileW), sr)
+                AddPlaceTile(Modifier.width(tileW)) { adding = true }
             }
         }
         // things to find nearby: the ones picked in Settings › Places & trips (up to five, all on show, no scrolling sideways);
@@ -1381,6 +1390,35 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
         val picks = chosenShortcuts(engine)
         if (picks.isNotEmpty()) Row(Modifier.fillMaxWidth(), horizontalArrangement = if (picks.size >= 4) Arrangement.SpaceBetween else Arrangement.spacedBy(14.dp)) {
             for (s in picks) FindButton(s.icon, s.color, L.t(s.desc)) { engine.loadNearby(s.kind, false) }
+        }
+    }
+}
+
+/** A saved route in the row under the search bar: its name, and "Saved route" (with its stops). */
+@Composable
+private fun RouteTile(engine: NavEngine, modifier: Modifier, sr: NavEngine.SavedRoute) {
+    val c = LocalVw.current
+    Row(modifier.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.startSavedRoute(sr) }.padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Route, null, tint = c.accent, modifier = Modifier.size(20.dp)) }
+        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+            Text(sr.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(when (sr.stops.size) { 0 -> L.t("Saved route"); 1 -> L.t("Saved route · 1 stop"); else -> L.t("Saved route · {0} stops", sr.stops.size) },
+                color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Always last in the row under the search bar: save a new place. */
+@Composable
+private fun AddPlaceTile(modifier: Modifier, onClick: () -> Unit) {
+    val c = LocalVw.current
+    Row(modifier.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).border(1.5.dp, c.accent.copy(alpha = 0.5f), RoundedCornerShape(20.dp)).pressClick(onClick).padding(horizontal = 10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(36.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Add, null, tint = c.accent, modifier = Modifier.size(22.dp)) }
+        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+            Text(L.t("Add a place"), color = c.accent, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(L.t("Save somewhere"), color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
@@ -1496,7 +1534,9 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             val members = mine.filter { it.group == g }
             listOf(Triple(members.first().place, 4, g)) + (if (g == openGroup) members.map { Triple(it.place, 0, it.label) } else emptyList())
         }
-        grouped + mine.filter { it.group.isBlank() }.map { Triple(it.place, 0, it.label) } + routes.map { Triple(it.dest, 3, it.name) } + favs.map { Triple(it, 1, it.name) } + recents.take(4).map { Triple(it, 2, it.name) }
+        // (only recent places: everything saved is in the row of tiles above, which ends with "Add a place")
+        @Suppress("UNUSED_VARIABLE") val unusedGroups = grouped
+        recents.map { Triple(it, 2, it.name) }
     }
     var showAll by rememberSaveable { mutableStateOf(false) }
     var adding by remember { mutableStateOf(false) }
@@ -1551,15 +1591,11 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
         Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 6.dp)) {
             Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(L.t("SAVED & RECENT"), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
+                Text(L.t("Recent").uppercase(L.locale), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
                 if (saved.size > 3) Text(if (showAll) L.t("Less") else L.t("All {0}", saved.size), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { showAll = !showAll }.padding(horizontal = 10.dp, vertical = 8.dp))
-                Row(Modifier.clip(RoundedCornerShape(12.dp)).clickable { adding = true }.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Add, null, tint = c.accent, modifier = Modifier.size(18.dp))
-                    Text(L.t("Add"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 2.dp))
-                }
             }
-            if (saved.isEmpty()) Text(L.t("Places you save or drive to show up here"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 8.dp))
+            if (saved.isEmpty()) Text(L.t("Places you drive to show up here"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 8.dp))
             LazyColumn(Modifier.heightIn(max = 250.dp)) {
                 items(if (showAll || openGroup.isNotEmpty()) saved else saved.take(3)) { (p, kind, label) ->
                     if (kind == 4) {

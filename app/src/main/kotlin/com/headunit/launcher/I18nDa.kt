@@ -1589,5 +1589,9 @@ object I18nDa {
         "Road name when driving without a route" to "Vejnavn ved kørsel uden rute",
         "Heading next to the road name" to "Retning ved siden af vejnavnet",
         "\"Heading E\" after the road. Off shows just the road" to "»Retning Ø« efter vejen. Fra viser kun vejen",
+        "Recent places under the search bar" to "Seneste steder under søgelinjen",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Dine gemte steder er i rækken af felter under søgelinjen, som slutter med Tilføj et sted",
+        "Places you drive to show up here" to "Steder, du kører til, vises her",
+        "Save somewhere" to "Gem et sted",
     )
 }

@@ -1589,5 +1589,9 @@ object I18nRo {
         "Road name when driving without a route" to "Numele drumului când conduceți fără traseu",
         "Heading next to the road name" to "Direcția lângă numele drumului",
         "\"Heading E\" after the road. Off shows just the road" to "„Direcția E” după drum. Oprit arată doar drumul",
+        "Recent places under the search bar" to "Locuri recente sub bara de căutare",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Locurile salvate sunt în rândul de dale de sub bara de căutare, care se termină cu Adaugă un loc",
+        "Places you drive to show up here" to "Locurile spre care conduceți apar aici",
+        "Save somewhere" to "Salvați un loc",
     )
 }

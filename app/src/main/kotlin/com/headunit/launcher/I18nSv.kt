@@ -1589,5 +1589,9 @@ object I18nSv {
         "Road name when driving without a route" to "Vägnamn vid körning utan rutt",
         "Heading next to the road name" to "Riktning bredvid vägnamnet",
         "\"Heading E\" after the road. Off shows just the road" to "”Riktning Ö” efter vägen. Av visar bara vägen",
+        "Recent places under the search bar" to "Senaste platser under sökfältet",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Dina sparade platser finns i raden med rutor under sökfältet, som slutar med Lägg till en plats",
+        "Places you drive to show up here" to "Platser du kör till visas här",
+        "Save somewhere" to "Spara en plats",
     )
 }

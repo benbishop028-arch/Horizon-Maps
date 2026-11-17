@@ -1589,5 +1589,9 @@ object I18nBs {
         "Road name when driving without a route" to "Naziv puta pri vožnji bez rute",
         "Heading next to the road name" to "Smjer pored naziva puta",
         "\"Heading E\" after the road. Off shows just the road" to "»Smjer I« iza puta. Isključeno prikazuje samo put",
+        "Recent places under the search bar" to "Nedavna mjesta ispod trake za pretragu",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Sačuvana mjesta su u nizu pločica ispod trake za pretragu, koji se završava s Dodaj mjesto",
+        "Places you drive to show up here" to "Ovdje se prikazuju mjesta do kojih vozite",
+        "Save somewhere" to "Sačuvaj mjesto",
     )
 }

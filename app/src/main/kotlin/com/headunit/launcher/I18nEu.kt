@@ -1589,5 +1589,9 @@ object I18nEu {
         "Road name when driving without a route" to "Errepidearen izena ibilbiderik gabe gidatzean",
         "Heading next to the road name" to "Norabidea errepidearen izenaren ondoan",
         "\"Heading E\" after the road. Off shows just the road" to "«Norabidea E» errepidearen ondoren. Desaktibatuta errepidea bakarrik",
+        "Recent places under the search bar" to "Azken tokiak bilaketa-barraren azpian",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Gordetako tokiak bilaketa-barraren azpiko lauza-errenkadan daude, Gehitu toki bat botoiarekin amaitzen dena",
+        "Places you drive to show up here" to "Gidatzen duzun tokiak hemen agertzen dira",
+        "Save somewhere" to "Gorde toki bat",
     )
 }

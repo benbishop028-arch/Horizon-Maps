@@ -883,7 +883,7 @@ private fun PlacesSection(engine: NavEngine) {
     }
     ShortcutsGroup(engine)
     SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
-        SToggle(engine.prefs, L.t("Saved & recent under the search bar"), "quicklist", true, L.t("The list of favourites and recent places on the map"))
+        SToggle(engine.prefs, L.t("Recent places under the search bar"), "quicklist", true, L.t("Your saved places are in the row of tiles under the search bar, which ends with Add a place"))
         SItem(L.t("Recent destinations"), L.t("{0} recent, plus places remembered for searching without signal", pl.recents().size)) {
             SButton(L.t("Clear"), danger = true) { pl.clearHistory(); engine.toast(L.t("History cleared"), 2000) }
         }

@@ -1589,5 +1589,9 @@ object I18nKn {
         "Road name when driving without a route" to "ಮಾರ್ಗವಿಲ್ಲದೆ ಚಾಲನೆ ಮಾಡುವಾಗ ರಸ್ತೆಯ ಹೆಸರು",
         "Heading next to the road name" to "ರಸ್ತೆಯ ಹೆಸರಿನ ಪಕ್ಕ ದಿಕ್ಕು",
         "\"Heading E\" after the road. Off shows just the road" to "ರಸ್ತೆಯ ನಂತರ “ದಿಕ್ಕು ಪೂರ್ವ”. ಆಫ್ ಆದರೆ ರಸ್ತೆ ಮಾತ್ರ",
+        "Recent places under the search bar" to "ಹುಡುಕಾಟ ಪಟ್ಟಿಯ ಕೆಳಗೆ ಇತ್ತೀಚಿನ ಸ್ಥಳಗಳು",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "ಉಳಿಸಿದ ಸ್ಥಳಗಳು ಹುಡುಕಾಟ ಪಟ್ಟಿಯ ಕೆಳಗಿನ ಟೈಲ್‌ಗಳ ಸಾಲಿನಲ್ಲಿವೆ, ಅದು «ಸ್ಥಳ ಸೇರಿಸಿ» ನೊಂದಿಗೆ ಕೊನೆಗೊಳ್ಳುತ್ತದೆ",
+        "Places you drive to show up here" to "ನೀವು ಚಲಿಸುವ ಸ್ಥಳಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ",
+        "Save somewhere" to "ಸ್ಥಳ ಉಳಿಸಿ",
     )
 }

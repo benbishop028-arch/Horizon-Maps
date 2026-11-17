@@ -147,7 +147,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Volume", "", "Voice and volume", 7),
     SettingRef("Add a place", "", "Your places", 8),
     SettingRef("Remove every favourite", "", "Favourites", 8),
-    SettingRef("Saved & recent under the search bar", "The list of favourites and recent places on the map", "History", 8),
+    SettingRef("Recent places under the search bar", "Your saved places are in the row of tiles under the search bar, which ends with Add a place", "History", 8),
     SettingRef("Recent destinations", "Recent places, and places remembered for searching without signal", "History", 8),
     SettingRef("Send it to", "", "Share your ETA", 8),
     SettingRef("Pair a phone", "Send places from your phone to the car", "Send places from your phone", 8),

@@ -1589,5 +1589,9 @@ object I18nHe {
         "Road name when driving without a route" to "שם הכביש בנהיגה ללא מסלול",
         "Heading next to the road name" to "כיוון ליד שם הכביש",
         "\"Heading E\" after the road. Off shows just the road" to "״כיוון מז״ אחרי הכביש. כבוי מציג רק את הכביש",
+        "Recent places under the search bar" to "מקומות אחרונים מתחת לסרגל החיפוש",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "המקומות השמורים נמצאים בשורת האריחים מתחת לסרגל החיפוש, שמסתיימת ב״הוסף מקום״",
+        "Places you drive to show up here" to "מקומות שאתה נוסע אליהם יופיעו כאן",
+        "Save somewhere" to "שמור מקום",
     )
 }

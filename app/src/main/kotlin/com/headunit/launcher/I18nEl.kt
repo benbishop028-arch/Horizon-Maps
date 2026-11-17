@@ -1589,5 +1589,9 @@ object I18nEl {
         "Road name when driving without a route" to "Όνομα δρόμου όταν οδηγείτε χωρίς διαδρομή",
         "Heading next to the road name" to "Κατεύθυνση δίπλα στο όνομα του δρόμου",
         "\"Heading E\" after the road. Off shows just the road" to "«Κατεύθυνση Α» μετά τον δρόμο. Απενεργοποιημένο δείχνει μόνο τον δρόμο",
+        "Recent places under the search bar" to "Πρόσφατα μέρη κάτω από τη γραμμή αναζήτησης",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Τα αποθηκευμένα μέρη είναι στη σειρά πλακιδίων κάτω από τη γραμμή αναζήτησης, που τελειώνει με «Προσθήκη μέρους»",
+        "Places you drive to show up here" to "Τα μέρη όπου οδηγείτε εμφανίζονται εδώ",
+        "Save somewhere" to "Αποθήκευση μέρους",
     )
 }

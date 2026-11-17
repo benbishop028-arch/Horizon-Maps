@@ -1595,5 +1595,9 @@ object I18nC {
         "Road name when driving without a route" to listOf("ชื่อถนนเมื่อขับโดยไม่มีเส้นทาง", "ルートなしで走行中の道路名", "Nama jalan saat berkendara tanpa rute"),
         "Heading next to the road name" to listOf("ทิศทางข้างชื่อถนน", "道路名の横に進行方向", "Arah di samping nama jalan"),
         "\"Heading E\" after the road. Off shows just the road" to listOf("\"ทิศทาง ตะวันออก\" ต่อท้ายชื่อถนน ปิดไว้จะแสดงแค่ชื่อถนน", "道路名の後に「進行方向 東」。オフにすると道路名のみ", "\"Arah T\" setelah nama jalan. Mati hanya menampilkan jalan"),
+        "Recent places under the search bar" to listOf("สถานที่ล่าสุดใต้แถบค้นหา", "検索バーの下に最近の場所", "Tempat terbaru di bawah bilah pencarian"),
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("สถานที่ที่บันทึกไว้อยู่ในแถวไทล์ใต้แถบค้นหา ซึ่งท้ายสุดคือ เพิ่มสถานที่", "保存した場所は検索バーの下のタイル列にあり、最後は「場所を追加」です", "Tempat tersimpan ada di deretan ubin di bawah bilah pencarian, yang diakhiri dengan Tambah tempat"),
+        "Places you drive to show up here" to listOf("สถานที่ที่คุณขับไปจะแสดงที่นี่", "走行した場所がここに表示されます", "Tempat yang Anda tuju akan muncul di sini"),
+        "Save somewhere" to listOf("บันทึกสถานที่", "場所を保存", "Simpan tempat"),
     )
 }

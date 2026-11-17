@@ -1589,5 +1589,9 @@ object I18nZhHant {
         "Road name when driving without a route" to "無路線行駛時顯示道路名稱",
         "Heading next to the road name" to "道路名稱旁顯示行駛方向",
         "\"Heading E\" after the road. Off shows just the road" to "在道路後顯示「方向 東」。關閉則只顯示道路",
+        "Recent places under the search bar" to "搜尋列下方顯示最近地點",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "已儲存的地點位於搜尋列下方的方塊列中，最後一個是「新增地點」",
+        "Places you drive to show up here" to "你開車前往的地點會顯示在這裡",
+        "Save somewhere" to "儲存地點",
     )
 }

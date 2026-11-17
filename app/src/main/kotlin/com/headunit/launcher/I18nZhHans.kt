@@ -1589,5 +1589,9 @@ object I18nZhHans {
         "Road name when driving without a route" to "无路线行驶时显示道路名称",
         "Heading next to the road name" to "道路名称旁显示行驶方向",
         "\"Heading E\" after the road. Off shows just the road" to "在道路后显示“方向 东”。关闭则只显示道路",
+        "Recent places under the search bar" to "搜索栏下方显示最近地点",
+        "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "已保存的地点位于搜索栏下方的方块行中，最后一个是“添加地点”",
+        "Places you drive to show up here" to "你驾车前往的地点会显示在这里",
+        "Save somewhere" to "保存地点",
     )
 }
