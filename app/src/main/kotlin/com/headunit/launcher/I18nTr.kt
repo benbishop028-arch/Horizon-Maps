@@ -1606,5 +1606,6 @@ object I18nTr {
         "Mapbox's server answered with an error. Try again later." to "Mapbox sunucusu bir hatayla yanıt verdi. Daha sonra tekrar deneyin.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Bu cihaz Mapbox sunucusunu bulamıyor. Özel DNS veya reklam engelleyici api.mapbox.com’u engelliyor olabilir: izin verin ya da Android ağ ayarlarında Özel DNS’i kapatın.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox sunucusu bu cihazdan yanıt vermiyor. İnternet bağlantısını kontrol edin: oturum açma isteyen bir Wi‑Fi veya güvenlik duvarı onu engelleyebilir.",
+        "Showing traffic while you’re stopped" to "Dururken trafik gösteriliyor",
     )
 }

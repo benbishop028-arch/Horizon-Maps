@@ -1603,5 +1603,6 @@ object I18nD {
         "Mapbox's server answered with an error. Try again later." to listOf("Сървърът на Mapbox отговори с грешка. Опитайте по-късно."),
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to listOf("Това устройство не може да намери сървъра на Mapbox. Частен DNS или блокер на реклами може да блокира api.mapbox.com: разрешете го или изключете Частен DNS в мрежовите настройки на Android."),
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to listOf("Сървърът на Mapbox не отговаря от това устройство. Проверете интернет връзката: Wi‑Fi, което изисква вход, или защитна стена може да го блокира."),
+        "Showing traffic while you’re stopped" to listOf("Показва се трафикът, докато сте спрели"),
     )
 }

@@ -1606,5 +1606,6 @@ object I18nMs {
         "Mapbox's server answered with an error. Try again later." to "Pelayan Mapbox menjawab dengan ralat. Cuba lagi kemudian.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Peranti ini tidak dapat mencari pelayan Mapbox. DNS peribadi atau penyekat iklan mungkin menyekat api.mapbox.com: benarkannya, atau matikan DNS Peribadi dalam tetapan rangkaian Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Pelayan Mapbox tidak menjawab dari peranti ini. Semak sambungan internet: Wi‑Fi yang perlu log masuk, atau tembok api, boleh menyekatnya.",
+        "Showing traffic while you’re stopped" to "Menunjukkan trafik semasa anda berhenti",
     )
 }

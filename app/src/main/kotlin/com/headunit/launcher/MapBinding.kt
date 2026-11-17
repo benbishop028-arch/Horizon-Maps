@@ -1208,11 +1208,60 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    /**
+     * The beam under the 3D car and the flat arrow: a picture of the cone lying on the road in the map itself, just below the
+     * arrow, so the car is drawn over it (the beam drawn over the map, beamView, covered the 3D car's roof, liamstears). Its four
+     * corners are places on the road, re-set only when the car moves or turns, not on every camera move.
+     */
+    private var headlightOk = false
+    private var hlLat = 0.0; private var hlLon = 0.0; private var hlHead = -999.0; private var hlLen = 0.0
+    private var hlShown = false
+    private fun installHeadlight(st: Style) {
+        headlightOk = false; hlShown = false; hlHead = -999.0
+        if (satellite) return
+        try {
+            val props = HashMap<String, Value>()
+            props["type"] = Value("image")
+            val c = { lon: Double, lat: Double -> Value(listOf(Value(lon), Value(lat))) }
+            props["coordinates"] = Value(listOf(c(0.0, 0.001), c(0.001, 0.001), c(0.001, 0.0), c(0.0, 0.0)))
+            st.addStyleSource("dl-headlight", Value(props))
+            st.updateStyleImageSourceImage("dl-headlight", headlightBitmap().toMapboxImage())
+            addL(st, RasterLayer("dl-headlight-l", "dl-headlight").rasterFadeDuration(0.0).rasterEmissiveStrength(1.0).rasterOpacity(1.0)
+                .visibility(Visibility.NONE), "dl-me-arrow")
+            headlightOk = st.styleLayerExists("dl-headlight-l")
+        } catch (e: Throwable) { android.util.Log.w("MapBinding", "headlight: ${e.message}") }
+    }
+
+    /** The cone, nose at the bottom middle and the far end at the top, fading out as it goes (the same light as beamView's). */
+    private fun headlightBitmap(): Bitmap {
+        val w = 256; val h = 320
+        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val cv = android.graphics.Canvas(b)
+        // the picture spans 0.42 of the length either side and 1.05 of it from the nose (see placeBeam's corners)
+        fun x(across: Double) = (w / 2.0 + across / 0.42 * (w / 2.0)).toFloat()
+        fun y(along: Double) = (h * (1.0 - along / 1.05)).toFloat()
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.LinearGradient(0f, y(0.0), 0f, y(1.0),
+                intArrayOf(0x8CFFF4D6.toInt(), 0x40FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
+        }
+        val path = android.graphics.Path().apply {
+            moveTo(x(-0.025), y(0.0)); lineTo(x(-0.34), y(0.88)); quadTo(x(0.0), y(1.0), x(0.34), y(0.88)); lineTo(x(0.025), y(0.0)); close()
+        }
+        cv.drawPath(path, paint)
+        return b
+    }
+
+    private fun hideHeadlight() {
+        if (!hlShown) return
+        hlShown = false
+        try { style?.setStyleLayerProperty("dl-headlight-l", "visibility", Value.valueOf("none")) } catch (e: Throwable) { }
+    }
+
     private fun placeBeam() {
         val bv = beamView
         val p = me
         val night = lightPreset == "night" || lightPreset == "dusk"
-        if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); return }
+        if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); hideHeadlight(); return }
         try {
             val g = beamGeom(p) ?: run { bv.clear(); return }
             val (ahead, len) = g
@@ -1222,6 +1271,27 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // used to start at the windscreen, liamstears). The flat arrow and the real 3D model are part of the map, under the beam,
             // so there it still starts at the nose.
             val carOnTop = locatorStyle != "flat" && !modelOn && locatorView.visibility == android.view.View.VISIBLE
+            val st = style
+            if (!carOnTop && headlightOk && st != null) {
+                // in the map, under the car: only re-placed when the car has moved, turned or the beam's length changed
+                bv.clear()
+                val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
+                val l = len * sc
+                val moved = Geo.dist(LL(hlLat, hlLon), p) > 0.3 || abs(((h - hlHead + 540.0) % 360.0) - 180.0) > 0.5 || abs(l - hlLen) > hlLen * 0.03
+                if (moved || !hlShown) {
+                    hlLat = p.lat; hlLon = p.lon; hlHead = h; hlLen = l
+                    // starting a little behind the nose: the car hides where it begins
+                    val nose = Furniture.offset(p, h, ahead * 0.6)
+                    val far = Furniture.offset(nose, h, l * 1.05)
+                    val c = { q: LL -> Value(listOf(Value(q.lon), Value(q.lat))) }
+                    st.setStyleSourceProperty("dl-headlight", "coordinates", Value(listOf(
+                        c(Furniture.offset(far, h - 90.0, l * 0.42)), c(Furniture.offset(far, h + 90.0, l * 0.42)),
+                        c(Furniture.offset(nose, h + 90.0, l * 0.42)), c(Furniture.offset(nose, h - 90.0, l * 0.42)))))
+                    if (!hlShown) { st.setStyleLayerProperty("dl-headlight-l", "visibility", Value.valueOf("visible")); hlShown = true }
+                }
+                return
+            }
+            hideHeadlight()
             val start = if (carOnTop) ahead * 0.15 else ahead
             val nose = if (start > 0.0) Furniture.offset(p, h, start) else p
             // a little longer the faster you go (up to about 70 mph); measured from the nose, so starting further back doesn't shorten it
@@ -2524,6 +2594,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // the real 3D model (Full 3D only); otherwise the 3D locator is drawn by locatorView over the map, see pushModel
         modelOn = false; modelAt = null
         if (modelWanted && !modelBroken && !satellite && MapStylePolicy.supportsFullDetailFeatures(mapDetail)) installModel(st)
+        installHeadlight(st)
         // (the road-name pill is roadView, see placeLocator)
         spriteName = null
         placeLocator()

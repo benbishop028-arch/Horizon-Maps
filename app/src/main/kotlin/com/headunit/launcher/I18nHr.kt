@@ -1606,5 +1606,6 @@ object I18nHr {
         "Mapbox's server answered with an error. Try again later." to "Poslužitelj Mapboxa odgovorio je pogreškom. Pokušajte kasnije.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Ovaj uređaj ne može pronaći poslužitelj Mapboxa. Privatni DNS ili blokator oglasa možda blokira api.mapbox.com: dopustite ga ili isključite Privatni DNS u mrežnim postavkama Androida.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Poslužitelj Mapboxa ne odgovara s ovog uređaja. Provjerite internetsku vezu: Wi‑Fi koji traži prijavu ili vatrozid mogu ga blokirati.",
+        "Showing traffic while you’re stopped" to "Prikaz prometa dok stojite",
     )
 }

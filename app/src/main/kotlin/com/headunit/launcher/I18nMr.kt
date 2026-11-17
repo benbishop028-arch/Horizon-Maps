@@ -1606,5 +1606,6 @@ object I18nMr {
         "Mapbox's server answered with an error. Try again later." to "Mapbox सर्व्हरने त्रुटीसह उत्तर दिले. नंतर पुन्हा प्रयत्न करा.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "या उपकरणाला Mapbox सर्व्हर सापडत नाही. खाजगी DNS किंवा जाहिरात ब्लॉकर api.mapbox.com अडवत असू शकतो: त्याला परवानगी द्या, किंवा Android नेटवर्क सेटिंग्जमध्ये खाजगी DNS बंद करा.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "या उपकरणावरून Mapbox सर्व्हर उत्तर देत नाही. इंटरनेट कनेक्शन तपासा: साइन इन मागणारे Wi‑Fi किंवा फायरवॉल ते अडवू शकते.",
+        "Showing traffic while you’re stopped" to "तुम्ही थांबलेले असताना वाहतूक दाखवत आहे",
     )
 }

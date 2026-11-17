@@ -1606,5 +1606,6 @@ object I18nSv {
         "Mapbox's server answered with an error. Try again later." to "Mapbox server svarade med ett fel. Försök igen senare.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Den här enheten hittar inte Mapbox server. En privat DNS eller annonsblockerare kan blockera api.mapbox.com: tillåt den, eller stäng av Privat DNS i Androids nätverksinställningar.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox server svarar inte från den här enheten. Kontrollera internetanslutningen: ett Wi‑Fi som kräver inloggning eller en brandvägg kan blockera den.",
+        "Showing traffic while you’re stopped" to "Visar trafiken medan du står still",
     )
 }

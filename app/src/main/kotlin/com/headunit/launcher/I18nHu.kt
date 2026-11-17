@@ -1606,5 +1606,6 @@ object I18nHu {
         "Mapbox's server answered with an error. Try again later." to "A Mapbox szervere hibával válaszolt. Próbálja később.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Ez az eszköz nem találja a Mapbox szerverét. Egy privát DNS vagy reklámblokkoló letilthatja az api.mapbox.com címet: engedélyezze, vagy kapcsolja ki a Privát DNS-t az Android hálózati beállításaiban.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "A Mapbox szervere nem válaszol erről az eszközről. Ellenőrizze az internetkapcsolatot: a bejelentkezést kérő Wi‑Fi vagy egy tűzfal blokkolhatja.",
+        "Showing traffic while you’re stopped" to "Forgalom megjelenítése, amíg áll",
     )
 }

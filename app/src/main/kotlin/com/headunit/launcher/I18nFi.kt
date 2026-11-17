@@ -1606,5 +1606,6 @@ object I18nFi {
         "Mapbox's server answered with an error. Try again later." to "Mapboxin palvelin vastasi virheellä. Yritä myöhemmin uudelleen.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Tämä laite ei löydä Mapboxin palvelinta. Yksityinen DNS tai mainosten esto voi estää osoitteen api.mapbox.com: salli se tai poista Yksityinen DNS käytöstä Androidin verkkoasetuksissa.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapboxin palvelin ei vastaa tältä laitteelta. Tarkista internetyhteys: kirjautumista vaativa Wi‑Fi tai palomuuri voi estää sen.",
+        "Showing traffic while you’re stopped" to "Liikenne näytetään, kun olet pysähtyneenä",
     )
 }

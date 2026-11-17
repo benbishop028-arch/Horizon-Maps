@@ -329,7 +329,17 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp).background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
                     if (engine.deadReckoning) DeadReckoningChip(Modifier.align(Alignment.BottomCenter).padding(bottom = 84.dp))
                     // (with the heading switched off and no road name known, there's nothing to show)
-                    val cruiseShows = engine.cruising && engine.following && prefs.b(PreferenceKeys.CRUISE, true) &&
+                    // it stays up while you slow down or wait at lights (a minute below walking pace), instead of swapping back and
+                    // forth with the bubble under your arrow every time you dropped under 9 mph (liamstears)
+                    val fastNow = engine.cruising
+                    val noRoute = engine.route == null && !engine.previewing
+                    var cruiseHeld by remember { mutableStateOf(false) }
+                    LaunchedEffect(fastNow, noRoute) {
+                        if (fastNow) cruiseHeld = true
+                        else if (!noRoute) cruiseHeld = false
+                        else { kotlinx.coroutines.delay(60_000L); cruiseHeld = false }
+                    }
+                    val cruiseShows = (fastNow || (cruiseHeld && noRoute)) && engine.following && prefs.b(PreferenceKeys.CRUISE, true) &&
                         (prefs.b(PreferenceKeys.CRUISE_HEADING, true) || engine.roadNow.isNotBlank())
                     // (above the media bar when that's showing at the bottom)
                     val mediaUp = prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.showing()

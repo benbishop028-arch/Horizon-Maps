@@ -1606,5 +1606,6 @@ object I18nEl {
         "Mapbox's server answered with an error. Try again later." to "Ο διακομιστής του Mapbox απάντησε με σφάλμα. Δοκιμάστε αργότερα.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Αυτή η συσκευή δεν βρίσκει τον διακομιστή του Mapbox. Ένα ιδιωτικό DNS ή ένα πρόγραμμα αποκλεισμού διαφημίσεων ίσως μπλοκάρει το api.mapbox.com: επιτρέψτε το ή απενεργοποιήστε το Ιδιωτικό DNS στις ρυθμίσεις δικτύου του Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Ο διακομιστής του Mapbox δεν απαντά από αυτή τη συσκευή. Ελέγξτε τη σύνδεση στο διαδίκτυο: ένα Wi‑Fi που ζητά σύνδεση ή ένα τείχος προστασίας μπορεί να το μπλοκάρει.",
+        "Showing traffic while you’re stopped" to "Εμφάνιση κίνησης όσο είστε σταματημένοι",
     )
 }

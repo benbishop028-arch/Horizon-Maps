@@ -26,6 +26,8 @@ class TurnInfo(
     val junctionPic: String = "",
     /** "At the lights" / "At the stop sign" when the turn is at one (Settings > Sound & voice > Landmarks in directions); "" otherwise. */
     val landmark: String = "",
+    /** The road the following manoeuvre goes onto (for the short "then" line, with a roundabout's exit number in its icon). */
+    val thenStreet: String = "",
 )
 /** Countries that use miles for road distances and speeds. */
 val MILES_COUNTRIES = setOf("GB", "US", "PR", "LR", "MM", "IM", "GG", "JE", "VG", "VI", "AG", "DM", "GD", "KN", "LC", "VC", "BS", "KY", "FK", "SH", "WS", "GU", "AS", "MP")

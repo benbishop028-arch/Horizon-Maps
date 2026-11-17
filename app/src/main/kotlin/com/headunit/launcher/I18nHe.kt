@@ -1606,5 +1606,6 @@ object I18nHe {
         "Mapbox's server answered with an error. Try again later." to "השרת של Mapbox החזיר שגיאה. נסה שוב מאוחר יותר.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "המכשיר לא מוצא את השרת של Mapbox. DNS פרטי או חוסם פרסומות עלולים לחסום את api.mapbox.com: אפשר אותו, או כבה את ה-DNS הפרטי בהגדרות הרשת של Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "השרת של Mapbox לא עונה מהמכשיר הזה. בדוק את חיבור האינטרנט: Wi‑Fi שדורש התחברות, או חומת אש, עלולים לחסום אותו.",
+        "Showing traffic while you’re stopped" to "מוצגת התנועה בזמן שאתה עומד",
     )
 }

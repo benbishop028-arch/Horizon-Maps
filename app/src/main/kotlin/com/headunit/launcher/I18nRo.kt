@@ -1606,5 +1606,6 @@ object I18nRo {
         "Mapbox's server answered with an error. Try again later." to "Serverul Mapbox a răspuns cu o eroare. Încercați mai târziu.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Acest dispozitiv nu găsește serverul Mapbox. Un DNS privat sau un blocant de reclame poate bloca api.mapbox.com: permiteți-l sau dezactivați DNS-ul privat în setările de rețea Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Serverul Mapbox nu răspunde de pe acest dispozitiv. Verificați conexiunea la internet: un Wi‑Fi care cere autentificare sau un firewall îl poate bloca.",
+        "Showing traffic while you’re stopped" to "Se afișează traficul cât timp stați pe loc",
     )
 }

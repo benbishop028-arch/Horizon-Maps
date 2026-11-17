@@ -571,7 +571,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
-                Text(L.t("Traffic round you · back when you move"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                Text(L.t("Showing traffic while you’re stopped"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 8.dp).size(16.dp))
             }
         }
@@ -1133,7 +1133,8 @@ internal fun ImmTurnCard(
     /** Extra row along the bottom of the card (Android Auto puts the hazards ahead there). */
     footer: (@Composable () -> Unit)? = null,
 ) { TextSides {
-    val shape = RoundedCornerShape(28.dp)
+    // smaller corners, closer to a road sign: the big round ones hid the end of the progress bar along the bottom (karthikeyansr)
+    val shape = RoundedCornerShape(12.dp)
     val frac = ((450.0 - t.dist) / 450.0).coerceIn(0.0, 1.0).toFloat()
     // living card: it grows a touch and starts to glow as the turn comes up, and pulses in the last 80 m
     val alive = engine.prefs.b(PreferenceKeys.LIVECARD, true)
@@ -1159,7 +1160,7 @@ internal fun ImmTurnCard(
                     val sw = (1.5f + 1.5f * pv) * density
                     drawRoundRect(Color.White.copy(alpha = 0.45f * glow * pv), topLeft = Offset(sw / 2, sw / 2),
                         size = androidx.compose.ui.geometry.Size(size.width - sw, size.height - sw),
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(12.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
                 }
             }
             .animateContentSize()
@@ -1249,8 +1250,14 @@ internal fun ImmTurnCard(
         // (the "then" line stays on a small car screen too)
         if ((!compact || car) && t.thenManeuver != null && !thenIcon) {
             Row(Modifier.fillMaxWidth().background(TealDeep).padding(horizontal = 18.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
-                Text(t.thenText, color = Color.White.copy(alpha = 0.92f), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 10.dp))
+                // a roundabout next: its exit number goes in the icon, so the line only needs the road ("Then A3057 Romsey Road");
+                // "Then take the 3rd exit onto …" ran out of room on long names (karthikeyansr)
+                val rbShort = t.thenExit > 0 && t.thenStreet.isNotBlank() && t.thenManeuver.uppercase().contains("ROUNDABOUT")
+                if (rbShort) Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                    ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(32.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
+                    Text(t.thenExit.toString(), color = Color.White, fontSize = 10.sp, lineHeight = 10.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.offset(y = 1.dp))
+                } else ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
+                Text(if (rbShort) L.t("Then {0}", t.thenStreet) else t.thenText, color = Color.White.copy(alpha = 0.92f), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 10.dp))
             }
         }
         } // (end of the full card)

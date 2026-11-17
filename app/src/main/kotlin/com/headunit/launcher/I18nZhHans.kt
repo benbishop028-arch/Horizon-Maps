@@ -1606,5 +1606,6 @@ object I18nZhHans {
         "Mapbox's server answered with an error. Try again later." to "Mapbox 服务器返回错误。请稍后再试。",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "此设备找不到 Mapbox 服务器。私人 DNS 或广告拦截工具可能拦截了 api.mapbox.com：请允许它，或在 Android 网络设置中关闭私人 DNS。",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "此设备连不上 Mapbox 服务器。请检查网络连接：需要登录的 Wi‑Fi 或防火墙可能会拦截它。",
+        "Showing traffic while you’re stopped" to "停车时显示周边路况",
     )
 }

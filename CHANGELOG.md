@@ -37,6 +37,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Headlight under the 3D car: with the 3D car or the flat arrow, the beam now lies on the road under it instead of being drawn over its roof (thanks to liamstears)
+- Road name at the bottom stays put: driving without a route, the road name at the bottom no longer swaps with the bubble under your arrow every time you slow down. It stays for a minute after you stop (thanks to liamstears)
+- Clearer traffic note when stopped: the note now reads "Showing traffic while you’re stopped" (thanks to liamstears)
+- Turn card: smaller, road-sign corners, so the progress bar along the bottom shows right to the end. A roundabout in the "then" line now shows its exit number inside the icon, so long road names fit (thanks to karthikeyansr-lgtm)
 - Saved places all in one row: your own places, favourites and saved routes are now all in the scrolling row under the search bar, which always ends with an "Add a place" tile. The list below it is just recent places
 - Getting ready for Google Play: the build can now also make a Google Play edition of the app, called Horizon Maps so it's easy to tell apart (installed beside this one, updated by Play, without the self-updater). Nothing changes in this version
 - Quicker rerouting: a wrong turn is now noticed on the first GPS reading when you're clearly on another road, and the new route is asked for twice at once (the early request and a fresh one from where you are), using whichever answers first. An early request made from too far back is no longer used, as it gave a route starting behind you (thanks to karthikeyansr-lgtm)

@@ -1606,5 +1606,6 @@ object I18nEu {
         "Mapbox's server answered with an error. Try again later." to "Mapboxen zerbitzariak errore batekin erantzun du. Saiatu berriro geroago.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Gailu honek ez du Mapboxen zerbitzaria aurkitzen. DNS pribatu batek edo iragarki-blokeatzaile batek api.mapbox.com blokea dezake: baimendu, edo desaktibatu DNS pribatua Androiden sare-ezarpenetan.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapboxen zerbitzariak ez du erantzuten gailu honetatik. Egiaztatu interneteko konexioa: saioa hasi behar den wifi batek edo suebaki batek blokea dezake.",
+        "Showing traffic while you’re stopped" to "Trafikoa erakusten geldirik zauden bitartean",
     )
 }

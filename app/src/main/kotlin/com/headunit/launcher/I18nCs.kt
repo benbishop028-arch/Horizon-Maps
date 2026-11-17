@@ -1606,5 +1606,6 @@ object I18nCs {
         "Mapbox's server answered with an error. Try again later." to "Server Mapboxu odpověděl chybou. Zkuste to později.",
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Toto zařízení nenachází server Mapboxu. Soukromé DNS nebo blokátor reklam možná blokuje api.mapbox.com: povolte ho, nebo vypněte Soukromé DNS v nastavení sítě Androidu.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Server Mapboxu z tohoto zařízení neodpovídá. Zkontrolujte připojení k internetu: Wi‑Fi vyžadující přihlášení nebo firewall ho mohou blokovat.",
+        "Showing traffic while you’re stopped" to "Zobrazuji provoz, dokud stojíte",
     )
 }
