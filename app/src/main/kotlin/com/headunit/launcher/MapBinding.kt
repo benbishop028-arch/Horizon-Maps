@@ -1230,8 +1230,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // the 3D car: the beam starts under it too, and the car's own shape on screen (its outline, roof included) is cut out
             // of the light, so the car looks drawn over it (the beam covered its roof, liamstears). The beam used to be a picture in
             // the map for this, re-placed many times a second, and it flickered
-            val start = if (carOnTop) ahead * 0.15 else if (modelOn) ahead * 0.45 else ahead
-            bv.mask = if (modelOn) try { modelMask(p, h) } catch (e: Throwable) { null } else null
+            // (only the car: the 3D arrow is low and flat, so its beam starts at its tip as before. Cutting the arrow's outline out
+            // left a gap, and the light seemed to hover in front of it)
+            val carModel = modelOn && carLike
+            val start = if (carOnTop) ahead * 0.15 else if (carModel) ahead * 0.45 else ahead
+            bv.mask = if (carModel) try { modelMask(p, h) } catch (e: Throwable) { null } else null
             val nose = if (start > 0.0) Furniture.offset(p, h, start) else p
             // a little longer the faster you go (up to about 70 mph); measured from the nose, so starting further back doesn't shorten it
             val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
