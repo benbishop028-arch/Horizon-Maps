@@ -396,7 +396,7 @@ jobs:
               l = re.sub(r"^#+\s*", "", l).replace("**", "").strip()
               if l.startswith("- "): l = "• " + l[2:]
               if l: lines.append(l)
-          out = "\n".join(lines) or "Fixes and improvements."
+          out = ("\n".join(lines) or "Fixes and improvements.").replace("Horizon Nav", "Horizon Maps")
           if len(out) > 500: out = out[:497].rsplit(" ", 1)[0] + "…"
           open(sys.argv[1], "w", encoding="utf-8").write(out)
           PY
