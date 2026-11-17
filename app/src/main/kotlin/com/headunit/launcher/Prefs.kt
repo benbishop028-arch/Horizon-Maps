@@ -185,6 +185,10 @@ internal object PreferenceKeys {
     const val DONATE_SHOWN = "donateshown"
     /** Your own normal zoom when not on a route, in zoom levels from the standard one (-2 to +2; 0 = standard). */
     const val DEFAULT_ZOOM = "defzoom"
+    /** Off: the zoom stays put instead of following your speed and the junctions (GitHub #154). */
+    const val AUTO_ZOOM = "autozoom"
+    /** With no route, a round search button in the corner instead of the search bar and its buttons (GitHub #154). */
+    const val SEARCH_BUTTON = "search_button"
     /** Clock times: "auto" (the device's own 12 / 24-hour setting), "12" or "24". */
     const val CLOCK = "clock"
     /** The + / - zoom last used when not on a route, kept for next time: on the phone / head unit, and on Android Auto. */

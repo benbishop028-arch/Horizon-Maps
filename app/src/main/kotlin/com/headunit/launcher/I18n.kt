@@ -12,7 +12,7 @@ import java.util.Locale
 object L {
     val supported = listOf("en" to "English", "nl" to "Nederlands", "de" to "Deutsch", "fr" to "Français", "es" to "Español",
         "it" to "Italiano", "pt" to "Português", "pl" to "Polski", "th" to "ไทย", "ja" to "日本語", "id" to "Bahasa Indonesia", "bg" to "Български", "sl" to "Slovenščina",
-        "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文",
+        "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文", "zhhk" to "繁體中文（香港・粵語）",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
         "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "esar" to "Español (Argentina)")
@@ -38,6 +38,7 @@ object L {
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
         // (Traditional Chinese: a Cantonese voice on a Hong Kong or Macau phone, Taiwan's Mandarin otherwise)
         "zh" -> if (Locale.getDefault().country in setOf("HK", "MO")) Locale("zh", "HK") else Locale("zh", "TW")
+        "zhhk" -> Locale("zh", "HK")
         // (Brazilian Portuguese on a Brazilian phone, Portugal's otherwise)
         "pt" -> Locale.getDefault().takeIf { it.language == "pt" } ?: Locale("pt", "PT")
         else -> Locale.getDefault().takeIf { it.language == "en" } ?: Locale.UK
@@ -53,7 +54,8 @@ object L {
         if (auto && want == "es" && Locale.getDefault().country in setOf("AR", "UY")) return "esar"
         if (auto && want == "zh") {
             val d = Locale.getDefault()
-            return if (d.script == "Hant" || d.country in setOf("TW", "HK", "MO")) "zh" else "zhs"
+            // (Hong Kong and Macau: the Traditional text spoken in Cantonese, GitHub #83)
+            return if (d.country in setOf("HK", "MO")) "zhhk" else if (d.script == "Hant" || d.country == "TW") "zh" else "zhs"
         }
         return if (supported.any { it.first == want }) want else "en"
     }
@@ -69,7 +71,13 @@ object L {
     val en: Boolean get() = lang == "en"
 
     /** The language code Mapbox's search takes (Chinese in the right script). */
-    val mapboxLang: String get() = when (lang) { "zh" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar" -> "es"; else -> lang }
+    /**
+     * The voices to try for the spoken directions, best first. Cantonese is kept by Google's speech engine under its own language
+     * code (yue): asking for Chinese (Hong Kong) gets Mandarin, so for Hong Kong Cantonese is asked for first (GitHub #83).
+     */
+    val voiceLocales: List<Locale> get() = if (lang == "zhhk") listOf(Locale("yue", "HK"), Locale.forLanguageTag("yue-Hant-HK"), Locale("zh", "HK")) else listOf(locale)
+
+    val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar" -> "es"; else -> lang }
 
     fun t(text: String, vararg args: Any?): String {
         val s = if (lang == "en") text else (table[lang]?.get(text) ?: text)
@@ -85,7 +93,7 @@ object L {
      */
     fun voiceToEnglish(text: String): String {
         // (Bosnian voice commands are close enough to Croatian to share its words)
-        val rules = voiceRules[when (lang) { "bs" -> "hr"; "esar" -> "es"; else -> lang }] ?: return text
+        val rules = voiceRules[when (lang) { "bs" -> "hr"; "esar" -> "es"; "zhhk" -> "zh"; else -> lang }] ?: return text
         // (a capital İ made lower-case the English way leaves a stray dot mark, so "İşe" wouldn't match "işe")
         var t = " " + text.lowercase(locale).replace("\u0307", "").trim() + " "
         // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
@@ -580,7 +588,7 @@ object L {
         "mr" -> "${n}वा"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
-        "zh" -> "第${n}個"
+        "zh", "zhhk" -> "第${n}個"
         "zhs" -> "第${n}个"
         // 1-ви, 2-ри, 3-ти, 7-ми, 8-ми (11-ти to 13-ти, and the rest -ти)
         "bg" -> when {
@@ -667,7 +675,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "esar")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "esar", "zhhk")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -677,6 +685,7 @@ object L {
         addOwn(m, "ro", I18nRo.rows())
         addOwn(m, "eu", I18nEu.rows())
         addOwn(m, "zh", I18nZhHant.rows())
+        addOwn(m, "zhhk", I18nZhHant.rows())
         addOwn(m, "el", I18nEl.rows())
         addOwn(m, "cs", I18nCs.rows())
         addOwn(m, "fi", I18nFi.rows())
@@ -2269,6 +2278,27 @@ object L {
         "Previous" to listOf("Vorige", "Zurück", "Précédent", "Anterior"),
         "Play" to listOf("Afspelen", "Wiedergabe", "Lecture", "Reproducir"),
         "Pause" to listOf("Pauzeren", "Pause", "Pause", "Pausa"),
+        "Auto zoom" to listOf("Automatisch zoomen", "Automatischer Zoom", "Zoom automatique", "Zoom automático"),
+        "Zooms out at speed and in at junctions. Off keeps one steady zoom, which + and − still change" to listOf("Zoomt uit bij snelheid en in bij kruispunten. Uit houdt één vaste zoom aan, die + en − nog steeds veranderen", "Zoomt bei Tempo heraus und an Kreuzungen hinein. Aus hält einen festen Zoom, den + und − weiterhin ändern", "Dézoome à grande vitesse et zoome aux intersections. Désactivé garde un zoom fixe, que + et − modifient toujours", "Aleja el mapa a alta velocidad y lo acerca en los cruces. Desactivado mantiene un zoom fijo, que + y − siguen cambiando"),
+        "Search bar" to listOf("Zoekbalk", "Suchleiste", "Barre de recherche", "Barra de búsqueda"),
+        "Search as a button" to listOf("Zoeken als knop", "Suche als Taste", "Recherche en bouton", "Búsqueda como botón"),
+        "With no route, a round search button in the corner instead of the search bar and its buttons, so the arrow sits in the middle. Tap it to search" to listOf("Zonder route een ronde zoekknop in de hoek in plaats van de zoekbalk en zijn knoppen, zodat de pijl in het midden staat. Tik erop om te zoeken", "Ohne Route eine runde Suchtaste in der Ecke statt der Suchleiste und ihrer Tasten, damit der Pfeil in der Mitte sitzt. Zum Suchen antippen", "Sans itinéraire, un bouton de recherche rond dans le coin au lieu de la barre de recherche et de ses boutons, pour que la flèche soit au centre. Touchez-le pour chercher", "Sin ruta, un botón de búsqueda redondo en la esquina en lugar de la barra de búsqueda y sus botones, para que la flecha quede en el centro. Tócalo para buscar"),
+        "GPX tracks" to listOf("GPX-tracks", "GPX-Tracks", "Traces GPX", "Rutas GPX"),
+        "Tracks from a .gpx file (Komoot, Strava, Garmin…). Drive follows the track with spoken turns." to listOf("Tracks uit een .gpx-bestand (Komoot, Strava, Garmin…). Rijden volgt de track met gesproken afslagen.", "Tracks aus einer .gpx-Datei (Komoot, Strava, Garmin…). Fahren folgt dem Track mit gesprochenen Abbiegehinweisen.", "Traces d'un fichier .gpx (Komoot, Strava, Garmin…). Conduire suit la trace avec les virages annoncés.", "Rutas de un archivo .gpx (Komoot, Strava, Garmin…). Conducir sigue la ruta con giros por voz."),
+        "Drive" to listOf("Rijden", "Fahren", "Conduire", "Conducir"),
+        "Drive this" to listOf("Deze rijden", "Diesen fahren", "Conduire celle-ci", "Conducir esta"),
+        "Import GPX" to listOf("GPX importeren", "GPX importieren", "Importer un GPX", "Importar GPX"),
+        "Importing…" to listOf("Importeren…", "Wird importiert…", "Importation…", "Importando…"),
+        "No tracks yet." to listOf("Nog geen tracks.", "Noch keine Tracks.", "Aucune trace pour l'instant.", "Aún no hay rutas."),
+        "Track imported" to listOf("Track geïmporteerd", "Track importiert", "Trace importée", "Ruta importada"),
+        "That isn't a GPX file" to listOf("Dat is geen GPX-bestand", "Das ist keine GPX-Datei", "Ce n'est pas un fichier GPX", "Eso no es un archivo GPX"),
+        "Couldn't open that file" to listOf("Kon dat bestand niet openen", "Diese Datei ließ sich nicht öffnen", "Impossible d'ouvrir ce fichier", "No se pudo abrir ese archivo"),
+        "That file has no track in it" to listOf("Dat bestand bevat geen track", "Diese Datei enthält keinen Track", "Ce fichier ne contient aucune trace", "Ese archivo no contiene ninguna ruta"),
+        "Couldn't save the track" to listOf("Kon de track niet opslaan", "Der Track ließ sich nicht speichern", "Impossible d'enregistrer la trace", "No se pudo guardar la ruta"),
+        "starts {0} away" to listOf("begint op {0}", "beginnt in {0} Entfernung", "commence à {0}", "empieza a {0}"),
+        "Couldn't read that track" to listOf("Kon die track niet lezen", "Dieser Track ließ sich nicht lesen", "Impossible de lire cette trace", "No se pudo leer esa ruta"),
+        "End of the track" to listOf("Einde van de track", "Ende des Tracks", "Fin de la trace", "Final de la ruta"),
+        "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Importeer een .gpx-bestand, toon het op de kaart of rijd het met gesproken afslagen", "Eine .gpx-Datei importieren, auf der Karte zeigen oder mit gesprochenen Hinweisen abfahren", "Importer un fichier .gpx, l'afficher sur la carte ou le suivre avec les virages annoncés", "Importa un archivo .gpx, muéstralo en el mapa o recórrelo con giros por voz"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3829,5 +3859,26 @@ object L {
         "Previous" to listOf("Precedente", "Anterior", "Poprzedni"),
         "Play" to listOf("Riproduci", "Reproduzir", "Odtwarzaj"),
         "Pause" to listOf("Pausa", "Pausa", "Pauza"),
+        "Auto zoom" to listOf("Zoom automatico", "Zoom automático", "Automatyczne powiększenie"),
+        "Zooms out at speed and in at junctions. Off keeps one steady zoom, which + and − still change" to listOf("Allontana in velocità e avvicina agli incroci. Disattivato mantiene uno zoom fisso, che + e − cambiano comunque", "Afasta a alta velocidade e aproxima nos cruzamentos. Desligado mantém um zoom fixo, que + e − continuam a alterar", "Oddala przy dużej prędkości i przybliża na skrzyżowaniach. Wyłączone utrzymuje stałe powiększenie, które + i − nadal zmieniają"),
+        "Search bar" to listOf("Barra di ricerca", "Barra de pesquisa", "Pasek wyszukiwania"),
+        "Search as a button" to listOf("Ricerca come pulsante", "Pesquisa como botão", "Wyszukiwanie jako przycisk"),
+        "With no route, a round search button in the corner instead of the search bar and its buttons, so the arrow sits in the middle. Tap it to search" to listOf("Senza percorso, un pulsante di ricerca rotondo nell'angolo al posto della barra di ricerca e dei suoi pulsanti, così la freccia sta al centro. Toccalo per cercare", "Sem rota, um botão de pesquisa redondo no canto em vez da barra de pesquisa e dos seus botões, para a seta ficar ao centro. Toque nele para pesquisar", "Bez trasy okrągły przycisk wyszukiwania w rogu zamiast paska wyszukiwania i jego przycisków, więc strzałka jest na środku. Dotknij, aby wyszukać"),
+        "GPX tracks" to listOf("Tracce GPX", "Trilhos GPX", "Ślady GPX"),
+        "Tracks from a .gpx file (Komoot, Strava, Garmin…). Drive follows the track with spoken turns." to listOf("Tracce da un file .gpx (Komoot, Strava, Garmin…). Guida segue la traccia con le svolte a voce.", "Trilhos de um ficheiro .gpx (Komoot, Strava, Garmin…). Conduzir segue o trilho com as viragens faladas.", "Ślady z pliku .gpx (Komoot, Strava, Garmin…). Jedź prowadzi po śladzie z zapowiedziami skrętów."),
+        "Drive" to listOf("Guida", "Conduzir", "Jedź"),
+        "Drive this" to listOf("Guida questa", "Conduzir este", "Jedź tym"),
+        "Import GPX" to listOf("Importa GPX", "Importar GPX", "Importuj GPX"),
+        "Importing…" to listOf("Importazione…", "A importar…", "Importowanie…"),
+        "No tracks yet." to listOf("Ancora nessuna traccia.", "Ainda não há trilhos.", "Brak śladów."),
+        "Track imported" to listOf("Traccia importata", "Trilho importado", "Ślad zaimportowany"),
+        "That isn't a GPX file" to listOf("Quello non è un file GPX", "Isso não é um ficheiro GPX", "To nie jest plik GPX"),
+        "Couldn't open that file" to listOf("Impossibile aprire quel file", "Não foi possível abrir esse ficheiro", "Nie udało się otworzyć tego pliku"),
+        "That file has no track in it" to listOf("Quel file non contiene tracce", "Esse ficheiro não tem nenhum trilho", "Ten plik nie zawiera śladu"),
+        "Couldn't save the track" to listOf("Impossibile salvare la traccia", "Não foi possível guardar o trilho", "Nie udało się zapisać śladu"),
+        "starts {0} away" to listOf("inizia a {0}", "começa a {0}", "zaczyna się {0} stąd"),
+        "Couldn't read that track" to listOf("Impossibile leggere quella traccia", "Não foi possível ler esse trilho", "Nie udało się odczytać tego śladu"),
+        "End of the track" to listOf("Fine della traccia", "Fim do trilho", "Koniec śladu"),
+        "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Importa un file .gpx, mostralo sulla mappa o percorrilo con le svolte a voce", "Importe um ficheiro .gpx, mostre-o no mapa ou conduza-o com viragens faladas", "Zaimportuj plik .gpx, pokaż go na mapie lub przejedź z zapowiedziami skrętów"),
     )
 }

@@ -276,15 +276,30 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val boxW = constraints.maxWidth.toFloat().coerceAtLeast(1f); val boxH = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) { engine.setPanel(i, r.left / boxW, r.top / boxH, r.right / boxW, r.bottom / boxH) }
         // the "all locations" panel sits in the same corner and lets the map show through, so the search and its results step aside while it's open
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        // Settings › Places & trips › Search as a button (GitHub #154): with no route, just a round search button in the corner, so
+        // the map (and your arrow, in the middle of it) has the whole screen; tapping it brings the search bar and its buttons back.
+        // They fold away again 20 seconds after you last searched, or when a route starts
+        val searchBtn = engine.prefs.b(PreferenceKeys.SEARCH_BUTTON, false)
+        var searchOpen by remember { mutableStateOf(false) }
+        val searchBusy = q.isNotEmpty() || engine.results.isNotEmpty() || engine.nearbyKind != null || engine.phoneDest != null || engine.shownTrack != null
+        val compact = searchBtn && !routing && !previewing && !searchOpen && !searchBusy
+        LaunchedEffect(searchOpen, searchBusy) { if (searchOpen && !searchBusy) { delay(20_000); searchOpen = false } }
+        LaunchedEffect(routing) { if (routing) searchOpen = false }
+        LaunchedEffect(searchOpen) { if (searchOpen && !typingLocked) { delay(350); try { focus.requestFocus() } catch (_: Exception) {} } }
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // every block slides and fades in and out instead of popping, so the screen changes feel like one piece
-            AnimatedVisibility(!routing && !previewing, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
+            if (compact) CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density * mainButtonScale, LocalDensity.current.fontScale)) {
+                ImmIcon(Icons.Rounded.Search, { searchOpen = true }, desc = L.t("Search"))
+            }
+            AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
                 engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
+                // a GPX track you're looking at (Settings › Places & trips › GPX tracks › Show)
+                engine.shownTrack?.let { t -> TrackCard(engine, t) }
                 val showResults = engine.results.isNotEmpty()
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine, q) { q = "" }

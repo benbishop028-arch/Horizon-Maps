@@ -2291,6 +2291,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .iconSize(zoomed(1.6, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(16.0))
+        // a GPX track you're looking at or driving (GitHub #153): pink, under the routes, with its start (green) and end (red)
+        addS(st, GeoJsonSource.Builder("dl-track").featureCollection(trackFeatures()).build())
+        addL(st, ln("dl-track-line", "dl-track").filter(Expression.eq(Expression.geometryType(), Expression.literal("LineString")))
+            .lineColor("#D4537E").lineWidth(zoomed(1.5, 8 to 3.0, 14 to 6.0, 18 to 12.0)).lineOpacity(if (trackFaint) 0.45 else 0.9))
+        addL(st, CircleLayer("dl-track-ends", "dl-track").inSlot(MID).filter(Expression.eq(Expression.geometryType(), Expression.literal("Point")))
+            .circleRadius(7.0).circleStrokeWidth(2.0).circleStrokeColor("#FFFFFF").circleEmissiveStrength(1.0)
+            .circleColor(Expression.fromRaw("[\"case\",[\"==\",[\"get\",\"end\"],1],\"#E24B4A\",\"#1D9E75\"]")))
         addL(st, ln("dl-alts-line", "dl-alts").lineColor(prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")).lineWidth(if (im) 8.0 else 7.0).lineOpacity(0.92))
         // other ways to go while driving: grey, under the route
         addL(st, ln("dl-live-alts-line", "dl-live-alts").lineColor(prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")).lineWidth(routeW(0.75f)).lineOpacity(0.92))
@@ -2716,6 +2723,30 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      *  line looked thin there against the buildings. Set straight after creating the map, before its style is built. */
     var routeBoost = 1f
     private val ROUTE_K: Float get() = routeBoost * customRouteK
+
+    // ---- the GPX track (GitHub #153) ----
+    private var trackPts: List<LL> = emptyList()
+    /** Fainter while you drive it, so your route line on top reads first. */
+    private var trackFaint = false
+
+    private fun trackFeatures(): FeatureCollection {
+        val p = trackPts
+        if (p.size < 2) return empty()
+        val a = Feature.fromGeometry(Point.fromLngLat(p.first().lon, p.first().lat)).apply { addNumberProperty("end", 0) }
+        val b = Feature.fromGeometry(Point.fromLngLat(p.last().lon, p.last().lat)).apply { addNumberProperty("end", 1) }
+        return FeatureCollection.fromFeatures(listOf(line(p), a, b))
+    }
+
+    /** Shows a GPX track on the map (empty to take it away); [faint] while it's being driven. */
+    fun setTrack(pts: List<LL>, faint: Boolean = false) {
+        main0.post {
+            try {
+                trackPts = pts; trackFaint = faint
+                src("dl-track")?.featureCollection(trackFeatures())
+                style?.let { st -> if (st.styleLayerExists("dl-track-line")) st.setStyleLayerProperty("dl-track-line", "line-opacity", Value.valueOf(if (faint) 0.45 else 0.9)) }
+            } catch (e: Throwable) { }
+        }
+    }
 
     private fun line(p: List<LL>): Feature =
         Feature.fromGeometry(LineString.fromLngLats(p.map { Point.fromLngLat(it.lon, it.lat) }))

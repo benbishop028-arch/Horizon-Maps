@@ -46,6 +46,8 @@ class NavigationPolicyTest {
     @Test fun largeOffRouteDeparturesCountAsTwoStrikes() {
         assertEquals(2, NavigationPolicy.offRouteStrikeCount(true, 10.0, 30.0))
         assertEquals(2, NavigationPolicy.offRouteStrikeCount(false, 61.0, 30.0))
+        assertEquals(2, NavigationPolicy.offRouteStrikeCount(false, 90.0, 30.0))
+        assertEquals(3, NavigationPolicy.offRouteStrikeCount(false, 91.0, 30.0))
         assertEquals(1, NavigationPolicy.offRouteStrikeCount(false, 60.0, 30.0))
         assertEquals(1, NavigationPolicy.offRouteStrikeCount(false, 31.0, 30.0))
     }

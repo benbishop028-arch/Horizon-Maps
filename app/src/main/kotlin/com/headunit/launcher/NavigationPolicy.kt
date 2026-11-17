@@ -55,8 +55,13 @@ internal object NavigationPolicy {
     }
 
     /** A large departure or impossible progress jump contributes two strikes to the reroute counter. */
-    fun offRouteStrikeCount(progressJump: Boolean, distanceMeters: Double, limitMeters: Double): Int =
-        if (progressJump || distanceMeters > limitMeters * 2.0) 2 else 1
+    fun offRouteStrikeCount(progressJump: Boolean, distanceMeters: Double, limitMeters: Double): Int = when {
+        // clearly on another road (three times the limit, with a GPS fix good enough to count at all): reroute on this fix
+        // rather than wait for the next ones, as Google Maps does (GitHub, karthikeyansr-lgtm)
+        !progressJump && distanceMeters > limitMeters * 3.0 -> 3
+        progressJump || distanceMeters > limitMeters * 2.0 -> 2
+        else -> 1
+    }
 
     /** A close-to-route fix can still indicate a wrong turn when the vehicle is moving away from the route heading. */
     fun shouldCountHeadingAwayStrike(distanceMeters: Double, speedMps: Double, headingDifferenceDegrees: Double): Boolean =

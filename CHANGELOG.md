@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- GPX tracks: import a .gpx file (from Komoot, Strava, Garmin or your own recording) in Settings › Places & trips › GPX tracks. Show puts it on the map; Drive follows it to the end with the usual spoken turns, carrying on from where you join it, and a reroute keeps you on the track (thanks to bijindas)
+- Search as a button: with no route, the search bar and its buttons can fold into one round search button in the corner, so the map has the whole screen and your arrow sits in the middle. Settings › Places & trips › Search bar (thanks to vishnauth-bit)
+- Auto zoom can be turned off: the map then keeps one steady zoom instead of following your speed and the junctions, and + and − still change it. Settings › Map style, under Default zoom (thanks to vishnauth-bit)
+- Cantonese voice for Hong Kong: a new 繁體中文（香港・粵語） choice in the language list speaks the directions in Cantonese, and Hong Kong and Macau phones pick it by themselves (thanks to benkkwok)
 - Media controls: back, play / pause and next at the bottom of the driving screen while music or radio plays on the head unit, from any app. Give it notification access (Settings › Screen & sizes › While driving › Song and artwork) and it shows the song, artist and artwork too. It only appears while something is playing, sits in the free space beside the trip card, and can be turned off in the same place (thanks to mrEnmi)
 - Norwegian: Horizon Nav now speaks Norsk bokmål: directions, screens, Android Auto and voice commands ("kjør hjem", "naviger til Bergen"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Norwegian (thanks to mthjensen)
 - What's new, any time: missed the update notes? Settings › About & backup › Version now has a What's new button that brings the card back (thanks to leedank93)
@@ -25,6 +29,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Quicker rerouting: a wrong turn is now noticed on the first GPS reading when you're clearly on another road, and the new route is asked for twice at once (the early request and a fresh one from where you are), using whichever answers first. An early request made from too far back is no longer used, as it gave a route starting behind you (thanks to karthikeyansr-lgtm)
 - Faster rerouting after a missed turn: the new route is now asked for as soon as you start to leave the old one, before it is certain you have, and with both a TomTom key and a Mapbox token both are asked at once and the first answer is used. It used to take 6 to 8 seconds (thanks to karthikeyansr-lgtm)
 - Dutch wording: "Glazen panelen" is now "Transparante panelen", and the Screen and sizes summary says "transparantie" (thanks to hvdwolf)
 - Saved places while driving: your own places and favourites now follow Home and Work in the row under the search bar, which scrolls sideways, so they are one tap away even while you drive and the Saved & recent list is folded away (thanks to Seali7Aut)

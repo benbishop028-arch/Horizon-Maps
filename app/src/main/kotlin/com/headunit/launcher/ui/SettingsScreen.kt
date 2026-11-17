@@ -246,7 +246,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         5 -> GuidanceSection(prefs, engine)
                         6 -> AlertsSection(prefs, engine)
                         7 -> SoundSection(prefs, engine)
-                        8 -> { PlacesSection(engine); PhoneLinkGroup(prefs); SharingGroups(prefs) }
+                        8 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
                         9 -> FuelSection(prefs, engine)
                         10 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
                         11 -> ScreenSection(prefs, engine)
@@ -873,6 +873,10 @@ private fun PlacesSection(engine: NavEngine) {
         if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
     }
     // (the Home and Work buttons under the search bar, in the app and on Android Auto: each can be left off)
+    SGroup(L.t("Search bar")) {
+        SToggle(engine.prefs, L.t("Search as a button"), PreferenceKeys.SEARCH_BUTTON, false,
+            L.t("With no route, a round search button in the corner instead of the search bar and its buttons, so the arrow sits in the middle. Tap it to search"))
+    }
     SGroup(L.t("Home and Work under the search bar"), footer = L.t("On this screen and on Android Auto. Your Home and Work places are kept either way.")) {
         SToggle(engine.prefs, L.t("Home button"), PreferenceKeys.HOME_BTN, true)
         SToggle(engine.prefs, L.t("Work button"), PreferenceKeys.WORK_BTN, true)
@@ -926,6 +930,7 @@ private fun DefaultZoomRow(prefs: Prefs) {
             Text(L.t("Closer"), color = c.sub, fontSize = 13.sp)
         }
     }
+    SToggle(prefs, L.t("Auto zoom"), PreferenceKeys.AUTO_ZOOM, true, L.t("Zooms out at speed and in at junctions. Off keeps one steady zoom, which + and − still change"))
 }
 
 /**
