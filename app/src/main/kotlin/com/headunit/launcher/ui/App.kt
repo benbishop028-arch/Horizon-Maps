@@ -123,6 +123,19 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
             delay(15_000)
         }
     }
+    // the invitation to test Horizon Maps on Google Play (GitHub edition only): a while after the app opens, only when you're
+    // stopped with no route, never over the What's new or donate cards. "Not now" brings it back in 3 days
+    var playInviteVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (com.headunit.launcher.BuildConfig.STORE == "play") return@LaunchedEffect
+        val st = prefs.s(PreferenceKeys.PLAY_INVITE, "")
+        if (st == "never" || (st.toLongOrNull() ?: 0L) > System.currentTimeMillis()) return@LaunchedEffect
+        delay(40_000)   // let the map settle first
+        while (true) {
+            if (!whatsNewVisible && !donateVisible && engine.route == null && !engine.previewing && (engine.fix?.speed ?: 0.0) < 2.0) { playInviteVisible = true; break }
+            delay(15_000)
+        }
+    }
     // the head unit has switched to its night mode at least once (so it links night mode to the headlights): noted for "Headlights"
     val sysDarkRaw = rememberSystemNight(useLamps = prefs.s(PreferenceKeys.THEME, "auto") == "lights")
     // On a phone, Auto follows the phone's own light / dark setting exactly (Sun times is there for sunrise and sunset). Head units
@@ -433,6 +446,10 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
         }
     }
     if (donateVisible) DonateDialog(dark) { prefs.put(PreferenceKeys.DONATE_SHOWN, true); donateVisible = false }
+    if (playInviteVisible) PlayInviteDialog(dark) { how ->
+        prefs.put(PreferenceKeys.PLAY_INVITE, if (how == InviteClose.LATER) (System.currentTimeMillis() + 3L * 24 * 3600_000L).toString() else "never")
+        playInviteVisible = false
+    }
     if (whatsNewVisible) {
         // Follow the app's active day/night palette so the update card stays readable in both modes.
         val updatePalette = if (dark) DarkVw else LightVw

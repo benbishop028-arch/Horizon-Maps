@@ -1607,5 +1607,18 @@ object I18nEsAr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Este dispositivo no encuentra el servidor de Mapbox. Un DNS privado o un bloqueador de anuncios puede estar bloqueando api.mapbox.com: permitilo o desactivá el DNS privado en los ajustes de red de Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "El servidor de Mapbox no responde desde este dispositivo. Revisá la conexión a internet: un wifi que pide iniciar sesión o un firewall pueden bloquearlo.",
         "Showing traffic while you’re stopped" to "Mostrando el tránsito mientras estás parado",
+        "Help test Horizon Maps on Google Play" to "Ayudá a probar Horizon Maps en Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav llega a Play Store como Horizon Maps, y Google necesita antes al menos 12 testers durante 14 días. Es la misma app, instalada aparte, así que no afecta a esta. Dejala instalada 14 días y usala de vez en cuando.",
+        "Join the testers group" to "Sumate al grupo de testers",
+        "Install Horizon Maps from the Play Store" to "Instalá Horizon Maps desde Play Store",
+        "Sign in with the Google account you use for the Play Store." to "Iniciá sesión con la cuenta de Google que usás en Play Store.",
+        "QR code for the testers group" to "Código QR del grupo de testers",
+        "Join the group" to "Sumarse al grupo",
+        "Install from Play" to "Instalar desde Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Se abre cuando Google apruebe la prueba. Sumate al grupo ahora y vas a estar listo.",
+        "Don't show again" to "No volver a mostrar",
+        "COMING SOON" to "PRÓXIMAMENTE",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps llega a Google Play",
+        "Tap to help test it" to "Tocá para ayudar a probarla",
     )
 }

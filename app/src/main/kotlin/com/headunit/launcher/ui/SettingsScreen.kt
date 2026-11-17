@@ -27,6 +27,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Shop
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Traffic
@@ -133,6 +135,13 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
     val narrowS = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp < 720
     var showList by rememberSaveable { mutableStateOf(true) }
     androidx.activity.compose.BackHandler(enabled = narrowS && !showList) { showList = true }
+    // the Google Play testers invitation, opened from the banner at the top of the list
+    var playInvite by remember { mutableStateOf(false) }
+    if (playInvite) PlayInviteDialog(c.dark) { how ->
+        // (from here "Not now" just closes it; "Don't show again" or opening Play also stops the popup on the map)
+        if (how != InviteClose.LATER) prefs.put(PreferenceKeys.PLAY_INVITE, "never")
+        playInvite = false
+    }
     var query by remember { mutableStateOf("") }
     var highlight by remember { mutableStateOf<String?>(null) }
     val focus = androidx.compose.ui.platform.LocalFocusManager.current
@@ -187,7 +196,10 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         Text(sections[r.section].title + (if (r.group.isNotBlank()) " · " + L.t(r.group) else ""), color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-            } else sections.forEachIndexed { i, s ->
+            } else {
+            // GitHub edition: a small banner about the coming Google Play version; tapping it opens the testers invitation
+            if (BuildConfig.STORE != "play") PlayBanner(c) { playInvite = true }
+            sections.forEachIndexed { i, s ->
                 // the small group headings in the list: Map, Driving, You, Device
                 if (s.heading != null) Text(L.t(s.heading), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp,
                     modifier = Modifier.padding(start = 14.dp, top = if (i == 0) 2.dp else 12.dp, bottom = 2.dp))
@@ -205,6 +217,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         Text(s.sub, color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
+            }
             }
         }
         // the chosen section (each opens at the top), sliding up gently into place
@@ -1675,5 +1688,26 @@ private fun CardPositionsPreview(prefs: com.headunit.launcher.Prefs, car: Boolea
         val ax = w * 0.5f; val ay = h * 0.55f
         val path = androidx.compose.ui.graphics.Path().apply { moveTo(ax, ay - h * 0.07f); lineTo(ax + h * 0.05f, ay + h * 0.05f); lineTo(ax, ay + h * 0.025f); lineTo(ax - h * 0.05f, ay + h * 0.05f); close() }
         drawPath(path, Color(0xFF9CC7FF))
+    }
+}
+
+/** GitHub edition: a small banner at the top of the Settings list about the coming Google Play version (tap: the invitation). */
+@Composable
+private fun PlayBanner(c: Vw, onClick: () -> Unit) {
+    val blue = if (c.dark) Color(0xFF8FB6FF) else Color(0xFF1F5FBF)
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(RoundedCornerShape(18.dp))
+            .background(blue.copy(alpha = if (c.dark) 0.14f else 0.10f)).border(1.dp, blue.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).background(blue.copy(alpha = 0.22f)), contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.Shop, null, tint = blue, modifier = Modifier.size(20.dp))
+        }
+        Column(Modifier.weight(1f).padding(start = 10.dp)) {
+            Text(L.t("Horizon Maps is coming to Google Play"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(L.t("Tap to help test it"), color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Icon(Icons.Rounded.ChevronRight, null, tint = blue, modifier = Modifier.size(20.dp))
     }
 }

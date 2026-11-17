@@ -1607,5 +1607,18 @@ object I18nEu {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Gailu honek ez du Mapboxen zerbitzaria aurkitzen. DNS pribatu batek edo iragarki-blokeatzaile batek api.mapbox.com blokea dezake: baimendu, edo desaktibatu DNS pribatua Androiden sare-ezarpenetan.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapboxen zerbitzariak ez du erantzuten gailu honetatik. Egiaztatu interneteko konexioa: saioa hasi behar den wifi batek edo suebaki batek blokea dezake.",
         "Showing traffic while you’re stopped" to "Trafikoa erakusten geldirik zauden bitartean",
+        "Help test Horizon Maps on Google Play" to "Lagundu Horizon Maps Google Play-n probatzen",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav Play Store-ra dator Horizon Maps izenarekin, eta Google-k lehenik gutxienez 12 probatzaile behar ditu 14 egunez. Aplikazio bera da, bereiz instalatua, beraz ez du hau ukitzen. Izan ezazu instalatuta 14 egunez eta erabili noizean behin.",
+        "Join the testers group" to "Batu probatzaileen taldera",
+        "Install Horizon Maps from the Play Store" to "Instalatu Horizon Maps Play Store-tik",
+        "Sign in with the Google account you use for the Play Store." to "Hasi saioa Play Store-rako erabiltzen duzun Google kontuarekin.",
+        "QR code for the testers group" to "Probatzaileen taldearen QR kodea",
+        "Join the group" to "Batu taldera",
+        "Install from Play" to "Instalatu Play-tik",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Google-k proba onartzen duenean irekiko da. Batu taldera orain eta prest egongo zara.",
+        "Don't show again" to "Ez erakutsi berriro",
+        "COMING SOON" to "LASTER",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps Google Play-ra dator",
+        "Tap to help test it" to "Sakatu probatzen laguntzeko",
     )
 }

@@ -1607,5 +1607,18 @@ object I18nMr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "या उपकरणाला Mapbox सर्व्हर सापडत नाही. खाजगी DNS किंवा जाहिरात ब्लॉकर api.mapbox.com अडवत असू शकतो: त्याला परवानगी द्या, किंवा Android नेटवर्क सेटिंग्जमध्ये खाजगी DNS बंद करा.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "या उपकरणावरून Mapbox सर्व्हर उत्तर देत नाही. इंटरनेट कनेक्शन तपासा: साइन इन मागणारे Wi‑Fi किंवा फायरवॉल ते अडवू शकते.",
         "Showing traffic while you’re stopped" to "तुम्ही थांबलेले असताना वाहतूक दाखवत आहे",
+        "Help test Horizon Maps on Google Play" to "Google Play वर Horizon Maps तपासण्यास मदत करा",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav, Play Store वर Horizon Maps नावाने येत आहे, आणि Google ला आधी 14 दिवसांसाठी किमान 12 परीक्षक हवे आहेत. हेच अ‍ॅप वेगळे स्थापित होते, त्यामुळे हे बदलत नाही. 14 दिवस स्थापित ठेवा आणि अधूनमधून वापरा.",
+        "Join the testers group" to "परीक्षक गटात सामील व्हा",
+        "Install Horizon Maps from the Play Store" to "Play Store वरून Horizon Maps स्थापित करा",
+        "Sign in with the Google account you use for the Play Store." to "Play Store साठी वापरत असलेल्या Google खात्याने साइन इन करा.",
+        "QR code for the testers group" to "परीक्षक गटाचा QR कोड",
+        "Join the group" to "गटात सामील व्हा",
+        "Install from Play" to "Play वरून स्थापित करा",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Google ने चाचणी मंजूर केल्यावर हे उघडेल. आत्ताच गटात सामील व्हा आणि तयार रहा.",
+        "Don't show again" to "पुन्हा दाखवू नका",
+        "COMING SOON" to "लवकरच",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps लवकरच Google Play वर",
+        "Tap to help test it" to "चाचणीस मदत करण्यासाठी टॅप करा",
     )
 }

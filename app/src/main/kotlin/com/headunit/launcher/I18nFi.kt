@@ -1607,5 +1607,18 @@ object I18nFi {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Tämä laite ei löydä Mapboxin palvelinta. Yksityinen DNS tai mainosten esto voi estää osoitteen api.mapbox.com: salli se tai poista Yksityinen DNS käytöstä Androidin verkkoasetuksissa.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapboxin palvelin ei vastaa tältä laitteelta. Tarkista internetyhteys: kirjautumista vaativa Wi‑Fi tai palomuuri voi estää sen.",
         "Showing traffic while you’re stopped" to "Liikenne näytetään, kun olet pysähtyneenä",
+        "Help test Horizon Maps on Google Play" to "Auta testaamaan Horizon Mapsia Google Playssa",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav tulee Play Kauppaan nimellä Horizon Maps, ja Google vaatii ensin vähintään 12 testaajaa 14 päivän ajan. Se on sama sovellus erikseen asennettuna, joten tämä ei muutu. Pidä se asennettuna 14 päivää ja käytä sitä silloin tällöin.",
+        "Join the testers group" to "Liity testaajaryhmään",
+        "Install Horizon Maps from the Play Store" to "Asenna Horizon Maps Play Kaupasta",
+        "Sign in with the Google account you use for the Play Store." to "Kirjaudu Google-tilillä, jota käytät Play Kaupassa.",
+        "QR code for the testers group" to "Testaajaryhmän QR-koodi",
+        "Join the group" to "Liity ryhmään",
+        "Install from Play" to "Asenna Playsta",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Avautuu, kun Google on hyväksynyt testin. Liity ryhmään nyt, niin olet valmis.",
+        "Don't show again" to "Älä näytä uudelleen",
+        "COMING SOON" to "TULOSSA PIAN",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps on tulossa Google Playhin",
+        "Tap to help test it" to "Napauta ja auta testaamaan",
     )
 }

@@ -1607,5 +1607,18 @@ object I18nTr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Bu cihaz Mapbox sunucusunu bulamıyor. Özel DNS veya reklam engelleyici api.mapbox.com’u engelliyor olabilir: izin verin ya da Android ağ ayarlarında Özel DNS’i kapatın.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox sunucusu bu cihazdan yanıt vermiyor. İnternet bağlantısını kontrol edin: oturum açma isteyen bir Wi‑Fi veya güvenlik duvarı onu engelleyebilir.",
         "Showing traffic while you’re stopped" to "Dururken trafik gösteriliyor",
+        "Help test Horizon Maps on Google Play" to "Horizon Maps’i Google Play’de test etmeye yardım edin",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav, Play Store’a Horizon Maps adıyla geliyor ve Google önce 14 gün boyunca en az 12 test kullanıcısı istiyor. Ayrı kurulan aynı uygulama, bu yüzden buna dokunmaz. 14 gün yüklü tutun ve ara sıra kullanın.",
+        "Join the testers group" to "Test grubuna katılın",
+        "Install Horizon Maps from the Play Store" to "Horizon Maps’i Play Store’dan yükleyin",
+        "Sign in with the Google account you use for the Play Store." to "Play Store için kullandığınız Google hesabıyla oturum açın.",
+        "QR code for the testers group" to "Test grubu için QR kodu",
+        "Join the group" to "Gruba katıl",
+        "Install from Play" to "Play’den yükle",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Google testi onayladığında açılır. Şimdi gruba katılın, hazır olun.",
+        "Don't show again" to "Bir daha gösterme",
+        "COMING SOON" to "ÇOK YAKINDA",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps Google Play’e geliyor",
+        "Tap to help test it" to "Test etmeye yardım etmek için dokunun",
     )
 }

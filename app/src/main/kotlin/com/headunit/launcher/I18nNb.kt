@@ -1607,5 +1607,18 @@ object I18nNb {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Denne enheten finner ikke Mapbox-serveren. En privat DNS eller annonseblokkering kan blokkere api.mapbox.com: tillat den, eller slå av Privat DNS i Androids nettverksinnstillinger.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox-serveren svarer ikke fra denne enheten. Sjekk internettforbindelsen: et Wi‑Fi som krever pålogging, eller en brannmur, kan blokkere den.",
         "Showing traffic while you’re stopped" to "Viser trafikken mens du står stille",
+        "Help test Horizon Maps on Google Play" to "Hjelp til med å teste Horizon Maps på Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav kommer til Play-butikken som Horizon Maps, og Google krever først minst 12 testere i 14 dager. Det er samme app, installert separat, så denne påvirkes ikke. Ha den installert i 14 dager og bruk den nå og da.",
+        "Join the testers group" to "Bli med i testergruppen",
+        "Install Horizon Maps from the Play Store" to "Installer Horizon Maps fra Play-butikken",
+        "Sign in with the Google account you use for the Play Store." to "Logg på med Google-kontoen du bruker for Play-butikken.",
+        "QR code for the testers group" to "QR-kode til testergruppen",
+        "Join the group" to "Bli med",
+        "Install from Play" to "Installer fra Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Åpnes når Google har godkjent testen. Bli med i gruppen nå, så er du klar.",
+        "Don't show again" to "Ikke vis igjen",
+        "COMING SOON" to "KOMMER SNART",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps kommer til Google Play",
+        "Tap to help test it" to "Trykk for å hjelpe til med testing",
     )
 }

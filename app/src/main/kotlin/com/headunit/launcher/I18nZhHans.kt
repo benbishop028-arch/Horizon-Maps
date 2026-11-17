@@ -1607,5 +1607,18 @@ object I18nZhHans {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "此设备找不到 Mapbox 服务器。私人 DNS 或广告拦截工具可能拦截了 api.mapbox.com：请允许它，或在 Android 网络设置中关闭私人 DNS。",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "此设备连不上 Mapbox 服务器。请检查网络连接：需要登录的 Wi‑Fi 或防火墙可能会拦截它。",
         "Showing traffic while you’re stopped" to "停车时显示周边路况",
+        "Help test Horizon Maps on Google Play" to "协助在 Google Play 测试 Horizon Maps",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav 将以 Horizon Maps 之名上架 Play 商店，Google 要求先有至少 12 位测试人员测试 14 天。这是同一个应用，单独安装，不会影响现在这个。请保留安装 14 天并偶尔使用。",
+        "Join the testers group" to "加入测试人员群组",
+        "Install Horizon Maps from the Play Store" to "从 Play 商店安装 Horizon Maps",
+        "Sign in with the Google account you use for the Play Store." to "请使用你在 Play 商店使用的 Google 账号登录。",
+        "QR code for the testers group" to "测试人员群组的二维码",
+        "Join the group" to "加入群组",
+        "Install from Play" to "从 Play 安装",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Google 批准测试后即可打开。现在先加入群组，就能准备好。",
+        "Don't show again" to "不再显示",
+        "COMING SOON" to "即将推出",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps 即将登上 Google Play",
+        "Tap to help test it" to "轻触以协助测试",
     )
 }

@@ -1607,5 +1607,18 @@ object I18nAr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "لا يستطيع هذا الجهاز العثور على خادم Mapbox. قد يحظر DNS خاص أو مانع إعلانات العنوان api.mapbox.com: اسمح به، أو أوقف DNS الخاص في إعدادات شبكة Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "خادم Mapbox لا يستجيب من هذا الجهاز. تحقق من الاتصال بالإنترنت: شبكة Wi‑Fi تتطلب تسجيل الدخول أو جدار حماية قد يحظره.",
         "Showing traffic while you’re stopped" to "عرض حركة المرور أثناء توقفك",
+        "Help test Horizon Maps on Google Play" to "ساعد في اختبار Horizon Maps على Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "سيصل Horizon Nav إلى متجر Play باسم Horizon Maps، وتطلب Google أولاً 12 مختبِرًا على الأقل لمدة 14 يومًا. إنه التطبيق نفسه مثبتًا بشكل منفصل، فلن يؤثر على هذا. أبقِه مثبتًا 14 يومًا واستخدمه من حين لآخر.",
+        "Join the testers group" to "انضم إلى مجموعة المختبِرين",
+        "Install Horizon Maps from the Play Store" to "ثبّت Horizon Maps من متجر Play",
+        "Sign in with the Google account you use for the Play Store." to "سجّل الدخول بحساب Google الذي تستخدمه في متجر Play.",
+        "QR code for the testers group" to "رمز QR لمجموعة المختبِرين",
+        "Join the group" to "انضم إلى المجموعة",
+        "Install from Play" to "التثبيت من Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "يُفتح بعد موافقة Google على الاختبار. انضم إلى المجموعة الآن لتكون مستعدًا.",
+        "Don't show again" to "عدم الإظهار مجددًا",
+        "COMING SOON" to "قريبًا",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps قادم إلى Google Play",
+        "Tap to help test it" to "اضغط للمساعدة في الاختبار",
     )
 }

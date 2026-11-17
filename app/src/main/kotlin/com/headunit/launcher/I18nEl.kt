@@ -1607,5 +1607,18 @@ object I18nEl {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Αυτή η συσκευή δεν βρίσκει τον διακομιστή του Mapbox. Ένα ιδιωτικό DNS ή ένα πρόγραμμα αποκλεισμού διαφημίσεων ίσως μπλοκάρει το api.mapbox.com: επιτρέψτε το ή απενεργοποιήστε το Ιδιωτικό DNS στις ρυθμίσεις δικτύου του Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Ο διακομιστής του Mapbox δεν απαντά από αυτή τη συσκευή. Ελέγξτε τη σύνδεση στο διαδίκτυο: ένα Wi‑Fi που ζητά σύνδεση ή ένα τείχος προστασίας μπορεί να το μπλοκάρει.",
         "Showing traffic while you’re stopped" to "Εμφάνιση κίνησης όσο είστε σταματημένοι",
+        "Help test Horizon Maps on Google Play" to "Βοηθήστε να δοκιμάσουμε το Horizon Maps στο Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Το Horizon Nav έρχεται στο Play Store ως Horizon Maps, και η Google ζητά πρώτα τουλάχιστον 12 δοκιμαστές για 14 ημέρες. Είναι η ίδια εφαρμογή, εγκατεστημένη ξεχωριστά, οπότε δεν επηρεάζει αυτήν εδώ. Κρατήστε την εγκατεστημένη 14 ημέρες και χρησιμοποιήστε την πού και πού.",
+        "Join the testers group" to "Γίνετε μέλος της ομάδας δοκιμαστών",
+        "Install Horizon Maps from the Play Store" to "Εγκαταστήστε το Horizon Maps από το Play Store",
+        "Sign in with the Google account you use for the Play Store." to "Συνδεθείτε με τον λογαριασμό Google που χρησιμοποιείτε στο Play Store.",
+        "QR code for the testers group" to "Κωδικός QR για την ομάδα δοκιμαστών",
+        "Join the group" to "Γίνετε μέλος",
+        "Install from Play" to "Εγκατάσταση από το Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Θα ανοίξει μόλις η Google εγκρίνει τη δοκιμή. Γίνετε μέλος της ομάδας τώρα για να είστε έτοιμοι.",
+        "Don't show again" to "Να μην εμφανιστεί ξανά",
+        "COMING SOON" to "ΣΥΝΤΟΜΑ",
+        "Horizon Maps is coming to Google Play" to "Το Horizon Maps έρχεται στο Google Play",
+        "Tap to help test it" to "Πατήστε για να βοηθήσετε στη δοκιμή",
     )
 }

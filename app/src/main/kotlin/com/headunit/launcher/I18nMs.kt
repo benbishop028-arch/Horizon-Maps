@@ -1607,5 +1607,18 @@ object I18nMs {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Peranti ini tidak dapat mencari pelayan Mapbox. DNS peribadi atau penyekat iklan mungkin menyekat api.mapbox.com: benarkannya, atau matikan DNS Peribadi dalam tetapan rangkaian Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Pelayan Mapbox tidak menjawab dari peranti ini. Semak sambungan internet: Wi‑Fi yang perlu log masuk, atau tembok api, boleh menyekatnya.",
         "Showing traffic while you’re stopped" to "Menunjukkan trafik semasa anda berhenti",
+        "Help test Horizon Maps on Google Play" to "Bantu uji Horizon Maps di Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav akan hadir di Play Store sebagai Horizon Maps, dan Google memerlukan sekurang-kurangnya 12 penguji selama 14 hari dahulu. Ia aplikasi yang sama, dipasang berasingan, jadi yang ini tidak terjejas. Biarkan ia terpasang 14 hari dan gunakannya sekali-sekala.",
+        "Join the testers group" to "Sertai kumpulan penguji",
+        "Install Horizon Maps from the Play Store" to "Pasang Horizon Maps dari Play Store",
+        "Sign in with the Google account you use for the Play Store." to "Log masuk dengan akaun Google yang anda gunakan untuk Play Store.",
+        "QR code for the testers group" to "Kod QR kumpulan penguji",
+        "Join the group" to "Sertai kumpulan",
+        "Install from Play" to "Pasang dari Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Ini dibuka setelah Google meluluskan ujian. Sertai kumpulan sekarang supaya anda bersedia.",
+        "Don't show again" to "Jangan tunjuk lagi",
+        "COMING SOON" to "AKAN DATANG",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps akan hadir di Google Play",
+        "Tap to help test it" to "Ketik untuk membantu mengujinya",
     )
 }

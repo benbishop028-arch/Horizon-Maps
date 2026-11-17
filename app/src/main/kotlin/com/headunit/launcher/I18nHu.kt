@@ -1607,5 +1607,18 @@ object I18nHu {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Ez az eszköz nem találja a Mapbox szerverét. Egy privát DNS vagy reklámblokkoló letilthatja az api.mapbox.com címet: engedélyezze, vagy kapcsolja ki a Privát DNS-t az Android hálózati beállításaiban.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "A Mapbox szervere nem válaszol erről az eszközről. Ellenőrizze az internetkapcsolatot: a bejelentkezést kérő Wi‑Fi vagy egy tűzfal blokkolhatja.",
         "Showing traffic while you’re stopped" to "Forgalom megjelenítése, amíg áll",
+        "Help test Horizon Maps on Google Play" to "Segítsen tesztelni a Horizon Maps-et a Google Playen",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "A Horizon Nav Horizon Maps néven érkezik a Play Áruházba, és a Google előbb legalább 12 tesztelőt kér 14 napra. Ugyanaz az alkalmazás, külön telepítve, így ezt nem érinti. Tartsa telepítve 14 napig, és használja időnként.",
+        "Join the testers group" to "Csatlakozzon a tesztelői csoporthoz",
+        "Install Horizon Maps from the Play Store" to "Telepítse a Horizon Maps-et a Play Áruházból",
+        "Sign in with the Google account you use for the Play Store." to "Jelentkezzen be azzal a Google-fiókkal, amelyet a Play Áruházhoz használ.",
+        "QR code for the testers group" to "A tesztelői csoport QR-kódja",
+        "Join the group" to "Csatlakozás",
+        "Install from Play" to "Telepítés a Playből",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Akkor nyílik meg, amikor a Google jóváhagyta a tesztet. Csatlakozzon most a csoporthoz, és készen áll.",
+        "Don't show again" to "Ne jelenjen meg újra",
+        "COMING SOON" to "HAMAROSAN",
+        "Horizon Maps is coming to Google Play" to "A Horizon Maps hamarosan a Google Playen",
+        "Tap to help test it" to "Koppintson, és segítsen tesztelni",
     )
 }

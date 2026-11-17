@@ -1607,5 +1607,18 @@ object I18nKn {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "ಈ ಸಾಧನಕ್ಕೆ Mapbox ಸರ್ವರ್ ಸಿಗುತ್ತಿಲ್ಲ. ಖಾಸಗಿ DNS ಅಥವಾ ಜಾಹೀರಾತು ತಡೆ api.mapbox.com ಅನ್ನು ತಡೆಯುತ್ತಿರಬಹುದು: ಅದನ್ನು ಅನುಮತಿಸಿ, ಅಥವಾ Android ನೆಟ್‌ವರ್ಕ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಖಾಸಗಿ DNS ಆಫ್ ಮಾಡಿ.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "ಈ ಸಾಧನದಿಂದ Mapbox ಸರ್ವರ್ ಉತ್ತರಿಸುತ್ತಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ: ಸೈನ್ ಇನ್ ಕೇಳುವ Wi‑Fi ಅಥವಾ ಫೈರ್‌ವಾಲ್ ಅದನ್ನು ತಡೆಯಬಹುದು.",
         "Showing traffic while you’re stopped" to "ನೀವು ನಿಂತಿರುವಾಗ ಸಂಚಾರ ತೋರಿಸಲಾಗುತ್ತಿದೆ",
+        "Help test Horizon Maps on Google Play" to "Google Play ನಲ್ಲಿ Horizon Maps ಪರೀಕ್ಷಿಸಲು ಸಹಾಯ ಮಾಡಿ",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav, Play Store ಗೆ Horizon Maps ಆಗಿ ಬರುತ್ತಿದೆ, ಮತ್ತು Google ಮೊದಲು 14 ದಿನಗಳ ಕಾಲ ಕನಿಷ್ಠ 12 ಪರೀಕ್ಷಕರನ್ನು ಬಯಸುತ್ತದೆ. ಇದು ಅದೇ ಆ್ಯಪ್, ಪ್ರತ್ಯೇಕವಾಗಿ ಸ್ಥಾಪಿತ, ಆದ್ದರಿಂದ ಇದಕ್ಕೆ ತೊಂದರೆಯಿಲ್ಲ. 14 ದಿನ ಸ್ಥಾಪಿಸಿಟ್ಟು ಆಗಾಗ ಬಳಸಿ.",
+        "Join the testers group" to "ಪರೀಕ್ಷಕರ ಗುಂಪಿಗೆ ಸೇರಿ",
+        "Install Horizon Maps from the Play Store" to "Play Store ನಿಂದ Horizon Maps ಸ್ಥಾಪಿಸಿ",
+        "Sign in with the Google account you use for the Play Store." to "Play Store ಗಾಗಿ ನೀವು ಬಳಸುವ Google ಖಾತೆಯಿಂದ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+        "QR code for the testers group" to "ಪರೀಕ್ಷಕರ ಗುಂಪಿನ QR ಕೋಡ್",
+        "Join the group" to "ಗುಂಪಿಗೆ ಸೇರಿ",
+        "Install from Play" to "Play ನಿಂದ ಸ್ಥಾಪಿಸಿ",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Google ಪರೀಕ್ಷೆ ಅನುಮೋದಿಸಿದ ನಂತರ ಇದು ತೆರೆಯುತ್ತದೆ. ಈಗಲೇ ಗುಂಪಿಗೆ ಸೇರಿ ಸಿದ್ಧರಾಗಿರಿ.",
+        "Don't show again" to "ಮತ್ತೆ ತೋರಿಸಬೇಡಿ",
+        "COMING SOON" to "ಶೀಘ್ರದಲ್ಲೇ",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps, Google Play ಗೆ ಬರುತ್ತಿದೆ",
+        "Tap to help test it" to "ಪರೀಕ್ಷಿಸಲು ಸಹಾಯ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
     )
 }

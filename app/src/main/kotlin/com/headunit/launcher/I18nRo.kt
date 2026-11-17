@@ -1607,5 +1607,18 @@ object I18nRo {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Acest dispozitiv nu găsește serverul Mapbox. Un DNS privat sau un blocant de reclame poate bloca api.mapbox.com: permiteți-l sau dezactivați DNS-ul privat în setările de rețea Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Serverul Mapbox nu răspunde de pe acest dispozitiv. Verificați conexiunea la internet: un Wi‑Fi care cere autentificare sau un firewall îl poate bloca.",
         "Showing traffic while you’re stopped" to "Se afișează traficul cât timp stați pe loc",
+        "Help test Horizon Maps on Google Play" to "Ajutați la testarea Horizon Maps pe Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav vine în Magazinul Play ca Horizon Maps, iar Google cere mai întâi cel puțin 12 testeri timp de 14 zile. Este aceeași aplicație, instalată separat, deci nu o afectează pe aceasta. Păstrați-o instalată 14 zile și folosiți-o din când în când.",
+        "Join the testers group" to "Alăturați-vă grupului de testeri",
+        "Install Horizon Maps from the Play Store" to "Instalați Horizon Maps din Magazinul Play",
+        "Sign in with the Google account you use for the Play Store." to "Conectați-vă cu contul Google pe care îl folosiți pentru Magazinul Play.",
+        "QR code for the testers group" to "Cod QR pentru grupul de testeri",
+        "Join the group" to "Alăturați-vă",
+        "Install from Play" to "Instalați din Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Se deschide după ce Google aprobă testul. Alăturați-vă grupului acum și veți fi pregătit.",
+        "Don't show again" to "Nu mai afișa",
+        "COMING SOON" to "ÎN CURÂND",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps vine pe Google Play",
+        "Tap to help test it" to "Atingeți pentru a ajuta la testare",
     )
 }

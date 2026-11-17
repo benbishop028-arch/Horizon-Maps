@@ -1607,5 +1607,18 @@ object I18nHr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Ovaj uređaj ne može pronaći poslužitelj Mapboxa. Privatni DNS ili blokator oglasa možda blokira api.mapbox.com: dopustite ga ili isključite Privatni DNS u mrežnim postavkama Androida.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Poslužitelj Mapboxa ne odgovara s ovog uređaja. Provjerite internetsku vezu: Wi‑Fi koji traži prijavu ili vatrozid mogu ga blokirati.",
         "Showing traffic while you’re stopped" to "Prikaz prometa dok stojite",
+        "Help test Horizon Maps on Google Play" to "Pomozite testirati Horizon Maps na Google Playu",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav dolazi u Trgovinu Play kao Horizon Maps, a Google najprije traži barem 12 testera tijekom 14 dana. To je ista aplikacija, instalirana zasebno, pa ova ostaje netaknuta. Neka bude instalirana 14 dana i povremeno je koristite.",
+        "Join the testers group" to "Pridružite se grupi testera",
+        "Install Horizon Maps from the Play Store" to "Instalirajte Horizon Maps iz Trgovine Play",
+        "Sign in with the Google account you use for the Play Store." to "Prijavite se Google računom koji koristite za Trgovinu Play.",
+        "QR code for the testers group" to "QR kod grupe testera",
+        "Join the group" to "Pridruži se",
+        "Install from Play" to "Instaliraj s Playa",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "Otvorit će se kad Google odobri test. Pridružite se grupi sada i bit ćete spremni.",
+        "Don't show again" to "Ne prikazuj ponovno",
+        "COMING SOON" to "USKORO",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps dolazi na Google Play",
+        "Tap to help test it" to "Dodirnite i pomozite testirati",
     )
 }

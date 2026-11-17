@@ -1607,5 +1607,18 @@ object I18nHe {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "המכשיר לא מוצא את השרת של Mapbox. DNS פרטי או חוסם פרסומות עלולים לחסום את api.mapbox.com: אפשר אותו, או כבה את ה-DNS הפרטי בהגדרות הרשת של Android.",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "השרת של Mapbox לא עונה מהמכשיר הזה. בדוק את חיבור האינטרנט: Wi‑Fi שדורש התחברות, או חומת אש, עלולים לחסום אותו.",
         "Showing traffic while you’re stopped" to "מוצגת התנועה בזמן שאתה עומד",
+        "Help test Horizon Maps on Google Play" to "עזרו לבדוק את Horizon Maps ב-Google Play",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav מגיעה לחנות Play בשם Horizon Maps, ו-Google דורשת קודם לפחות 12 בודקים במשך 14 יום. זו אותה אפליקציה, מותקנת בנפרד, כך שזו לא תושפע. השאירו אותה מותקנת 14 יום והשתמשו בה מדי פעם.",
+        "Join the testers group" to "הצטרפו לקבוצת הבודקים",
+        "Install Horizon Maps from the Play Store" to "התקינו את Horizon Maps מחנות Play",
+        "Sign in with the Google account you use for the Play Store." to "היכנסו עם חשבון Google שבו אתם משתמשים בחנות Play.",
+        "QR code for the testers group" to "קוד QR לקבוצת הבודקים",
+        "Join the group" to "הצטרפות לקבוצה",
+        "Install from Play" to "התקנה מ-Play",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "ייפתח אחרי ש-Google תאשר את הבדיקה. הצטרפו לקבוצה עכשיו ותהיו מוכנים.",
+        "Don't show again" to "אל תציג שוב",
+        "COMING SOON" to "בקרוב",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps מגיעה ל-Google Play",
+        "Tap to help test it" to "הקישו כדי לעזור בבדיקה",
     )
 }

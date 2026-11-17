@@ -1607,5 +1607,18 @@ object I18nUr {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "یہ آلہ Mapbox کا سرور نہیں ڈھونڈ پا رہا۔ کوئی نجی DNS یا اشتہار بلاکر api.mapbox.com کو روک رہا ہو سکتا ہے: اسے اجازت دیں، یا Android کی نیٹ ورک ترتیبات میں نجی DNS بند کریں۔",
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox کا سرور اس آلے سے جواب نہیں دے رہا۔ انٹرنیٹ کنکشن چیک کریں: سائن اِن مانگنے والا Wi‑Fi یا فائر وال اسے روک سکتا ہے۔",
         "Showing traffic while you’re stopped" to "رکنے کے دوران ٹریفک دکھائی جا رہی ہے",
+        "Help test Horizon Maps on Google Play" to "Google Play پر Horizon Maps کی جانچ میں مدد کریں",
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to "Horizon Nav، Play Store پر Horizon Maps کے نام سے آ رہی ہے، اور Google پہلے 14 دن کے لیے کم از کم 12 ٹیسٹرز چاہتا ہے۔ یہ وہی ایپ ہے، الگ سے انسٹال، اس لیے یہ والی متاثر نہیں ہوگی۔ اسے 14 دن انسٹال رکھیں اور کبھی کبھار استعمال کریں۔",
+        "Join the testers group" to "ٹیسٹرز گروپ میں شامل ہوں",
+        "Install Horizon Maps from the Play Store" to "Play Store سے Horizon Maps انسٹال کریں",
+        "Sign in with the Google account you use for the Play Store." to "وہ Google اکاؤنٹ استعمال کر کے سائن اِن کریں جو آپ Play Store کے لیے استعمال کرتے ہیں۔",
+        "QR code for the testers group" to "ٹیسٹرز گروپ کا QR کوڈ",
+        "Join the group" to "گروپ میں شامل ہوں",
+        "Install from Play" to "Play سے انسٹال کریں",
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to "یہ Google کی جانچ منظوری کے بعد کھلے گا۔ ابھی گروپ میں شامل ہو جائیں تاکہ آپ تیار رہیں۔",
+        "Don't show again" to "دوبارہ نہ دکھائیں",
+        "COMING SOON" to "جلد آ رہا ہے",
+        "Horizon Maps is coming to Google Play" to "Horizon Maps جلد Google Play پر",
+        "Tap to help test it" to "جانچ میں مدد کے لیے تھپتھپائیں",
     )
 }

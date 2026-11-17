@@ -1604,5 +1604,18 @@ object I18nD {
         "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to listOf("Това устройство не може да намери сървъра на Mapbox. Частен DNS или блокер на реклами може да блокира api.mapbox.com: разрешете го или изключете Частен DNS в мрежовите настройки на Android."),
         "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to listOf("Сървърът на Mapbox не отговаря от това устройство. Проверете интернет връзката: Wi‑Fi, което изисква вход, или защитна стена може да го блокира."),
         "Showing traffic while you’re stopped" to listOf("Показва се трафикът, докато сте спрели"),
+        "Help test Horizon Maps on Google Play" to listOf("Помогнете да тестваме Horizon Maps в Google Play"),
+        "Horizon Nav is coming to the Play Store as Horizon Maps, and Google needs at least 12 testers for 14 days first. It's the same app, installed separately, so it won't touch this one. Keep it installed for 14 days and use it now and then." to listOf("Horizon Nav идва в Play Store като Horizon Maps, а Google първо изисква поне 12 тестери за 14 дни. Това е същото приложение, инсталирано отделно, така че това тук не се засяга. Дръжте го инсталирано 14 дни и го ползвайте от време на време."),
+        "Join the testers group" to listOf("Присъединете се към групата тестери"),
+        "Install Horizon Maps from the Play Store" to listOf("Инсталирайте Horizon Maps от Play Store"),
+        "Sign in with the Google account you use for the Play Store." to listOf("Влезте с профила в Google, който ползвате за Play Store."),
+        "QR code for the testers group" to listOf("QR код за групата тестери"),
+        "Join the group" to listOf("Присъединяване"),
+        "Install from Play" to listOf("Инсталиране от Play"),
+        "This opens once Google has approved the test. Join the group now and you'll be ready." to listOf("Ще се отвори, щом Google одобри теста. Присъединете се към групата сега и ще сте готови."),
+        "Don't show again" to listOf("Не показвай отново"),
+        "COMING SOON" to listOf("ОЧАКВАЙТЕ СКОРО"),
+        "Horizon Maps is coming to Google Play" to listOf("Horizon Maps идва в Google Play"),
+        "Tap to help test it" to listOf("Докоснете, за да помогнете с теста"),
     )
 }
