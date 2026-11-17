@@ -379,12 +379,23 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          NEW_PW: ${{ secrets.NEW_SIGNING_PASSWORD }}
+          NEW_ALIAS: ${{ secrets.NEW_SIGNING_KEY_ALIAS }}
         run: |
           set -euo pipefail
           gradle :app:bundlePlayRelease -PwithPlay
           AAB="$(find app/build/outputs/bundle/playRelease -name '*.aab' -print -quit)"
           [ -n "$AAB" ] || { echo "ERROR: no Play bundle was built"; exit 1; }
           mv "$AAB" app/build/outputs/bundle/playRelease/HorizonNav-play.aab
+          # Google Play refuses a bundle signed with the original key (it is Android's "debug" key, CN=Android Debug), so the bundle
+          # is signed again with the new key (CN=Horizon Nav), which becomes the Play upload key. The GitHub APK is not affected.
+          PAAB=app/build/outputs/bundle/playRelease/HorizonNav-play.aab
+          NKS="$RUNNER_TEMP/new-signing.keystore"
+          [ -f "$NKS" ] && [ -n "$NEW_PW" ] && [ -n "$NEW_ALIAS" ] || { echo "ERROR: the new signing key isn't available, so the Play bundle can't be signed for Google Play"; exit 1; }
+          zip -q -d "$PAAB" 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/*.DSA' 'META-INF/MANIFEST.MF' || true
+          jarsigner -keystore "$NKS" -storepass:env NEW_PW -keypass:env NEW_PW -sigalg SHA256withRSA -digestalg SHA-256 "$PAAB" "$NEW_ALIAS" > /dev/null
+          jarsigner -verify -verbose -certs "$PAAB" | grep -m1 "CN=" || true
+          if jarsigner -verify -verbose -certs "$PAAB" | grep -q "CN=Android Debug"; then echo "ERROR: the Play bundle is still signed with the debug key"; exit 1; fi
           # Play's "What's new" for this version: the change notes as plain text, at most 500 characters
           mkdir -p "$RUNNER_TEMP/play-whatsnew"
           python3 - "$RUNNER_TEMP/play-whatsnew/whatsnew-en-GB" <<'PY'
