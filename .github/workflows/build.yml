@@ -379,6 +379,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          NEW_KS_B64: ${{ secrets.NEW_SIGNING_KEYSTORE_BASE64 }}
           NEW_PW: ${{ secrets.NEW_SIGNING_PASSWORD }}
           NEW_ALIAS: ${{ secrets.NEW_SIGNING_KEY_ALIAS }}
         run: |
@@ -390,8 +391,10 @@ jobs:
           # Google Play refuses a bundle signed with the original key (it is Android's "debug" key, CN=Android Debug), so the bundle
           # is signed again with the new key (CN=Horizon Nav), which becomes the Play upload key. The GitHub APK is not affected.
           PAAB=app/build/outputs/bundle/playRelease/HorizonNav-play.aab
-          NKS="$RUNNER_TEMP/new-signing.keystore"
-          [ -f "$NKS" ] && [ -n "$NEW_PW" ] && [ -n "$NEW_ALIAS" ] || { echo "ERROR: the new signing key isn't available, so the Play bundle can't be signed for Google Play"; exit 1; }
+          [ -n "$NEW_KS_B64" ] && [ -n "$NEW_PW" ] && [ -n "$NEW_ALIAS" ] || { echo "ERROR: the new signing key isn't in Secrets, so the Play bundle can't be signed for Google Play"; exit 1; }
+          NKS="$RUNNER_TEMP/play-upload.keystore"
+          (umask 077; printf '%s' "$NEW_KS_B64" | base64 --decode > "$NKS")
+          trap 'rm -f "$NKS"' EXIT
           zip -q -d "$PAAB" 'META-INF/*.SF' 'META-INF/*.RSA' 'META-INF/*.EC' 'META-INF/*.DSA' 'META-INF/MANIFEST.MF' || true
           jarsigner -keystore "$NKS" -storepass:env NEW_PW -keypass:env NEW_PW -sigalg SHA256withRSA -digestalg SHA-256 "$PAAB" "$NEW_ALIAS" > /dev/null
           jarsigner -verify -verbose -certs "$PAAB" | grep -m1 "CN=" || true
