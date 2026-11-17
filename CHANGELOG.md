@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Stops on Android Auto: tap the trip card's figures while navigating for the stops on the way, each with when you get there. Move them earlier or later, take one off or add one, then Update route
+- Search while navigating on Android Auto: the trip card has a search button (Settings › Android Auto › Buttons on the trip card). A place picked while driving is asked about: Add as a stop, or Go here instead
+- "Add a stop" by voice: "Hey Google, add a stop at…" while navigating adds it as the next stop and keeps where you're going, on Android Auto and on the phone
+- Arrival time for each stop: the car's trip card shows the next stop and when you get there, and the stops editor on the phone shows the time for each
 - GPX tracks: import a .gpx file (from Komoot, Strava, Garmin or your own recording) in Settings › Places & trips › GPX tracks. Show puts it on the map; Drive follows it to the end with the usual spoken turns, carrying on from where you join it, and a reroute keeps you on the track (thanks to bijindas)
 - Search as a button: with no route, the search bar and its buttons can fold into one round search button in the corner, so the map has the whole screen and your arrow sits in the middle. Settings › Places & trips › Search bar (thanks to vishnauth-bit)
 - Auto zoom can be turned off: the map then keeps one steady zoom instead of following your speed and the junctions, and + and − still change it. Settings › Map style, under Default zoom (thanks to vishnauth-bit)
@@ -58,6 +62,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Voice "add a stop" replaced the destination: asking the Assistant to add a stop while navigating threw the trip away and went to the stop instead
+- Stops set back from the road: a stop more than 80 m from the road (a pin in the middle of a car park) was never counted as reached, so the route went back to it the next time it was worked out
 - Headlight beam behind the car: at night the beam started well behind the arrow or car and shone back over it, as if the light came from nowhere. It is now drawn from the car's own spot on screen, so it comes out of the front and lights the road ahead, flat on the road at any tilt (thanks to liamstears)
 - Shortcuts under the search bar can all be turned off: taking off the last one used to bring all five standard ones straight back. Now the row just goes away, and Reset brings the standard ones back (thanks to rookie2009)
 - Arrow on the wrong side of a divided road: with no route running, the arrow could jump to the other carriageway when the GPS drifted towards the middle, as if driving against the traffic. It now keeps to the side going your way, even before the speed-limit roads have loaded (thanks to leedank93)

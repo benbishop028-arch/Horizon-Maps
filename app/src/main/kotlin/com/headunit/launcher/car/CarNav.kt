@@ -140,7 +140,15 @@ class CarNavSession : Session() {
                 try { ms.screenManager.popToRoot() } catch (x: Exception) { }
                 val p = t?.pos
                 val q = t?.query?.trim().orEmpty()
+                val asStop = t?.addStop == true && e.driving()
+                android.util.Log.i("CarNav", "navigate intent: stop=${t?.addStop} driving=${e.driving()} coords=${p != null}")
                 when {
+                    // "add a stop at …" while driving (intent=add_a_stop): the next stop, keeping where you're going. It used to
+                    // replace the destination, whatever had been asked for
+                    asStop && p != null -> e.addStop(Place(t?.name ?: L.t("Stop"), L.t("From Google Assistant"), p), next = true)
+                    asStop && q.equals("home", true) && e.places.slot("home") != null -> e.addStop(e.places.slot("home")!!, next = true)
+                    asStop && q.equals("work", true) && e.places.slot("work") != null -> e.addStop(e.places.slot("work")!!, next = true)
+                    asStop && q.isNotEmpty() -> e.addStopByQuery(q)
                     p != null -> e.startRoute(Place(t?.name ?: L.t("Destination"), L.t("From Google Assistant"), p))
                     q.equals("home", true) && e.places.slot("home") != null -> e.startRoute(e.places.slot("home")!!)
                     q.equals("work", true) && e.places.slot("work") != null -> e.startRoute(e.places.slot("work")!!)
@@ -213,10 +221,12 @@ class CarNavSession : Session() {
         mapScreen = screen
         surface = CarSurface(carContext) { map -> startEngine(map) }
         surface.actions = object : com.headunit.launcher.ui.CarActions {
-            override fun search() { com.headunit.launcher.ui.CarSearch.let { if (!it.open) it.reset(); it.open = true }; screen.invalidate() }
+            override fun search() { com.headunit.launcher.ui.CarSearch.let { if (!it.open) it.reset(); it.open = true }; com.headunit.launcher.ui.CarStops.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; screen.invalidate() }
+            override fun stops() { com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.show(); screen.invalidate() }
+            override fun addStopSearch() { com.headunit.launcher.ui.CarStops.open = false; com.headunit.launcher.ui.CarSearch.let { it.reset(); it.forStop = true; it.open = true }; screen.invalidate() }
             override fun voiceSearch() { com.headunit.launcher.ui.CarSearch.let { if (!it.open) it.reset(); it.open = true }; screen.invalidate(); voice.toggle() }
             // (the card's search bar: Android Auto's search screen, with the car's keyboard; it starts with what was said, if anything)
-            override fun typeSearch() { voice.finish(""); screen.screenManager.push(SearchScreen(carContext, holder, com.headunit.launcher.ui.CarSearch.query.trim())) }
+            override fun typeSearch() { voice.finish(""); screen.screenManager.push(SearchScreen(carContext, holder, com.headunit.launcher.ui.CarSearch.query.trim(), mode = if (com.headunit.launcher.ui.CarSearch.forStop) "stop" else "ask")) }
             override fun closeSearch() { screen.closeSearch() }
             override fun places() { screen.screenManager.push(PlacesScreen(carContext, holder)) }
             override fun nearby(kind: String) { screen.screenManager.push(NearbyScreen(carContext, holder, kind)) }
@@ -234,7 +244,7 @@ class CarNavSession : Session() {
         }
         // what was said is searched for in the card, as if it had been typed
         voice = CarVoice(carContext, onNoMic = { screen.screenManager.push(SearchScreen(carContext, holder, keyboard = false)) }) { text -> com.headunit.launcher.ui.CarSearch.query = text }
-        screen.closeSearch = { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; screen.invalidate() }
+        screen.closeSearch = { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false; screen.invalidate() }
         // (Android Auto works the visible area out again when it lays the screen out)
         surface.onAreaDoubt = { try { screen.invalidate() } catch (e: Exception) { } }
         try { carContext.getCarService(AppManager::class.java).setSurfaceCallback(surface) } catch (e: Exception) { }
@@ -242,7 +252,7 @@ class CarNavSession : Session() {
             override fun onDestroy(owner: LifecycleOwner) {
                 screen.stop()
                 sunHandler.removeCallbacks(sunTick)
-                try { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false } catch (e: Exception) { }
+                try { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false } catch (e: Exception) { }
                 try { carContext.applicationContext.unregisterComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
                 pendingNavWaitToken++
                 pendingNavWait?.interrupt()
@@ -522,7 +532,7 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     override fun onScroll(distanceX: Float, distanceY: Float) {
         com.headunit.launcher.ui.CarButtons.poke()
         // the app's search card is open: a drag scrolls its list, and the map under it stays put
-        if (com.headunit.launcher.ui.CarSearch.scrollBy(distanceY) || com.headunit.launcher.ui.CarSettingsCard.scrollBy(distanceY)) return
+        if (com.headunit.launcher.ui.CarSearch.scrollBy(distanceY) || com.headunit.launcher.ui.CarSettingsCard.scrollBy(distanceY) || com.headunit.launcher.ui.CarStops.scrollBy(distanceY)) return
         val m = map ?: return
         m.onUserGesture?.invoke()
         try { m.panBy(distanceX, distanceY) } catch (e: Exception) { }
@@ -650,12 +660,14 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             } catch (x: Exception) { }
         }
         if (autoDrive && guiding && e.simMode == 0) e.cycleSim()
-        // a route was picked (from the card, a search or by voice): the search card has done its job
-        if (e.route != null && com.headunit.launcher.ui.CarSearch.open) closeSearch()
+        // a route was picked (from the card, a search or by voice) and its choices are up: the search card has done its job
+        // (while navigating it stays until a place is picked: it's how a stop is searched for)
+        if (e.previewing && (com.headunit.launcher.ui.CarSearch.open || com.headunit.launcher.ui.CarStops.open)) closeSearch()
+        if (e.route == null && com.headunit.launcher.ui.CarStops.open) closeSearch()
         val t = e.turn; val eta = e.eta
         // Android Auto's buttons only change with the state (rebuilding them every second while the distance counts down made the
         // host redo its layout for nothing); the turn and distance go to the car's displays through updateTrip
-        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}|${stopOnCard(e)}|${com.headunit.launcher.ui.CarSearch.open}|${com.headunit.launcher.ui.CarSettingsCard.open}"
+        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}|${stopOnCard(e)}|${com.headunit.launcher.ui.CarSearch.open}|${com.headunit.launcher.ui.CarSettingsCard.open}|${com.headunit.launcher.ui.CarStops.open}"
         if (sig != lastSig) { lastSig = sig; invalidate() }
         val tsig = "${t?.maneuver}|${t?.street}|${t?.landmark}|${t?.exit}|${t?.dist?.let { Math.round(it / 10) }}|${eta?.secs?.let { Math.round(it / 30) }}|${eta?.dist?.let { Math.round(it / 100) }}|${System.identityHashCode(t?.lanes)}"
         if (guiding && t != null && eta != null && tsig != lastTrip) {
@@ -704,8 +716,9 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         // (2D / 3D used to be a button here too: it's in the settings, under Map, and doesn't need to be on the screen all the time)
         val demoOn = e != null && (e.prefs.b(PreferenceKeys.DEMO, false) || e.simMode != 0)
         val fr = e?.faster
-        if (com.headunit.launcher.ui.CarSettingsCard.open) {
-            // the app's settings card is over the map: one button to close it (as for the search card below)
+        if (com.headunit.launcher.ui.CarSettingsCard.open || (guiding && (com.headunit.launcher.ui.CarSearch.open || com.headunit.launcher.ui.CarStops.open))) {
+            // the app's settings card is over the map: one button to close it (as for the search card below; while navigating,
+            // the search and stops cards too)
             strip.addAction(Action.Builder().setIcon(icon(R.drawable.ic_car_close)).setOnClickListener { closeSearch() }.build())
         } else if (guiding && fr != null) {
             // a faster route turned up: switch or keep (also on the map card, for cars that pass taps on)
@@ -1181,7 +1194,16 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
  */
 class SearchScreen(carContext: CarContext, private val holder: CarHolder, initial: String = "", private var autoGo: Boolean = false,
     /** false when opened from the microphone button: the keyboard stays away, so Android Auto's own microphone is right there. */
-    private val keyboard: Boolean = true) : Screen(carContext) {
+    private val keyboard: Boolean = true,
+    /** While a route is being driven: "stop" adds what's picked as a stop on the way, "ask" asks on the map (Add as a stop /
+     *  Go here instead); otherwise the route to it starts, as with no route. */
+    private val mode: String = "") : Screen(carContext) {
+    private fun go(e: NavEngine?, p: Place) {
+        if (e == null) return
+        // (the search card this was opened from has done its job)
+        if (mode.isNotEmpty()) com.headunit.launcher.ui.CarSearch.open = false
+        when { mode == "stop" && e.driving() -> e.addStop(p); mode == "ask" -> e.goOrAsk(p); else -> e.startRoute(p) }
+    }
     private var query = initial
     private var shown: List<Place> = emptyList()
     private val handler = Handler(Looper.getMainLooper())
@@ -1284,7 +1306,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                 val r = Row.Builder().setTitle(label).setImage(rowIcon(carContext, ic.first, ic.second))
                 val line = listOf(distFrom(e, p), if (label == p.name) p.sub else p.name).filter { it.isNotBlank() }.joinToString(" · ")
                 if (line.isNotBlank()) r.addText(line)
-                r.setOnClickListener { e.startRoute(p); screenManager.popToRoot() }
+                r.setOnClickListener { go(e, p); screenManager.popToRoot() }
                 list.addItem(r.build())
             }
         }
@@ -1293,7 +1315,7 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
             val r = Row.Builder().setTitle(p.name).setImage(logoIcon(p) ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
             val line = listOf(distFrom(e, p), p.sub).filter { it.isNotBlank() }.joinToString(" · ")
             if (line.isNotBlank()) r.addText(line)
-            r.setOnClickListener { e?.startRoute(p); screenManager.popToRoot() }
+            r.setOnClickListener { go(e, p); screenManager.popToRoot() }
             list.addItem(r.build())
         }
         val b = SearchTemplate.Builder(object : SearchTemplate.SearchCallback {
@@ -1400,6 +1422,10 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
         // reached with a rotary knob too)
         if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle(L.t("End route"))
             .setOnClickListener { e.endRoute(); screenManager.popToRoot() }.build()
+        // a stop on the way (searched for with the car's keyboard or voice; what's picked is added, keeping where you're going)
+        if (e != null && e.driving()) rows += Row.Builder().setTitle(L.t("Add a stop"))
+            .addText(if (e.via.isEmpty()) L.t("Search for a place on the way") else e.via.joinToString(" › ") { it.name })
+            .setOnClickListener { screenManager.push(SearchScreen(carContext, holder, mode = "stop")) }.build()
         // the whole route at a glance (back to following you after a while)
         if (e != null && e.route != null && !e.previewing) rows += Row.Builder().setTitle(L.t("Route overview"))
             .addText(L.t("See the whole route"))

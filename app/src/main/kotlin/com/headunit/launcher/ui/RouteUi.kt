@@ -403,7 +403,13 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                         Box(Modifier.size(30.dp).clip(CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
                             Text("${i + 1}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         }
-                        Text(p.name, color = c.text, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(start = 12.dp))
+                        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(p.name, color = c.text, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            // when you get there, on the route as it is (not once the list here has been changed)
+                            if (stops === engine.via) engine.stopEtas.firstOrNull { it.place === p }?.let { s ->
+                                Text(s.arrive + " · " + Geo.fmtDur(s.secs) + " · " + Geo.fmtDist(s.dist, engine.imperial), color = Good, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
                         Icon(Icons.Rounded.KeyboardArrowUp, L.t("Earlier"), tint = if (i > 0) c.text else c.sub.copy(alpha = 0.3f),
                             modifier = Modifier.size(36.dp).clickable(enabled = i > 0) { stops = stops.toMutableList().also { l -> val t = l[i]; l[i] = l[i - 1]; l[i - 1] = t } })
                         Icon(Icons.Rounded.KeyboardArrowDown, L.t("Later"), tint = if (i < stops.size - 1) c.text else c.sub.copy(alpha = 0.3f),

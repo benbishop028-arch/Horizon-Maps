@@ -71,6 +71,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:scheme="google.navigation" />
             </intent-filter>
+            <!-- "navigate to ..." and "add a stop at ..." from Gemini / Google Assistant on the phone -->
+            <intent-filter>
+                <action android:name="android.intent.action.NAVIGATE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="geo" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />

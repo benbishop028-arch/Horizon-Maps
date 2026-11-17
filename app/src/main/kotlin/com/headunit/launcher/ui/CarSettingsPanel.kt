@@ -107,6 +107,7 @@ internal fun CarSettingsPanel(engine: NavEngine, actions: CarActions, small: Boo
                                 SetButton("st-end", L.t("End route"), Bad, Color.White) { engine.endRoute(); actions.closeSettings() }
                                 SetButton("st-over", L.t("Route overview"), c.tile, c.text) { engine.overview(); actions.closeSettings() }
                                 SetButton("st-alts", L.t("Other routes"), c.tile, c.text) { actions.closeSettings(); actions.otherRoutes() }
+                                SetButton("st-stops", L.t("Stops"), c.tile, c.text) { actions.closeSettings(); actions.stops() }
                             }
                         }
                         item {

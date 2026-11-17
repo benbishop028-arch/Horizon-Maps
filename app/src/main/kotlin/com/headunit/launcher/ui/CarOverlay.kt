@@ -203,6 +203,9 @@ interface CarActions {
     /** The search card's own bar: Android Auto's search screen, which has the car's keyboard. */
     fun typeSearch() = search()
     fun closeSearch() {}
+    /** The stops card (see CarStops), and the search card opened from it to add one. */
+    fun stops() {}
+    fun addStopSearch() {}
     /** The settings card (see CarSettingsCard): closing it, the day / night choice changing, and the other routes' screen. */
     fun closeSettings() {}
     fun themeChanged() {}
@@ -325,14 +328,18 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val previewing = engine.previewing
         val guiding = engine.route != null && !previewing
         val arriving = engine.arrival != null
-        // the search card (only before a route: picking a place closes it)
-        val searching = CarSearch.open && engine.route == null && !arriving
+        // the search card (also while navigating, from the trip card's search button: a place picked then is asked about, a
+        // stop or where to go instead)
+        val searching = CarSearch.open && !previewing && !arriving
+        // the stops card, and the question about a place picked while driving
+        val stopsOpen = CarStops.open && guiding && !arriving && !searching
+        val choosing = guiding && !arriving && engine.choose != null && !searching && !stopsOpen
         // the settings card: over the map, across the part of the screen Android Auto leaves clear (in split screen, the tile)
-        val settingsOpen = CarSettingsCard.open && !arriving && !previewing && !searching
+        val settingsOpen = CarSettingsCard.open && !arriving && !previewing && !searching && !stopsOpen && !choosing
         // Other routes: the routes box is up and the map is zoomed out to the grey routes. The other cards (the turn, the trip,
         // the speed, alerts) step aside so the routes on the map can be seen; they're back when it closes or a route is picked
-        val altsOpen = guiding && !arriving && engine.altListOpen && !searching && !settingsOpen
-        val covered = searching || settingsOpen || altsOpen
+        val altsOpen = guiding && !arriving && engine.altListOpen && !searching && !settingsOpen && !stopsOpen && !choosing
+        val covered = searching || settingsOpen || altsOpen || stopsOpen || choosing
         val c = LocalVw.current
         val topW = if (portrait) {
             (maxWidth - left - rightTop).coerceAtLeast(0.dp).coerceAtMost(600.dp)
@@ -409,7 +416,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         var speedUnderH by remember { mutableStateOf(0) }
         // (worked out here: the screen's height can't be read from inside the column below)
         val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
-        if (showTurn && t != null && !settingsOpen && !altsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
+        if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
             .onSizeChanged { turnH = it.height; turnW = it.width }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
@@ -481,6 +488,12 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // Close button while it's open, see MapScreen)
         if (searching) CarSearchPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
 
+        if (stopsOpen) CarStopsPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
+        // (in the middle of what's clear of the turn card, which stays up)
+        if (choosing) engine.choose?.let { p ->
+            Box(Modifier.align(Alignment.BottomCenter).padding(start = left, end = rightBottom, bottom = bottom)) { CarChooseCard(engine, p) }
+        }
+
         if (settingsOpen) {
             CarSettingsPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
         }
@@ -514,7 +527,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                         Box(Modifier.weight(1f)) { hazards() }
                         Box(Modifier.padding(start = 30.dp, top = 14.dp)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) } }
                     }
-                    if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { Box(Modifier.onSizeChanged { tripPx = it.height }) { TripCard(engine, !small, oneLine = small, buttonsShown = !tile, bar = !slim) } }
+                    if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { Box(Modifier.onSizeChanged { tripPx = it.height }) { TripCard(engine, actions, !small, oneLine = small, buttonsShown = !tile, bar = !slim) } }
                 }
             } else {
                 var leftColW by remember { mutableStateOf(0) }
@@ -546,13 +559,13 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                             // (allowed to shrink, so on the narrowest tiles it gives way rather than pushing past the edge)
-                            if (guiding && carTripAt == "auto" && !tripDocked && !tripCol) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
+                            if (guiding && carTripAt == "auto" && !tripDocked && !tripCol) Box(Modifier.weight(1f, fill = false)) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, actions, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
                         }
                     } else if (guiding && carTripAt == "auto" && !tripDocked && !tripCol) {
                         // as wide as the turn card above it (with more than a couple of buttons picked for it, it needs its own width)
                         val sameW = carTripButtonsOn(engine.prefs).size <= 2
                         Box(if (sameW) Modifier.width(turnCardW) else Modifier) {
-                            CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, sameW, oneLine = small, buttonsShown = !tile, bar = !slim) }
+                            CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, actions, sameW, oneLine = small, buttonsShown = !tile, bar = !slim) }
                         }
                     }
                 }
@@ -587,13 +600,13 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                     contentAlignment = Alignment.BottomCenter,
                 ) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                        Box(Modifier.onSizeChanged { dockH = it.height }) { TripCard(engine, false, oneLine = true, buttonsShown = !tile, docked = true) }
+                        Box(Modifier.onSizeChanged { dockH = it.height }) { TripCard(engine, actions, false, oneLine = true, buttonsShown = !tile, docked = true) }
                     }
                 }
                 if (guiding && carTripAt != "auto" && !tripDocked && !tripCol) Box(
                     Modifier.align(if (carTripAt == "centre") Alignment.BottomCenter else Alignment.BottomEnd)
                         .padding(bottom = bottom, end = if (carTripAt == "right") speedEnd else 0.dp)
-                ) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
+                ) { CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripCard(engine, actions, false, oneLine = small, buttonsShown = !tile, bar = !slim) } }
                 // (in the top corner it makes way for Android Auto's buttons, and for the routes box, which opens there)
                 if (!carSpeedLeft && !speedUnderTurn && !(speedCorner && (stripShown || engine.altListOpen))) BoxWithConstraints(speedMod.onSizeChanged { speedW = if (speedTopRight || speedCorner) 0 else it.width }) {
                     val availableFit = minOf(1f, (maxWidth.value / 220f).coerceAtLeast(0.25f), (maxHeight.value / 150f).coerceAtLeast(0.25f))
@@ -726,7 +739,7 @@ private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
  *  [bar]: the route bar over the one-line strip too (a short car screen: the progress along the route as in the app, without
  *  the labels under the figures, which were too much on a small screen). */
 @Composable
-private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false, buttonsShown: Boolean = true, docked: Boolean = false, bar: Boolean = false) {
+private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneLine: Boolean = false, buttonsShown: Boolean = true, docked: Boolean = false, bar: Boolean = false) {
     val e = engine.eta ?: return
     val c = LocalVw.current
     val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
@@ -744,6 +757,19 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
         if (docked) c.surface.copy(alpha = 1f) else c.surface)) {
         // a slim bar: the full-height one took up nearly half the card
         if (engine.showRouteBar && (!oneLine || bar)) RouteBar(engine, w.padding(start = 16.dp, end = 16.dp, top = 6.dp), thin = true)
+        // stops on the way: the next one and when you get there, over the figures for the whole trip (tap for the stops card)
+        val nextStop = engine.via.firstOrNull()
+        if (nextStop != null) Row(w.carTap("trip-stop") { actions.stops() }.padding(start = 16.dp, end = 16.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            val n = engine.via.size
+            Box(Modifier.size(22.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
+                Text(if (n > 1) "$n" else "1", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            Text(nextStop.name, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp))
+            engine.stopEtas.firstOrNull { it.place === nextStop }?.let { s ->
+                Text(s.arrive + " · " + Geo.fmtDur(s.secs), color = Good, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+            }
+        }
         val end: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
             // end the route, as in the app
             Box(Modifier.size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
@@ -781,9 +807,12 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
             Row((if (fill) Modifier.fillMaxWidth() else Modifier).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 14.dp, end = if (on.isEmpty()) 14.dp else 8.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 val sz = 36.dp * grow1
-                Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                Text(e.arrive, color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                // (the figures open the stops card)
+                Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                    Text(e.arrive, color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                    Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                }
                 // (across a set width, the buttons go to the far end)
                 if (fill) androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
                 // (just the one that ends the route, unless others are picked in Settings > Android Auto > Buttons on the trip card)
@@ -791,6 +820,7 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
                     if ("overview" in on) small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
                     if ("routes" in on) small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
                     if ("sound" in on) sound(sz)
+                    if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
                     if ("end" in on) end(sz)
                 }
             }
@@ -802,14 +832,16 @@ private fun TripCard(engine: NavEngine, fill: Boolean, oneLine: Boolean = false,
             if ("overview" in on) small(androidx.compose.material.icons.Icons.Rounded.ZoomOutMap, "overview", { engine.overview() }, sz)
             if ("routes" in on) small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
             if ("sound" in on) sound(sz)
+            // search while navigating: a stop on the way, or somewhere else to go
+            if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
             if ("end" in on) end(sz)
         }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
+            Row(Modifier.weight(1f).carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(36.dp) }
         } else Row(Modifier.widthIn(min = if (on.size >= 3) 400.dp else 0.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
+            Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(40.dp) }
         }
     }
