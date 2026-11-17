@@ -1314,7 +1314,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun driving(): Boolean = route != null && !previewing && dest != null
 
     /** A place picked from a search or a list: while driving it's asked about first, otherwise the route to it starts. */
-    fun goOrAsk(p: Place) { if (driving()) choose = p else startRoute(p) }
+    fun goOrAsk(p: Place, ask: Boolean = true) { if (ask && driving()) choose = p else startRoute(p) }
     fun chooseStop() { val p = choose ?: return; choose = null; addStop(p) }
     fun chooseGo() { val p = choose ?: return; choose = null; startRoute(p) }
 

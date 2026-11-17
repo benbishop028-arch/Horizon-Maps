@@ -141,7 +141,11 @@ class CarNavSession : Session() {
                 val p = t?.pos
                 val q = t?.query?.trim().orEmpty()
                 val asStop = t?.addStop == true && e.driving()
-                android.util.Log.i("CarNav", "navigate intent: stop=${t?.addStop} driving=${e.driving()} coords=${p != null}")
+                // "navigate to …" while a route is being driven, on a car that passes taps on: asked about on the map (Add as a
+                // stop / Go here instead) rather than throwing the trip away. The Assistant offers to add it as a stop, and
+                // then sends the same plain "navigate" as for a new destination, so the app can't tell which was meant
+                val ask = !asStop && e.driving() && e.prefs.b(PreferenceKeys.CAR_TAPS_SEEN, false)
+                android.util.Log.i("CarNav", "navigate intent: $raw stop=${t?.addStop} driving=${e.driving()} ask=$ask coords=${p != null}")
                 when {
                     // "add a stop at …" while driving (intent=add_a_stop): the next stop, keeping where you're going. It used to
                     // replace the destination, whatever had been asked for
@@ -149,10 +153,10 @@ class CarNavSession : Session() {
                     asStop && q.equals("home", true) && e.places.slot("home") != null -> e.addStop(e.places.slot("home")!!, next = true)
                     asStop && q.equals("work", true) && e.places.slot("work") != null -> e.addStop(e.places.slot("work")!!, next = true)
                     asStop && q.isNotEmpty() -> e.addStopByQuery(q)
-                    p != null -> e.startRoute(Place(t?.name ?: L.t("Destination"), L.t("From Google Assistant"), p))
-                    q.equals("home", true) && e.places.slot("home") != null -> e.startRoute(e.places.slot("home")!!)
-                    q.equals("work", true) && e.places.slot("work") != null -> e.startRoute(e.places.slot("work")!!)
-                    q.isNotEmpty() -> ms.screenManager.push(SearchScreen(carContext, holder, q, autoGo = true))
+                    p != null -> e.goOrAsk(Place(t?.name ?: L.t("Destination"), L.t("From Google Assistant"), p), ask)
+                    q.equals("home", true) && e.places.slot("home") != null -> e.goOrAsk(e.places.slot("home")!!, ask)
+                    q.equals("work", true) && e.places.slot("work") != null -> e.goOrAsk(e.places.slot("work")!!, ask)
+                    q.isNotEmpty() -> ms.screenManager.push(SearchScreen(carContext, holder, q, autoGo = true, mode = if (ask) "ask" else ""))
                     else -> try { androidx.car.app.CarToast.makeText(carContext, L.t("Couldn't read a place from that"), androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
                 }
             }
@@ -243,7 +247,7 @@ class CarNavSession : Session() {
             } else screen.screenManager.push(CarSettingsScreen(carContext, holder) { applyTheme() })
         }
         // what was said is searched for in the card, as if it had been typed
-        voice = CarVoice(carContext, onNoMic = { screen.screenManager.push(SearchScreen(carContext, holder, keyboard = false)) }) { text -> com.headunit.launcher.ui.CarSearch.query = text }
+        voice = CarVoice(carContext, onNoMic = { screen.screenManager.push(SearchScreen(carContext, holder, keyboard = false, mode = if (com.headunit.launcher.ui.CarSearch.forStop) "stop" else "ask")) }) { text -> com.headunit.launcher.ui.CarSearch.query = text }
         screen.closeSearch = { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false; screen.invalidate() }
         // (Android Auto works the visible area out again when it lays the screen out)
         surface.onAreaDoubt = { try { screen.invalidate() } catch (e: Exception) { } }
@@ -1232,8 +1236,9 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                 if (e != null && r !== before && r.isNotEmpty()) {
                     autoGo = false
                     val p = r.first()
-                    e.startRoute(p)
-                    try { androidx.car.app.CarToast.makeText(carContext, L.t("Going to {0}", p.name), androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
+                    val asking = mode == "ask" && e.driving()
+                    go(e, p)
+                    if (!asking) try { androidx.car.app.CarToast.makeText(carContext, L.t("Going to {0}", p.name), androidx.car.app.CarToast.LENGTH_LONG).show() } catch (x: Exception) { }
                     try { screenManager.popToRoot() } catch (x: Exception) { }
                     return
                 }
