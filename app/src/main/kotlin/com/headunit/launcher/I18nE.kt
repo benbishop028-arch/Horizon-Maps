@@ -1590,5 +1590,9 @@ object I18nE {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Shranjeni kraji so v vrsti ploščic pod iskalno vrstico, ki se konča z Dodaj kraj"),
         "Places you drive to show up here" to listOf("Tu se prikažejo kraji, kamor se peljete"),
         "Save somewhere" to listOf("Shrani kraj"),
+        "Add a stop" to listOf("Dodaj postanek"),
+        "Couldn't find {0}" to listOf("{0} ni bilo mogoče najti"),
+        "No stops yet. Add one and the route goes through it on the way." to listOf("Še ni postankov. Dodajte enega in pot bo šla mimo njega."),
+        "Search for a place on the way" to listOf("Poiščite kraj na poti"),
     )
 }

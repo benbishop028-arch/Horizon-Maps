@@ -1593,5 +1593,9 @@ object I18nEl {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Τα αποθηκευμένα μέρη είναι στη σειρά πλακιδίων κάτω από τη γραμμή αναζήτησης, που τελειώνει με «Προσθήκη μέρους»",
         "Places you drive to show up here" to "Τα μέρη όπου οδηγείτε εμφανίζονται εδώ",
         "Save somewhere" to "Αποθήκευση μέρους",
+        "Add a stop" to "Προσθήκη στάσης",
+        "Couldn't find {0}" to "Δεν βρέθηκε το {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Δεν υπάρχουν ακόμη στάσεις. Προσθέστε μία και η διαδρομή θα περάσει από εκεί.",
+        "Search for a place on the way" to "Αναζήτηση μέρους στον δρόμο",
     )
 }

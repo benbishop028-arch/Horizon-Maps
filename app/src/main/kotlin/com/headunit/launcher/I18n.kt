@@ -2320,6 +2320,10 @@ object L {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Je opgeslagen plaatsen staan in de rij tegels onder de zoekbalk, die eindigt met Plaats toevoegen", "Ihre gespeicherten Orte stehen in der Kachelreihe unter der Suchleiste, die mit Ort hinzufügen endet", "Vos lieux enregistrés sont dans la rangée de tuiles sous la barre de recherche, qui se termine par Ajouter un lieu", "Tus lugares guardados están en la fila de mosaicos bajo la barra de búsqueda, que termina con Añadir un lugar"),
         "Places you drive to show up here" to listOf("Plaatsen waar je naartoe rijdt verschijnen hier", "Orte, zu denen Sie fahren, erscheinen hier", "Les lieux où vous allez apparaissent ici", "Los lugares a los que conduces aparecen aquí"),
         "Save somewhere" to listOf("Sla een plek op", "Einen Ort speichern", "Enregistrer un lieu", "Guardar un lugar"),
+        "Add a stop" to listOf("Tussenstop toevoegen", "Zwischenstopp hinzufügen", "Ajouter un arrêt", "Añadir una parada"),
+        "Couldn't find {0}" to listOf("Kon {0} niet vinden", "{0} wurde nicht gefunden", "Impossible de trouver {0}", "No se encontró {0}"),
+        "No stops yet. Add one and the route goes through it on the way." to listOf("Nog geen tussenstops. Voeg er een toe en de route gaat er onderweg langs.", "Noch keine Zwischenstopps. Fügen Sie einen hinzu, dann führt die Route unterwegs dorthin.", "Aucun arrêt pour l'instant. Ajoutez-en un et l'itinéraire y passera en chemin.", "Aún no hay paradas. Añade una y la ruta pasará por ella."),
+        "Search for a place on the way" to listOf("Zoek een plek onderweg", "Einen Ort auf dem Weg suchen", "Rechercher un lieu sur le chemin", "Buscar un lugar en el camino"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3911,5 +3915,9 @@ object L {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("I tuoi luoghi salvati sono nella fila di riquadri sotto la barra di ricerca, che termina con Aggiungi un luogo", "Os seus locais guardados estão na fila de mosaicos sob a barra de pesquisa, que termina com Adicionar um local", "Zapisane miejsca są w rzędzie kafelków pod paskiem wyszukiwania, który kończy się przyciskiem Dodaj miejsce"),
         "Places you drive to show up here" to listOf("I luoghi in cui vai compaiono qui", "Os locais para onde conduz aparecem aqui", "Tu pojawią się miejsca, do których jedziesz"),
         "Save somewhere" to listOf("Salva un luogo", "Guardar um local", "Zapisz miejsce"),
+        "Add a stop" to listOf("Aggiungi una tappa", "Adicionar uma paragem", "Dodaj przystanek"),
+        "Couldn't find {0}" to listOf("Impossibile trovare {0}", "Não foi possível encontrar {0}", "Nie znaleziono: {0}"),
+        "No stops yet. Add one and the route goes through it on the way." to listOf("Ancora nessuna tappa. Aggiungine una e il percorso ci passerà lungo la strada.", "Ainda sem paragens. Adicione uma e a rota passa por ela pelo caminho.", "Brak przystanków. Dodaj jeden, a trasa poprowadzi przez niego po drodze."),
+        "Search for a place on the way" to listOf("Cerca un luogo lungo la strada", "Pesquisar um local pelo caminho", "Szukaj miejsca po drodze"),
     )
 }

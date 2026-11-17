@@ -1593,5 +1593,9 @@ object I18nNb {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "De lagrede stedene dine er i raden med fliser under søkefeltet, som slutter med Legg til et sted",
         "Places you drive to show up here" to "Steder du kjører til, vises her",
         "Save somewhere" to "Lagre et sted",
+        "Add a stop" to "Legg til et stopp",
+        "Couldn't find {0}" to "Fant ikke {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Ingen stopp ennå. Legg til ett, så går ruten innom det på veien.",
+        "Search for a place on the way" to "Søk etter et sted på veien",
     )
 }

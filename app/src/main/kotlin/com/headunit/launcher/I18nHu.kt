@@ -1593,5 +1593,9 @@ object I18nHu {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "A mentett helyek a keresősáv alatti csempesorban vannak, amely a(z) Hely hozzáadása gombbal végződik",
         "Places you drive to show up here" to "Ide kerülnek a helyek, ahová vezet",
         "Save somewhere" to "Hely mentése",
+        "Add a stop" to "Megálló hozzáadása",
+        "Couldn't find {0}" to "Nem található: {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Még nincs megálló. Adjon hozzá egyet, és az útvonal útközben érinti.",
+        "Search for a place on the way" to "Hely keresése útközben",
     )
 }

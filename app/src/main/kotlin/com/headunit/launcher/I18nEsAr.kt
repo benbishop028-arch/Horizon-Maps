@@ -1593,5 +1593,9 @@ object I18nEsAr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tus lugares guardados están en la fila de mosaicos bajo la barra de búsqueda, que termina con Agregar un lugar",
         "Places you drive to show up here" to "Los lugares a los que manejás aparecen acá",
         "Save somewhere" to "Guardar un lugar",
+        "Add a stop" to "Agregar una parada",
+        "Couldn't find {0}" to "No se encontró {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Todavía no hay paradas. Agregá una y la ruta pasa por ahí.",
+        "Search for a place on the way" to "Buscar un lugar en el camino",
     )
 }

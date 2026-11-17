@@ -55,3 +55,5 @@ class RadarItem(val kind: String, val dist: Double, val label: String)
 class Prediction(val place: Place, val title: String, val mins: Int, val delayMin: Int, val note: String)
 class IncidentAhead(val label: String, val dist: Double, val delaySec: Int)
 class EtaInfo(val arrive: String, val dist: Double, val secs: Double, val delayMin: Int)
+/** A stop on the way: when you get there, how far it is along the route (m) and how long that takes (s). */
+class StopEta(val place: Place, val arrive: String, val dist: Double, val secs: Double)

@@ -1593,5 +1593,9 @@ object I18nUr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "آپ کی محفوظ جگہیں تلاش بار کے نیچے ٹائلوں کی قطار میں ہیں، جو «جگہ شامل کریں» پر ختم ہوتی ہے",
         "Places you drive to show up here" to "جن جگہوں پر آپ جاتے ہیں وہ یہاں دکھائی دیں گی",
         "Save somewhere" to "کوئی جگہ محفوظ کریں",
+        "Add a stop" to "اسٹاپ شامل کریں",
+        "Couldn't find {0}" to "{0} نہیں ملا",
+        "No stops yet. Add one and the route goes through it on the way." to "ابھی کوئی اسٹاپ نہیں۔ ایک شامل کریں اور روٹ راستے میں وہاں سے گزرے گا۔",
+        "Search for a place on the way" to "راستے میں کوئی جگہ تلاش کریں",
     )
 }

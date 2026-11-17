@@ -1593,5 +1593,9 @@ object I18nKn {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "ಉಳಿಸಿದ ಸ್ಥಳಗಳು ಹುಡುಕಾಟ ಪಟ್ಟಿಯ ಕೆಳಗಿನ ಟೈಲ್‌ಗಳ ಸಾಲಿನಲ್ಲಿವೆ, ಅದು «ಸ್ಥಳ ಸೇರಿಸಿ» ನೊಂದಿಗೆ ಕೊನೆಗೊಳ್ಳುತ್ತದೆ",
         "Places you drive to show up here" to "ನೀವು ಚಲಿಸುವ ಸ್ಥಳಗಳು ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತವೆ",
         "Save somewhere" to "ಸ್ಥಳ ಉಳಿಸಿ",
+        "Add a stop" to "ನಿಲುಗಡೆ ಸೇರಿಸಿ",
+        "Couldn't find {0}" to "{0} ಸಿಗಲಿಲ್ಲ",
+        "No stops yet. Add one and the route goes through it on the way." to "ಇನ್ನೂ ನಿಲುಗಡೆಗಳಿಲ್ಲ. ಒಂದನ್ನು ಸೇರಿಸಿದರೆ ಮಾರ್ಗ ದಾರಿಯಲ್ಲಿ ಅದರ ಮೂಲಕ ಹೋಗುತ್ತದೆ.",
+        "Search for a place on the way" to "ದಾರಿಯಲ್ಲಿ ಸ್ಥಳ ಹುಡುಕಿ",
     )
 }

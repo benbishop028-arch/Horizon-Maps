@@ -1593,5 +1593,9 @@ object I18nMs {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tempat yang disimpan berada dalam baris jubin di bawah bar carian, yang berakhir dengan Tambah tempat",
         "Places you drive to show up here" to "Tempat yang anda pandu ke akan muncul di sini",
         "Save somewhere" to "Simpan tempat",
+        "Add a stop" to "Tambah hentian",
+        "Couldn't find {0}" to "Tidak dapat mencari {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Belum ada hentian. Tambah satu dan laluan akan melaluinya.",
+        "Search for a place on the way" to "Cari tempat di sepanjang jalan",
     )
 }

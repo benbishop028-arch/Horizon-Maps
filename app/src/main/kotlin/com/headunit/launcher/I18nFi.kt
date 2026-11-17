@@ -1593,5 +1593,9 @@ object I18nFi {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Tallennetut paikat ovat hakupalkin alla olevassa ruuturivissä, joka päättyy painikkeeseen Lisää paikka",
         "Places you drive to show up here" to "Paikat, joihin ajat, näkyvät tässä",
         "Save somewhere" to "Tallenna paikka",
+        "Add a stop" to "Lisää pysähdys",
+        "Couldn't find {0}" to "Kohdetta {0} ei löytynyt",
+        "No stops yet. Add one and the route goes through it on the way." to "Ei vielä pysähdyksiä. Lisää yksi, niin reitti kulkee sen kautta.",
+        "Search for a place on the way" to "Etsi paikka matkan varrelta",
     )
 }

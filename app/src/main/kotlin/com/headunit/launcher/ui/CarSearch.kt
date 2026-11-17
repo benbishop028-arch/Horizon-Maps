@@ -77,8 +77,11 @@ object CarSearch {
     /** What was said, being searched for in the card. */
     var query by mutableStateOf("")
 
+    /** Opened from the stops card's "Add a stop": what's picked is added as a stop, without asking whether to go there instead. */
+    var forStop by mutableStateOf(false)
+
     /** The card as it opens: nothing searched for. */
-    fun reset() { query = ""; note = "" }
+    fun reset() { query = ""; note = ""; forStop = false }
     /** Scrolls the list (set while the card is showing): drags on the car screen come through Android Auto, not as touches. */
     internal var scroll: ((Float) -> Unit)? = null
 
@@ -121,6 +124,13 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
     }
     val here = engine.fix?.pos
     val rowH = if (small) 56.dp else 64.dp
+    // a place picked: with no route, the route to it. While driving it's a stop (from "Add a stop"), or asked about
+    // (Add as a stop / Go here instead): it used to replace where you were going without a word
+    val pick: (Place) -> Unit = { p ->
+        val stop = CarSearch.forStop
+        actions.closeSearch()
+        if (stop && engine.driving()) engine.addStop(p) else engine.goOrAsk(p)
+    }
     // what was said is searched for, and the list shows it's searching until the answer comes (or 8 s pass)
     val query = CarSearch.query
     val asking = query.trim().length >= 3
@@ -153,7 +163,7 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
                     listening -> L.t("Listening…")
                     query.isNotEmpty() -> query
                     CarSearch.note.isNotBlank() -> CarSearch.note
-                    else -> L.t("Where to?")
+                    else -> L.t(if (CarSearch.forStop) "Add a stop" else "Where to?")
                 }
                 Text(line, color = if (listening) c.accent else if (query.isNotEmpty()) c.text else c.sub, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f).padding(start = 12.dp))
@@ -178,7 +188,7 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
                 } else LazyColumn(Modifier.fillMaxSize(), state = listState) {
                     itemsIndexed(found) { i, p ->
                         val d = if (here != null) Geo.fmtDist(Geo.dist(here, p.pos), engine.imperial) else ""
-                        CarSearchLine(p.name, p.sub, d, Icons.Rounded.Place, Color(0xFFEA4335), rowH, Modifier.carTap("sp-f$i") { actions.closeSearch(); engine.startRoute(p) })
+                        CarSearchLine(p.name, p.sub, d, Icons.Rounded.Place, Color(0xFFEA4335), rowH, Modifier.carTap("sp-f$i") { pick(p) })
                     }
                 }
             }
@@ -211,7 +221,7 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
             } else LazyColumn(Modifier.weight(1f).fillMaxHeight(), state = listState) {
                 itemsIndexed(rows) { i, r ->
                     val d = if (here != null) Geo.fmtDist(Geo.dist(here, r.place.pos), engine.imperial) else ""
-                    CarSearchLine(r.title, r.sub, d, r.icon, r.tint, rowH, Modifier.carTap("sp-r$tab-$i") { actions.closeSearch(); engine.startRoute(r.place) })
+                    CarSearchLine(r.title, r.sub, d, r.icon, r.tint, rowH, Modifier.carTap("sp-r$tab-$i") { pick(r.place) })
                 }
             }
         }

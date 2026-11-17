@@ -1593,5 +1593,9 @@ object I18nTr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Kayıtlı yerleriniz arama çubuğunun altındaki kutucuk sırasında, sonunda Bir yer ekle var",
         "Places you drive to show up here" to "Gittiğiniz yerler burada görünür",
         "Save somewhere" to "Bir yer kaydet",
+        "Add a stop" to "Durak ekle",
+        "Couldn't find {0}" to "{0} bulunamadı",
+        "No stops yet. Add one and the route goes through it on the way." to "Henüz durak yok. Bir tane ekleyin, rota yol üstünde oradan geçer.",
+        "Search for a place on the way" to "Yol üstünde bir yer ara",
     )
 }

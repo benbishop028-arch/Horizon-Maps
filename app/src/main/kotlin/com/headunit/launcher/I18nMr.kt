@@ -1593,5 +1593,9 @@ object I18nMr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "तुमची जतन केलेली ठिकाणे शोध पट्टीखालील टाइल्सच्या रांगेत आहेत, जी «ठिकाण जोडा» ने संपते",
         "Places you drive to show up here" to "तुम्ही जिथे जाता ती ठिकाणे इथे दिसतात",
         "Save somewhere" to "ठिकाण जतन करा",
+        "Add a stop" to "थांबा जोडा",
+        "Couldn't find {0}" to "{0} सापडले नाही",
+        "No stops yet. Add one and the route goes through it on the way." to "अजून थांबे नाहीत. एक जोडा आणि मार्ग वाटेत तिथून जाईल.",
+        "Search for a place on the way" to "वाटेत ठिकाण शोधा",
     )
 }

@@ -1593,5 +1593,9 @@ object I18nSv {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Dina sparade platser finns i raden med rutor under sökfältet, som slutar med Lägg till en plats",
         "Places you drive to show up here" to "Platser du kör till visas här",
         "Save somewhere" to "Spara en plats",
+        "Add a stop" to "Lägg till ett stopp",
+        "Couldn't find {0}" to "Kunde inte hitta {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Inga stopp ännu. Lägg till ett så går rutten förbi det på vägen.",
+        "Search for a place on the way" to "Sök efter en plats på vägen",
     )
 }

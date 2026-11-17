@@ -1593,5 +1593,9 @@ object I18nHe {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "המקומות השמורים נמצאים בשורת האריחים מתחת לסרגל החיפוש, שמסתיימת ב״הוסף מקום״",
         "Places you drive to show up here" to "מקומות שאתה נוסע אליהם יופיעו כאן",
         "Save somewhere" to "שמור מקום",
+        "Add a stop" to "הוסף עצירה",
+        "Couldn't find {0}" to "לא נמצא: {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "אין עדיין עצירות. הוסף אחת והמסלול יעבור דרכה בדרך.",
+        "Search for a place on the way" to "חפש מקום בדרך",
     )
 }

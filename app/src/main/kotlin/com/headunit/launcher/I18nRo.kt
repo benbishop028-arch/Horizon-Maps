@@ -1593,5 +1593,9 @@ object I18nRo {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Locurile salvate sunt în rândul de dale de sub bara de căutare, care se termină cu Adaugă un loc",
         "Places you drive to show up here" to "Locurile spre care conduceți apar aici",
         "Save somewhere" to "Salvați un loc",
+        "Add a stop" to "Adăugați o oprire",
+        "Couldn't find {0}" to "{0} nu a fost găsit",
+        "No stops yet. Add one and the route goes through it on the way." to "Încă nu există opriri. Adăugați una și traseul trece pe acolo.",
+        "Search for a place on the way" to "Căutați un loc pe drum",
     )
 }

@@ -1593,5 +1593,9 @@ object I18nSk {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Uložené miesta sú v rade dlaždíc pod vyhľadávacím panelom, ktorý končí tlačidlom Pridať miesto",
         "Places you drive to show up here" to "Tu sa zobrazia miesta, kam idete",
         "Save somewhere" to "Uložiť miesto",
+        "Add a stop" to "Pridať zastávku",
+        "Couldn't find {0}" to "{0} sa nenašlo",
+        "No stops yet. Add one and the route goes through it on the way." to "Zatiaľ žiadne zastávky. Pridajte jednu a trasa cez ňu povedie.",
+        "Search for a place on the way" to "Hľadať miesto po ceste",
     )
 }

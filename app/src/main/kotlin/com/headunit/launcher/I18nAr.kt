@@ -1593,5 +1593,9 @@ object I18nAr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "أماكنك المحفوظة في صف المربعات أسفل شريط البحث، الذي ينتهي بـ «أضف مكانًا»",
         "Places you drive to show up here" to "تظهر هنا الأماكن التي تقود إليها",
         "Save somewhere" to "احفظ مكانًا",
+        "Add a stop" to "إضافة محطة",
+        "Couldn't find {0}" to "تعذّر العثور على {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "لا توجد محطات بعد. أضف واحدة وسيمر المسار بها في الطريق.",
+        "Search for a place on the way" to "ابحث عن مكان في الطريق",
     )
 }

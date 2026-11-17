@@ -1593,5 +1593,9 @@ object I18nSr {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Sačuvana mesta su u nizu pločica ispod trake za pretragu, koji se završava sa Dodaj mesto",
         "Places you drive to show up here" to "Ovde se prikazuju mesta do kojih vozite",
         "Save somewhere" to "Sačuvaj mesto",
+        "Add a stop" to "Dodaj stajanje",
+        "Couldn't find {0}" to "Nije pronađeno: {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Još nema stajanja. Dodajte jedno i ruta će proći kroz njega.",
+        "Search for a place on the way" to "Traži mesto usput",
     )
 }

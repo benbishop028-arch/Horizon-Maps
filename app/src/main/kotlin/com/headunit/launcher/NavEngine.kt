@@ -43,6 +43,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var dest by mutableStateOf<Place?>(null)
     var turn by mutableStateOf<TurnInfo?>(null)
     var eta by mutableStateOf<EtaInfo?>(null)
+    /** When you get to each stop on the way (the ones still ahead), worked out with the time left. */
+    var stopEtas by mutableStateOf<List<StopEta>>(emptyList())
+    /** A place picked while a route is being driven: asked about first (Add as a stop / Go here instead). */
+    var choose by mutableStateOf<Place?>(null)
     var following by mutableStateOf(true)
     // (remembered: it used to start in 3D every time, even if you'd left it in 2D)
     var tilt3d by mutableStateOf(prefs.b(PreferenceKeys.VIEW_3D, true))
@@ -1306,9 +1310,30 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
-    fun addStop(p: Place) {
+    /** A route is being driven (not just looked at): a place picked now can be a stop on the way, or where to go instead. */
+    fun driving(): Boolean = route != null && !previewing && dest != null
+
+    /** A place picked from a search or a list: while driving it's asked about first, otherwise the route to it starts. */
+    fun goOrAsk(p: Place, ask: Boolean = true) {
+        // (a GPX track from the search is driven, not offered as a stop: its start would be a strange place to stop)
+        if (ask && driving() && !p.web.startsWith("gpx:")) choose = p else startRoute(p)
+    }
+    fun chooseStop() { val p = choose ?: return; choose = null; addStop(p) }
+    fun chooseGo() { val p = choose ?: return; choose = null; startRoute(p) }
+
+    /** "Add a stop at …" by voice, with only a name or address to go on: the best match is added (or gone to, with no route). */
+    fun addStopByQuery(q: String) {
+        scope.launch {
+            val p = try { findPlaces(q).firstOrNull() } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+            if (p == null) toast(L.t("Couldn't find {0}", q), 4000)
+            else if (driving()) addStop(p, next = true) else startRoute(p)
+        }
+    }
+
+    /** [next]: the stop comes before the ones already there (asked for by voice: "add a stop at …" is where to go next). */
+    fun addStop(p: Place, next: Boolean = false) {
         val d = dest ?: return
-        via = via + p
+        via = if (next) listOf(p) + via else via + p
         stopMode = false
         clearNearby()
         toast(L.t("Stop added: {0}", p.name), 2500)
@@ -2499,7 +2524,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         faster = null; resume = null; prefs.put(PreferenceKeys.RESUME, "{}")
         incMatches = emptyList(); incidentAhead = null; incAt = 0L; incAlerted.clear()
         routeCams = emptyList(); camsRoute = null; camsAt = 0L; camsCount = -1; hazardSig = 0; policeSig = 0; map.setHazards(emptyList())
-        via = emptyList(); stopMode = false; destRain = null; routeWx = emptyList()
+        via = emptyList(); stopMode = false; destRain = null; routeWx = emptyList(); stopEtas = emptyList(); choose = null
         routes = emptyList(); active = 0; dest = null; turn = null; eta = null; lastIdx = 0; previewing = false; routeFrac = 0f; onRoad = ""
         try { refreshRoad() } catch (e: Exception) { }
         departMin = 0; departAtMs = 0L
@@ -3201,10 +3226,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val p = t.pos
         if (p != null) {
             val pl = Place(t.name, "Shared from another app", p)
+            // "add a stop at …" while driving: the next stop, keeping where you're going
+            if (t.addStop && driving()) { addStop(pl, next = true); return }
             startRoute(pl)
             try { RouteSync.offerToCar(this, pl) } catch (e: Exception) { }
         }
-        else if (!t.query.isNullOrBlank()) externalQuery = t.query
+        else if (!t.query.isNullOrBlank()) { if (t.addStop && driving()) addStopByQuery(t.query) else externalQuery = t.query }
     }
 
     // ---- guidance ----
@@ -4940,13 +4967,54 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    // where each stop is along the route (m from its start), and how far from the route it is: worked out when the route or
+    // the stops change
+    private var stopOffs = DoubleArray(0)
+    private var stopNear = DoubleArray(0)
+    private var stopOffsRoute: Route? = null
+    private var stopOffsVia: List<Place>? = null
+
+    private fun stopOffsFor(r: Route, progress: Double): DoubleArray {
+        if (stopOffsRoute === r && stopOffsVia === via) return stopOffs
+        val n = minOf(r.pts.size, r.cum.size)
+        val offs = DoubleArray(via.size); val nearD = DoubleArray(via.size)
+        // (in order along the route from where you are, so a road that passes a later stop on the way to an earlier one
+        // doesn't put them the wrong way round)
+        var from = 0
+        while (from < n - 1 && r.cum[from] < progress - 50.0) from++
+        for ((k, v) in via.withIndex()) {
+            var best = from; var bd = Double.MAX_VALUE
+            for (i in from until n) { val d = Geo.dist(r.pts[i], v.pos); if (d < bd) { bd = d; best = i } }
+            offs[k] = if (n > 0) r.cum[best] else 0.0; nearD[k] = bd; from = best
+        }
+        stopOffsRoute = r; stopOffsVia = via; stopOffs = offs; stopNear = nearD
+        return offs
+    }
+
+    /** The time the route takes from [p] metres along it to its end: the road with no traffic, plus the delays still ahead. */
+    private fun remainFrom(r: Route, p: Double): Double {
+        val frac = if (r.len > 0) max(0.0, r.len - p) / r.len else 0.0
+        val ahead = if (r.delays.isEmpty()) r.delay * frac else r.delays.sumOf { d ->
+            val span = max(1.0, d.end - d.off)
+            d.secs * ((d.end - max(p, d.off)) / span).coerceIn(0.0, 1.0)
+        }
+        return r.freeFlow * frac + ahead
+    }
+
     private fun updateGuidance(progress: Double, light: Boolean = false) {
         val r = route ?: return
         val rem = max(0.0, r.len - progress)
         val frac = if (r.len > 0) rem / r.len else 0.0
         if (!light) {
             try { checkIncidents(r, progress) } catch (e: Exception) { }
-            fix?.let { f -> if (via.isNotEmpty() && Geo.dist(f.pos, via[0].pos) < 80) { toast(L.t("Stop reached: {0}", via[0].name), 3000); via = via.drop(1) } }
+            // a stop is reached within 80 m of it, or once you're past the point on the route nearest to it: a stop set back from
+            // the road (a pin in the middle of a car park) was never within 80 m, stayed on the list, and the next time the route
+            // was worked out again it went back there
+            if (via.isNotEmpty()) {
+                val near = fix?.let { f -> Geo.dist(f.pos, via[0].pos) < 80 } == true
+                val passed = !busy && stopOffsFor(r, progress).let { o -> o.isNotEmpty() && stopNear.getOrElse(0) { 1e9 } < 400.0 && progress > o[0] + 25.0 }
+                if (near || passed) { toast(L.t("Stop reached: {0}", via[0].name), 3000); via = via.drop(1) }
+            }
             if (via.isEmpty()) checkParking(r, rem)
             curProgress = progress
             // time left = what the rest of the road takes with no traffic + the delays that are still ahead of you
@@ -4973,6 +5041,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val arrive = Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
+            // each stop's share of the time left (the same sums, up to where the stop is on the route). While a changed route is
+            // being worked out the last ones stay
+            if (via.isEmpty()) { if (stopEtas.isNotEmpty()) stopEtas = emptyList() }
+            else if (!busy) {
+                val offs = stopOffsFor(r, progress)
+                val base = remainFrom(r, progress)
+                val now = System.currentTimeMillis()
+                stopEtas = via.mapIndexed { n, v ->
+                    val o = offs.getOrElse(n) { r.len }
+                    val s = if (base > 0) secs * (1.0 - remainFrom(r, o) / base).coerceIn(0.0, 1.0) else 0.0
+                    StopEta(v, Clock.hm(now + (s * 1000).toLong()), max(0.0, o - progress), s)
+                }
+            }
             routeFrac = (1.0 - frac).toFloat().coerceIn(0f, 1f)
             pruneLiveAlts(progress)
             saveResumeBeat()

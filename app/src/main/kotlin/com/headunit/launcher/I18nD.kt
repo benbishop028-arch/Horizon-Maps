@@ -1590,5 +1590,9 @@ object I18nD {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("Запазените места са в реда плочки под лентата за търсене, който завършва с Добави място"),
         "Places you drive to show up here" to listOf("Местата, до които шофирате, се показват тук"),
         "Save somewhere" to listOf("Запазване на място"),
+        "Add a stop" to listOf("Добавяне на спирка"),
+        "Couldn't find {0}" to listOf("{0} не е намерено"),
+        "No stops yet. Add one and the route goes through it on the way." to listOf("Все още няма спирки. Добавете една и маршрутът ще мине през нея по пътя."),
+        "Search for a place on the way" to listOf("Търсене на място по пътя"),
     )
 }

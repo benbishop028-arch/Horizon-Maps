@@ -1599,5 +1599,9 @@ object I18nC {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to listOf("สถานที่ที่บันทึกไว้อยู่ในแถวไทล์ใต้แถบค้นหา ซึ่งท้ายสุดคือ เพิ่มสถานที่", "保存した場所は検索バーの下のタイル列にあり、最後は「場所を追加」です", "Tempat tersimpan ada di deretan ubin di bawah bilah pencarian, yang diakhiri dengan Tambah tempat"),
         "Places you drive to show up here" to listOf("สถานที่ที่คุณขับไปจะแสดงที่นี่", "走行した場所がここに表示されます", "Tempat yang Anda tuju akan muncul di sini"),
         "Save somewhere" to listOf("บันทึกสถานที่", "場所を保存", "Simpan tempat"),
+        "Add a stop" to listOf("เพิ่มจุดแวะ", "立ち寄り地を追加", "Tambah perhentian"),
+        "Couldn't find {0}" to listOf("ไม่พบ {0}", "{0} が見つかりませんでした", "{0} tidak ditemukan"),
+        "No stops yet. Add one and the route goes through it on the way." to listOf("ยังไม่มีจุดแวะ เพิ่มจุดแวะแล้วเส้นทางจะผ่านไประหว่างทาง", "立ち寄り地はまだありません。追加すると途中で経由します。", "Belum ada perhentian. Tambahkan satu dan rute akan melewatinya di jalan."),
+        "Search for a place on the way" to listOf("ค้นหาสถานที่ระหว่างทาง", "途中の場所を検索", "Cari tempat di sepanjang jalan"),
     )
 }

@@ -1593,5 +1593,9 @@ object I18nDa {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Dine gemte steder er i rækken af felter under søgelinjen, som slutter med Tilføj et sted",
         "Places you drive to show up here" to "Steder, du kører til, vises her",
         "Save somewhere" to "Gem et sted",
+        "Add a stop" to "Tilføj et stop",
+        "Couldn't find {0}" to "Kunne ikke finde {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "Ingen stop endnu. Tilføj et, så går ruten forbi det på vejen.",
+        "Search for a place on the way" to "Søg efter et sted på vejen",
     )
 }

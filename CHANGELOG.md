@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Stops on Android Auto: tap the trip card's figures while navigating for the stops on the way, each with when you get there. Move them earlier or later, take one off or add one, then Update route (thanks to yurividal)
+- Search while navigating on Android Auto: the trip card has a search button (Settings › Android Auto › Buttons on the trip card). A place picked while driving is asked about: Add as a stop, or Go here instead (thanks to yurividal)
+- "Add a stop" by voice: "Hey Google, add a stop at…" while navigating adds it as the next stop and keeps where you're going, on Android Auto and on the phone (thanks to yurividal)
+- Arrival time for each stop: the car's trip card shows the next stop and when you get there, and the stops editor on the phone shows the time for each (thanks to yurividal)
 - Groups for GPX tracks, and tracks in the search: file your tracks in groups that fold open (the folder button on each track, in Settings › Places & trips › GPX tracks), and type a track's name in the search bar to find it (thanks to bijindas)
 - Road name and heading switch separately: "Heading E" after the road name when driving without a route now has its own switch, so you can keep just the road (Settings › Screen & sizes › While driving) (thanks to liamstears)
 - GPX tracks: import a .gpx file (from Komoot, Strava, Garmin or your own recording) in Settings › Places & trips › GPX tracks. Show puts it on the map; Drive follows it to the end with the usual spoken turns, carrying on from where you join it, and a reroute keeps you on the track (thanks to bijindas)
@@ -61,6 +65,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Voice "add a stop" replaced the destination: asking the Assistant to add a stop while navigating threw the trip away and went to the stop instead (thanks to yurividal)
+- Stops set back from the road: a stop more than 80 m from the road (a pin in the middle of a car park) was never counted as reached, so the route went back to it the next time it was worked out (thanks to yurividal)
 - Google Play Protect no longer blocks installing: the media bar's song and artwork needed notification access, which Play Protect now blocks in apps installed from a file. The GitHub edition's media bar keeps back, play / pause and next without the song (thanks to desko1973)
 - One headlight beam, from under the car: the beam is now a single cone at about half the brightness (it looked like two beams on top of each other), starting under the car so it seems to come from the headlights rather than the windscreen (thanks to liamstears)
 - Headlight beam behind the car: at night the beam started well behind the arrow or car and shone back over it, as if the light came from nowhere. It is now drawn from the car's own spot on screen, so it comes out of the front and lights the road ahead, flat on the road at any tilt (thanks to liamstears)

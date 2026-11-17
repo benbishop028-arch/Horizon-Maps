@@ -1593,5 +1593,9 @@ object I18nEu {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "Gordetako tokiak bilaketa-barraren azpiko lauza-errenkadan daude, Gehitu toki bat botoiarekin amaitzen dena",
         "Places you drive to show up here" to "Gidatzen duzun tokiak hemen agertzen dira",
         "Save somewhere" to "Gorde toki bat",
+        "Add a stop" to "Gehitu geldialdi bat",
+        "Couldn't find {0}" to "Ezin izan da {0} aurkitu",
+        "No stops yet. Add one and the route goes through it on the way." to "Oraindik ez dago geldialdirik. Gehitu bat eta ibilbidea bertatik pasatuko da.",
+        "Search for a place on the way" to "Bilatu toki bat bidean",
     )
 }

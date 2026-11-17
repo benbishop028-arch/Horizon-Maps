@@ -6,7 +6,8 @@ import java.net.URL
 import java.net.URLDecoder
 
 /** A destination handed over by another app: exact coordinates, or text to search for. */
-class SharedTarget(val pos: LL?, val name: String, val query: String?)
+/** [addStop]: asked for as a stop on the way ("add a stop at …"), rather than as where to go instead. */
+class SharedTarget(val pos: LL?, val name: String, val query: String?, val addStop: Boolean = false)
 
 /**
  * Reads destinations shared from other apps: geo: links, google.navigation: links, Google Maps web links
@@ -22,7 +23,8 @@ object ExternalLinks {
     fun textOf(i: Intent?): String? {
         if (i == null) return null
         return when (i.action) {
-            Intent.ACTION_VIEW -> i.dataString
+            // (NAVIGATE: "navigate to …" from Gemini / Google Assistant on the phone)
+            Intent.ACTION_VIEW, "android.intent.action.NAVIGATE", "androidx.car.app.action.NAVIGATE" -> i.dataString
             Intent.ACTION_SEND -> listOfNotNull(i.getStringExtra(Intent.EXTRA_SUBJECT), i.getStringExtra(Intent.EXTRA_TEXT)).joinToString("\n").ifBlank { null }
             else -> null
         }
@@ -73,11 +75,14 @@ object ExternalLinks {
         if (lower.startsWith("geo:")) {
             val q = param(text, "q")
             val label = q?.let { Regex("\\(([^)]*)\\)").find(it)?.groupValues?.get(1) }.orEmpty()
+            // Gemini / Google Assistant: intent=add_a_stop is "add a stop at …" (the next stop, keeping where you're going);
+            // without it (or intent=navigation) the place is the new destination
+            val stop = param(text, "intent").equals("add_a_stop", true)
             val qp = ll(q)
-            if (qp != null) return SharedTarget(qp, label.ifBlank { "Shared location" }, null)
-            if (!q.isNullOrBlank()) return SharedTarget(null, q, q.replace(Regex("\\([^)]*\\)"), "").trim())
+            if (qp != null) return SharedTarget(qp, label.ifBlank { "Shared location" }, null, stop)
+            if (!q.isNullOrBlank()) return SharedTarget(null, q, q.replace(Regex("\\([^)]*\\)"), "").trim(), stop)
             val p = ll(text.removePrefix("geo:").substringBefore('?'))
-            return if (p != null) SharedTarget(p, "Shared location", null) else null
+            return if (p != null) SharedTarget(p, "Shared location", null, stop) else null
         }
         if (lower.startsWith("google.navigation:")) {
             val q = param(text.replaceFirst(":", ":?"), "q") ?: text.substringAfter(':').substringAfter("q=").substringBefore('&').let { dec(it) }

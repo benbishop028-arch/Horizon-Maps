@@ -1593,5 +1593,9 @@ object I18nZhHant {
         "Your saved places are in the row of tiles under the search bar, which ends with Add a place" to "已儲存的地點位於搜尋列下方的方塊列中，最後一個是「新增地點」",
         "Places you drive to show up here" to "你開車前往的地點會顯示在這裡",
         "Save somewhere" to "儲存地點",
+        "Add a stop" to "新增中途站",
+        "Couldn't find {0}" to "找不到 {0}",
+        "No stops yet. Add one and the route goes through it on the way." to "還沒有中途站。新增後，路線會順路經過。",
+        "Search for a place on the way" to "搜尋沿途地點",
     )
 }
