@@ -505,7 +505,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val spare = maxWidth - 16.dp - tripW - 12.dp - 12.dp - (if (speedInCorner) speedW + 16.dp else 16.dp)
             when {
                 // no trip card: bottom centre, clear of the speedometer on either side
-                tripPx == 0 -> Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp).widthIn(max = minOf(mediaMax, maxWidth - 2 * (speedW + 28.dp)).coerceAtLeast(200.dp))
+                tripPx == 0 -> Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp).widthIn(max = minOf(mediaMax, maxWidth - (speedW + 28.dp) * 2).coerceAtLeast(200.dp))
                 // beside the trip card
                 !narrow && tripAt != "centre" && spare >= 240.dp -> {
                     val w = minOf(mediaMax, spare)
