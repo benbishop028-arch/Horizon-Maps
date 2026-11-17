@@ -1554,5 +1554,13 @@ object I18nEu {
         "Bar along the bottom" to "Barra behean",
         "Column on the left" to "Zutabea ezkerrean",
         "What's new" to "Berrikuntzak",
+        "Media controls" to "Multimedia kontrolak",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Atzera, erreproduzitu / pausatu eta hurrengoa pantailaren behealdean, gailu honetan musika edo irratia entzuten den bitartean, edozein aplikaziotatik",
+        "Song and artwork" to "Abestia eta azala",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Zer entzuten den erakusten du. Jakinarazpenetarako sarbidea behar du, hasierako pantailako aplikazioek beren multimedia kontroletarako erabiltzen duten bera",
+        "Tap to allow song info" to "Sakatu abestiaren informazioa baimentzeko",
+        "Previous" to "Aurrekoa",
+        "Play" to "Erreproduzitu",
+        "Pause" to "Pausatu",
     )
 }

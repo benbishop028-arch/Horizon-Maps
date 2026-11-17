@@ -1554,5 +1554,13 @@ object I18nHr {
         "Bar along the bottom" to "Traka na dnu",
         "Column on the left" to "Stupac lijevo",
         "What's new" to "Novosti",
+        "Media controls" to "Upravljanje medijima",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Natrag, reprodukcija / pauza i sljedeće na dnu zaslona dok na ovom uređaju svira glazba ili radio, iz bilo koje aplikacije",
+        "Song and artwork" to "Pjesma i omot",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Prikazuje što svira. Treba pristup obavijestima, isti koji koriste aplikacije početnog zaslona za upravljanje medijima",
+        "Tap to allow song info" to "Dodirnite za dopuštanje podataka o pjesmi",
+        "Previous" to "Prethodna",
+        "Play" to "Reproduciraj",
+        "Pause" to "Pauza",
     )
 }

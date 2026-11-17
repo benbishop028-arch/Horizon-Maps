@@ -1554,5 +1554,13 @@ object I18nTr {
         "Bar along the bottom" to "Altta çubuk",
         "Column on the left" to "Solda sütun",
         "What's new" to "Yenilikler",
+        "Media controls" to "Medya denetimleri",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Bu cihazda müzik veya radyo çalarken ekranın altında geri, oynat / duraklat ve ileri, her uygulamadan",
+        "Song and artwork" to "Şarkı ve kapak",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Neyin çaldığını gösterir. Ana ekran uygulamalarının medya denetimleri için kullandığı gibi bildirim erişimi gerekir",
+        "Tap to allow song info" to "Şarkı bilgisine izin vermek için dokunun",
+        "Previous" to "Önceki",
+        "Play" to "Oynat",
+        "Pause" to "Duraklat",
     )
 }

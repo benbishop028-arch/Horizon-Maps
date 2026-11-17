@@ -219,7 +219,9 @@ fun MapHost(map: MapBinding, modifier: Modifier = Modifier, cornerDp: Int = 0) {
                 }
                 (map.mapView.parent as? ViewGroup)?.removeView(map.mapView)
                 addView(map.mapView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-                // the 3D locator sits just above the map (it's moved to the car's spot on screen as the camera moves)
+                // the headlight beam, then the 3D locator, sit just above the map (moved to the car's spot on screen as the camera moves)
+                (map.beamView.parent as? ViewGroup)?.removeView(map.beamView)
+                addView(map.beamView, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
                 (map.roadView.parent as? ViewGroup)?.removeView(map.roadView)
                 addView(map.roadView, FrameLayout.LayoutParams(1, 1))
                 (map.locatorView.parent as? ViewGroup)?.removeView(map.locatorView)

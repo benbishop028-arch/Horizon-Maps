@@ -2261,6 +2261,14 @@ object L {
         "Bar along the bottom" to listOf("Balk onderaan", "Leiste unten", "Barre en bas", "Barra en la parte inferior"),
         "Column on the left" to listOf("Kolom links", "Spalte links", "Colonne à gauche", "Columna a la izquierda"),
         "What's new" to listOf("Wat is er nieuw", "Neuigkeiten", "Nouveautés", "Novedades"),
+        "Media controls" to listOf("Mediabediening", "Mediensteuerung", "Commandes multimédia", "Controles multimedia"),
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to listOf("Terug, afspelen / pauzeren en volgende onder in beeld terwijl er muziek of radio speelt op dit apparaat, vanuit elke app", "Zurück, Wiedergabe / Pause und Weiter unten auf dem Bildschirm, während auf diesem Gerät Musik oder Radio läuft, aus jeder App", "Précédent, lecture / pause et suivant en bas de l'écran pendant que de la musique ou la radio joue sur cet appareil, depuis n'importe quelle appli", "Anterior, reproducir / pausa y siguiente en la parte inferior de la pantalla mientras suena música o radio en este dispositivo, desde cualquier app"),
+        "Song and artwork" to listOf("Nummer en albumhoes", "Titel und Cover", "Titre et pochette", "Canción y portada"),
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to listOf("Laat zien wat er speelt. Heeft meldingstoegang nodig, net als startscherm-apps voor hun mediabediening", "Zeigt, was gerade läuft. Benötigt Benachrichtigungszugriff, wie ihn Startbildschirm-Apps für ihre Mediensteuerung nutzen", "Affiche ce qui est en cours de lecture. Nécessite l'accès aux notifications, comme les applis d'écran d'accueil pour leurs commandes multimédia", "Muestra lo que suena. Necesita acceso a las notificaciones, igual que las apps de pantalla de inicio para sus controles multimedia"),
+        "Tap to allow song info" to listOf("Tik om nummerinfo toe te staan", "Tippen, um Titelinfos zu erlauben", "Touchez pour autoriser les infos du titre", "Toca para permitir la información de la canción"),
+        "Previous" to listOf("Vorige", "Zurück", "Précédent", "Anterior"),
+        "Play" to listOf("Afspelen", "Wiedergabe", "Lecture", "Reproducir"),
+        "Pause" to listOf("Pauzeren", "Pause", "Pause", "Pausa"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3813,5 +3821,13 @@ object L {
         "Bar along the bottom" to listOf("Barra in basso", "Barra em baixo", "Pasek na dole"),
         "Column on the left" to listOf("Colonna a sinistra", "Coluna à esquerda", "Kolumna po lewej"),
         "What's new" to listOf("Novità", "Novidades", "Co nowego"),
+        "Media controls" to listOf("Controlli multimediali", "Controlos multimédia", "Sterowanie multimediami"),
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to listOf("Indietro, riproduci / pausa e avanti in fondo allo schermo mentre su questo dispositivo suona musica o radio, da qualsiasi app", "Anterior, reproduzir / pausa e seguinte no fundo do ecrã enquanto toca música ou rádio neste dispositivo, de qualquer app", "Wstecz, odtwarzaj / pauza i dalej na dole ekranu, gdy na tym urządzeniu gra muzyka lub radio, z dowolnej aplikacji"),
+        "Song and artwork" to listOf("Brano e copertina", "Música e capa", "Utwór i okładka"),
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to listOf("Mostra cosa è in riproduzione. Richiede l'accesso alle notifiche, come usano le app della schermata Home per i loro controlli multimediali", "Mostra o que está a tocar. Precisa de acesso às notificações, tal como as apps de ecrã inicial usam para os seus controlos multimédia", "Pokazuje, co gra. Wymaga dostępu do powiadomień, tak jak aplikacje ekranu głównego do sterowania multimediami"),
+        "Tap to allow song info" to listOf("Tocca per consentire le info del brano", "Toque para permitir a informação da música", "Dotknij, aby zezwolić na informacje o utworze"),
+        "Previous" to listOf("Precedente", "Anterior", "Poprzedni"),
+        "Play" to listOf("Riproduci", "Reproduzir", "Odtwarzaj"),
+        "Pause" to listOf("Pausa", "Pausa", "Pauza"),
     )
 }

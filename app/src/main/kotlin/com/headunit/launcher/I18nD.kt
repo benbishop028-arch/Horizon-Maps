@@ -1551,5 +1551,13 @@ object I18nD {
         "Bar along the bottom" to listOf("Лента отдолу"),
         "Column on the left" to listOf("Колона вляво"),
         "What's new" to listOf("Какво ново"),
+        "Media controls" to listOf("Управление на медия"),
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to listOf("Назад, пускане / пауза и напред в долната част на екрана, докато на това устройство свири музика или радио, от всяко приложение"),
+        "Song and artwork" to listOf("Песен и обложка"),
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to listOf("Показва какво свири. Нужен е достъп до известията, както го ползват приложенията за начален екран за управление на медия"),
+        "Tap to allow song info" to listOf("Докоснете, за да разрешите информация за песента"),
+        "Previous" to listOf("Предишна"),
+        "Play" to listOf("Пускане"),
+        "Pause" to listOf("Пауза"),
     )
 }

@@ -63,10 +63,17 @@ internal fun allShortcuts(engine: NavEngine): List<Shortcut> {
     )
 }
 
+/** Saved in place of a list when every shortcut has been taken off. */
+internal const val SHORTCUTS_NONE = "none"
+
 /** The ones picked (Settings › Places & trips), or as before when none are picked: Fuel first, or Charging and Toilets for an electric car. */
 internal fun chosenShortcuts(engine: NavEngine): List<Shortcut> {
     val all = allShortcuts(engine)
-    val picked = engine.prefs.s(PreferenceKeys.SHORTCUTS, "").split(',').map { it.trim() }.filter { it.isNotEmpty() }
+    val raw = engine.prefs.s(PreferenceKeys.SHORTCUTS, "")
+    // "none": every one taken off on purpose. (Taking off the last one used to save an empty list, which reads as "never
+    // picked" and brought the five standard ones straight back, so they couldn't all be turned off: Reddit)
+    if (raw.trim() == SHORTCUTS_NONE) return emptyList()
+    val picked = raw.split(',').map { it.trim() }.filter { it.isNotEmpty() }
     val ids = picked.ifEmpty {
         if (engine.hideFuel) listOf("charging", "food", "coffee", "parking", "toilets") else listOf("fuel", "charging", "food", "coffee", "parking")
     }
@@ -80,7 +87,7 @@ internal fun ShortcutsGroup(engine: NavEngine) {
     val c = LocalVw.current
     val prefs = engine.prefs
     val order = chosenShortcuts(engine).map { it.id }
-    fun save(ids: List<String>) = prefs.put(PreferenceKeys.SHORTCUTS, ids.joinToString(","))
+    fun save(ids: List<String>) = prefs.put(PreferenceKeys.SHORTCUTS, if (ids.isEmpty()) SHORTCUTS_NONE else ids.joinToString(","))
     SGroup(L.t("Shortcuts under the search bar"), footer = L.t("Pick up to 5. They show in this order. Tap one to add or take it off")) {
         // (they wrap onto as many lines as the screen needs: in fixed rows of four, a phone squeezed the last one into a
         // column of single letters, GitHub #121)

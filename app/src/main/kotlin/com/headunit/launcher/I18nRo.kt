@@ -1554,5 +1554,13 @@ object I18nRo {
         "Bar along the bottom" to "Bară jos",
         "Column on the left" to "Coloană în stânga",
         "What's new" to "Noutăți",
+        "Media controls" to "Comenzi media",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Înapoi, redare / pauză și înainte în partea de jos a ecranului cât timp pe acest dispozitiv se aude muzică sau radio, din orice aplicație",
+        "Song and artwork" to "Melodie și copertă",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Arată ce se redă. Necesită acces la notificări, la fel ca aplicațiile de ecran de pornire pentru comenzile lor media",
+        "Tap to allow song info" to "Atingeți pentru a permite informațiile melodiei",
+        "Previous" to "Anterioara",
+        "Play" to "Redare",
+        "Pause" to "Pauză",
     )
 }

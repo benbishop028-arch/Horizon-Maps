@@ -1554,5 +1554,13 @@ object I18nHu {
         "Bar along the bottom" to "Sáv alul",
         "Column on the left" to "Oszlop bal oldalt",
         "What's new" to "Újdonságok",
+        "Media controls" to "Médiavezérlők",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Vissza, lejátszás / szünet és következő a képernyő alján, amíg ezen az eszközön zene vagy rádió szól, bármelyik alkalmazásból",
+        "Song and artwork" to "Dal és borító",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Megmutatja, mi szól. Értesítési hozzáférés kell hozzá, ugyanaz, amit a kezdőképernyő-alkalmazások a médiavezérlőikhez használnak",
+        "Tap to allow song info" to "Koppintson a dalinformációk engedélyezéséhez",
+        "Previous" to "Előző",
+        "Play" to "Lejátszás",
+        "Pause" to "Szünet",
     )
 }

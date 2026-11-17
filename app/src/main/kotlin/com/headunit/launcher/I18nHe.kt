@@ -1554,5 +1554,13 @@ object I18nHe {
         "Bar along the bottom" to "פס בתחתית",
         "Column on the left" to "עמודה משמאל",
         "What's new" to "מה חדש",
+        "Media controls" to "פקדי מדיה",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "הקודם, הפעלה / השהיה והבא בתחתית המסך בזמן שמוזיקה או רדיו מתנגנים במכשיר הזה, מכל אפליקציה",
+        "Song and artwork" to "שיר ועטיפה",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "מציג מה מתנגן. דורש גישה להתראות, כמו שאפליקציות מסך הבית משתמשות לפקדי המדיה שלהן",
+        "Tap to allow song info" to "הקש כדי לאפשר פרטי שיר",
+        "Previous" to "הקודם",
+        "Play" to "הפעלה",
+        "Pause" to "השהיה",
     )
 }

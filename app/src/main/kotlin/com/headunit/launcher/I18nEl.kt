@@ -1554,5 +1554,13 @@ object I18nEl {
         "Bar along the bottom" to "Μπάρα στο κάτω μέρος",
         "Column on the left" to "Στήλη αριστερά",
         "What's new" to "Τι νέο υπάρχει",
+        "Media controls" to "Χειριστήρια πολυμέσων",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Πίσω, αναπαραγωγή / παύση και επόμενο στο κάτω μέρος της οθόνης όσο παίζει μουσική ή ραδιόφωνο σε αυτή τη συσκευή, από οποιαδήποτε εφαρμογή",
+        "Song and artwork" to "Τραγούδι και εξώφυλλο",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Δείχνει τι παίζει. Χρειάζεται πρόσβαση στις ειδοποιήσεις, όπως τη χρησιμοποιούν οι εφαρμογές αρχικής οθόνης για τα χειριστήρια πολυμέσων τους",
+        "Tap to allow song info" to "Πατήστε για να επιτρέψετε τις πληροφορίες τραγουδιού",
+        "Previous" to "Προηγούμενο",
+        "Play" to "Αναπαραγωγή",
+        "Pause" to "Παύση",
     )
 }

@@ -1554,5 +1554,13 @@ object I18nMs {
         "Bar along the bottom" to "Bar di bawah",
         "Column on the left" to "Lajur di kiri",
         "What's new" to "Apa yang baharu",
+        "Media controls" to "Kawalan media",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Kembali, main / jeda dan seterusnya di bahagian bawah skrin semasa muzik atau radio dimainkan pada peranti ini, daripada mana-mana apl",
+        "Song and artwork" to "Lagu dan kulit album",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Menunjukkan apa yang sedang dimainkan. Memerlukan akses pemberitahuan, sama seperti yang digunakan apl skrin utama untuk kawalan media mereka",
+        "Tap to allow song info" to "Ketik untuk membenarkan maklumat lagu",
+        "Previous" to "Sebelumnya",
+        "Play" to "Main",
+        "Pause" to "Jeda",
     )
 }

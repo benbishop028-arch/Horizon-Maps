@@ -1554,5 +1554,13 @@ object I18nAr {
         "Bar along the bottom" to "شريط في الأسفل",
         "Column on the left" to "عمود على اليسار",
         "What's new" to "ما الجديد",
+        "Media controls" to "عناصر التحكم في الوسائط",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "السابق والتشغيل / الإيقاف المؤقت والتالي أسفل الشاشة أثناء تشغيل الموسيقى أو الراديو على هذا الجهاز، من أي تطبيق",
+        "Song and artwork" to "الأغنية وصورة الغلاف",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "يعرض ما يتم تشغيله. يحتاج إلى الوصول إلى الإشعارات، كما تستخدمه تطبيقات الشاشة الرئيسية لعناصر التحكم في الوسائط",
+        "Tap to allow song info" to "انقر للسماح بمعلومات الأغنية",
+        "Previous" to "السابق",
+        "Play" to "تشغيل",
+        "Pause" to "إيقاف مؤقت",
     )
 }

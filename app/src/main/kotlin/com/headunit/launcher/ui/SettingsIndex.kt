@@ -173,6 +173,8 @@ internal val settingsIndex = listOf(
     SettingRef("Dim the map in tunnels", "", "While driving", 11),
     SettingRef("Fewer buttons while driving", "", "While driving", 11),
     SettingRef("Lock typing while driving", "Voice search still works", "While driving", 11),
+    SettingRef("Media controls", "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app", "While driving", 11),
+    SettingRef("Song and artwork", "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls", "While driving", 11),
     SettingRef("Distance and speed", "", "Units", 11),
     SettingRef("Clock", "12 or 24-hour times", "Units", 11),
     SettingRef("Temperature", "", "Units", 11),

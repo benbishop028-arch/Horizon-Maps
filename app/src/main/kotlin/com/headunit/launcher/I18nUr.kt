@@ -1554,5 +1554,13 @@ object I18nUr {
         "Bar along the bottom" to "نیچے پٹی",
         "Column on the left" to "بائیں طرف کالم",
         "What's new" to "نیا کیا ہے",
+        "Media controls" to "میڈیا کنٹرولز",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "اس ڈیوائس پر موسیقی یا ریڈیو چلنے کے دوران اسکرین کے نیچے پچھلا، چلائیں / روکیں اور اگلا، کسی بھی ایپ سے",
+        "Song and artwork" to "گانا اور سرورق",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "دکھاتا ہے کہ کیا چل رہا ہے۔ اطلاعات تک رسائی درکار ہے، وہی جو ہوم اسکرین ایپس اپنے میڈیا کنٹرولز کے لیے استعمال کرتی ہیں",
+        "Tap to allow song info" to "گانے کی معلومات کی اجازت کے لیے تھپتھپائیں",
+        "Previous" to "پچھلا",
+        "Play" to "چلائیں",
+        "Pause" to "روکیں",
     )
 }

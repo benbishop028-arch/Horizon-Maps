@@ -1554,5 +1554,13 @@ object I18nZhHans {
         "Bar along the bottom" to "底部横条",
         "Column on the left" to "左侧竖栏",
         "What's new" to "新功能",
+        "Media controls" to "媒体控制",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "在此设备播放音乐或电台时，在屏幕底部显示上一首、播放 / 暂停和下一首（任何应用均可）",
+        "Song and artwork" to "歌曲与封面",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "显示正在播放的内容。需要通知使用权，与主屏幕应用的媒体控制相同",
+        "Tap to allow song info" to "点按以允许歌曲信息",
+        "Previous" to "上一首",
+        "Play" to "播放",
+        "Pause" to "暂停",
     )
 }

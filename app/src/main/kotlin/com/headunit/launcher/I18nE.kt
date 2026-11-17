@@ -1551,5 +1551,13 @@ object I18nE {
         "Bar along the bottom" to listOf("Vrstica spodaj"),
         "Column on the left" to listOf("Stolpec na levi"),
         "What's new" to listOf("Novosti"),
+        "Media controls" to listOf("Upravljanje predstavnosti"),
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to listOf("Nazaj, predvajaj / premor in naprej na dnu zaslona, medtem ko na tej napravi igra glasba ali radio, iz katere koli aplikacije"),
+        "Song and artwork" to listOf("Skladba in naslovnica"),
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to listOf("Prikaže, kaj se predvaja. Potrebuje dostop do obvestil, kot ga za upravljanje predstavnosti uporabljajo aplikacije začetnega zaslona"),
+        "Tap to allow song info" to listOf("Tapnite, da dovolite podatke o skladbi"),
+        "Previous" to listOf("Prejšnja"),
+        "Play" to listOf("Predvajaj"),
+        "Pause" to listOf("Premor"),
     )
 }

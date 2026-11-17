@@ -1554,5 +1554,13 @@ object I18nSk {
         "Bar along the bottom" to "Pruh dole",
         "Column on the left" to "Stĺpec vľavo",
         "What's new" to "Čo je nové",
+        "Media controls" to "Ovládanie médií",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Späť, prehrať / pozastaviť a ďalej dole na obrazovke, keď na tomto zariadení hrá hudba alebo rádio, z akejkoľvek aplikácie",
+        "Song and artwork" to "Skladba a obal",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Ukazuje, čo hrá. Potrebuje prístup k upozorneniam, rovnako ako aplikácie domovskej obrazovky pre svoje ovládanie médií",
+        "Tap to allow song info" to "Ťuknutím povolíte informácie o skladbe",
+        "Previous" to "Predchádzajúca",
+        "Play" to "Prehrať",
+        "Pause" to "Pozastaviť",
     )
 }

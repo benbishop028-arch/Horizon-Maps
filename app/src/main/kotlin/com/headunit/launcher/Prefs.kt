@@ -132,6 +132,8 @@ internal object PreferenceKeys {
     const val DEMO = "demo"
     const val DIMNIGHT = "dimnight"
     const val DRIVELOCK = "drivelock"
+    /** The media bar on the driving screen (Reddit, mrEnmi). */
+    const val MEDIA_BAR = "media_bar"
     const val DRIVESIMPLE = "drivesimple"
     const val EVMPK = "evmpk"
     const val EVPPK = "evppk"

@@ -1155,59 +1155,101 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var beamScale = -1.0
 
     private fun pushBeam() {
-        val st = style ?: return
-        if (!st.styleLayerExists("dl-beam-l")) return
-        val p = me
-        val night = lightPreset == "night" || lightPreset == "dusk"
-        if (p == null || !beamOn || !night || satellite) {
-            if (beamShown) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("none")); beamShown = false }
-            return
-        }
-        // a little longer the faster you go (up to about 70 mph), in steps so the size isn't reset on every fix
-        val sc = Math.round((0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5) * 10.0) / 10.0
-        if (sc != beamScale) {
-            beamScale = sc
-            Value.fromJson("[\"interpolate\",[\"linear\"],[\"zoom\"],13,${0.35 * sc},16,${0.75 * sc},18,${1.3 * sc},20,${2.2 * sc}]").value
-                ?.let { st.setStyleLayerProperty("dl-beam-l", "bearing-image-size", it) }
-        }
-        // the cone starts at the arrow's nose, not its middle: the arrow is a picture over the map, so a cone starting at the
-        // car's spot was hidden under it, which read as light under the arrow (GitHub). Moved ahead by the arrow's front half.
-        val a = beamAhead(p)
-        val q = if (a > 0.0) Furniture.offset(p, meHeading, a) else p
-        // only when it has really moved or turned (the arrow is moved up to 15 times a second)
-        val moved = Math.abs(q.lat - beamLat) > 1.5e-6 || Math.abs(q.lon - beamLon) > 1.5e-6
-        var dh = Math.abs(meHeading - beamHead) % 360.0; if (dh > 180.0) dh = 360.0 - dh
-        if (moved || dh > 0.4 || !beamShown) {
-            beamLat = q.lat; beamLon = q.lon; beamHead = meHeading
-            Value.fromJson("[${q.lat},${q.lon},0]").value?.let { st.setStyleLayerProperty("dl-beam-l", "location", it) }
-            st.setStyleLayerProperty("dl-beam-l", "bearing", Value.valueOf(meHeading))
-        }
-        if (!beamShown) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("visible")); beamShown = true }
+        // the old map-layer beam is kept hidden: the map engine placed its picture a cone-length behind the car, so the light
+        // seemed to come from nowhere and shine back over the arrow or car (GitHub). The beam is now drawn by beamView instead.
+        val st = style
+        if (beamShown && st != null && st.styleLayerExists("dl-beam-l")) { st.setStyleLayerProperty("dl-beam-l", "visibility", Value.valueOf("none")); beamShown = false }
+        placeBeam()
     }
 
     /**
-     * How far ahead of the car's spot (in metres) the arrow's nose is on the map at the current zoom and tilt: the arrow's
-     * front reach on screen, turned into metres along the way you're heading. 0 if it can't be worked out.
+     * The headlight beam, drawn just above the map and under the arrow / car, from the same spot on screen the arrow or car is
+     * drawn at. Its corners are real places on the road ahead turned into screen points, so it lies flat on the road with the
+     * map's tilt and turn, and moves with every camera move (placeLocator calls this).
      */
-    private fun beamAhead(p: LL): Double {
-        return try {
-            val tilt = try { mbMap.cameraState.pitch } catch (e: Throwable) { tiltNow }
-            val cosT = Math.cos(Math.toRadians(tilt)).coerceAtLeast(0.2)
-            val bmp = spriteBmp
-            // the arrow's front reach in screen pixels (3D arrow / car pictures stand up on screen; the flat arrow lies on the map)
-            val reachPx: Double = when {
-                modelOn -> modelPxPerUnit() * (if (carLike) 2.3 else 0.85) * cosT
-                locatorStyle != "flat" && bmp != null -> drawnRadius(bmp) * spriteSize() * 0.8
-                else -> (flatArrow?.let { drawnRadius(it) * (if (theme == "immersive") 0.25f else 0.625f) * arrowScale } ?: 0f) * cosT
+    val beamView: BeamView by lazy { BeamView(ctx) }
+
+    class BeamView(c: android.content.Context) : android.view.View(c) {
+        /** Screen points: nose, outer left, outer tip, outer right, inner left, inner tip, inner right, nose left, nose right, far middle. */
+        val pts = FloatArray(20)
+        var on = false
+        private val path = android.graphics.Path()
+        private val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        private var gx0 = 0f; private var gy0 = 0f; private var gx1 = 0f; private var gy1 = 0f
+        init { isClickable = false; isFocusable = false; setWillNotDraw(false) }
+        fun clear() { if (on) { on = false; invalidate() } }
+        fun show() { on = true; invalidate() }
+        override fun onDraw(canvas: android.graphics.Canvas) {
+            if (!on) return
+            val p = pts
+            // the warm light fades from the nose to the far end (only rebuilt when the beam has moved on screen)
+            if (p[0] != gx0 || p[1] != gy0 || p[18] != gx1 || p[19] != gy1) {
+                gx0 = p[0]; gy0 = p[1]; gx1 = p[18]; gy1 = p[19]
+                paint.shader = android.graphics.LinearGradient(gx0, gy0, gx1, gy1,
+                    intArrayOf(0xC8FFF4D6.toInt(), 0x66FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
             }
-            if (reachPx <= 0.0) return 0.0
-            // screen pixels per metre straight ahead (shrinks with the tilt, as the screen sees the road at a slant)
-            val a = mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat))
-            val f = Furniture.offset(p, meHeading, 20.0)
-            val b = mbMap.pixelForCoordinate(Point.fromLngLat(f.lon, f.lat))
-            val pxPerM = Math.hypot(b.x - a.x, b.y - a.y) / 20.0
-            if (pxPerM < 1e-3) 0.0 else (reachPx / pxPerM).coerceIn(0.0, 60.0)
-        } catch (e: Throwable) { 0.0 }
+            // soft edges without a blur (a blur would make the head unit draw it in software): a wider faint cone, then the main one
+            fun cone(l: Int, t: Int, r: Int, a: Int) {
+                path.reset()
+                path.moveTo(p[14], p[15]); path.lineTo(p[l], p[l + 1]); path.quadTo(p[t], p[t + 1], p[r], p[r + 1]); path.lineTo(p[16], p[17]); path.close()
+                paint.alpha = a
+                canvas.drawPath(path, paint)
+            }
+            cone(2, 4, 6, 110)
+            cone(8, 10, 12, 255)
+        }
+    }
+
+    private fun placeBeam() {
+        val bv = beamView
+        val p = me
+        val night = lightPreset == "night" || lightPreset == "dusk"
+        if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); return }
+        try {
+            val g = beamGeom(p) ?: run { bv.clear(); return }
+            val (ahead, len) = g
+            val h = meHeading
+            val nose = if (ahead > 0.0) Furniture.offset(p, h, ahead) else p
+            // a little longer the faster you go (up to about 70 mph)
+            val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
+            val l = len * sc
+            val far = Furniture.offset(nose, h, l * 0.88)
+            val tipO = Furniture.offset(nose, h, l * 1.05); val tipI = Furniture.offset(nose, h, l)
+            val wO = l * 0.42; val wI = l * 0.34
+            val places = arrayOf(nose, Furniture.offset(far, h - 90.0, wO), tipO, Furniture.offset(far, h + 90.0, wO),
+                Furniture.offset(far, h - 90.0, wI), tipI, Furniture.offset(far, h + 90.0, wI),
+                Furniture.offset(nose, h - 90.0, l * 0.025), Furniture.offset(nose, h + 90.0, l * 0.025), Furniture.offset(nose, h, l))
+            val out = bv.pts
+            for ((i, q) in places.withIndex()) {
+                val px = mbMap.pixelForCoordinate(Point.fromLngLat(q.lon, q.lat))
+                out[i * 2] = px.x.toFloat(); out[i * 2 + 1] = px.y.toFloat()
+            }
+            bv.show()
+        } catch (e: Throwable) { bv.clear() }
+    }
+
+    /**
+     * Where the beam starts (metres ahead of the car's spot: the arrow's or car's nose) and how long it is (metres, about three and
+     * a half times the arrow's or car's length on screen, so it looks the same at any zoom). Null if it can't be worked out.
+     */
+    private fun beamGeom(p: LL): Pair<Double, Double>? {
+        val tilt = try { mbMap.cameraState.pitch } catch (e: Throwable) { tiltNow }
+        val cosT = Math.cos(Math.toRadians(tilt)).coerceAtLeast(0.2)
+        val bmp = spriteBmp
+        val reachPx: Double = when {
+            modelOn -> modelPxPerUnit() * (if (carLike) 2.3 else 0.85) * cosT
+            locatorStyle != "flat" && bmp != null -> (drawnRadius(bmp) * spriteSize() * 0.8).toDouble()
+            else -> ((flatArrow?.let { drawnRadius(it) * (if (theme == "immersive") 0.25f else 0.625f) * arrowScale } ?: 0f) * cosT)
+        }
+        val a = mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat))
+        val f = Furniture.offset(p, meHeading, 20.0)
+        val b = mbMap.pixelForCoordinate(Point.fromLngLat(f.lon, f.lat))
+        val pxPerM = Math.hypot(b.x - a.x, b.y - a.y) / 20.0
+        if (pxPerM < 1e-3) return null
+        val ahead = if (reachPx > 0.0) (reachPx / pxPerM).coerceIn(0.0, 60.0) else 0.0
+        // the cone's length on screen: 3.5 times the arrow's or car's length, at least 120 px (the drawn arrow can be tiny)
+        val lenPx = maxOf(120.0 * mapView.resources.displayMetrics.density / 2.0, reachPx * 2.0 * 3.5)
+        return ahead to (lenPx / pxPerM).coerceIn(8.0, 400.0)
     }
 
     /** How far from the centre a picture's drawing really reaches (its empty margin left out), in its own pixels. */
@@ -4010,6 +4052,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     /** Puts the locator view on the car's spot on screen (called after every camera move and every move of the car). */
     fun placeLocator() {
+        try { placeBeam() } catch (e: Throwable) { }
         val v = locatorView
         val p = me
         val bmp = spriteBmp

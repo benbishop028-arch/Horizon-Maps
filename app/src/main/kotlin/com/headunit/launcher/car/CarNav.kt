@@ -439,6 +439,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             m.routeBoost = 1.2f
             val root = FrameLayout(p.context)
             root.addView(m.mapView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+            (m.beamView.parent as? android.view.ViewGroup)?.removeView(m.beamView)
+            root.addView(m.beamView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             root.addView(m.roadView, FrameLayout.LayoutParams(1, 1))
             root.addView(m.locatorView, FrameLayout.LayoutParams(1, 1))
             // the app's own cards (turn card, speed, trip figures) drawn on top with the app's own designs

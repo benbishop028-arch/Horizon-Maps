@@ -1554,5 +1554,13 @@ object I18nEsAr {
         "Bar along the bottom" to "Barra abajo",
         "Column on the left" to "Columna a la izquierda",
         "What's new" to "Novedades",
+        "Media controls" to "Controles multimedia",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Anterior, reproducir / pausa y siguiente abajo en la pantalla mientras suena música o radio en este dispositivo, desde cualquier app",
+        "Song and artwork" to "Canción y tapa",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Muestra lo que está sonando. Necesita acceso a las notificaciones, igual que las apps de pantalla de inicio para sus controles multimedia",
+        "Tap to allow song info" to "Tocá para permitir la info de la canción",
+        "Previous" to "Anterior",
+        "Play" to "Reproducir",
+        "Pause" to "Pausa",
     )
 }

@@ -1554,5 +1554,13 @@ object I18nFi {
         "Bar along the bottom" to "Palkki alareunassa",
         "Column on the left" to "Sarake vasemmalla",
         "What's new" to "Uutta",
+        "Media controls" to "Mediaohjaimet",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Edellinen, toista / tauko ja seuraava näytön alareunassa, kun tällä laitteella soi musiikki tai radio, mistä tahansa sovelluksesta",
+        "Song and artwork" to "Kappale ja kansikuva",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Näyttää, mitä soi. Tarvitsee ilmoitusten käyttöoikeuden, samaa kuin aloitusnäyttösovellukset käyttävät mediaohjaimiinsa",
+        "Tap to allow song info" to "Salli kappaletiedot napauttamalla",
+        "Previous" to "Edellinen",
+        "Play" to "Toista",
+        "Pause" to "Tauko",
     )
 }

@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Media controls: back, play / pause and next at the bottom of the driving screen while music or radio plays on the head unit, from any app. Give it notification access (Settings › Screen & sizes › While driving › Song and artwork) and it shows the song, artist and artwork too. It only appears while something is playing, sits in the free space beside the trip card, and can be turned off in the same place (thanks to mrEnmi)
 - Norwegian: Horizon Nav now speaks Norsk bokmål: directions, screens, Android Auto and voice commands ("kjør hjem", "naviger til Bergen"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Norwegian (thanks to mthjensen)
 - What's new, any time: missed the update notes? Settings › About & backup › Version now has a What's new button that brings the card back (thanks to leedank93)
 - Marathi: Horizon Nav now speaks मराठी: directions, screens, Android Auto and voice commands ("पुण्याला जा", "घरी चल"). Pick it in Settings › Sound & voice › Language, or it follows a phone set to Marathi. Place names on the map and in search stay in English, as Mapbox and TomTom have no Marathi (thanks to samadhanraut)
@@ -51,6 +52,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Headlight beam behind the car: at night the beam started well behind the arrow or car and shone back over it, as if the light came from nowhere. It is now drawn from the car's own spot on screen, so it comes out of the front and lights the road ahead, flat on the road at any tilt (thanks to liamstears)
+- Shortcuts under the search bar can all be turned off: taking off the last one used to bring all five standard ones straight back. Now the row just goes away, and Reset brings the standard ones back (thanks to rookie2009)
 - Arrow on the wrong side of a divided road: with no route running, the arrow could jump to the other carriageway when the GPS drifted towards the middle, as if driving against the traffic. It now keeps to the side going your way, even before the speed-limit roads have loaded (thanks to leedank93)
 - 3D buildings switch: turning 3D buildings off left landmarks and building fronts standing, and Android Auto's map kept all its 3D buildings and trees whatever the settings. Both now follow the switches (thanks to VITMAD1964)
 - Missing translations: in 20 of the languages (including Swedish, Turkish, Arabic and Kannada), the newest settings such as Groups and Top speed for arrival times were still in English. They are now translated

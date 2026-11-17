@@ -1554,5 +1554,13 @@ object I18nMr {
         "Bar along the bottom" to "खाली पट्टी",
         "Column on the left" to "डावीकडे स्तंभ",
         "What's new" to "नवीन काय",
+        "Media controls" to "मीडिया नियंत्रणे",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "या डिव्हाइसवर संगीत किंवा रेडिओ वाजत असताना स्क्रीनच्या तळाशी मागील, प्ले / पॉज आणि पुढील, कोणत्याही ॲपमधून",
+        "Song and artwork" to "गाणे आणि कव्हर",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "काय वाजत आहे ते दाखवते. सूचना प्रवेश लागतो, होम स्क्रीन ॲप्स त्यांच्या मीडिया नियंत्रणांसाठी वापरतात तसाच",
+        "Tap to allow song info" to "गाण्याच्या माहितीस परवानगी देण्यासाठी टॅप करा",
+        "Previous" to "मागील",
+        "Play" to "प्ले",
+        "Pause" to "पॉज",
     )
 }

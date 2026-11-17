@@ -237,6 +237,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
+        // the trip card's and speedometer's widths, and the media bar's height (for fitting the media bar between them)
+        var tripWPx by remember { mutableStateOf(0) }
+        var speedWPx by remember { mutableStateOf(0) }
+        var mediaHPx by remember { mutableStateOf(0) }
         // where the speedometer starts (in pixels), so zoom only moves beside the panel when it would really touch it
         var speedTopPx by remember { mutableStateOf(-1) }
         // the map buttons' width down the speed's side (for the speed display set to Middle or Top, which sits just inside them)
@@ -461,7 +465,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 speedPos == "middle" -> Modifier.align(side(Alignment.CenterEnd)).sides(end = besideButtons)
                 else -> Modifier.align(side(Alignment.BottomEnd)).sides(end = 16.dp, bottom = if ((narrow || speedShareTrip) && tripPx > 0) tripH + if (narrow) 4.dp else 8.dp else 16.dp)
             }
-                .onGloballyPositioned { val t = it.boundsInParent().top.toInt(); if (it.size.height > 0 && t != speedTopPx) speedTopPx = t }
+                .onGloballyPositioned { val t = it.boundsInParent().top.toInt(); if (it.size.height > 0 && t != speedTopPx) speedTopPx = t; if (it.size.width != speedWPx) speedWPx = it.size.width }
         ) {
             val baseSpeedDensity = LocalDensity.current
             // (sized by Settings > Screen & sizes > Speed limit and speedometer size, inside ImmSpeed)
@@ -475,18 +479,57 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
             val tripAlign = when (tripAt) { "centre" -> Alignment.BottomCenter; "right" -> Alignment.BottomEnd; "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
-            Box(Modifier.align(tripAlign).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height }
+            Box(Modifier.align(tripAlign).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height; tripWPx = it.width }
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
                 CompositionLocalProvider(LocalDensity provides Density(tripBaseDensity.density * tripCardScale, tripBaseDensity.fontScale)) {
                     TripArea(engine, shareEta, narrow, voice, alignEnd = if (narrow || tripAt.isEmpty()) mir else tripAt == "right", centred = tripAt == "centre")
                 }
             }
         }
-        else androidx.compose.runtime.SideEffect { if (tripPx != 0) tripPx = 0; engine.setPanel(1, 0f, 0f, 0f, 0f) }
+        else androidx.compose.runtime.SideEffect { if (tripPx != 0) tripPx = 0; if (tripWPx != 0) tripWPx = 0; engine.setPanel(1, 0f, 0f, 0f, 0f) }
+
+        // ---- the media bar (Reddit, mrEnmi): back, play / pause and next for whatever is playing on the head unit, with the song
+        // when notification access is given. Only while something plays (or for a few minutes after a pause). It goes in the free
+        // space at the bottom between the trip card and the speedometer; where that's too narrow (or on a portrait screen, or with
+        // the trip card in the middle) it sits just above the trip card instead
+        val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, true)
+        FollowMedia(mediaOn)
+        val mediaShow = mediaOn && com.headunit.launcher.MediaNow.showing() && !previewing && engine.arrival == null && engine.here == null &&
+            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen
+        val tripW = with(dens) { tripWPx.toDp() }
+        val speedW = with(dens) { speedWPx.toDp() }
+        val mediaMax = 360.dp
+        val mediaMod: Modifier = run {
+            // speed in the other bottom corner (it's above the trip card when they share one, or up the side when set to middle / top)
+            val speedInCorner = speedPos == "bottom" && !speedShareTrip
+            val spare = maxWidth - 16.dp - tripW - 12.dp - 12.dp - (if (speedInCorner) speedW + 16.dp else 16.dp)
+            when {
+                // no trip card: bottom centre, clear of the speedometer on either side
+                tripPx == 0 -> Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp).widthIn(max = minOf(mediaMax, maxWidth - 2 * (speedW + 28.dp)).coerceAtLeast(200.dp))
+                // beside the trip card
+                !narrow && tripAt != "centre" && spare >= 240.dp -> {
+                    val w = minOf(mediaMax, spare)
+                    if (tripAt == "right") Modifier.align(Alignment.BottomEnd).padding(end = 16.dp + tripW + 12.dp, bottom = 16.dp).widthIn(max = w)
+                    else Modifier.align(Alignment.BottomStart).padding(start = 16.dp + tripW + 12.dp, bottom = 16.dp).widthIn(max = w)
+                }
+                // above the trip card, on its side (in portrait the speedometer is above the trip card too, on the other side)
+                else -> {
+                    val w = minOf(mediaMax, if (narrow) maxWidth - 32.dp - speedW - 12.dp else maxOf(tripW, 260.dp))
+                    val a = when { tripAt == "centre" -> Alignment.BottomCenter; tripAt == "right" -> Alignment.BottomEnd; tripAt == "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
+                    Modifier.align(a).padding(start = 16.dp, end = 16.dp, bottom = tripH + 10.dp).widthIn(max = w)
+                }
+            }
+        }
+        AnimatedVisibility(mediaShow, modifier = mediaMod.onSizeChanged { mediaHPx = it.height },
+            enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(200)) + androidx.compose.animation.shrinkVertically(tween(220))) {
+            MediaBar()
+        }
+        if (!mediaShow && mediaHPx != 0) androidx.compose.runtime.SideEffect { mediaHPx = 0 }
+        val mediaLift = if (mediaShow && mediaHPx > 0) with(dens) { mediaHPx.toDp() } + 10.dp else 0.dp
 
         // ---- bottom centre: re-centre once you have panned away, or zoomed in / out with the buttons (it puts the zoom back to automatic)
         AnimatedVisibility(
-            !previewing && (!engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01) && engine.arrival == null, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = if (narrow && tripPx > 0) tripH + 10.dp else 18.dp),
+            !previewing && (!engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01) && engine.arrival == null, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = (if (narrow && tripPx > 0) tripH + 10.dp else 18.dp) + mediaLift),
             enter = fadeIn(tween(200)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.85f), exit = fadeOut(tween(150)) + androidx.compose.animation.scaleOut(tween(150), targetScale = 0.9f),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1318,7 +1361,7 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
         // things to find nearby: the ones picked in Settings › Places & trips (up to five, all on show, no scrolling sideways);
         // as before when none are picked (Charging and Toilets in place of Fuel for an electric car, lorry parks for a lorry)
         val picks = chosenShortcuts(engine)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = if (picks.size >= 4) Arrangement.SpaceBetween else Arrangement.spacedBy(14.dp)) {
+        if (picks.isNotEmpty()) Row(Modifier.fillMaxWidth(), horizontalArrangement = if (picks.size >= 4) Arrangement.SpaceBetween else Arrangement.spacedBy(14.dp)) {
             for (s in picks) FindButton(s.icon, s.color, L.t(s.desc)) { engine.loadNearby(s.kind, false) }
         }
     }

@@ -1554,5 +1554,13 @@ object I18nDa {
         "Bar along the bottom" to "Bjælke forneden",
         "Column on the left" to "Kolonne til venstre",
         "What's new" to "Nyheder",
+        "Media controls" to "Medieknapper",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Tilbage, afspil / pause og næste nederst på skærmen, mens der spiller musik eller radio på denne enhed, fra enhver app",
+        "Song and artwork" to "Sang og cover",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Viser, hvad der spiller. Kræver adgang til notifikationer, ligesom startskærm-apps bruger til deres medieknapper",
+        "Tap to allow song info" to "Tryk for at tillade sanginfo",
+        "Previous" to "Forrige",
+        "Play" to "Afspil",
+        "Pause" to "Pause",
     )
 }

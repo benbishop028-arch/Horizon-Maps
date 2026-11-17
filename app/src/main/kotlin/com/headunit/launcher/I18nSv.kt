@@ -1554,5 +1554,13 @@ object I18nSv {
         "Bar along the bottom" to "Fält längst ned",
         "Column on the left" to "Kolumn till vänster",
         "What's new" to "Nyheter",
+        "Media controls" to "Mediakontroller",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Bakåt, spela / pausa och nästa längst ner på skärmen medan musik eller radio spelas på den här enheten, från vilken app som helst",
+        "Song and artwork" to "Låt och omslag",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Visar vad som spelas. Kräver åtkomst till aviseringar, samma som startskärmsappar använder för sina mediakontroller",
+        "Tap to allow song info" to "Tryck för att tillåta låtinfo",
+        "Previous" to "Föregående",
+        "Play" to "Spela",
+        "Pause" to "Pausa",
     )
 }

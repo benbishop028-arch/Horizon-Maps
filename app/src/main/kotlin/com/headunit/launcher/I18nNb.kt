@@ -1554,5 +1554,13 @@ object I18nNb {
         "Bar along the bottom" to "Stripe langs bunnen",
         "Column on the left" to "Kolonne til venstre",
         "What's new" to "Nyheter",
+        "Media controls" to "Mediekontroller",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Tilbake, spill av / pause og neste nederst på skjermen mens musikk eller radio spilles på denne enheten, fra hvilken som helst app",
+        "Song and artwork" to "Sang og omslag",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Viser hva som spilles. Krever varseltilgang, den samme som startskjermapper bruker for mediekontrollene sine",
+        "Tap to allow song info" to "Trykk for å tillate sanginfo",
+        "Previous" to "Forrige",
+        "Play" to "Spill av",
+        "Pause" to "Pause",
     )
 }

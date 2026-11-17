@@ -1560,5 +1560,13 @@ object I18nC {
         "Bar along the bottom" to listOf("แถบด้านล่าง", "下部のバー", "Bilah di bawah"),
         "Column on the left" to listOf("คอลัมน์ด้านซ้าย", "左側の縦列", "Kolom di kiri"),
         "What's new" to listOf("มีอะไรใหม่", "新機能", "Yang baru"),
+        "Media controls" to listOf("ตัวควบคุมสื่อ", "メディア操作", "Kontrol media"),
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to listOf("ย้อนกลับ เล่น / หยุดชั่วคราว และถัดไป ที่ด้านล่างของหน้าจอขณะเล่นเพลงหรือวิทยุบนอุปกรณ์นี้ จากแอปใดก็ได้", "この端末で音楽やラジオを再生中、画面下部に前へ・再生 / 一時停止・次へを表示（どのアプリでも）", "Mundur, putar / jeda, dan berikutnya di bagian bawah layar saat musik atau radio diputar di perangkat ini, dari aplikasi apa pun"),
+        "Song and artwork" to listOf("เพลงและภาพปก", "曲名とアートワーク", "Lagu dan sampul"),
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to listOf("แสดงสิ่งที่กำลังเล่น ต้องใช้สิทธิ์เข้าถึงการแจ้งเตือน แบบเดียวกับที่แอปหน้าจอหลักใช้สำหรับตัวควบคุมสื่อ", "再生中の曲を表示します。ホームアプリのメディア操作と同じく、通知へのアクセスが必要です", "Menampilkan yang sedang diputar. Memerlukan akses notifikasi, sama seperti yang dipakai aplikasi layar utama untuk kontrol medianya"),
+        "Tap to allow song info" to listOf("แตะเพื่ออนุญาตข้อมูลเพลง", "タップして曲情報を許可", "Ketuk untuk mengizinkan info lagu"),
+        "Previous" to listOf("ก่อนหน้า", "前へ", "Sebelumnya"),
+        "Play" to listOf("เล่น", "再生", "Putar"),
+        "Pause" to listOf("หยุดชั่วคราว", "一時停止", "Jeda"),
     )
 }

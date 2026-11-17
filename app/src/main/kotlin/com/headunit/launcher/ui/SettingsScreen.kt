@@ -1140,6 +1140,17 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
+        SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, true, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
+        if (prefs.b(PreferenceKeys.MEDIA_BAR, true)) {
+            val ctx = androidx.compose.ui.platform.LocalContext.current
+            // (checked again every couple of seconds while this shows, so it changes when you come back from Android's page)
+            var granted by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(com.headunit.launcher.MediaNow.accessGranted(ctx)) }
+            androidx.compose.runtime.LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(2000); granted = com.headunit.launcher.MediaNow.accessGranted(ctx) } }
+            SItem(L.t("Song and artwork"), L.t("Shows what's playing. Needs notification access, the same as home screen apps use for their media controls"),
+                onClick = { com.headunit.launcher.MediaNow.openAccessSettings(ctx) }) {
+                if (granted) Text(L.t("Allowed"), color = LocalVw.current.sub, fontSize = 14.sp) else SButton(L.t("Allow")) { com.headunit.launcher.MediaNow.openAccessSettings(ctx) }
+            }
+        }
     }
     SGroup(L.t("Units")) {
         SChoice(L.t("Distance and speed"), listOf("mi" to L.t("Miles"), "km" to L.t("Kilometres")), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }

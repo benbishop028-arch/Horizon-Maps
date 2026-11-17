@@ -1554,5 +1554,13 @@ object I18nCs {
         "Bar along the bottom" to "Pruh dole",
         "Column on the left" to "Sloupec vlevo",
         "What's new" to "Co je nového",
+        "Media controls" to "Ovládání médií",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "Zpět, přehrát / pozastavit a další dole na obrazovce, když na tomto zařízení hraje hudba nebo rádio, z jakékoli aplikace",
+        "Song and artwork" to "Skladba a obal",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "Ukazuje, co hraje. Potřebuje přístup k oznámením, stejně jako aplikace domovské obrazovky pro své ovládání médií",
+        "Tap to allow song info" to "Klepnutím povolíte informace o skladbě",
+        "Previous" to "Předchozí",
+        "Play" to "Přehrát",
+        "Pause" to "Pozastavit",
     )
 }

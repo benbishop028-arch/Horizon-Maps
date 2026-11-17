@@ -1554,5 +1554,13 @@ object I18nKn {
         "Bar along the bottom" to "ಕೆಳಗೆ ಪಟ್ಟಿ",
         "Column on the left" to "ಎಡಭಾಗದಲ್ಲಿ ಕಾಲಮ್",
         "What's new" to "ಹೊಸತೇನು",
+        "Media controls" to "ಮಾಧ್ಯಮ ನಿಯಂತ್ರಣಗಳು",
+        "Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app" to "ಈ ಸಾಧನದಲ್ಲಿ ಸಂಗೀತ ಅಥವಾ ರೇಡಿಯೋ ಪ್ಲೇ ಆಗುತ್ತಿರುವಾಗ ಪರದೆಯ ಕೆಳಭಾಗದಲ್ಲಿ ಹಿಂದಿನದು, ಪ್ಲೇ / ವಿರಾಮ ಮತ್ತು ಮುಂದಿನದು, ಯಾವುದೇ ಆ್ಯಪ್‌ನಿಂದ",
+        "Song and artwork" to "ಹಾಡು ಮತ್ತು ಕವರ್",
+        "Shows what's playing. Needs notification access, the same as home screen apps use for their media controls" to "ಏನು ಪ್ಲೇ ಆಗುತ್ತಿದೆ ಎಂದು ತೋರಿಸುತ್ತದೆ. ಅಧಿಸೂಚನೆ ಪ್ರವೇಶ ಬೇಕು, ಹೋಮ್ ಸ್ಕ್ರೀನ್ ಆ್ಯಪ್‌ಗಳು ತಮ್ಮ ಮಾಧ್ಯಮ ನಿಯಂತ್ರಣಗಳಿಗೆ ಬಳಸುವಂತೆಯೇ",
+        "Tap to allow song info" to "ಹಾಡಿನ ಮಾಹಿತಿಗೆ ಅನುಮತಿಸಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
+        "Previous" to "ಹಿಂದಿನದು",
+        "Play" to "ಪ್ಲೇ",
+        "Pause" to "ವಿರಾಮ",
     )
 }

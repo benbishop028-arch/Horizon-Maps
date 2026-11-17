@@ -115,6 +115,8 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
             arrowSet = -1
             val root = FrameLayout(p.context)
             root.addView(m.mapView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+            (m.beamView.parent as? android.view.ViewGroup)?.removeView(m.beamView)
+            root.addView(m.beamView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             root.addView(m.roadView, FrameLayout.LayoutParams(1, 1))
             root.addView(m.locatorView, FrameLayout.LayoutParams(1, 1))
             // the trip bar at the bottom centre (time left · distance · arrival, as Google Maps has), only with a route
