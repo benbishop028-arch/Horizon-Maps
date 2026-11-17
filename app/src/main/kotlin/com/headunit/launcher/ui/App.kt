@@ -113,7 +113,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     // waits until you've stopped), and not over the What's new card. (The car screen never shows it.)
     var donateVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        if (prefs.b(PreferenceKeys.DONATE_SHOWN, false)) return@LaunchedEffect
+        // (never in the Google Play edition: Play doesn't allow donations through PayPal)
+        if (prefs.b(PreferenceKeys.DONATE_SHOWN, false) || com.headunit.launcher.BuildConfig.STORE == "play") return@LaunchedEffect
         val installed = try { appCtx.packageManager.getPackageInfo(appCtx.packageName, 0).firstInstallTime } catch (e: Exception) { 0L }
         if (installed <= 0L || System.currentTimeMillis() - installed < 24L * 3600_000L) return@LaunchedEffect
         delay(20_000)   // let the map settle first

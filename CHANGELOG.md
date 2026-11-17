@@ -29,6 +29,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Getting ready for Google Play: the build can now also make a Google Play edition of the app (installed beside this one, updated by Play, without the self-updater). Nothing changes in this version
 - Quicker rerouting: a wrong turn is now noticed on the first GPS reading when you're clearly on another road, and the new route is asked for twice at once (the early request and a fresh one from where you are), using whichever answers first. An early request made from too far back is no longer used, as it gave a route starting behind you (thanks to karthikeyansr-lgtm)
 - Faster rerouting after a missed turn: the new route is now asked for as soon as you start to leave the old one, before it is certain you have, and with both a TomTom key and a Mapbox token both are asked at once and the first answer is used. It used to take 6 to 8 seconds (thanks to karthikeyansr-lgtm)
 - Dutch wording: "Glazen panelen" is now "Transparante panelen", and the Screen and sizes summary says "transparantie" (thanks to hvdwolf)

@@ -1232,7 +1232,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
             SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
         }
     }
-    SGroup(L.t("Setting it up"), footer = L.t("If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).")) {
+    SGroup(L.t("Setting it up"), footer = if (BuildConfig.STORE == "play") null else L.t("If Horizon Nav doesn't appear in Android Auto: 1. Open Android Auto's settings, tap the version number at the bottom about 10 times, then in the top-right menu open Developer settings and turn on Unknown sources. 2. Back in Android Auto's settings, open Customise launcher and make sure Horizon Nav is ticked. 3. Force stop Android Auto (App info below), unplug and plug back in. If it still doesn't show, your phone's Android Auto only lists apps installed by the Play Store: install the APK through an installer that sets Play as the source (for example \"adb install -i com.android.vending\", or an app like AAAD or Install with Options).")) {
         SItem(L.t("Installed by"), source)
         SItem(L.t("Android Auto settings"), if (hasAa) null else L.t("Android Auto isn't installed on this phone")) {
             if (hasAa) SButton(L.t("Open")) {
@@ -1246,7 +1246,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
             SButton(L.t("App info")) { openSystemSettings(ctx, Settings.ACTION_APPLICATION_DETAILS_SETTINGS, ghUri) }
         }
         // the most asked question: Android Auto only lists apps from Google Play unless told otherwise
-        if (hasAa) SItem(L.t("Not showing in Android Auto?"), L.t("1. In Android Auto's settings, tap Version repeatedly to unlock Developer settings, then turn on Unknown sources. ") +
+        if (hasAa && BuildConfig.STORE != "play") SItem(L.t("Not showing in Android Auto?"), L.t("1. In Android Auto's settings, tap Version repeatedly to unlock Developer settings, then turn on Unknown sources. ") +
             L.t("2. Force stop Android Auto (App info above) and reconnect. 3. If it still isn't listed, install Horizon Nav with the free AAEnabler app, which most people need. ") +
             L.t("Voice requests through Android Auto's own microphone may not reach apps from outside Google Play: use the app's search button instead.")) {
             SButton(L.t("AAEnabler")) {
@@ -1309,7 +1309,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Feedback"), footer = L.t("Ideas and bug reports are very welcome, here or on GitHub and Reddit.")) {
         SItem(L.t("Feedback or a problem"), L.t("Sends a report with the app version, your unit and the last crash, so it's quick to fix")) { SButton(L.t("Report"), primary = true) { feedback = true } }
     }
-    SGroup(L.t("Support Horizon Nav")) {
+    if (BuildConfig.STORE != "play") SGroup(L.t("Support Horizon Nav")) {
         SItem(L.t("Donate"), L.t("Free, no ads. Donations help keep it going (PayPal)")) { SButton(L.t("Donate"), primary = true) { donating = true } }
     }
     SGroup(L.t("Horizon Nav")) {

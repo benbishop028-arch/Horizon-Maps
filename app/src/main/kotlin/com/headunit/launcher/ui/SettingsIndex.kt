@@ -3,7 +3,12 @@ package com.headunit.launcher.ui
 // Every setting by title, with its group and section (the number is its place in SettingsScreen's list of sections), for the settings search.
 internal class SettingRef(val title: String, val sub: String, val group: String, val section: Int)
 
-internal val settingsIndex = listOf(
+internal val settingsIndex get() = if (com.headunit.launcher.BuildConfig.STORE == "play") allSettingsIndex.filter { it.title !in playHidden } else allSettingsIndex
+
+/** Not in the Google Play edition (no updater, no PayPal, no Android Auto workarounds). */
+private val playHidden = setOf("Not showing in Android Auto?", "Donate", "Check for updates", "Look for updates by itself")
+
+private val allSettingsIndex = listOf(
     SettingRef("Day and night", "", "Day and night", 0),
     SettingRef("Night starts at", "", "Day and night", 0),
     SettingRef("Day starts at", "", "Day and night", 0),

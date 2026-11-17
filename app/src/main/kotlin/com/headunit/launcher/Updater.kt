@@ -23,7 +23,8 @@ object Updater {
     private const val MAX_DOWNLOAD_WAIT_MS = 30L * 60L * 1000L
     private const val MAX_APK_BYTES = 500L * 1024L * 1024L
 
-    val enabled: Boolean get() = BuildConfig.UPDATE_REPO.isNotBlank()
+    // (the Google Play edition never updates itself: Play does that)
+    val enabled: Boolean get() = BuildConfig.SELF_UPDATE && BuildConfig.UPDATE_REPO.isNotBlank()
 
     /** The build number of this app (each GitHub build counts up; versionCode is 100 + build). */
     val thisBuild: Int get() = BuildConfig.VERSION_CODE - 100
