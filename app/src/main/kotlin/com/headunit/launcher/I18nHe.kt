@@ -1620,5 +1620,12 @@ object I18nHe {
         "COMING SOON" to "בקרוב",
         "Horizon Maps is coming to Google Play" to "Horizon Maps מגיעה ל-Google Play",
         "Tap to help test it" to "הקישו כדי לעזור בבדיקה",
+        "Update available" to "יש עדכון",
+        "What's in it" to "מה כולל",
+        "Your settings and places are kept" to "ההגדרות והמקומות שלך נשמרים",
+        "and {0} more" to "ועוד {0}",
+        "New" to "חדש",
+        "Improved" to "שופר",
+        "Fixed" to "תוקן",
     )
 }

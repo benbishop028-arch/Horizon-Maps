@@ -1626,5 +1626,12 @@ object I18nC {
         "COMING SOON" to listOf("เร็วๆ นี้", "近日公開", "SEGERA HADIR"),
         "Horizon Maps is coming to Google Play" to listOf("Horizon Maps กำลังจะมาบน Google Play", "Horizon Maps が Google Play に登場予定", "Horizon Maps segera hadir di Google Play"),
         "Tap to help test it" to listOf("แตะเพื่อช่วยทดสอบ", "タップしてテストに協力", "Ketuk untuk membantu mengujinya"),
+        "Update available" to listOf("มีอัปเดต", "アップデートがあります", "Pembaruan tersedia"),
+        "What's in it" to listOf("มีอะไรบ้าง", "内容", "Isinya"),
+        "Your settings and places are kept" to listOf("การตั้งค่าและสถานที่ของคุณจะยังอยู่", "設定と場所はそのまま残ります", "Pengaturan dan tempat Anda tetap tersimpan"),
+        "and {0} more" to listOf("และอีก {0} รายการ", "ほか {0} 件", "dan {0} lainnya"),
+        "New" to listOf("ใหม่", "新機能", "Baru"),
+        "Improved" to listOf("ปรับปรุง", "改善", "Ditingkatkan"),
+        "Fixed" to listOf("แก้ไขแล้ว", "修正", "Diperbaiki"),
     )
 }

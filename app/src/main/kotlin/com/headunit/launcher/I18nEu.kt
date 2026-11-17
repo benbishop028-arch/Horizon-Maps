@@ -1620,5 +1620,12 @@ object I18nEu {
         "COMING SOON" to "LASTER",
         "Horizon Maps is coming to Google Play" to "Horizon Maps Google Play-ra dator",
         "Tap to help test it" to "Sakatu probatzen laguntzeko",
+        "Update available" to "Eguneratzea eskuragarri",
+        "What's in it" to "Zer dakar",
+        "Your settings and places are kept" to "Zure ezarpenak eta lekuak gordetzen dira",
+        "and {0} more" to "eta beste {0}",
+        "New" to "Berria",
+        "Improved" to "Hobetua",
+        "Fixed" to "Konponduta",
     )
 }

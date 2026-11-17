@@ -1620,5 +1620,12 @@ object I18nAr {
         "COMING SOON" to "قريبًا",
         "Horizon Maps is coming to Google Play" to "Horizon Maps قادم إلى Google Play",
         "Tap to help test it" to "اضغط للمساعدة في الاختبار",
+        "Update available" to "يتوفر تحديث",
+        "What's in it" to "ما الجديد فيه",
+        "Your settings and places are kept" to "تبقى إعداداتك وأماكنك محفوظة",
+        "and {0} more" to "و{0} أخرى",
+        "New" to "جديد",
+        "Improved" to "محسّن",
+        "Fixed" to "تم الإصلاح",
     )
 }

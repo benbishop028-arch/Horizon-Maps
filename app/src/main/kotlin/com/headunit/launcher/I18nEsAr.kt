@@ -1620,5 +1620,12 @@ object I18nEsAr {
         "COMING SOON" to "PRÓXIMAMENTE",
         "Horizon Maps is coming to Google Play" to "Horizon Maps llega a Google Play",
         "Tap to help test it" to "Tocá para ayudar a probarla",
+        "Update available" to "Actualización disponible",
+        "What's in it" to "Qué incluye",
+        "Your settings and places are kept" to "Se conservan tus ajustes y lugares",
+        "and {0} more" to "y {0} más",
+        "New" to "Nuevo",
+        "Improved" to "Mejorado",
+        "Fixed" to "Corregido",
     )
 }

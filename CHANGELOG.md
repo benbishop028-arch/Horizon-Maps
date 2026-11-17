@@ -38,6 +38,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Update card: now styled like the What's new card, showing your version and the new one, and how many changes are new, improved and fixed. "What's in it" folds open to the headlines of everything since your version. It fits a short landscape screen too
 - Trip card progress bar: the coloured bar now has rounded ends
 - Recent places under the search bar: all of them show in the list, which scrolls, instead of three with an "All" / "Less" switch
 - Headlight under the 3D car: the beam starts under the 3D car and no longer shines over its roof, and it no longer flickers. On a route it comes on once you first move off, then stays on to the end, even when you stop at lights; with no route it shows while you are moving (thanks to liamstears)

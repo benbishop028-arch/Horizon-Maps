@@ -1617,5 +1617,12 @@ object I18nE {
         "COMING SOON" to listOf("KMALU"),
         "Horizon Maps is coming to Google Play" to listOf("Horizon Maps prihaja v Google Play"),
         "Tap to help test it" to listOf("Tapnite in pomagajte preizkusiti"),
+        "Update available" to listOf("Na voljo je posodobitev"),
+        "What's in it" to listOf("Kaj prinaša"),
+        "Your settings and places are kept" to listOf("Nastavitve in kraji ostanejo shranjeni"),
+        "and {0} more" to listOf("in še {0}"),
+        "New" to listOf("Novo"),
+        "Improved" to listOf("Izboljšano"),
+        "Fixed" to listOf("Popravljeno"),
     )
 }

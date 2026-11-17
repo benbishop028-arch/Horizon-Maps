@@ -1620,5 +1620,12 @@ object I18nFi {
         "COMING SOON" to "TULOSSA PIAN",
         "Horizon Maps is coming to Google Play" to "Horizon Maps on tulossa Google Playhin",
         "Tap to help test it" to "Napauta ja auta testaamaan",
+        "Update available" to "Päivitys saatavilla",
+        "What's in it" to "Mitä siinä on",
+        "Your settings and places are kept" to "Asetuksesi ja paikkasi säilyvät",
+        "and {0} more" to "ja {0} muuta",
+        "New" to "Uutta",
+        "Improved" to "Parannettu",
+        "Fixed" to "Korjattu",
     )
 }

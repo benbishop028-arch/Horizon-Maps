@@ -1620,5 +1620,12 @@ object I18nTr {
         "COMING SOON" to "ÇOK YAKINDA",
         "Horizon Maps is coming to Google Play" to "Horizon Maps Google Play’e geliyor",
         "Tap to help test it" to "Test etmeye yardım etmek için dokunun",
+        "Update available" to "Güncelleme var",
+        "What's in it" to "Neler var",
+        "Your settings and places are kept" to "Ayarlarınız ve yerleriniz korunur",
+        "and {0} more" to "ve {0} tane daha",
+        "New" to "Yeni",
+        "Improved" to "İyileştirildi",
+        "Fixed" to "Düzeltildi",
     )
 }

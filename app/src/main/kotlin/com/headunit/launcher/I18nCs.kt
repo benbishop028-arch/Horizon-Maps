@@ -1620,5 +1620,12 @@ object I18nCs {
         "COMING SOON" to "JIŽ BRZY",
         "Horizon Maps is coming to Google Play" to "Horizon Maps přichází na Google Play",
         "Tap to help test it" to "Klepněte a pomozte s testováním",
+        "Update available" to "Je k dispozici aktualizace",
+        "What's in it" to "Co obsahuje",
+        "Your settings and places are kept" to "Nastavení a místa zůstanou zachována",
+        "and {0} more" to "a další {0}",
+        "New" to "Nové",
+        "Improved" to "Vylepšeno",
+        "Fixed" to "Opraveno",
     )
 }

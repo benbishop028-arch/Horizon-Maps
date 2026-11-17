@@ -2347,6 +2347,13 @@ object L {
         "COMING SOON" to listOf("BINNENKORT", "DEMNÄCHST", "BIENTÔT", "PRÓXIMAMENTE"),
         "Horizon Maps is coming to Google Play" to listOf("Horizon Maps komt naar Google Play", "Horizon Maps kommt zu Google Play", "Horizon Maps arrive sur Google Play", "Horizon Maps llega a Google Play"),
         "Tap to help test it" to listOf("Tik om te helpen testen", "Tippen, um beim Testen zu helfen", "Touchez pour aider à le tester", "Toca para ayudar a probarla"),
+        "Update available" to listOf("Update beschikbaar", "Update verfügbar", "Mise à jour disponible", "Actualización disponible"),
+        "What's in it" to listOf("Wat zit erin", "Was ist neu", "Ce qu’elle contient", "Qué incluye"),
+        "Your settings and places are kept" to listOf("Je instellingen en plaatsen blijven bewaard", "Deine Einstellungen und Orte bleiben erhalten", "Vos réglages et lieux sont conservés", "Se conservan tus ajustes y lugares"),
+        "and {0} more" to listOf("en nog {0}", "und {0} weitere", "et {0} de plus", "y {0} más"),
+        "New" to listOf("Nieuw", "Neu", "Nouveau", "Nuevo"),
+        "Improved" to listOf("Verbeterd", "Verbessert", "Amélioré", "Mejorado"),
+        "Fixed" to listOf("Opgelost", "Behoben", "Corrigé", "Corregido"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3965,5 +3972,12 @@ object L {
         "COMING SOON" to listOf("PROSSIMAMENTE", "EM BREVE", "WKRÓTCE"),
         "Horizon Maps is coming to Google Play" to listOf("Horizon Maps arriva su Google Play", "O Horizon Maps vai chegar ao Google Play", "Horizon Maps trafi do Google Play"),
         "Tap to help test it" to listOf("Tocca per aiutare a testarla", "Toque para ajudar a testar", "Dotknij, aby pomóc w testach"),
+        "Update available" to listOf("Aggiornamento disponibile", "Atualização disponível", "Dostępna aktualizacja"),
+        "What's in it" to listOf("Cosa contiene", "O que inclui", "Co zawiera"),
+        "Your settings and places are kept" to listOf("Impostazioni e luoghi restano salvati", "As suas definições e locais são mantidos", "Ustawienia i miejsca zostaną zachowane"),
+        "and {0} more" to listOf("e altri {0}", "e mais {0}", "i jeszcze {0}"),
+        "New" to listOf("Novità", "Novo", "Nowe"),
+        "Improved" to listOf("Migliorato", "Melhorado", "Ulepszone"),
+        "Fixed" to listOf("Corretto", "Corrigido", "Naprawione"),
     )
 }

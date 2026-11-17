@@ -1620,5 +1620,12 @@ object I18nRo {
         "COMING SOON" to "ÎN CURÂND",
         "Horizon Maps is coming to Google Play" to "Horizon Maps vine pe Google Play",
         "Tap to help test it" to "Atingeți pentru a ajuta la testare",
+        "Update available" to "Actualizare disponibilă",
+        "What's in it" to "Ce conține",
+        "Your settings and places are kept" to "Setările și locurile sunt păstrate",
+        "and {0} more" to "și încă {0}",
+        "New" to "Nou",
+        "Improved" to "Îmbunătățit",
+        "Fixed" to "Reparat",
     )
 }

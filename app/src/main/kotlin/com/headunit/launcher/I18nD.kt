@@ -1617,5 +1617,12 @@ object I18nD {
         "COMING SOON" to listOf("ОЧАКВАЙТЕ СКОРО"),
         "Horizon Maps is coming to Google Play" to listOf("Horizon Maps идва в Google Play"),
         "Tap to help test it" to listOf("Докоснете, за да помогнете с теста"),
+        "Update available" to listOf("Налична е актуализация"),
+        "What's in it" to listOf("Какво съдържа"),
+        "Your settings and places are kept" to listOf("Настройките и местата ви се запазват"),
+        "and {0} more" to listOf("и още {0}"),
+        "New" to listOf("Ново"),
+        "Improved" to listOf("Подобрено"),
+        "Fixed" to listOf("Поправено"),
     )
 }

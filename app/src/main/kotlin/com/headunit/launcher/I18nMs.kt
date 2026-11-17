@@ -1620,5 +1620,12 @@ object I18nMs {
         "COMING SOON" to "AKAN DATANG",
         "Horizon Maps is coming to Google Play" to "Horizon Maps akan hadir di Google Play",
         "Tap to help test it" to "Ketik untuk membantu mengujinya",
+        "Update available" to "Kemas kini tersedia",
+        "What's in it" to "Kandungannya",
+        "Your settings and places are kept" to "Tetapan dan tempat anda dikekalkan",
+        "and {0} more" to "dan {0} lagi",
+        "New" to "Baharu",
+        "Improved" to "Dipertingkat",
+        "Fixed" to "Dibaiki",
     )
 }

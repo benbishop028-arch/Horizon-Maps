@@ -1620,5 +1620,12 @@ object I18nKn {
         "COMING SOON" to "ಶೀಘ್ರದಲ್ಲೇ",
         "Horizon Maps is coming to Google Play" to "Horizon Maps, Google Play ಗೆ ಬರುತ್ತಿದೆ",
         "Tap to help test it" to "ಪರೀಕ್ಷಿಸಲು ಸಹಾಯ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
+        "Update available" to "ಅಪ್‌ಡೇಟ್ ಲಭ್ಯವಿದೆ",
+        "What's in it" to "ಇದರಲ್ಲಿ ಏನಿದೆ",
+        "Your settings and places are kept" to "ನಿಮ್ಮ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಮತ್ತು ಸ್ಥಳಗಳು ಉಳಿಯುತ್ತವೆ",
+        "and {0} more" to "ಮತ್ತು ಇನ್ನೂ {0}",
+        "New" to "ಹೊಸದು",
+        "Improved" to "ಸುಧಾರಿತ",
+        "Fixed" to "ಸರಿಪಡಿಸಲಾಗಿದೆ",
     )
 }

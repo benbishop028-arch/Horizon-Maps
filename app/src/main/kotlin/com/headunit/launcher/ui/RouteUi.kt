@@ -1,5 +1,11 @@
 package com.headunit.launcher.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.rounded.ExpandLess
 import com.headunit.launcher.L
 
 import androidx.compose.foundation.Canvas
@@ -723,35 +729,109 @@ fun PackAgeCard(engine: NavEngine) {
     }
 }
 
-/** A newer version of the app is out (shareable build only): Update downloads it and opens the installer; Later hides it for a few days. */
+/** The changes in an available update (every version from this one up to it), fetched once per version and kept for the run. */
+private object UpdateNotesCache { val notes = HashMap<String, String>() }
+
+/**
+ * A newer version of the app is out (shareable build only), styled like the What's new card: the blue header with your version and
+ * the new one, how many changes are new, improved and fixed, and "What's in it" folding open to just their headlines. Update
+ * downloads it and opens the installer; Later hides it for a few days. On a short landscape screen it's more compact, and the
+ * folded-open list scrolls within a set height, so it never runs off the screen.
+ */
 @Composable
 fun AppUpdateCard(engine: NavEngine) {
     val u = engine.appUpdate ?: return
     val c = LocalVw.current
-    val shape = RoundedCornerShape(22.dp)
-    Row(
-        Modifier.fillMaxWidth().panel(8.dp, shape, c.surface).padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(L.t("Horizon Nav update available"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(L.t("Installed {0}  →  Available {1}", com.headunit.launcher.BuildConfig.VERSION_NAME, u.version), color = c.sub, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(if (engine.updateBusy || engine.updateStatus.isNotBlank()) engine.updateStatus else L.t("Update now: your settings and places are kept"),
-                color = c.sub, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            if (u.releaseNotes.isNotBlank() && !engine.updateBusy) {
-                Text(u.releaseNotes, color = c.sub, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+    val conf = androidx.compose.ui.platform.LocalConfiguration.current
+    val short = conf.screenHeightDp < 520
+    val headBg = if (c.dark) Color(0xFF203B62) else Color(0xFFDCEBFF)
+    val headTitle = if (c.dark) Color.White else Color(0xFF172B46)
+    val headSub = if (c.dark) Color(0xFFD8E7FA) else Color(0xFF405875)
+    var notes by remember(u.version) { mutableStateOf(UpdateNotesCache.notes[u.version] ?: u.releaseNotes) }
+    LaunchedEffect(u.version) {
+        if (UpdateNotesCache.notes.containsKey(u.version)) return@LaunchedEffect
+        val n = try {
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                com.headunit.launcher.Updater.installedReleaseNotes(u.version, com.headunit.launcher.BuildConfig.VERSION_NAME, null)
             }
-            // Horizon Nav isn't on Google Play, so "installed by Google Play" means a tool like AAEnabler installed it to get it into
-            // Android Auto. Android Auto drops apps that update themselves, so say so before they find it missing in the car.
-            val ctx = androidx.compose.ui.platform.LocalContext.current
-            val viaAaTool = remember { com.headunit.launcher.Updater.installedViaAaTool(ctx) }
-            if (viaAaTool && !engine.updateBusy && engine.updateStatus.isBlank()) Text(
-                if (android.os.Build.VERSION.SDK_INT >= 29) L.t("Installed with AAEnabler: Update saves the new version to your Downloads, so you can install it with AAEnabler and keep it in Android Auto.")
-                else L.t("Installed with AAEnabler (or similar)? Updating here takes it out of Android Auto: install the new version with AAEnabler again afterwards."),
-                color = Warn, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis)
+        } catch (e: Exception) { "" }
+        if (n.isNotBlank()) { UpdateNotesCache.notes[u.version] = n; notes = n }
+    }
+    val items = remember(notes) { try { parseNotes(notes) } catch (e: Exception) { emptyList() } }
+    val summary = remember(items) { if (items.isEmpty()) "" else try { notesSummary(notes) } catch (e: Exception) { "" } }
+    var open by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(24.dp)
+    Column(Modifier.fillMaxWidth().panel(8.dp, shape, c.surface).padding(if (short) 10.dp else 12.dp)) {
+        // the header, as on the What's new card
+        Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(headBg).padding(horizontal = 14.dp, vertical = if (short) 9.dp else 12.dp),
+            verticalArrangement = Arrangement.spacedBy(if (short) 3.dp else 5.dp)) {
+            if (!short) Text(L.t("HORIZON NAV  /  UPDATE"), color = c.accent, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(L.t("Update available"), color = headTitle, fontSize = if (short) 17.sp else 20.sp, fontWeight = FontWeight.Bold,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                if (short) VersionChips(u.version, c, headTitle)
+            }
+            if (!short) VersionChips(u.version, c, headTitle)
+            if (summary.isNotBlank()) Text(summary, color = headSub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        if (!engine.updateBusy) Pill(L.t("Update"), true, { engine.installAppUpdate() })
-        if (!engine.updateBusy) Pill(L.t("Later"), false, { engine.snoozeAppUpdate() })
+        val busy = engine.updateBusy || engine.updateStatus.isNotBlank()
+        // "What's in it": just the headlines, up to three of each kind
+        if (items.isNotEmpty() && !busy) {
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { open = !open }.padding(horizontal = 6.dp, vertical = if (short) 7.dp else 9.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(L.t("What's in it"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Icon(if (open) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = c.accent, modifier = Modifier.size(22.dp))
+            }
+            androidx.compose.animation.AnimatedVisibility(open, enter = androidx.compose.animation.expandVertically(tween(220)) + fadeIn(tween(200)),
+                exit = androidx.compose.animation.shrinkVertically(tween(180)) + fadeOut(tween(140))) {
+                val kindTitles = listOf(L.t("New"), L.t("Improved"), L.t("Fixed"))
+                val kindCols = listOf(if (c.dark) Color(0xFF9AF0C9) else Color(0xFF16734D), c.accent, if (c.dark) Color(0xFFFFB27A) else Color(0xFFB3541E))
+                Column(Modifier.fillMaxWidth().heightIn(max = (conf.screenHeightDp * (if (short) 0.34f else 0.38f)).dp).verticalScroll(rememberScrollState())
+                    .padding(start = 6.dp, end = 6.dp, bottom = 4.dp)) {
+                    for (k in 0..2) {
+                        val group = items.filter { it.kind == k }
+                        if (group.isEmpty()) continue
+                        Text(kindTitles[k].uppercase(L.locale), color = kindCols[k], fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp,
+                            modifier = Modifier.padding(top = 6.dp, bottom = 2.dp))
+                        for (it in group.take(3)) Text("• " + it.title.ifBlank { it.desc }, color = c.text, fontSize = 13.sp, maxLines = 1,
+                            overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(vertical = 2.dp))
+                        if (group.size > 3) Text(L.t("and {0} more", group.size - 3), color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(vertical = 2.dp))
+                    }
+                }
+            }
+        }
+        Text(if (busy) engine.updateStatus else L.t("Your settings and places are kept"), color = c.sub, fontSize = 12.sp, maxLines = 2,
+            overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp, end = 6.dp, top = if (items.isNotEmpty() && !busy) 0.dp else 8.dp, bottom = 8.dp))
+        // Horizon Nav isn't on Google Play, so "installed by Google Play" means a tool like AAEnabler installed it to get it into
+        // Android Auto. Android Auto drops apps that update themselves, so say so before they find it missing in the car.
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        val viaAaTool = remember { com.headunit.launcher.Updater.installedViaAaTool(ctx) }
+        if (viaAaTool && !busy) Text(
+            if (android.os.Build.VERSION.SDK_INT >= 29) L.t("Installed with AAEnabler: Update saves the new version to your Downloads, so you can install it with AAEnabler and keep it in Android Auto.")
+            else L.t("Installed with AAEnabler (or similar)? Updating here takes it out of Android Auto: install the new version with AAEnabler again afterwards."),
+            color = Warn, fontSize = 11.sp, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp, end = 6.dp, bottom = 8.dp))
+        if (!engine.updateBusy) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.Button(onClick = { engine.installAppUpdate() }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = c.accent, contentColor = if (c.dark) Color(0xFF102039) else Color.White)) {
+                Text(L.t("Update"), fontWeight = FontWeight.Bold)
+            }
+            androidx.compose.material3.Button(onClick = { engine.snoozeAppUpdate() }, modifier = Modifier.weight(1f), shape = RoundedCornerShape(14.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = c.tile, contentColor = c.text)) {
+                Text(L.t("Later"), fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
+/** Your version, an arrow, and the new one picked out in the accent colour. */
+@Composable
+private fun VersionChips(newVersion: String, c: Vw, text: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(com.headunit.launcher.BuildConfig.VERSION_NAME, color = text, fontSize = 13.sp, maxLines = 1,
+            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(text.copy(alpha = 0.12f)).padding(horizontal = 8.dp, vertical = 2.dp))
+        Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, tint = c.accent, modifier = Modifier.size(16.dp))
+        Text(newVersion, color = if (c.dark) Color(0xFF0F1D33) else Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1,
+            modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(c.accent).padding(horizontal = 8.dp, vertical = 2.dp))
     }
 }
 

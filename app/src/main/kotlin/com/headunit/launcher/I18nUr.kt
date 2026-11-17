@@ -1620,5 +1620,12 @@ object I18nUr {
         "COMING SOON" to "جلد آ رہا ہے",
         "Horizon Maps is coming to Google Play" to "Horizon Maps جلد Google Play پر",
         "Tap to help test it" to "جانچ میں مدد کے لیے تھپتھپائیں",
+        "Update available" to "اپ ڈیٹ دستیاب ہے",
+        "What's in it" to "اس میں کیا ہے",
+        "Your settings and places are kept" to "آپ کی ترتیبات اور جگہیں محفوظ رہتی ہیں",
+        "and {0} more" to "اور {0} مزید",
+        "New" to "نیا",
+        "Improved" to "بہتر",
+        "Fixed" to "درست",
     )
 }

@@ -1620,5 +1620,12 @@ object I18nDa {
         "COMING SOON" to "KOMMER SNART",
         "Horizon Maps is coming to Google Play" to "Horizon Maps kommer på Google Play",
         "Tap to help test it" to "Tryk for at hjælpe med at teste",
+        "Update available" to "Opdatering tilgængelig",
+        "What's in it" to "Hvad den indeholder",
+        "Your settings and places are kept" to "Dine indstillinger og steder bevares",
+        "and {0} more" to "og {0} mere",
+        "New" to "Nyt",
+        "Improved" to "Forbedret",
+        "Fixed" to "Rettet",
     )
 }

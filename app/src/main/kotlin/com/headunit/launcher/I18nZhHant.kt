@@ -1620,5 +1620,12 @@ object I18nZhHant {
         "COMING SOON" to "即將推出",
         "Horizon Maps is coming to Google Play" to "Horizon Maps 即將登上 Google Play",
         "Tap to help test it" to "輕觸以協助測試",
+        "Update available" to "有可用更新",
+        "What's in it" to "內容",
+        "Your settings and places are kept" to "你的設定和地點都會保留",
+        "and {0} more" to "還有 {0} 項",
+        "New" to "新功能",
+        "Improved" to "改進",
+        "Fixed" to "修正",
     )
 }

@@ -1620,5 +1620,12 @@ object I18nSv {
         "COMING SOON" to "KOMMER SNART",
         "Horizon Maps is coming to Google Play" to "Horizon Maps kommer till Google Play",
         "Tap to help test it" to "Tryck för att hjälpa till att testa",
+        "Update available" to "Uppdatering tillgänglig",
+        "What's in it" to "Vad den innehåller",
+        "Your settings and places are kept" to "Dina inställningar och platser behålls",
+        "and {0} more" to "och {0} till",
+        "New" to "Nytt",
+        "Improved" to "Förbättrat",
+        "Fixed" to "Åtgärdat",
     )
 }

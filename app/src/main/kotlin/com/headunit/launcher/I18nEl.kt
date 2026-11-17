@@ -1620,5 +1620,12 @@ object I18nEl {
         "COMING SOON" to "ΣΥΝΤΟΜΑ",
         "Horizon Maps is coming to Google Play" to "Το Horizon Maps έρχεται στο Google Play",
         "Tap to help test it" to "Πατήστε για να βοηθήσετε στη δοκιμή",
+        "Update available" to "Διαθέσιμη ενημέρωση",
+        "What's in it" to "Τι περιέχει",
+        "Your settings and places are kept" to "Οι ρυθμίσεις και τα μέρη σας διατηρούνται",
+        "and {0} more" to "και {0} ακόμη",
+        "New" to "Νέο",
+        "Improved" to "Βελτιώθηκε",
+        "Fixed" to "Διορθώθηκε",
     )
 }

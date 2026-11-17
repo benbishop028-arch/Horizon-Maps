@@ -1620,5 +1620,12 @@ object I18nSr {
         "COMING SOON" to "УСКОРО",
         "Horizon Maps is coming to Google Play" to "Horizon Maps стиже на Google Play",
         "Tap to help test it" to "Додирните и помозите у тестирању",
+        "Update available" to "Доступно је ажурирање",
+        "What's in it" to "Шта доноси",
+        "Your settings and places are kept" to "Подешавања и места остају сачувани",
+        "and {0} more" to "и још {0}",
+        "New" to "Ново",
+        "Improved" to "Побољшано",
+        "Fixed" to "Поправљено",
     )
 }

@@ -1620,5 +1620,12 @@ object I18nHu {
         "COMING SOON" to "HAMAROSAN",
         "Horizon Maps is coming to Google Play" to "A Horizon Maps hamarosan a Google Playen",
         "Tap to help test it" to "Koppintson, és segítsen tesztelni",
+        "Update available" to "Frissítés érhető el",
+        "What's in it" to "Mit tartalmaz",
+        "Your settings and places are kept" to "A beállítások és helyek megmaradnak",
+        "and {0} more" to "és még {0}",
+        "New" to "Új",
+        "Improved" to "Javítva",
+        "Fixed" to "Hibajavítás",
     )
 }

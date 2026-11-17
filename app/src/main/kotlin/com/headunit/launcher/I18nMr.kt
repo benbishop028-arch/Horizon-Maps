@@ -1620,5 +1620,12 @@ object I18nMr {
         "COMING SOON" to "लवकरच",
         "Horizon Maps is coming to Google Play" to "Horizon Maps लवकरच Google Play वर",
         "Tap to help test it" to "चाचणीस मदत करण्यासाठी टॅप करा",
+        "Update available" to "अपडेट उपलब्ध आहे",
+        "What's in it" to "यात काय आहे",
+        "Your settings and places are kept" to "तुमच्या सेटिंग्ज आणि ठिकाणे जतन राहतात",
+        "and {0} more" to "आणि आणखी {0}",
+        "New" to "नवीन",
+        "Improved" to "सुधारित",
+        "Fixed" to "दुरुस्त",
     )
 }
