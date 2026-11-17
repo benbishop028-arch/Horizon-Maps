@@ -1157,7 +1157,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun setBeam(on: Boolean, mps: Double) {
         val was = beamOn
         beamOn = on; beamSpeed = mps
-        if (was && !on) main0.post { try { pushBeam() } catch (e: Throwable) { } }
+        if (was != on) main0.post { try { pushBeam() } catch (e: Throwable) { } }
     }
 
     // The beam is a "location indicator" layer: its place and direction are set straight on the layer each time the arrow moves,
@@ -1186,6 +1186,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         /** Screen points: nose, outer left, outer tip, outer right, inner left, inner tip, inner right, nose left, nose right, far middle. */
         val pts = FloatArray(20)
         var on = false
+        /** The 3D car's outline on screen, left out of the light (null: nothing cut out). */
+        var mask: android.graphics.Path? = null
         private val path = android.graphics.Path()
         private val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
         private var gx0 = 0f; private var gy0 = 0f; private var gx1 = 0f; private var gy1 = 0f
@@ -1204,64 +1206,18 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             }
             path.reset()
             path.moveTo(p[14], p[15]); path.lineTo(p[8], p[9]); path.quadTo(p[10], p[11], p[12], p[13]); path.lineTo(p[16], p[17]); path.close()
+            val m = mask
+            if (m != null) { canvas.save(); canvas.clipOutPath(m) }
             canvas.drawPath(path, paint)
+            if (m != null) canvas.restore()
         }
-    }
-
-    /**
-     * The beam under the 3D car and the flat arrow: a picture of the cone lying on the road in the map itself, just below the
-     * arrow, so the car is drawn over it (the beam drawn over the map, beamView, covered the 3D car's roof, liamstears). Its four
-     * corners are places on the road, re-set only when the car moves or turns, not on every camera move.
-     */
-    private var headlightOk = false
-    private var hlLat = 0.0; private var hlLon = 0.0; private var hlHead = -999.0; private var hlLen = 0.0
-    private var hlShown = false
-    private fun installHeadlight(st: Style) {
-        headlightOk = false; hlShown = false; hlHead = -999.0
-        if (satellite) return
-        try {
-            val props = HashMap<String, Value>()
-            props["type"] = Value("image")
-            val c = { lon: Double, lat: Double -> Value(listOf(Value(lon), Value(lat))) }
-            props["coordinates"] = Value(listOf(c(0.0, 0.001), c(0.001, 0.001), c(0.001, 0.0), c(0.0, 0.0)))
-            st.addStyleSource("dl-headlight", Value(props))
-            st.updateStyleImageSourceImage("dl-headlight", headlightBitmap().toMapboxImage())
-            addL(st, RasterLayer("dl-headlight-l", "dl-headlight").rasterFadeDuration(0.0).rasterEmissiveStrength(1.0).rasterOpacity(1.0)
-                .visibility(Visibility.NONE), "dl-me-arrow")
-            headlightOk = st.styleLayerExists("dl-headlight-l")
-        } catch (e: Throwable) { android.util.Log.w("MapBinding", "headlight: ${e.message}") }
-    }
-
-    /** The cone, nose at the bottom middle and the far end at the top, fading out as it goes (the same light as beamView's). */
-    private fun headlightBitmap(): Bitmap {
-        val w = 256; val h = 320
-        val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        val cv = android.graphics.Canvas(b)
-        // the picture spans 0.42 of the length either side and 1.05 of it from the nose (see placeBeam's corners)
-        fun x(across: Double) = (w / 2.0 + across / 0.42 * (w / 2.0)).toFloat()
-        fun y(along: Double) = (h * (1.0 - along / 1.05)).toFloat()
-        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            shader = android.graphics.LinearGradient(0f, y(0.0), 0f, y(1.0),
-                intArrayOf(0x8CFFF4D6.toInt(), 0x40FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
-        }
-        val path = android.graphics.Path().apply {
-            moveTo(x(-0.025), y(0.0)); lineTo(x(-0.34), y(0.88)); quadTo(x(0.0), y(1.0), x(0.34), y(0.88)); lineTo(x(0.025), y(0.0)); close()
-        }
-        cv.drawPath(path, paint)
-        return b
-    }
-
-    private fun hideHeadlight() {
-        if (!hlShown) return
-        hlShown = false
-        try { style?.setStyleLayerProperty("dl-headlight-l", "visibility", Value.valueOf("none")) } catch (e: Throwable) { }
     }
 
     private fun placeBeam() {
         val bv = beamView
         val p = me
         val night = lightPreset == "night" || lightPreset == "dusk"
-        if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); hideHeadlight(); return }
+        if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); return }
         try {
             val g = beamGeom(p) ?: run { bv.clear(); return }
             val (ahead, len) = g
@@ -1271,28 +1227,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // used to start at the windscreen, liamstears). The flat arrow and the real 3D model are part of the map, under the beam,
             // so there it still starts at the nose.
             val carOnTop = locatorStyle != "flat" && !modelOn && locatorView.visibility == android.view.View.VISIBLE
-            val st = style
-            if (!carOnTop && headlightOk && st != null) {
-                // in the map, under the car: only re-placed when the car has moved, turned or the beam's length changed
-                bv.clear()
-                val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
-                val l = len * sc
-                val moved = Geo.dist(LL(hlLat, hlLon), p) > 0.3 || abs(((h - hlHead + 540.0) % 360.0) - 180.0) > 0.5 || abs(l - hlLen) > hlLen * 0.03
-                if (moved || !hlShown) {
-                    hlLat = p.lat; hlLon = p.lon; hlHead = h; hlLen = l
-                    // starting a little behind the nose: the car hides where it begins
-                    val nose = Furniture.offset(p, h, ahead * 0.6)
-                    val far = Furniture.offset(nose, h, l * 1.05)
-                    val c = { q: LL -> Value(listOf(Value(q.lon), Value(q.lat))) }
-                    st.setStyleSourceProperty("dl-headlight", "coordinates", Value(listOf(
-                        c(Furniture.offset(far, h - 90.0, l * 0.42)), c(Furniture.offset(far, h + 90.0, l * 0.42)),
-                        c(Furniture.offset(nose, h + 90.0, l * 0.42)), c(Furniture.offset(nose, h - 90.0, l * 0.42)))))
-                    if (!hlShown) { st.setStyleLayerProperty("dl-headlight-l", "visibility", Value.valueOf("visible")); hlShown = true }
-                }
-                return
-            }
-            hideHeadlight()
-            val start = if (carOnTop) ahead * 0.15 else ahead
+            // the 3D car: the beam starts under it too, and the car's own shape on screen (its outline, roof included) is cut out
+            // of the light, so the car looks drawn over it (the beam covered its roof, liamstears). The beam used to be a picture in
+            // the map for this, re-placed many times a second, and it flickered
+            val start = if (carOnTop) ahead * 0.15 else if (modelOn) ahead * 0.45 else ahead
+            bv.mask = if (modelOn) try { modelMask(p, h) } catch (e: Throwable) { null } else null
             val nose = if (start > 0.0) Furniture.offset(p, h, start) else p
             // a little longer the faster you go (up to about 70 mph); measured from the nose, so starting further back doesn't shorten it
             val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
@@ -1310,6 +1249,49 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             }
             bv.show()
         } catch (e: Throwable) { bv.clear() }
+    }
+
+    /**
+     * The 3D car's (or 3D arrow's) outline on screen: its footprint on the road, and the same lifted by its height (the camera looks
+     * down at an angle, so the roof sits higher on screen), joined into one shape. A little generous, so no light shows on the body.
+     */
+    private fun modelMask(p: LL, h: Double): android.graphics.Path? {
+        val tilt = try { mbMap.cameraState.pitch } catch (e: Throwable) { tiltNow }
+        val t = Math.toRadians(tilt)
+        val k = modelPxPerUnit()
+        val a = mbMap.pixelForCoordinate(Point.fromLngLat(p.lon, p.lat))
+        val f = Furniture.offset(p, h, 20.0)
+        val b = mbMap.pixelForCoordinate(Point.fromLngLat(f.lon, f.lat))
+        val dl = Math.hypot(b.x - a.x, b.y - a.y)
+        if (dl < 1e-3 || k <= 0.0) return null
+        val ux = (b.x - a.x) / dl; val uy = (b.y - a.y) / dl
+        val nx = -uy; val ny = ux
+        // model units: about 4.6 long, 2 wide and 1.6 tall for the car; the arrow is flatter
+        val hl = k * (if (carLike) 2.45 else 0.95) * Math.cos(t).coerceAtLeast(0.2) * 1.08
+        val hw = k * (if (carLike) 1.05 else 0.8) * 1.08
+        val up = k * (if (carLike) 1.65 else 0.45) * Math.sin(t)
+        val pts = ArrayList<Pair<Double, Double>>(8)
+        for (lift in doubleArrayOf(0.0, up)) for (sl in doubleArrayOf(-1.0, 1.0)) for (sw in doubleArrayOf(-1.0, 1.0))
+            pts += Pair(a.x + ux * hl * sl + nx * hw * sw, a.y + uy * hl * sl + ny * hw * sw - lift)
+        // the outline round all eight corners (monotone chain)
+        val q = pts.sortedWith(compareBy({ it.first }, { it.second }))
+        fun cross(o: Pair<Double, Double>, a1: Pair<Double, Double>, b1: Pair<Double, Double>) =
+            (a1.first - o.first) * (b1.second - o.second) - (a1.second - o.second) * (b1.first - o.first)
+        val hull = ArrayList<Pair<Double, Double>>()
+        for (pass in 0..1) {
+            val start = hull.size
+            for (pt in if (pass == 0) q else q.asReversed()) {
+                while (hull.size >= start + 2 && cross(hull[hull.size - 2], hull[hull.size - 1], pt) <= 0) hull.removeAt(hull.size - 1)
+                hull += pt
+            }
+            hull.removeAt(hull.size - 1)
+        }
+        if (hull.size < 3) return null
+        return android.graphics.Path().apply {
+            moveTo(hull[0].first.toFloat(), hull[0].second.toFloat())
+            for (i in 1 until hull.size) lineTo(hull[i].first.toFloat(), hull[i].second.toFloat())
+            close()
+        }
     }
 
     /**
@@ -2594,7 +2576,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // the real 3D model (Full 3D only); otherwise the 3D locator is drawn by locatorView over the map, see pushModel
         modelOn = false; modelAt = null
         if (modelWanted && !modelBroken && !satellite && MapStylePolicy.supportsFullDetailFeatures(mapDetail)) installModel(st)
-        installHeadlight(st)
         // (the road-name pill is roadView, see placeLocator)
         spriteName = null
         placeLocator()

@@ -1547,7 +1547,6 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
         @Suppress("UNUSED_VARIABLE") val unusedGroups = grouped
         recents.map { Triple(it, 2, it.name) }
     }
-    var showAll by rememberSaveable { mutableStateOf(false) }
     var adding by remember { mutableStateOf(false) }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val here = engine.fix?.pos
@@ -1601,12 +1600,11 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
         Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 6.dp)) {
             Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(L.t("Recent").uppercase(L.locale), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
-                if (saved.size > 3) Text(if (showAll) L.t("Less") else L.t("All {0}", saved.size), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clip(RoundedCornerShape(12.dp)).clickable { showAll = !showAll }.padding(horizontal = 10.dp, vertical = 8.dp))
             }
             if (saved.isEmpty()) Text(L.t("Places you drive to show up here"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 18.dp, end = 18.dp, bottom = 8.dp))
             LazyColumn(Modifier.heightIn(max = 250.dp)) {
-                items(if (showAll || openGroup.isNotEmpty()) saved else saved.take(3)) { (p, kind, label) ->
+                // (all of them, scrolling within the panel: the "All 6" / "Less" switch is gone)
+                items(saved) { (p, kind, label) ->
                     if (kind == 4) {
                         val open = label == openGroup
                         Row(Modifier.fillMaxWidth().clickable { openGroup = if (open) "" else label }.padding(horizontal = 16.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {

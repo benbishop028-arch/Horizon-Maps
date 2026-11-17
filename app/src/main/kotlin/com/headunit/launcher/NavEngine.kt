@@ -3592,6 +3592,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return true
     }
     private var stillFast = 0
+    /** On a route, the headlight has come on (you've moved off): it then stays on until the route ends. */
+    private var beamHeld = false
     /** The last direction of travel the GPS gave while really moving. */
     private var goodHead: Double? = null
 
@@ -3608,8 +3610,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // start/stop moving with a little hysteresis (the full map rests its shop labels while you drive)
         if (!movingNow && sp > 4.0) { movingNow = true; map.setMoving(true) }
         else if (movingNow && sp < 1.5) { movingNow = false; map.setMoving(false) }
-        // the headlight beam ahead of the arrow (night only, the map decides that): while you're moving, longer at speed
-        map.setBeam(movingNow && prefs.b(PreferenceKeys.BEAM, true), sp)
+        // the headlight beam ahead of the arrow (night only, the map decides that): on a route it comes on once you first move off,
+        // then stays on to the end, stopped at lights too; with no route, only while you're moving. Longer at speed
+        val onRoute = route != null && !previewing
+        if (!onRoute) beamHeld = false else if (movingNow) beamHeld = true
+        map.setBeam((movingNow || beamHeld) && prefs.b(PreferenceKeys.BEAM, true), sp)
         val tNow = android.os.SystemClock.elapsedRealtime()
         if (newFix) {
             lastMeasured = p

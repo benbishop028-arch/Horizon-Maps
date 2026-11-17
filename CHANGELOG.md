@@ -38,7 +38,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
-- Headlight under the 3D car: with the 3D car or the flat arrow, the beam now lies on the road under it instead of being drawn over its roof (thanks to liamstears)
+- Trip card progress bar: the coloured bar now has rounded ends
+- Recent places under the search bar: all of them show in the list, which scrolls, instead of three with an "All" / "Less" switch
+- Headlight under the 3D car: the beam starts under the 3D car and no longer shines over its roof, and it no longer flickers. On a route it comes on once you first move off, then stays on to the end, even when you stop at lights; with no route it shows while you are moving (thanks to liamstears)
 - Road name at the bottom stays put: driving without a route, the road name at the bottom no longer swaps with the bubble under your arrow every time you slow down. It stays for a minute after you stop (thanks to liamstears)
 - Clearer traffic note when stopped: the note now reads "Showing traffic while you’re stopped" (thanks to liamstears)
 - Turn card: the progress bar now sits a little way inside the card, so its rounded corners no longer hide the last few seconds. At a roundabout, the exit number is written large inside a bigger ring, on the turn card and in the "then" line, so the "then" line only needs the road name (thanks to karthikeyansr-lgtm)
