@@ -138,6 +138,11 @@ dependencies {
     implementation("io.github.rallista:valhalla-mobile:0.6.4")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
 
+    // Google Play edition only: Google's billing library, for the Horizon Maps subscription. (It also tells Play Console the app
+    // sells something, which Play needs to see in an uploaded build before a subscription can be set up there.) The GitHub edition
+    // doesn't include it.
+    "playImplementation"("com.android.billingclient:billing:9.1.0")
+
     // Small, fast JVM tests for camera and GPS decision policies; these don't require a device.
     testImplementation("junit:junit:4.13.2")
 }
