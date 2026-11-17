@@ -12,6 +12,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.composed
@@ -277,6 +279,8 @@ fun ManeuverArrow(
     roundaboutClockwise: Boolean = true,
     /** The real exit direction at a roundabout (degrees, 0 ahead, 90 right), when the route data has it. */
     exitAngle: Float = Float.NaN,
+    /** At a roundabout: the exit's number, written large inside a bigger ring (0 = no number, the plain smaller ring). */
+    exitNumber: Int = 0,
 ) {
     Canvas(modifier) {
         val s = size.minDimension / 48f
@@ -318,7 +322,9 @@ fun ManeuverArrow(
             // points ([exitAngle] from the route's road bearings when known, otherwise the manoeuvre's left/right/ahead).
             // The highlighted arc follows the traffic: clockwise where people keep left (UK), anticlockwise elsewhere.
             // (The exit's number isn't used for the direction: a "2nd exit" can point anywhere, depending on the roundabout.)
-            val cx = 24f; val cy = 25f; val rr = 8f
+            // (with the exit's number in it the ring is bigger, so the number can be read at a glance, karthikeyansr)
+            val numbered = exitNumber in 1..20
+            val cx = 24f; val cy = if (numbered) 24f else 25f; val rr = if (numbered) 11.5f else 8f
             val ringRect = Rect(Offset((cx - rr) * s, (cy - rr) * s), Size(rr * 2f * s, rr * 2f * s))
             val ringStroke = Stroke(width = 3.5f * s, cap = StrokeCap.Round)
             drawCircle(color.copy(alpha = 0.3f), rr * s, p(cx, cy), style = ringStroke)
@@ -333,13 +339,23 @@ fun ManeuverArrow(
             val endDeg = Math.toRadians((90f + sweep).toDouble())
             val dx = kotlin.math.cos(endDeg).toFloat()
             val dy = kotlin.math.sin(endDeg).toFloat()
-            val ex = cx + dx * (rr + 10f); val ey = cy + dy * (rr + 10f)
+            val stub = if (numbered) 6.5f else 10f
+            val ex = cx + dx * (rr + stub); val ey = cy + dy * (rr + stub)
             drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
             val tip = p(ex + dx * 5f, ey + dy * 5f)
             val px = -dy; val py = dx
             val h1 = p(ex - dx * 3f + px * 4.5f, ey - dy * 3f + py * 4.5f)
             val h2 = p(ex - dx * 3f - px * 4.5f, ey - dy * 3f - py * 4.5f)
             drawPath(Path().apply { moveTo(tip.x, tip.y); lineTo(h1.x, h1.y); lineTo(h2.x, h2.y); close() }, color)
+            if (numbered) drawContext.canvas.nativeCanvas.apply {
+                val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    this.color = color.toArgb(); textAlign = android.graphics.Paint.Align.CENTER
+                    textSize = (if (exitNumber >= 10) 12.5f else 15f) * s
+                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+                }
+                val fm = tp.fontMetrics
+                drawText(exitNumber.toString(), cx * s, cy * s - (fm.ascent + fm.descent) / 2f, tp)
+            }
             return@Canvas
         }
         val r = Math.toRadians(angle.toDouble())
