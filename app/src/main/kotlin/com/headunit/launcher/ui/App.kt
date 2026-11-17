@@ -315,7 +315,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     val bleed = prefs.b(PreferenceKeys.FULLSCREEN, true)
                     MapHost(map, Modifier.fillMaxSize().bleedCutout(bleed))
                     // at night in 3D, stars and the real moon phase in the sky above the horizon
-                    if (c.dark && engine.tilt3d && !sat && prefs.b(PreferenceKeys.NIGHTSKY, true)) NightSky(Modifier.fillMaxWidth().fillMaxHeight(0.2f))
+                    if (c.dark && engine.tilt3d && !sat && prefs.b(PreferenceKeys.NIGHTSKY, true))
+                        // (stretched up behind the camera notch with the map: it used to start under it, a hard edge across the top)
+                        Box(Modifier.fillMaxSize().bleedCutout(bleed)) { NightSky(Modifier.fillMaxWidth().fillMaxHeight(0.2f)) }
                     // in a tunnel (no GPS) the map is dimmed a little, as the car's own screen would be
                     if (engine.deadReckoning && !c.dark && prefs.b(PreferenceKeys.TUNNELDIM, true)) Box(Modifier.fillMaxSize().bleedCutout(bleed).background(Color.Black.copy(alpha = 0.35f)))
                     val wxCode = engine.weather?.code
