@@ -1602,5 +1602,9 @@ object I18nHu {
         "Map lettering" to "Térkép feliratai",
         "Font" to "Betűtípus",
         "The lettering for road and place names on the map" to "Az utak és helyek neveinek betűtípusa a térképen",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "A Mapbox válaszol, és a tokenje működik, de a térkép nem rajzolódik ki ezen az eszközön. Küldjön jelentést a Beállítások › Visszajelzés menüből, hogy ki lehessen vizsgálni.",
+        "Mapbox's server answered with an error. Try again later." to "A Mapbox szervere hibával válaszolt. Próbálja később.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Ez az eszköz nem találja a Mapbox szerverét. Egy privát DNS vagy reklámblokkoló letilthatja az api.mapbox.com címet: engedélyezze, vagy kapcsolja ki a Privát DNS-t az Android hálózati beállításaiban.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "A Mapbox szervere nem válaszol erről az eszközről. Ellenőrizze az internetkapcsolatot: a bejelentkezést kérő Wi‑Fi vagy egy tűzfal blokkolhatja.",
     )
 }

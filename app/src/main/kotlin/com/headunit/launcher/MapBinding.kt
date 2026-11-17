@@ -647,6 +647,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     private var styleToken = 0
 
+    /** A map style has finished loading and is on screen. */
+    val styleShown: Boolean get() = style != null
+
     private fun loadStyle(url: String) {
         // no real token yet: nothing to load (the engine shows a note asking for one)
         if (MapboxOptions.accessToken == NO_TOKEN) return

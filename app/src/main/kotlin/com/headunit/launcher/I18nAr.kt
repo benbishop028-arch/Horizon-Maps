@@ -1602,5 +1602,9 @@ object I18nAr {
         "Map lettering" to "كتابة الخريطة",
         "Font" to "الخط",
         "The lettering for road and place names on the map" to "خط أسماء الطرق والأماكن على الخريطة",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "يستجيب Mapbox والرمز يعمل، لكن الخريطة لا تُرسم على هذا الجهاز. أرسل تقريرًا من الإعدادات › الملاحظات حتى يمكن فحص المشكلة.",
+        "Mapbox's server answered with an error. Try again later." to "ردّ خادم Mapbox بخطأ. حاول لاحقًا.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "لا يستطيع هذا الجهاز العثور على خادم Mapbox. قد يحظر DNS خاص أو مانع إعلانات العنوان api.mapbox.com: اسمح به، أو أوقف DNS الخاص في إعدادات شبكة Android.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "خادم Mapbox لا يستجيب من هذا الجهاز. تحقق من الاتصال بالإنترنت: شبكة Wi‑Fi تتطلب تسجيل الدخول أو جدار حماية قد يحظره.",
     )
 }

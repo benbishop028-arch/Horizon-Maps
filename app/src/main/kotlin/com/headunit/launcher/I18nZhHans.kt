@@ -1602,5 +1602,9 @@ object I18nZhHans {
         "Map lettering" to "地图文字",
         "Font" to "字体",
         "The lettering for road and place names on the map" to "地图上道路和地名的字体",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox 有响应且你的令牌有效，但此设备上地图没有绘制出来。请从设置 › 反馈发送报告，以便调查。",
+        "Mapbox's server answered with an error. Try again later." to "Mapbox 服务器返回错误。请稍后再试。",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "此设备找不到 Mapbox 服务器。私人 DNS 或广告拦截工具可能拦截了 api.mapbox.com：请允许它，或在 Android 网络设置中关闭私人 DNS。",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "此设备连不上 Mapbox 服务器。请检查网络连接：需要登录的 Wi‑Fi 或防火墙可能会拦截它。",
     )
 }

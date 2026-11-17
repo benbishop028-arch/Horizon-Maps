@@ -1602,5 +1602,9 @@ object I18nEl {
         "Map lettering" to "Γράμματα χάρτη",
         "Font" to "Γραμματοσειρά",
         "The lettering for road and place names on the map" to "Η γραμματοσειρά για ονόματα δρόμων και τόπων στον χάρτη",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Το Mapbox απαντά και το token σας λειτουργεί, αλλά ο χάρτης δεν σχεδιάζεται σε αυτή τη συσκευή. Στείλτε αναφορά από Ρυθμίσεις › Σχόλια για να ελεγχθεί.",
+        "Mapbox's server answered with an error. Try again later." to "Ο διακομιστής του Mapbox απάντησε με σφάλμα. Δοκιμάστε αργότερα.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Αυτή η συσκευή δεν βρίσκει τον διακομιστή του Mapbox. Ένα ιδιωτικό DNS ή ένα πρόγραμμα αποκλεισμού διαφημίσεων ίσως μπλοκάρει το api.mapbox.com: επιτρέψτε το ή απενεργοποιήστε το Ιδιωτικό DNS στις ρυθμίσεις δικτύου του Android.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Ο διακομιστής του Mapbox δεν απαντά από αυτή τη συσκευή. Ελέγξτε τη σύνδεση στο διαδίκτυο: ένα Wi‑Fi που ζητά σύνδεση ή ένα τείχος προστασίας μπορεί να το μπλοκάρει.",
     )
 }

@@ -1602,5 +1602,9 @@ object I18nFi {
         "Map lettering" to "Kartan tekstit",
         "Font" to "Fontti",
         "The lettering for road and place names on the map" to "Teiden ja paikkojen nimien fontti kartalla",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox vastaa ja tunnuksesi toimii, mutta kartta ei piirry tällä laitteella. Lähetä raportti kohdasta Asetukset › Palaute, jotta asia voidaan selvittää.",
+        "Mapbox's server answered with an error. Try again later." to "Mapboxin palvelin vastasi virheellä. Yritä myöhemmin uudelleen.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Tämä laite ei löydä Mapboxin palvelinta. Yksityinen DNS tai mainosten esto voi estää osoitteen api.mapbox.com: salli se tai poista Yksityinen DNS käytöstä Androidin verkkoasetuksissa.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapboxin palvelin ei vastaa tältä laitteelta. Tarkista internetyhteys: kirjautumista vaativa Wi‑Fi tai palomuuri voi estää sen.",
     )
 }

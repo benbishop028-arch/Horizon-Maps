@@ -720,7 +720,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (++gapCount >= 3) { mapboxGaps = true; scope.launch { applyStyle(lastDark) } }
             }
         }
-        map.onStyleLoaded = { styleRetry = 0 }
+        map.onStyleLoaded = { styleRetry = 0; mapWatchJob?.cancel() }
         try {
             val o = org.json.JSONObject(prefs.s(PreferenceKeys.PLANNED, "{}"))
             if (o.has("la") && o.optLong("a") > System.currentTimeMillis())
@@ -928,6 +928,29 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** A key TomTom's map server turned away (it may still work for search and routes): the OpenStreetMap map is used instead. */
     @Volatile private var refusedKey: String? = null
 
+    /**
+     * The map never appearing with no error at all (reported now and then with a token that's right): 25 s after asking for it,
+     * the app asks Mapbox itself, from this device, and says what's actually in the way (a blocked server, the clock, the token),
+     * once per token per run. The answer goes in the feedback report too.
+     */
+    private var mapWatchJob: kotlinx.coroutines.Job? = null
+    private var mapCheckedFor = ""
+    private var mapCheckNote = ""
+    private fun watchMapLoad() {
+        if (mapCheckedFor == mbToken) return
+        mapWatchJob?.cancel()
+        mapWatchJob = scope.launch {
+            delay(25_000L)
+            if (map.styleShown || Net.offline || !hasMapbox || mapCheckedFor == mbToken) return@launch
+            mapCheckedFor = mbToken
+            val (code, why) = try { withContext(Dispatchers.IO) { MapboxRest.diagnose(mbToken) } } catch (e: Exception) { "failed" to "" }
+            mapCheckNote = "Map check: $code"
+            if (map.styleShown) return@launch
+            if (code == "401") onMbUnauthorised(true)
+            else if (why.isNotEmpty()) toast(L.t(why), 12_000)
+        }
+    }
+
     private fun onMapError(msg: String) {
         val m = msg.lowercase()
         // Mapbox turned the token away: say so (the map can't show without a working token)
@@ -1067,6 +1090,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return
         }
         map.setToken(mbToken)
+        watchMapLoad()
         map.keepBaseLook = false
         map.recolourBase = false
         // no signal (or "Downloaded" chosen): the pack's own map, served from the phone. Satellite is Mapbox's photos, so it
@@ -1386,7 +1410,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             run {
                 val t = mbToken
                 val shape = when { t.isBlank() -> "none"; !MapboxRest.looksValid(t) -> "not a token"; !MapboxRest.looksWhole(t) -> "looks incomplete"; else -> "looks whole" }
-                appendLine("Mapbox token: ${t.take(3)}… $shape" + (if (mbCheckNote.isNotBlank()) " · $mbCheckNote" else "") + (if (mbKeyRefused) " · refused" else ""))
+                appendLine("Mapbox token: ${t.take(3)}… $shape" + (if (mbCheckNote.isNotBlank()) " · $mbCheckNote" else "") + (if (mapCheckNote.isNotBlank()) " · $mapCheckNote" else "") + (if (mbKeyRefused) " · refused" else ""))
             }
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
@@ -3632,7 +3656,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val b = pointAt(r, s.progress + 20.0).first
             Geo.dist(a, b) > 5.0 && abs(angDiff(Geo.bearing(a, b), p.heading)) > 65.0
         }
-        val onR = r != null && s != null && !jump && !headingOff && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
+        // driving the route the wrong way (turned round, or set off the other way): you're right on the line, so none of the
+        // distance checks fire, and the arrow, which never goes backwards along the route, sat still facing the other way with
+        // the map frozen until something else caught it (GitHub #168). Heading against the route's own direction at a real speed
+        // lets go of the route at once and reroutes in about 2 s (not again within 12 s of a reroute, while the new one settles)
+        val wrongWay = r != null && s != null && !isStill && !jump && !headingOff && p.speed > 4.0 && gpsReliableForReroute && simMode == 0 && run {
+            val a = pointAt(r, s.progress - 10.0).first
+            val b = pointAt(r, s.progress + 10.0).first
+            Geo.dist(a, b) > 5.0 && abs(angDiff(Geo.bearing(a, b), p.heading)) > 120.0
+        }
+        val onR = r != null && s != null && !jump && !headingOff && !wrongWay && s.dist < (if (glideOnRoute) offLim + 12.0 else 45.0)
         if (onR && s != null && newFix && s.dist <= offLim) { trustProg = s.progress; trustAt = nowT }
         if (newFix) {
             mAt = tNow; mSpeed = sp
@@ -3672,6 +3705,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 offCount += NavigationPolicy.offRouteStrikeCount(jump, s.dist, offLim)
                 if (offCount >= 3) reroute() else startPreReroute()
             }
+        } else if (wrongWay && newFix) {
+            if (System.currentTimeMillis() - lastReroute > 12_000L) { offCount += 2; if (offCount >= 3) reroute() else startPreReroute() }
         } else if (headingOff && newFix) {
             // past the turn and going another way: two strikes a fix, so two fixes in a row reroute
             offCount += 2

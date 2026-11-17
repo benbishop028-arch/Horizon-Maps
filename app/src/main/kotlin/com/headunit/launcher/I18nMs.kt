@@ -1602,5 +1602,9 @@ object I18nMs {
         "Map lettering" to "Tulisan peta",
         "Font" to "Fon",
         "The lettering for road and place names on the map" to "Fon untuk nama jalan dan tempat pada peta",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox menjawab dan token anda berfungsi, tetapi peta tidak dilukis pada peranti ini. Sila hantar laporan dari Tetapan › Maklum balas supaya ia boleh disiasat.",
+        "Mapbox's server answered with an error. Try again later." to "Pelayan Mapbox menjawab dengan ralat. Cuba lagi kemudian.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Peranti ini tidak dapat mencari pelayan Mapbox. DNS peribadi atau penyekat iklan mungkin menyekat api.mapbox.com: benarkannya, atau matikan DNS Peribadi dalam tetapan rangkaian Android.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Pelayan Mapbox tidak menjawab dari peranti ini. Semak sambungan internet: Wi‑Fi yang perlu log masuk, atau tembok api, boleh menyekatnya.",
     )
 }

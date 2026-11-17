@@ -1602,5 +1602,9 @@ object I18nDa {
         "Map lettering" to "Kortets skrift",
         "Font" to "Skrifttype",
         "The lettering for road and place names on the map" to "Skriften til vej- og stednavne på kortet",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox svarer, og dit token virker, men kortet tegnes ikke på denne enhed. Send en rapport fra Indstillinger › Feedback, så det kan undersøges.",
+        "Mapbox's server answered with an error. Try again later." to "Mapbox’ server svarede med en fejl. Prøv igen senere.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Denne enhed kan ikke finde Mapbox’ server. En privat DNS eller annonceblokering blokerer måske api.mapbox.com: tillad den, eller slå Privat DNS fra i Androids netværksindstillinger.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Mapbox’ server svarer ikke fra denne enhed. Tjek internetforbindelsen: et Wi‑Fi, der kræver login, eller en firewall kan blokere den.",
     )
 }

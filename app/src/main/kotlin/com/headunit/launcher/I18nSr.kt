@@ -1602,5 +1602,9 @@ object I18nSr {
         "Map lettering" to "Натписи на мапи",
         "Font" to "Фонт",
         "The lettering for road and place names on the map" to "Фонт назива путева и места на мапи",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox одговара и ваш токен ради, али се мапа на овом уређају не исцртава. Пошаљите извештај из Подешавања › Повратне информације да би се проверило.",
+        "Mapbox's server answered with an error. Try again later." to "Сервер Mapbox-а је одговорио грешком. Покушајте касније.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Овај уређај не може да пронађе сервер Mapbox-а. Приватни DNS или блокатор реклама можда блокира api.mapbox.com: дозволите га или искључите Приватни DNS у мрежним подешавањима Android-а.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Сервер Mapbox-а не одговара са овог уређаја. Проверите интернет везу: Wi‑Fi који тражи пријаву или заштитни зид могу да га блокирају.",
     )
 }

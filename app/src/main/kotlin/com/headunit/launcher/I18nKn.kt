@@ -1602,5 +1602,9 @@ object I18nKn {
         "Map lettering" to "ನಕ್ಷೆಯ ಅಕ್ಷರಗಳು",
         "Font" to "ಫಾಂಟ್",
         "The lettering for road and place names on the map" to "ನಕ್ಷೆಯಲ್ಲಿನ ರಸ್ತೆ ಮತ್ತು ಸ್ಥಳದ ಹೆಸರುಗಳ ಫಾಂಟ್",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox ಉತ್ತರಿಸುತ್ತದೆ ಮತ್ತು ನಿಮ್ಮ ಟೋಕನ್ ಕೆಲಸ ಮಾಡುತ್ತದೆ, ಆದರೆ ಈ ಸಾಧನದಲ್ಲಿ ನಕ್ಷೆ ಮೂಡುತ್ತಿಲ್ಲ. ಪರಿಶೀಲಿಸಲು ಸೆಟ್ಟಿಂಗ್‌ಗಳು › ಪ್ರತಿಕ್ರಿಯೆಯಿಂದ ವರದಿ ಕಳುಹಿಸಿ.",
+        "Mapbox's server answered with an error. Try again later." to "Mapbox ಸರ್ವರ್ ದೋಷದೊಂದಿಗೆ ಉತ್ತರಿಸಿತು. ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "ಈ ಸಾಧನಕ್ಕೆ Mapbox ಸರ್ವರ್ ಸಿಗುತ್ತಿಲ್ಲ. ಖಾಸಗಿ DNS ಅಥವಾ ಜಾಹೀರಾತು ತಡೆ api.mapbox.com ಅನ್ನು ತಡೆಯುತ್ತಿರಬಹುದು: ಅದನ್ನು ಅನುಮತಿಸಿ, ಅಥವಾ Android ನೆಟ್‌ವರ್ಕ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಖಾಸಗಿ DNS ಆಫ್ ಮಾಡಿ.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "ಈ ಸಾಧನದಿಂದ Mapbox ಸರ್ವರ್ ಉತ್ತರಿಸುತ್ತಿಲ್ಲ. ಇಂಟರ್ನೆಟ್ ಸಂಪರ್ಕ ಪರಿಶೀಲಿಸಿ: ಸೈನ್ ಇನ್ ಕೇಳುವ Wi‑Fi ಅಥವಾ ಫೈರ್‌ವಾಲ್ ಅದನ್ನು ತಡೆಯಬಹುದು.",
     )
 }

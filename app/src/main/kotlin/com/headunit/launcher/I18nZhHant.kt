@@ -1602,5 +1602,9 @@ object I18nZhHant {
         "Map lettering" to "地圖文字",
         "Font" to "字型",
         "The lettering for road and place names on the map" to "地圖上道路與地名的字型",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox 有回應且你的權杖有效，但此裝置上地圖沒有繪製出來。請從設定 › 意見回饋傳送報告，以便調查。",
+        "Mapbox's server answered with an error. Try again later." to "Mapbox 伺服器回傳錯誤。請稍後再試。",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "此裝置找不到 Mapbox 伺服器。私人 DNS 或廣告封鎖工具可能封鎖了 api.mapbox.com：請允許它，或在 Android 網路設定中關閉私人 DNS。",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "此裝置連不上 Mapbox 伺服器。請檢查網路連線：需要登入的 Wi‑Fi 或防火牆可能會擋住它。",
     )
 }

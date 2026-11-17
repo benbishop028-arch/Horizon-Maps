@@ -61,6 +61,30 @@ object MapboxRest {
         } finally { try { c.disconnect() } catch (e: Exception) { } }
     } catch (e: Exception) { null }
 
+    /**
+     * Why the map isn't appearing, asked from this device: Mapbox's Standard style is fetched with the token, and the answer (or
+     * the way it fails) says what's in the way. A code for the report, and a plain sentence for the person ("" = nothing to say).
+     */
+    fun diagnose(t: String): Pair<String, String> = try {
+        val c = URL("$API/styles/v1/mapbox/standard?access_token=" + enc(t)).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+        c.connectTimeout = 10000
+        c.readTimeout = 15000
+        c.setRequestProperty("User-Agent", "HorizonNav/1.0")
+        val code = try { c.responseCode } finally { try { c.disconnect() } catch (e: Exception) { } }
+        when (code) {
+            in 200..299 -> "style ok" to "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into."
+            401 -> "401" to ""
+            403 -> "403" to "Mapbox won't let this token show the map (403). At account.mapbox.com › Tokens, edit it: tick all the public scopes and remove any URL restrictions."
+            else -> "HTTP $code" to "Mapbox's server answered with an error. Try again later."
+        }
+    } catch (e: java.net.UnknownHostException) {
+        "dns" to "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings."
+    } catch (e: javax.net.ssl.SSLException) {
+        "tls" to "The map couldn't make a secure connection. Check the head unit's date and time are right."
+    } catch (e: Exception) {
+        "no answer (${e.javaClass.simpleName})" to "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it."
+    }
+
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
 
     private fun httpError(code: Int, body: String): IOException = IOException(when (code) {

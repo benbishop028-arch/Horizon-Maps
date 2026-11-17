@@ -1599,5 +1599,9 @@ object I18nD {
         "Map lettering" to listOf("Надписи на картата"),
         "Font" to listOf("Шрифт"),
         "The lettering for road and place names on the map" to listOf("Шрифтът на имената на пътища и места на картата"),
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to listOf("Mapbox отговаря и токенът ви работи, но картата не се изчертава на това устройство. Изпратете доклад от Настройки › Обратна връзка, за да бъде проверено."),
+        "Mapbox's server answered with an error. Try again later." to listOf("Сървърът на Mapbox отговори с грешка. Опитайте по-късно."),
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to listOf("Това устройство не може да намери сървъра на Mapbox. Частен DNS или блокер на реклами може да блокира api.mapbox.com: разрешете го или изключете Частен DNS в мрежовите настройки на Android."),
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to listOf("Сървърът на Mapbox не отговаря от това устройство. Проверете интернет връзката: Wi‑Fi, което изисква вход, или защитна стена може да го блокира."),
     )
 }

@@ -1602,5 +1602,9 @@ object I18nEsAr {
         "Map lettering" to "Letras del mapa",
         "Font" to "Fuente",
         "The lettering for road and place names on the map" to "La letra de los nombres de calles y lugares en el mapa",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox responde y tu token funciona, pero el mapa no se dibuja en este dispositivo. Mandá un informe desde Ajustes › Comentarios para que se pueda revisar.",
+        "Mapbox's server answered with an error. Try again later." to "El servidor de Mapbox respondió con un error. Probá más tarde.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Este dispositivo no encuentra el servidor de Mapbox. Un DNS privado o un bloqueador de anuncios puede estar bloqueando api.mapbox.com: permitilo o desactivá el DNS privado en los ajustes de red de Android.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "El servidor de Mapbox no responde desde este dispositivo. Revisá la conexión a internet: un wifi que pide iniciar sesión o un firewall pueden bloquearlo.",
     )
 }

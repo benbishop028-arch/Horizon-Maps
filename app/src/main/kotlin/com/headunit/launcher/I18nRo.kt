@@ -1602,5 +1602,9 @@ object I18nRo {
         "Map lettering" to "Textul hărții",
         "Font" to "Font",
         "The lettering for road and place names on the map" to "Fontul numelor de drumuri și locuri pe hartă",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox răspunde și tokenul funcționează, dar harta nu se desenează pe acest dispozitiv. Trimiteți un raport din Setări › Feedback ca să fie verificat.",
+        "Mapbox's server answered with an error. Try again later." to "Serverul Mapbox a răspuns cu o eroare. Încercați mai târziu.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Acest dispozitiv nu găsește serverul Mapbox. Un DNS privat sau un blocant de reclame poate bloca api.mapbox.com: permiteți-l sau dezactivați DNS-ul privat în setările de rețea Android.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Serverul Mapbox nu răspunde de pe acest dispozitiv. Verificați conexiunea la internet: un Wi‑Fi care cere autentificare sau un firewall îl poate bloca.",
     )
 }

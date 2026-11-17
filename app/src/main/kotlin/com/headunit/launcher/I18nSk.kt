@@ -1602,5 +1602,9 @@ object I18nSk {
         "Map lettering" to "Písmo mapy",
         "Font" to "Písmo",
         "The lettering for road and place names on the map" to "Písmo názvov ciest a miest na mape",
+        "Mapbox answers and your token works, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into." to "Mapbox odpovedá a váš token funguje, ale mapa sa na tomto zariadení nevykresľuje. Pošlite hlásenie z Nastavenia › Spätná väzba, aby sa to dalo preveriť.",
+        "Mapbox's server answered with an error. Try again later." to "Server Mapboxu odpovedal chybou. Skúste to neskôr.",
+        "This device can't find Mapbox's server. A private DNS or ad blocker may be blocking api.mapbox.com: allow it, or turn off Private DNS in Android's network settings." to "Toto zariadenie nenachádza server Mapboxu. Súkromné DNS alebo blokovač reklám možno blokuje api.mapbox.com: povoľte ho alebo vypnite Súkromné DNS v nastaveniach siete Androidu.",
+        "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it." to "Server Mapboxu z tohto zariadenia neodpovedá. Skontrolujte pripojenie k internetu: Wi‑Fi vyžadujúce prihlásenie alebo firewall ho môžu blokovať.",
     )
 }
