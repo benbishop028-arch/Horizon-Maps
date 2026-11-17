@@ -1597,5 +1597,10 @@ object I18nFi {
         "Couldn't find {0}" to "Kohdetta {0} ei löytynyt",
         "No stops yet. Add one and the route goes through it on the way." to "Ei vielä pysähdyksiä. Lisää yksi, niin reitti kulkee sen kautta.",
         "Search for a place on the way" to "Etsi paikka matkan varrelta",
+        "Your tracks" to "Omat jälkesi",
+        "No saved places yet." to "Ei vielä tallennettuja paikkoja.",
+        "Map lettering" to "Kartan tekstit",
+        "Font" to "Fontti",
+        "The lettering for road and place names on the map" to "Teiden ja paikkojen nimien fontti kartalla",
     )
 }

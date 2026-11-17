@@ -1594,5 +1594,10 @@ object I18nD {
         "Couldn't find {0}" to listOf("{0} не е намерено"),
         "No stops yet. Add one and the route goes through it on the way." to listOf("Все още няма спирки. Добавете една и маршрутът ще мине през нея по пътя."),
         "Search for a place on the way" to listOf("Търсене на място по пътя"),
+        "Your tracks" to listOf("Вашите тракове"),
+        "No saved places yet." to listOf("Все още няма запазени места."),
+        "Map lettering" to listOf("Надписи на картата"),
+        "Font" to listOf("Шрифт"),
+        "The lettering for road and place names on the map" to listOf("Шрифтът на имената на пътища и места на картата"),
     )
 }

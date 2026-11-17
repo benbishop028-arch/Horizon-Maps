@@ -1597,5 +1597,10 @@ object I18nEsAr {
         "Couldn't find {0}" to "No se encontró {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Todavía no hay paradas. Agregá una y la ruta pasa por ahí.",
         "Search for a place on the way" to "Buscar un lugar en el camino",
+        "Your tracks" to "Tus recorridos",
+        "No saved places yet." to "Todavía no hay lugares guardados.",
+        "Map lettering" to "Letras del mapa",
+        "Font" to "Fuente",
+        "The lettering for road and place names on the map" to "La letra de los nombres de calles y lugares en el mapa",
     )
 }

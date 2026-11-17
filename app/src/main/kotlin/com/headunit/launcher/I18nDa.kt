@@ -1597,5 +1597,10 @@ object I18nDa {
         "Couldn't find {0}" to "Kunne ikke finde {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Ingen stop endnu. Tilføj et, så går ruten forbi det på vejen.",
         "Search for a place on the way" to "Søg efter et sted på vejen",
+        "Your tracks" to "Dine spor",
+        "No saved places yet." to "Ingen gemte steder endnu.",
+        "Map lettering" to "Kortets skrift",
+        "Font" to "Skrifttype",
+        "The lettering for road and place names on the map" to "Skriften til vej- og stednavne på kortet",
     )
 }

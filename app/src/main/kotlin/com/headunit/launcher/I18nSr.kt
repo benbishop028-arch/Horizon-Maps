@@ -1597,5 +1597,10 @@ object I18nSr {
         "Couldn't find {0}" to "Nije pronađeno: {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Još nema stajanja. Dodajte jedno i ruta će proći kroz njega.",
         "Search for a place on the way" to "Traži mesto usput",
+        "Your tracks" to "Ваше стазе",
+        "No saved places yet." to "Још нема сачуваних места.",
+        "Map lettering" to "Натписи на мапи",
+        "Font" to "Фонт",
+        "The lettering for road and place names on the map" to "Фонт назива путева и места на мапи",
     )
 }

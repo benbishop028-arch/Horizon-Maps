@@ -1603,5 +1603,10 @@ object I18nC {
         "Couldn't find {0}" to listOf("ไม่พบ {0}", "{0} が見つかりませんでした", "{0} tidak ditemukan"),
         "No stops yet. Add one and the route goes through it on the way." to listOf("ยังไม่มีจุดแวะ เพิ่มจุดแวะแล้วเส้นทางจะผ่านไประหว่างทาง", "立ち寄り地はまだありません。追加すると途中で経由します。", "Belum ada perhentian. Tambahkan satu dan rute akan melewatinya di jalan."),
         "Search for a place on the way" to listOf("ค้นหาสถานที่ระหว่างทาง", "途中の場所を検索", "Cari tempat di sepanjang jalan"),
+        "Your tracks" to listOf("เส้นทางของคุณ", "あなたのトラック", "Jalur Anda"),
+        "No saved places yet." to listOf("ยังไม่มีสถานที่ที่บันทึกไว้", "保存した場所はまだありません。", "Belum ada tempat tersimpan."),
+        "Map lettering" to listOf("ตัวอักษรบนแผนที่", "地図の文字", "Tulisan peta"),
+        "Font" to listOf("แบบอักษร", "フォント", "Fon"),
+        "The lettering for road and place names on the map" to listOf("ตัวอักษรของชื่อถนนและสถานที่บนแผนที่", "地図上の道路名や地名の文字", "Huruf untuk nama jalan dan tempat di peta"),
     )
 }

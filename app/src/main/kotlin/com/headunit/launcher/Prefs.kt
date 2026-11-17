@@ -61,6 +61,8 @@ internal object PreferenceKeys {
     const val CAR_ARROW_SIZE = "cararrowsize"
     const val MAP_THEME = "maptheme"
     const val MAP_COLOURS = "mapcolours"
+    /** The map's lettering: "" = Mapbox's own (DIN Pro), or one of Mapbox's fonts (karthikeyansr: easier to read). */
+    const val MAP_FONT = "mapfont"
     const val MAP_RESOLUTION = "mapres"
     const val MAPBOX_TOKEN = "mbtoken"
     const val MAPBOX_AUTO_NETWORK = "mbautonet"

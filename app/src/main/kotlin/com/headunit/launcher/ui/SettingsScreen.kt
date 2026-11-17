@@ -313,6 +313,11 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             SPercent(L.t("How strong"), L.t("How much of the colour the map takes"), prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
         }
     }
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Map lettering")) {
+        // (karthikeyansr: Mapbox's own lettering is narrow, and hard to read at a glance; these are wider and heavier)
+        SChoice(L.t("Font"), listOf("" to L.t("Standard")) + com.headunit.launcher.MAP_FONTS.map { it to it }, prefs.s(PreferenceKeys.MAP_FONT, ""),
+            L.t("The lettering for road and place names on the map"), wrap = true) { prefs.put(PreferenceKeys.MAP_FONT, it) }
+    }
     if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
     if (prefs.mapSource() == "mapbox") SavedThemesGroup(prefs)
     SGroup(L.t("The map")) {

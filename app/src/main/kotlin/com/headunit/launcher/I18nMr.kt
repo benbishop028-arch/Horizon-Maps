@@ -1597,5 +1597,10 @@ object I18nMr {
         "Couldn't find {0}" to "{0} सापडले नाही",
         "No stops yet. Add one and the route goes through it on the way." to "अजून थांबे नाहीत. एक जोडा आणि मार्ग वाटेत तिथून जाईल.",
         "Search for a place on the way" to "वाटेत ठिकाण शोधा",
+        "Your tracks" to "तुमचे ट्रॅक",
+        "No saved places yet." to "अजून कोणतीही जतन केलेली ठिकाणे नाहीत.",
+        "Map lettering" to "नकाशावरील अक्षरे",
+        "Font" to "फॉन्ट",
+        "The lettering for road and place names on the map" to "नकाशावरील रस्ते व ठिकाणांच्या नावांचा फॉन्ट",
     )
 }

@@ -1597,5 +1597,10 @@ object I18nHe {
         "Couldn't find {0}" to "לא נמצא: {0}",
         "No stops yet. Add one and the route goes through it on the way." to "אין עדיין עצירות. הוסף אחת והמסלול יעבור דרכה בדרך.",
         "Search for a place on the way" to "חפש מקום בדרך",
+        "Your tracks" to "המסלולים שלך",
+        "No saved places yet." to "אין עדיין מקומות שמורים.",
+        "Map lettering" to "כיתוב המפה",
+        "Font" to "גופן",
+        "The lettering for road and place names on the map" to "הגופן של שמות דרכים ומקומות במפה",
     )
 }

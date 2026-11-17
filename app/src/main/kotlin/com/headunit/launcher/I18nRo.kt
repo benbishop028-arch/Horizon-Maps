@@ -1597,5 +1597,10 @@ object I18nRo {
         "Couldn't find {0}" to "{0} nu a fost găsit",
         "No stops yet. Add one and the route goes through it on the way." to "Încă nu există opriri. Adăugați una și traseul trece pe acolo.",
         "Search for a place on the way" to "Căutați un loc pe drum",
+        "Your tracks" to "Traseele tale",
+        "No saved places yet." to "Încă nu există locuri salvate.",
+        "Map lettering" to "Textul hărții",
+        "Font" to "Font",
+        "The lettering for road and place names on the map" to "Fontul numelor de drumuri și locuri pe hartă",
     )
 }

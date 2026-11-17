@@ -1594,5 +1594,10 @@ object I18nE {
         "Couldn't find {0}" to listOf("{0} ni bilo mogoče najti"),
         "No stops yet. Add one and the route goes through it on the way." to listOf("Še ni postankov. Dodajte enega in pot bo šla mimo njega."),
         "Search for a place on the way" to listOf("Poiščite kraj na poti"),
+        "Your tracks" to listOf("Vaše sledi"),
+        "No saved places yet." to listOf("Ni še shranjenih krajev."),
+        "Map lettering" to listOf("Napisi na zemljevidu"),
+        "Font" to listOf("Pisava"),
+        "The lettering for road and place names on the map" to listOf("Pisava imen cest in krajev na zemljevidu"),
     )
 }

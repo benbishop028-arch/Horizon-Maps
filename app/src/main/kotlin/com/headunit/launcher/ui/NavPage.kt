@@ -51,6 +51,7 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Route
+import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.EvStation
@@ -477,12 +478,15 @@ private fun nearbyIcon(kind: String?): androidx.compose.ui.graphics.vector.Image
     "coffee", "services" -> Icons.Rounded.LocalCafe
     "toilets" -> Icons.Rounded.Wc
     "lorrypark" -> Icons.Rounded.LocalShipping
+    "places" -> Icons.Rounded.Bookmarks
+    "tracks" -> Icons.Rounded.Route
     else -> Icons.Rounded.LocalParking
 }
 
 private fun nearbyTitle(kind: String?): String = when (kind) {
     "fuel" -> L.t("Fuel stations"); "charging" -> L.t("Charging points"); "food" -> L.t("Food"); "coffee" -> L.t("Coffee")
-    "toilets" -> L.t("Toilets"); "services" -> L.t("Services"); "lorrypark" -> L.t("Lorry parks"); else -> L.t("Car parks")
+    "toilets" -> L.t("Toilets"); "services" -> L.t("Services"); "lorrypark" -> L.t("Lorry parks")
+    "places" -> L.t("Your places"); "tracks" -> L.t("Your tracks"); else -> L.t("Car parks")
 }
 
 @Composable
@@ -506,7 +510,11 @@ internal fun NearbyCard(engine: NavEngine) {
         }
         LazyColumn(Modifier.heightIn(max = 230.dp).padding(top = 6.dp)) {
             items(engine.nearby) { n ->
-                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable { if (adding) engine.addStop(n.place) else engine.startRoute(n.place) }.padding(vertical = 8.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable {
+                    // (a GPX track is shown on the map with its card, rather than added as a stop or driven straight away)
+                    if (n.place.web.startsWith("gpx:")) { engine.nearbyKind = null; engine.pickPlace(n.place) }
+                    else if (adding) engine.addStop(n.place) else engine.startRoute(n.place)
+                }.padding(vertical = 8.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
                         Icon(nearbyIcon(engine.nearbyKind), null, tint = c.accent, modifier = Modifier.size(20.dp))
                     }

@@ -1597,5 +1597,10 @@ object I18nHu {
         "Couldn't find {0}" to "Nem található: {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Még nincs megálló. Adjon hozzá egyet, és az útvonal útközben érinti.",
         "Search for a place on the way" to "Hely keresése útközben",
+        "Your tracks" to "Saját nyomvonalaid",
+        "No saved places yet." to "Még nincsenek mentett helyek.",
+        "Map lettering" to "Térkép feliratai",
+        "Font" to "Betűtípus",
+        "The lettering for road and place names on the map" to "Az utak és helyek neveinek betűtípusa a térképen",
     )
 }

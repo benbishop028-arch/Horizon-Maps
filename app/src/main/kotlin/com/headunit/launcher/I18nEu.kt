@@ -1597,5 +1597,10 @@ object I18nEu {
         "Couldn't find {0}" to "Ezin izan da {0} aurkitu",
         "No stops yet. Add one and the route goes through it on the way." to "Oraindik ez dago geldialdirik. Gehitu bat eta ibilbidea bertatik pasatuko da.",
         "Search for a place on the way" to "Bilatu toki bat bidean",
+        "Your tracks" to "Zure ibilbideak",
+        "No saved places yet." to "Oraindik ez dago gordetako lekurik.",
+        "Map lettering" to "Maparen letrak",
+        "Font" to "Letra-tipoa",
+        "The lettering for road and place names on the map" to "Mapako errepide- eta leku-izenen letra",
     )
 }

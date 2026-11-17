@@ -1597,5 +1597,10 @@ object I18nSk {
         "Couldn't find {0}" to "{0} sa nenašlo",
         "No stops yet. Add one and the route goes through it on the way." to "Zatiaľ žiadne zastávky. Pridajte jednu a trasa cez ňu povedie.",
         "Search for a place on the way" to "Hľadať miesto po ceste",
+        "Your tracks" to "Vaše trasy",
+        "No saved places yet." to "Zatiaľ žiadne uložené miesta.",
+        "Map lettering" to "Písmo mapy",
+        "Font" to "Písmo",
+        "The lettering for road and place names on the map" to "Písmo názvov ciest a miest na mape",
     )
 }

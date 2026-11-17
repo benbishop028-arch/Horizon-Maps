@@ -1597,5 +1597,10 @@ object I18nAr {
         "Couldn't find {0}" to "تعذّر العثور على {0}",
         "No stops yet. Add one and the route goes through it on the way." to "لا توجد محطات بعد. أضف واحدة وسيمر المسار بها في الطريق.",
         "Search for a place on the way" to "ابحث عن مكان في الطريق",
+        "Your tracks" to "مساراتك",
+        "No saved places yet." to "لا توجد أماكن محفوظة بعد.",
+        "Map lettering" to "كتابة الخريطة",
+        "Font" to "الخط",
+        "The lettering for road and place names on the map" to "خط أسماء الطرق والأماكن على الخريطة",
     )
 }

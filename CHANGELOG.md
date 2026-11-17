@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Your places and Your tracks shortcuts: two new buttons for the row under the search bar (Settings › Places & trips › Shortcuts). One lists your saved places, the other your GPX tracks, nearest first, on the phone and on Android Auto (thanks to bijindas)
+- Map lettering: choose a wider, bolder font for road and place names on the map (Settings › Map style › Map lettering): Roboto, Open Sans, Inter, Lato or Montserrat (thanks to karthikeyansr-lgtm)
 - Stops on Android Auto: tap the trip card's figures while navigating for the stops on the way, each with when you get there. Move them earlier or later, take one off or add one, then Update route (thanks to yurividal)
 - Search while navigating on Android Auto: the trip card has a search button (Settings › Android Auto › Buttons on the trip card). A place picked while driving is asked about: Add as a stop, or Go here instead (thanks to yurividal)
 - "Add a stop" by voice: "Hey Google, add a stop at…" while navigating adds it as the next stop and keeps where you're going, on Android Auto and on the phone (thanks to yurividal)

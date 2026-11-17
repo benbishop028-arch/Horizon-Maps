@@ -1597,5 +1597,10 @@ object I18nMs {
         "Couldn't find {0}" to "Tidak dapat mencari {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Belum ada hentian. Tambah satu dan laluan akan melaluinya.",
         "Search for a place on the way" to "Cari tempat di sepanjang jalan",
+        "Your tracks" to "Jejak anda",
+        "No saved places yet." to "Belum ada tempat disimpan.",
+        "Map lettering" to "Tulisan peta",
+        "Font" to "Fon",
+        "The lettering for road and place names on the map" to "Fon untuk nama jalan dan tempat pada peta",
     )
 }

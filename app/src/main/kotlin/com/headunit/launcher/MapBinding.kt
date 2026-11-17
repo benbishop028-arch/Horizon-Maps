@@ -358,6 +358,15 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    /** The map's lettering (Mapbox Standard's "font" setting): "" leaves Mapbox's own. Changes in place, no reload. */
+    private var mapFont = ""
+    fun setFont(f: String) {
+        val v = if (f in MAP_FONTS) f else ""
+        if (v == mapFont) return
+        mapFont = v
+        setBase("font", Value.valueOf(if (v.isEmpty()) "DIN Pro" else v))
+    }
+
     fun setColours(c: String) {
         val v = if (c in setOf("mapbox", "horizon", "twilight", "faded", "grey") || c in ThemeLut.ids) c else if (c == "moonlight") "horizon" else "mapbox"
         if (v == colours) return
@@ -604,6 +613,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // shop and place labels rest on the light map and (on the full map) while you're on the move: placing them is the costly part
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
+        if (mapFont.isNotEmpty()) c.put("font", mapFont)
         if (!sat) c.put("show3dObjects", buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail))
         // (colour themes are only for the drawn map: Standard Satellite has none, so nothing is sent for it)
         if (!sat) when (colours) {
@@ -4947,3 +4957,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val CAR_MODELS = listOf("saloon", "hatch", "estate", "suv", "pickup", "van", "sports")
     }
 }
+
+/** The fonts offered for the map's lettering: wider and heavier than Mapbox's narrow DIN Pro, all with the weights the map uses. */
+internal val MAP_FONTS = listOf("Roboto", "Open Sans", "Inter", "Lato", "Montserrat")

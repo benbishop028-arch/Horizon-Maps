@@ -1597,5 +1597,10 @@ object I18nEl {
         "Couldn't find {0}" to "Δεν βρέθηκε το {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Δεν υπάρχουν ακόμη στάσεις. Προσθέστε μία και η διαδρομή θα περάσει από εκεί.",
         "Search for a place on the way" to "Αναζήτηση μέρους στον δρόμο",
+        "Your tracks" to "Οι διαδρομές σας",
+        "No saved places yet." to "Δεν υπάρχουν ακόμη αποθηκευμένα μέρη.",
+        "Map lettering" to "Γράμματα χάρτη",
+        "Font" to "Γραμματοσειρά",
+        "The lettering for road and place names on the map" to "Η γραμματοσειρά για ονόματα δρόμων και τόπων στον χάρτη",
     )
 }

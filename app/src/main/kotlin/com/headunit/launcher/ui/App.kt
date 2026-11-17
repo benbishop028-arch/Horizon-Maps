@@ -176,6 +176,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     val customOn = mapColours == "custom"
     val baseColours = if (customOn) prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapColours
     LaunchedEffect(baseColours) { map.setColours(baseColours) }
+    val mapFont = prefs.s(PreferenceKeys.MAP_FONT, "")
+    LaunchedEffect(mapFont) { map.setFont(mapFont) }
     val customDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
     val customNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
     val customW = prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100)

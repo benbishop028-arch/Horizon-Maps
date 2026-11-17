@@ -1597,5 +1597,10 @@ object I18nZhHant {
         "Couldn't find {0}" to "找不到 {0}",
         "No stops yet. Add one and the route goes through it on the way." to "還沒有中途站。新增後，路線會順路經過。",
         "Search for a place on the way" to "搜尋沿途地點",
+        "Your tracks" to "你的軌跡",
+        "No saved places yet." to "尚未儲存任何地點。",
+        "Map lettering" to "地圖文字",
+        "Font" to "字型",
+        "The lettering for road and place names on the map" to "地圖上道路與地名的字型",
     )
 }

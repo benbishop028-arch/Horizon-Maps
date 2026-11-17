@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bookmarks
+import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.EvStation
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -61,6 +63,9 @@ internal fun allShortcuts(engine: NavEngine): List<Shortcut> {
         else Shortcut("parking", "parking", Icons.Rounded.LocalParking, Color(0xFF4C8DFF), "Parking", "Parking nearby"),
         Shortcut("toilets", "toilets", Icons.Rounded.Wc, Color(0xFF4C8DFF), "Toilets", "Toilets nearby"),
         Shortcut("services", "services", Icons.Rounded.LocalConvenienceStore, Color(0xFF00A3A3), "Services", "Services nearby"),
+        // your own saved places, and your GPX tracks (GitHub #164): the list opens nearest first, like the others
+        Shortcut("places", "places", Icons.Rounded.Bookmarks, Color(0xFF12A4B4), "Your places", "Your places"),
+        Shortcut("tracks", "tracks", Icons.Rounded.Route, Color(0xFFD4537E), "Your tracks", "Your tracks"),
     )
 }
 

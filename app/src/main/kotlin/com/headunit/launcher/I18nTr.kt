@@ -1597,5 +1597,10 @@ object I18nTr {
         "Couldn't find {0}" to "{0} bulunamadı",
         "No stops yet. Add one and the route goes through it on the way." to "Henüz durak yok. Bir tane ekleyin, rota yol üstünde oradan geçer.",
         "Search for a place on the way" to "Yol üstünde bir yer ara",
+        "Your tracks" to "İzleriniz",
+        "No saved places yet." to "Henüz kayıtlı yer yok.",
+        "Map lettering" to "Harita yazıları",
+        "Font" to "Yazı tipi",
+        "The lettering for road and place names on the map" to "Haritadaki yol ve yer adlarının yazı tipi",
     )
 }

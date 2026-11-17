@@ -1597,5 +1597,10 @@ object I18nUr {
         "Couldn't find {0}" to "{0} نہیں ملا",
         "No stops yet. Add one and the route goes through it on the way." to "ابھی کوئی اسٹاپ نہیں۔ ایک شامل کریں اور روٹ راستے میں وہاں سے گزرے گا۔",
         "Search for a place on the way" to "راستے میں کوئی جگہ تلاش کریں",
+        "Your tracks" to "آپ کے ٹریکس",
+        "No saved places yet." to "ابھی کوئی محفوظ جگہ نہیں۔",
+        "Map lettering" to "نقشے کی تحریر",
+        "Font" to "فونٹ",
+        "The lettering for road and place names on the map" to "نقشے پر سڑکوں اور جگہوں کے ناموں کا فونٹ",
     )
 }

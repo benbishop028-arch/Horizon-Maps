@@ -1597,5 +1597,10 @@ object I18nNb {
         "Couldn't find {0}" to "Fant ikke {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Ingen stopp ennå. Legg til ett, så går ruten innom det på veien.",
         "Search for a place on the way" to "Søk etter et sted på veien",
+        "Your tracks" to "Dine spor",
+        "No saved places yet." to "Ingen lagrede steder ennå.",
+        "Map lettering" to "Kartets skrift",
+        "Font" to "Skrifttype",
+        "The lettering for road and place names on the map" to "Skriften for vei- og stedsnavn på kartet",
     )
 }

@@ -1597,5 +1597,10 @@ object I18nKn {
         "Couldn't find {0}" to "{0} ಸಿಗಲಿಲ್ಲ",
         "No stops yet. Add one and the route goes through it on the way." to "ಇನ್ನೂ ನಿಲುಗಡೆಗಳಿಲ್ಲ. ಒಂದನ್ನು ಸೇರಿಸಿದರೆ ಮಾರ್ಗ ದಾರಿಯಲ್ಲಿ ಅದರ ಮೂಲಕ ಹೋಗುತ್ತದೆ.",
         "Search for a place on the way" to "ದಾರಿಯಲ್ಲಿ ಸ್ಥಳ ಹುಡುಕಿ",
+        "Your tracks" to "ನಿಮ್ಮ ಟ್ರ್ಯಾಕ್‌ಗಳು",
+        "No saved places yet." to "ಇನ್ನೂ ಉಳಿಸಿದ ಸ್ಥಳಗಳಿಲ್ಲ.",
+        "Map lettering" to "ನಕ್ಷೆಯ ಅಕ್ಷರಗಳು",
+        "Font" to "ಫಾಂಟ್",
+        "The lettering for road and place names on the map" to "ನಕ್ಷೆಯಲ್ಲಿನ ರಸ್ತೆ ಮತ್ತು ಸ್ಥಳದ ಹೆಸರುಗಳ ಫಾಂಟ್",
     )
 }

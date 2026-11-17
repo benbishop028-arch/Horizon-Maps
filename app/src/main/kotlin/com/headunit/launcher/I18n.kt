@@ -2324,6 +2324,11 @@ object L {
         "Couldn't find {0}" to listOf("Kon {0} niet vinden", "{0} wurde nicht gefunden", "Impossible de trouver {0}", "No se encontró {0}"),
         "No stops yet. Add one and the route goes through it on the way." to listOf("Nog geen tussenstops. Voeg er een toe en de route gaat er onderweg langs.", "Noch keine Zwischenstopps. Fügen Sie einen hinzu, dann führt die Route unterwegs dorthin.", "Aucun arrêt pour l'instant. Ajoutez-en un et l'itinéraire y passera en chemin.", "Aún no hay paradas. Añade una y la ruta pasará por ella."),
         "Search for a place on the way" to listOf("Zoek een plek onderweg", "Einen Ort auf dem Weg suchen", "Rechercher un lieu sur le chemin", "Buscar un lugar en el camino"),
+        "Your tracks" to listOf("Jouw tracks", "Deine Tracks", "Vos traces", "Tus rutas GPX"),
+        "No saved places yet." to listOf("Nog geen opgeslagen plaatsen.", "Noch keine gespeicherten Orte.", "Aucun lieu enregistré pour l’instant.", "Aún no hay lugares guardados."),
+        "Map lettering" to listOf("Letters op de kaart", "Kartenschrift", "Texte de la carte", "Letras del mapa"),
+        "Font" to listOf("Lettertype", "Schriftart", "Police", "Fuente"),
+        "The lettering for road and place names on the map" to listOf("De letters voor weg- en plaatsnamen op de kaart", "Die Schrift für Straßen- und Ortsnamen auf der Karte", "La police des noms de routes et de lieux sur la carte", "La letra de los nombres de calles y lugares en el mapa"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3919,5 +3924,10 @@ object L {
         "Couldn't find {0}" to listOf("Impossibile trovare {0}", "Não foi possível encontrar {0}", "Nie znaleziono: {0}"),
         "No stops yet. Add one and the route goes through it on the way." to listOf("Ancora nessuna tappa. Aggiungine una e il percorso ci passerà lungo la strada.", "Ainda sem paragens. Adicione uma e a rota passa por ela pelo caminho.", "Brak przystanków. Dodaj jeden, a trasa poprowadzi przez niego po drodze."),
         "Search for a place on the way" to listOf("Cerca un luogo lungo la strada", "Pesquisar um local pelo caminho", "Szukaj miejsca po drodze"),
+        "Your tracks" to listOf("Le tue tracce", "As suas trilhas", "Twoje ślady"),
+        "No saved places yet." to listOf("Nessun luogo salvato.", "Ainda não há locais guardados.", "Brak zapisanych miejsc."),
+        "Map lettering" to listOf("Scritte della mappa", "Letras do mapa", "Napisy na mapie"),
+        "Font" to listOf("Carattere", "Tipo de letra", "Czcionka"),
+        "The lettering for road and place names on the map" to listOf("Il carattere dei nomi di strade e luoghi sulla mappa", "A letra dos nomes de estradas e locais no mapa", "Czcionka nazw dróg i miejsc na mapie"),
     )
 }

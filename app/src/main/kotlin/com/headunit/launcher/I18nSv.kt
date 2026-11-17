@@ -1597,5 +1597,10 @@ object I18nSv {
         "Couldn't find {0}" to "Kunde inte hitta {0}",
         "No stops yet. Add one and the route goes through it on the way." to "Inga stopp ännu. Lägg till ett så går rutten förbi det på vägen.",
         "Search for a place on the way" to "Sök efter en plats på vägen",
+        "Your tracks" to "Dina spår",
+        "No saved places yet." to "Inga sparade platser än.",
+        "Map lettering" to "Kartans text",
+        "Font" to "Typsnitt",
+        "The lettering for road and place names on the map" to "Typsnittet för väg- och platsnamn på kartan",
     )
 }

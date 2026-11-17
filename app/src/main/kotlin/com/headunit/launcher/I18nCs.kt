@@ -1597,5 +1597,10 @@ object I18nCs {
         "Couldn't find {0}" to "{0} nenalezeno",
         "No stops yet. Add one and the route goes through it on the way." to "Zatím žádné zastávky. Přidejte jednu a trasa přes ni povede.",
         "Search for a place on the way" to "Hledat místo po cestě",
+        "Your tracks" to "Vaše trasy",
+        "No saved places yet." to "Zatím žádná uložená místa.",
+        "Map lettering" to "Písmo mapy",
+        "Font" to "Písmo",
+        "The lettering for road and place names on the map" to "Písmo názvů silnic a míst na mapě",
     )
 }

@@ -296,6 +296,7 @@ class CarNavSession : Session() {
         map.setRoadNameScale(prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).coerceIn(70, 200) / 100f)
         val mapCols = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
         map.setColours(if (mapCols == "custom") prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapCols)
+        map.setFont(prefs.s(PreferenceKeys.MAP_FONT, ""))
         map.setCustom(mapCols == "custom", prefs.s(PreferenceKeys.CUSTOM_DAY, ""), prefs.s(PreferenceKeys.CUSTOM_NIGHT, ""), prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100))
         map.setCameraSize(prefs.i(PreferenceKeys.CAM_SIZE, 100))
         map.setFlags(prefs.b(PreferenceKeys.FLAGS_3D, true))
@@ -1368,7 +1369,7 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
         })
     }
 
-    private val title = L.t(when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry parks"; else -> "Nearby" })
+    private val title = L.t(when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry parks"; "places" -> "Your places"; "tracks" -> "Your tracks"; else -> "Nearby" })
     private val iconRes = when (kind) { "fuel" -> R.drawable.ic_car_fuel; "charging" -> R.drawable.ic_car_charging; "food" -> R.drawable.ic_car_food; "coffee" -> R.drawable.ic_car_coffee; "parking" -> R.drawable.ic_car_parking; else -> R.drawable.ic_car_pin }
     private val tint = when (kind) { "fuel" -> 0xFFEA4335.toInt(); "charging" -> 0xFF34A853.toInt(); "food" -> 0xFFF29900.toInt(); "coffee" -> 0xFFA56BFF.toInt(); else -> 0xFF4C8DFF.toInt() }
 

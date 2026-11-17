@@ -157,6 +157,8 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     val customOn = mapCols == "custom"
     val baseCols = if (customOn) prefs.s(PreferenceKeys.CUSTOM_BASE, "mapbox") else mapCols
     OnChange(baseCols) { map.setColours(baseCols) }
+    val mapFont = prefs.s(PreferenceKeys.MAP_FONT, "")
+    OnChange(mapFont) { map.setFont(mapFont) }
     val customDay = prefs.s(PreferenceKeys.CUSTOM_DAY, "")
     val customNight = prefs.s(PreferenceKeys.CUSTOM_NIGHT, "")
     val customW = prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100)
