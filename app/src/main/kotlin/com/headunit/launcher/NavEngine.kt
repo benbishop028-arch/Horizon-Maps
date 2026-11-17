@@ -3450,7 +3450,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val dr = drOk && rawAge > 3.0 && rawAge < 120.0
         if (dr != deadReckoning) deadReckoning = dr
         if (dr) camTargetAt = now
-        gSpeed += (mSpeed - gSpeed) * (1.0 - Math.exp(-dt / 1.2))
+        // slowing down is followed faster than speeding up: the slow ease kept the arrow rolling on after you'd braked, so stopping at
+        // a junction left it out in the middle of the road you were turning into (GitHub #167)
+        gSpeed += (mSpeed - gSpeed) * (1.0 - Math.exp(-dt / (if (mSpeed < gSpeed) 0.45 else 1.2)))
         if (mSpeed < 0.2 && gSpeed < 0.15) gSpeed = 0.0
         val r = glideRoute
         var lookB = gHead
@@ -3460,7 +3462,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             var np = gProg + gSpeed * dt
             val err = target - np
             np = if (abs(err) > 60.0) target else np + (err * (1.0 - Math.exp(-dt / 2.5))).coerceIn(-(0.3 * gSpeed + 0.4) * dt, (0.3 * gSpeed + 0.4) * dt)
-            if (np < gProg && abs(err) <= 60.0) np = gProg
+            // stopped or crawling with the arrow ahead of where the GPS puts you (it ran on past the stop line): it eases back to
+            // you, at most 4 m a second. While driving it still never goes backwards (GitHub #167)
+            val back = target - gProg
+            if (gSpeed < 2.0 && back < -2.0 && back >= -60.0) np = gProg + (back * (1.0 - Math.exp(-dt / 0.8))).coerceAtLeast(-4.0 * dt)
+            else if (np < gProg && abs(err) <= 60.0) np = gProg
             gProg = min(np, r.len)
             val cur = pointAt(r, gProg).first
             val ahead = pointAt(r, gProg + 12.0).first

@@ -67,6 +67,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Arrow running into the junction: stopping at a junction no longer leaves your arrow out in the middle of the road you are turning into. The arrow slows with you and moves back to where you really are (thanks to jvricardo1)
 - Night sky behind the camera notch: the starry fade at the top of the map now reaches the top of the screen, instead of starting below the notch with a hard edge
 - Voice "add a stop" replaced the destination: asking the Assistant to add a stop while navigating threw the trip away and went to the stop instead (thanks to yurividal)
 - Stops set back from the road: a stop more than 80 m from the road (a pin in the middle of a car park) was never counted as reached, so the route went back to it the next time it was worked out (thanks to yurividal)
