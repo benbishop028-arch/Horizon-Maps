@@ -1139,14 +1139,15 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SChoice(L.t("Speedometer"), listOf("auto" to L.t("Away from the cards"), "left" to L.t("Bottom left"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.SPEED_SIDE, "auto")) { prefs.put(PreferenceKeys.SPEED_SIDE, it) }
     }
     SGroup(L.t("While driving")) {
-        SToggle(prefs, L.t("Road and heading when driving without a route"), "cruise", true)
+        SToggle(prefs, L.t("Road name when driving without a route"), "cruise", true)
+        if (prefs.b("cruise", true)) SToggle(prefs, L.t("Heading next to the road name"), PreferenceKeys.CRUISE_HEADING, true, L.t("\"Heading E\" after the road. Off shows just the road"))
         SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
         SToggle(prefs, L.t("Keep the arrow to the side"), PreferenceKeys.ARROW_SIDE, false, L.t("When the cards fold away, instead of moving to the middle"))
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
         SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, true, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
-        if (prefs.b(PreferenceKeys.MEDIA_BAR, true)) {
+        if (prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.songInfoPossible) {
             val ctx = androidx.compose.ui.platform.LocalContext.current
             // (checked again every couple of seconds while this shows, so it changes when you come back from Android's page)
             var granted by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(com.headunit.launcher.MediaNow.accessGranted(ctx)) }

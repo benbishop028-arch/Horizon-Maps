@@ -1583,5 +1583,11 @@ object I18nHu {
         "Couldn't read that track" to "A nyomvonalat nem sikerült beolvasni",
         "End of the track" to "A nyomvonal vége",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importáljon .gpx fájlt, jelenítse meg a térképen, vagy vezesse végig bemondott kanyarokkal",
+        "1 track" to "1 nyomvonal",
+        "{0} tracks" to "{0} nyomvonal",
+        "GPX track" to "GPX-nyomvonal",
+        "Road name when driving without a route" to "Útnév útvonal nélküli vezetéskor",
+        "Heading next to the road name" to "Irány az útnév mellett",
+        "\"Heading E\" after the road. Off shows just the road" to "„Irány: K” az út után. Kikapcsolva csak az út látszik",
     )
 }

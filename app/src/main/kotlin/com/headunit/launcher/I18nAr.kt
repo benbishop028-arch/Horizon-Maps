@@ -1583,5 +1583,11 @@ object I18nAr {
         "Couldn't read that track" to "تعذّرت قراءة المسار",
         "End of the track" to "نهاية المسار",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "استورد ملف .gpx، واعرضه على الخريطة أو قُد عليه مع إرشادات صوتية",
+        "1 track" to "مسار واحد",
+        "{0} tracks" to "{0} مسارات",
+        "GPX track" to "مسار GPX",
+        "Road name when driving without a route" to "اسم الطريق عند القيادة بدون مسار",
+        "Heading next to the road name" to "الاتجاه بجانب اسم الطريق",
+        "\"Heading E\" after the road. Off shows just the road" to "«الاتجاه شرق» بعد الطريق. عند الإيقاف يظهر الطريق فقط",
     )
 }

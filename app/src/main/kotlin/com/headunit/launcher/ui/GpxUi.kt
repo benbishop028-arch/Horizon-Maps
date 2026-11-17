@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -41,12 +42,17 @@ import com.headunit.launcher.L
 import com.headunit.launcher.NavEngine
 
 /** Settings › Places & trips › GPX tracks (GitHub #153): import a .gpx file, then show a track on the map or drive it. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun GpxGroup(engine: NavEngine, onShown: () -> Unit) {
     val ctx = LocalContext.current
     val c = LocalVw.current
     LaunchedEffect(Unit) { GpxStore.load(ctx) }
     var busy by remember { mutableStateOf(false) }
+    // the track whose group is being picked, the groups folded openGs, and the group being renamed
+    var filing by remember { mutableStateOf<String?>(null) }
+    var openGs by remember { mutableStateOf(setOf<String>()) }
+    var renaming by remember { mutableStateOf<String?>(null) }
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
         val uri = res.data?.data ?: return@rememberLauncherForActivityResult
         val app = ctx.applicationContext
@@ -69,25 +75,63 @@ internal fun GpxGroup(engine: NavEngine, onShown: () -> Unit) {
         engine.toast(L.t("No app on this unit can pick a file (try installing a file manager)"), 4000)
     }
     SGroup(L.t("GPX tracks"), footer = L.t("Tracks from a .gpx file (Komoot, Strava, Garmin…). Drive follows the track with spoken turns.")) {
-        for (t in GpxStore.tracks) {
+        // (in groups if you like, GitHub #162: a group folds openGs to its tracks, then the tracks in no group; each track's folder
+        // button files it, the same way as your places)
+        val groups = GpxStore.groups()
+        @Composable
+        fun trackRow(t: GpxTrack, indent: Boolean) {
             var ask by remember(t.id) { mutableStateOf(false) }
-            Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Column(Modifier.weight(1f)) {
-                    Text(t.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(Geo.fmtDist(t.len, engine.imperial), color = c.sub, fontSize = 13.sp)
+            Column(if (indent) Modifier.padding(start = 18.dp) else Modifier) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(Modifier.weight(1f)) {
+                        Text(t.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(Geo.fmtDist(t.len, engine.imperial), color = c.sub, fontSize = 13.sp)
+                    }
+                    if (ask) {
+                        SButton(L.t("Yes, delete"), danger = true) { GpxStore.delete(ctx, t.id); ask = false }
+                        SButton(L.t("Cancel")) { ask = false }
+                    } else {
+                        SButton(L.t("Show")) { engine.showTrack(t.id); onShown() }
+                        SButton(L.t("Drive"), primary = true) { engine.driveTrack(t.id); onShown() }
+                        Box(Modifier.size(44.dp).clip(CircleShape).pressClick { filing = if (filing == t.id) null else t.id }, contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Folder, L.t("Group"), tint = if (filing == t.id || t.group.isNotBlank()) c.accent else c.sub, modifier = Modifier.size(22.dp))
+                        }
+                        Box(Modifier.size(44.dp).clip(CircleShape).pressClick { ask = true }, contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Delete, L.t("Delete"), tint = c.sub, modifier = Modifier.size(22.dp))
+                        }
+                    }
                 }
-                if (ask) {
-                    SButton(L.t("Yes, delete"), danger = true) { GpxStore.delete(ctx, t.id); ask = false }
-                    SButton(L.t("Cancel")) { ask = false }
-                } else {
-                    SButton(L.t("Show")) { engine.showTrack(t.id); onShown() }
-                    SButton(L.t("Drive"), primary = true) { engine.driveTrack(t.id); onShown() }
-                    Box(Modifier.size(44.dp).clip(CircleShape).pressClick { ask = true }, contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Delete, L.t("Delete"), tint = c.sub, modifier = Modifier.size(22.dp))
+                if (filing == t.id) {
+                    var newName by remember(t.id) { mutableStateOf("") }
+                    androidx.compose.foundation.layout.FlowRow(
+                        Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        for (g in groups) if (g != t.group) SButton(g) { GpxStore.setGroup(ctx, t.id, g); filing = null; openGs = openGs + g }
+                        SField(newName, { newName = it.take(24) }, placeholder = L.t("New group"), width = 180.dp)
+                        if (newName.isNotBlank()) SButton(L.t("Add"), primary = true) { GpxStore.setGroup(ctx, t.id, newName); openGs = openGs + newName.trim(); filing = null }
+                        if (t.group.isNotBlank()) SButton(L.t("No group")) { GpxStore.setGroup(ctx, t.id, ""); filing = null }
+                        SButton(L.t("Cancel")) { filing = null }
                     }
                 }
             }
         }
+        for (g in groups) {
+            val inG = GpxStore.tracks.filter { it.group == g }
+            val isOpen = g in openGs
+            if (renaming == g) {
+                var t by remember(g) { mutableStateOf(g) }
+                SItem(L.t("Rename {0}", g)) {
+                    SField(t, { t = it.take(24) }, width = 220.dp)
+                    SButton(L.t("Save"), primary = true) { GpxStore.renameGroup(ctx, g, t); if (isOpen) openGs = openGs - g + t.trim(); renaming = null }
+                }
+            } else SItem((if (isOpen) "▾ " else "▸ ") + g, if (inG.size == 1) L.t("1 track") else L.t("{0} tracks", inG.size),
+                onClick = { openGs = if (isOpen) openGs - g else openGs + g }) {
+                SButton(L.t("Rename")) { renaming = g }
+            }
+            if (isOpen) for (t in inG) trackRow(t, true)
+        }
+        for (t in GpxStore.tracks) if (t.group.isBlank()) trackRow(t, false)
         Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
             if (GpxStore.tracks.isEmpty()) Text(L.t("No tracks yet."), color = c.sub, fontSize = 14.sp, modifier = Modifier.weight(1f).align(Alignment.CenterVertically))
             else Box(Modifier.weight(1f))

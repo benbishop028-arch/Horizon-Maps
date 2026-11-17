@@ -324,9 +324,14 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     if (prefs.b(PreferenceKeys.PERFORMANCE_METER, false) && engine.perfLine.isNotEmpty()) Text(engine.perfLine, color = Color.White, fontSize = 12.sp,
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp).background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
                     if (engine.deadReckoning) DeadReckoningChip(Modifier.align(Alignment.BottomCenter).padding(bottom = 84.dp))
-                    else if (engine.cruising && engine.following && prefs.b(PreferenceKeys.CRUISE, true)) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = 18.dp))
+                    // (with the heading switched off and no road name known, there's nothing to show)
+                    val cruiseShows = engine.cruising && engine.following && prefs.b(PreferenceKeys.CRUISE, true) &&
+                        (prefs.b(PreferenceKeys.CRUISE_HEADING, true) || engine.roadNow.isNotBlank())
+                    // (above the media bar when that's showing at the bottom)
+                    val mediaUp = prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.showing()
+                    if (!engine.deadReckoning && cruiseShows) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) 84.dp else 18.dp))
                     // that pill has the road name, so the one under your arrow steps aside while it's up (they overlapped)
-                    val cruisePillUp = !engine.deadReckoning && engine.cruising && engine.following && prefs.b(PreferenceKeys.CRUISE, true)
+                    val cruisePillUp = !engine.deadReckoning && cruiseShows
                     LaunchedEffect(cruisePillUp) { map.setRoadNameHidden(cruisePillUp) }
                     // coming back from the settings, the map fades up from the background instead of flashing in
                     val back = remember { androidx.compose.animation.core.Animatable(1f) }

@@ -316,7 +316,9 @@ fun CruisePill(engine: NavEngine, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(Icons.Rounded.Navigation, null, tint = c.accent, modifier = Modifier.size(18.dp))
-        Text((if (road.isNotBlank()) "$road · " else "") + L.t("Heading {0}", dir), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
+        // (the heading can be switched off on its own, liamstears)
+        val withHeading = engine.prefs.b(com.headunit.launcher.PreferenceKeys.CRUISE_HEADING, true)
+        Text(if (!withHeading) road else (if (road.isNotBlank()) "$road · " else "") + L.t("Heading {0}", dir), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
     }
 }
 

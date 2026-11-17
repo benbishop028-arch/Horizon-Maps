@@ -1310,8 +1310,11 @@ private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
         if (chainN >= 2) item { SeeAllRow(engine, q.trim(), chainN) { } }
         items(engine.results) { p ->
             Row(Modifier.fillMaxWidth().clickable { onPicked(); engine.pickPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
-                // the shop's own logo where there is one
-                PlaceLogo(p, 42.dp) {
+                // a GPX track (GitHub #162): its pink route mark; otherwise the shop's own logo where there is one
+                if (p.web.startsWith("gpx:")) Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFFD4537E).copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.Route, null, tint = Color(0xFFD4537E), modifier = Modifier.size(22.dp))
+                }
+                else PlaceLogo(p, 42.dp) {
                     Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Place, null, tint = Color(0xFFEA4335), modifier = Modifier.size(22.dp))
                     }

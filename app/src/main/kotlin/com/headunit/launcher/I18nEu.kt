@@ -1583,5 +1583,11 @@ object I18nEu {
         "Couldn't read that track" to "Ezin izan da ibilbidea irakurri",
         "End of the track" to "Ibilbidearen amaiera",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Inportatu .gpx fitxategi bat, erakutsi mapan edo gidatu biraketak ahoz entzunez",
+        "1 track" to "Ibilbide 1",
+        "{0} tracks" to "{0} ibilbide",
+        "GPX track" to "GPX ibilbidea",
+        "Road name when driving without a route" to "Errepidearen izena ibilbiderik gabe gidatzean",
+        "Heading next to the road name" to "Norabidea errepidearen izenaren ondoan",
+        "\"Heading E\" after the road. Off shows just the road" to "«Norabidea E» errepidearen ondoren. Desaktibatuta errepidea bakarrik",
     )
 }

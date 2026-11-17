@@ -1583,5 +1583,11 @@ object I18nUr {
         "Couldn't read that track" to "ٹریک پڑھا نہیں جا سکا",
         "End of the track" to "ٹریک کا اختتام",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to ".gpx فائل درآمد کریں، نقشے پر دکھائیں یا بولی گئی ہدایات کے ساتھ چلائیں",
+        "1 track" to "1 ٹریک",
+        "{0} tracks" to "{0} ٹریکس",
+        "GPX track" to "GPX ٹریک",
+        "Road name when driving without a route" to "روٹ کے بغیر ڈرائیونگ میں سڑک کا نام",
+        "Heading next to the road name" to "سڑک کے نام کے ساتھ سمت",
+        "\"Heading E\" after the road. Off shows just the road" to "سڑک کے بعد “سمت مشرق”۔ بند ہونے پر صرف سڑک",
     )
 }

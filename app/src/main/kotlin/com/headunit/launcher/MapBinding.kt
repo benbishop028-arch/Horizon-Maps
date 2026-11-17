@@ -1182,21 +1182,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         override fun onDraw(canvas: android.graphics.Canvas) {
             if (!on) return
             val p = pts
-            // the warm light fades from the nose to the far end (only rebuilt when the beam has moved on screen)
+            // the warm light fades from the nose to the far end (only rebuilt when the beam has moved on screen). One cone, about half
+            // as bright as before: the second, wider cone for soft edges read as two beams on top of each other (liamstears)
             if (p[0] != gx0 || p[1] != gy0 || p[18] != gx1 || p[19] != gy1) {
                 gx0 = p[0]; gy0 = p[1]; gx1 = p[18]; gy1 = p[19]
                 paint.shader = android.graphics.LinearGradient(gx0, gy0, gx1, gy1,
-                    intArrayOf(0xC8FFF4D6.toInt(), 0x66FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
+                    intArrayOf(0x8CFFF4D6.toInt(), 0x40FFF4D6, 0x00FFF4D6), floatArrayOf(0f, 0.55f, 1f), android.graphics.Shader.TileMode.CLAMP)
             }
-            // soft edges without a blur (a blur would make the head unit draw it in software): a wider faint cone, then the main one
-            fun cone(l: Int, t: Int, r: Int, a: Int) {
-                path.reset()
-                path.moveTo(p[14], p[15]); path.lineTo(p[l], p[l + 1]); path.quadTo(p[t], p[t + 1], p[r], p[r + 1]); path.lineTo(p[16], p[17]); path.close()
-                paint.alpha = a
-                canvas.drawPath(path, paint)
-            }
-            cone(2, 4, 6, 110)
-            cone(8, 10, 12, 255)
+            path.reset()
+            path.moveTo(p[14], p[15]); path.lineTo(p[8], p[9]); path.quadTo(p[10], p[11], p[12], p[13]); path.lineTo(p[16], p[17]); path.close()
+            canvas.drawPath(path, paint)
         }
     }
 
@@ -1209,10 +1204,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val g = beamGeom(p) ?: run { bv.clear(); return }
             val (ahead, len) = g
             val h = meHeading
-            val nose = if (ahead > 0.0) Furniture.offset(p, h, ahead) else p
-            // a little longer the faster you go (up to about 70 mph)
+            // The car pictures and the 3D arrow are drawn on top of the beam: there the beam starts under the car, near its middle, so
+            // the car itself hides where it begins and the light seems to come out of the headlights whatever the car's shape (it
+            // used to start at the windscreen, liamstears). The flat arrow and the real 3D model are part of the map, under the beam,
+            // so there it still starts at the nose.
+            val carOnTop = locatorStyle != "flat" && !modelOn && locatorView.visibility == android.view.View.VISIBLE
+            val start = if (carOnTop) ahead * 0.15 else ahead
+            val nose = if (start > 0.0) Furniture.offset(p, h, start) else p
+            // a little longer the faster you go (up to about 70 mph); measured from the nose, so starting further back doesn't shorten it
             val sc = 0.8 + (beamSpeed.coerceIn(0.0, 31.0) / 31.0) * 0.5
-            val l = len * sc
+            val l = len * sc + (ahead - start)
             val far = Furniture.offset(nose, h, l * 0.88)
             val tipO = Furniture.offset(nose, h, l * 1.05); val tipI = Furniture.offset(nose, h, l)
             val wO = l * 0.42; val wI = l * 0.34

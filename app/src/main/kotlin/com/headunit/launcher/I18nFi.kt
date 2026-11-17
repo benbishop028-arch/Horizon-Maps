@@ -1583,5 +1583,11 @@ object I18nFi {
         "Couldn't read that track" to "Reittiä ei voitu lukea",
         "End of the track" to "Reitin loppu",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Tuo .gpx-tiedosto, näytä se kartalla tai aja se puhutuin ohjein",
+        "1 track" to "1 reitti",
+        "{0} tracks" to "{0} reittiä",
+        "GPX track" to "GPX-reitti",
+        "Road name when driving without a route" to "Tien nimi ajettaessa ilman reittiä",
+        "Heading next to the road name" to "Suunta tien nimen vieressä",
+        "\"Heading E\" after the road. Off shows just the road" to "”Suunta I” tien jälkeen. Pois päältä näyttää vain tien",
     )
 }

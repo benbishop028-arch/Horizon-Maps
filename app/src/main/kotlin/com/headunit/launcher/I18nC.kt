@@ -1589,5 +1589,11 @@ object I18nC {
         "Couldn't read that track" to listOf("อ่านเส้นทางนั้นไม่ได้", "そのトラックを読み込めませんでした", "Tidak dapat membaca trek itu"),
         "End of the track" to listOf("ปลายเส้นทาง", "トラックの終点", "Akhir trek"),
         "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("นำเข้าไฟล์ .gpx แสดงบนแผนที่ หรือขับตามพร้อมเสียงบอกเลี้ยว", ".gpx ファイルを読み込み、地図に表示したり音声案内で走ったりします", "Impor file .gpx, tampilkan di peta, atau kendarai dengan belokan yang diucapkan"),
+        "1 track" to listOf("1 เส้นทาง", "1 トラック", "1 trek"),
+        "{0} tracks" to listOf("{0} เส้นทาง", "{0} トラック", "{0} trek"),
+        "GPX track" to listOf("เส้นทาง GPX", "GPX トラック", "Trek GPX"),
+        "Road name when driving without a route" to listOf("ชื่อถนนเมื่อขับโดยไม่มีเส้นทาง", "ルートなしで走行中の道路名", "Nama jalan saat berkendara tanpa rute"),
+        "Heading next to the road name" to listOf("ทิศทางข้างชื่อถนน", "道路名の横に進行方向", "Arah di samping nama jalan"),
+        "\"Heading E\" after the road. Off shows just the road" to listOf("\"ทิศทาง ตะวันออก\" ต่อท้ายชื่อถนน ปิดไว้จะแสดงแค่ชื่อถนน", "道路名の後に「進行方向 東」。オフにすると道路名のみ", "\"Arah T\" setelah nama jalan. Mati hanya menampilkan jalan"),
     )
 }

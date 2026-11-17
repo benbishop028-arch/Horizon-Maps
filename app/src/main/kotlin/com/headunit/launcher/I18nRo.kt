@@ -1583,5 +1583,11 @@ object I18nRo {
         "Couldn't read that track" to "Traseul nu a putut fi citit",
         "End of the track" to "Sfârșitul traseului",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importați un fișier .gpx, afișați-l pe hartă sau parcurgeți-l cu virajele anunțate vocal",
+        "1 track" to "1 traseu",
+        "{0} tracks" to "{0} trasee",
+        "GPX track" to "Traseu GPX",
+        "Road name when driving without a route" to "Numele drumului când conduceți fără traseu",
+        "Heading next to the road name" to "Direcția lângă numele drumului",
+        "\"Heading E\" after the road. Off shows just the road" to "„Direcția E” după drum. Oprit arată doar drumul",
     )
 }

@@ -1583,5 +1583,11 @@ object I18nMs {
         "Couldn't read that track" to "Tidak dapat membaca trek itu",
         "End of the track" to "Hujung trek",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Import fail .gpx, tunjukkan pada peta atau pandu dengan arahan belok bersuara",
+        "1 track" to "1 trek",
+        "{0} tracks" to "{0} trek",
+        "GPX track" to "Trek GPX",
+        "Road name when driving without a route" to "Nama jalan semasa memandu tanpa laluan",
+        "Heading next to the road name" to "Arah di sebelah nama jalan",
+        "\"Heading E\" after the road. Off shows just the road" to "“Arah T” selepas nama jalan. Mati hanya menunjukkan jalan",
     )
 }

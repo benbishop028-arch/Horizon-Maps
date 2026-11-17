@@ -96,16 +96,6 @@
             </intent-filter>
         </activity>
 
-        <!-- the media bar on the driving screen: only so notification access can be given, which lets it see what's playing -->
-        <service
-            android:name=".MediaListener"
-            android:label="@string/app_name"
-            android:exported="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
         <service
             android:name=".NavService"
             android:exported="false"

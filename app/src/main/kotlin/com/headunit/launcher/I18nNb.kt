@@ -1583,5 +1583,11 @@ object I18nNb {
         "Couldn't read that track" to "Kunne ikke lese sporet",
         "End of the track" to "Slutten av sporet",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importer en .gpx-fil, vis den på kartet eller kjør den med opplest veiledning",
+        "1 track" to "1 spor",
+        "{0} tracks" to "{0} spor",
+        "GPX track" to "GPX-spor",
+        "Road name when driving without a route" to "Veinavn når du kjører uten rute",
+        "Heading next to the road name" to "Retning ved siden av veinavnet",
+        "\"Heading E\" after the road. Off shows just the road" to "«Retning Ø» etter veien. Av viser bare veien",
     )
 }

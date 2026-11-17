@@ -2310,6 +2310,12 @@ object L {
         "Couldn't read that track" to listOf("Kon die track niet lezen", "Dieser Track ließ sich nicht lesen", "Impossible de lire cette trace", "No se pudo leer esa ruta"),
         "End of the track" to listOf("Einde van de track", "Ende des Tracks", "Fin de la trace", "Final de la ruta"),
         "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Importeer een .gpx-bestand, toon het op de kaart of rijd het met gesproken afslagen", "Eine .gpx-Datei importieren, auf der Karte zeigen oder mit gesprochenen Hinweisen abfahren", "Importer un fichier .gpx, l'afficher sur la carte ou le suivre avec les virages annoncés", "Importa un archivo .gpx, muéstralo en el mapa o recórrelo con giros por voz"),
+        "1 track" to listOf("1 track", "1 Track", "1 trace", "1 ruta"),
+        "{0} tracks" to listOf("{0} tracks", "{0} Tracks", "{0} traces", "{0} rutas"),
+        "GPX track" to listOf("GPX-track", "GPX-Track", "Trace GPX", "Ruta GPX"),
+        "Road name when driving without a route" to listOf("Wegnaam bij rijden zonder route", "Straßenname beim Fahren ohne Route", "Nom de la route en conduisant sans itinéraire", "Nombre de la vía al conducir sin ruta"),
+        "Heading next to the road name" to listOf("Richting naast de wegnaam", "Richtung neben dem Straßennamen", "Direction à côté du nom de la route", "Dirección junto al nombre de la vía"),
+        "\"Heading E\" after the road. Off shows just the road" to listOf("„Richting O\" na de weg. Uit toont alleen de weg", "„Richtung O\" nach der Straße. Aus zeigt nur die Straße", "« Direction E » après la route. Désactivé n'affiche que la route", "«Dirección E» después de la vía. Desactivado muestra solo la vía"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3891,5 +3897,11 @@ object L {
         "Couldn't read that track" to listOf("Impossibile leggere quella traccia", "Não foi possível ler esse trilho", "Nie udało się odczytać tego śladu"),
         "End of the track" to listOf("Fine della traccia", "Fim do trilho", "Koniec śladu"),
         "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Importa un file .gpx, mostralo sulla mappa o percorrilo con le svolte a voce", "Importe um ficheiro .gpx, mostre-o no mapa ou conduza-o com viragens faladas", "Zaimportuj plik .gpx, pokaż go na mapie lub przejedź z zapowiedziami skrętów"),
+        "1 track" to listOf("1 traccia", "1 trilho", "1 ślad"),
+        "{0} tracks" to listOf("{0} tracce", "{0} trilhos", "Śladów: {0}"),
+        "GPX track" to listOf("Traccia GPX", "Trilho GPX", "Ślad GPX"),
+        "Road name when driving without a route" to listOf("Nome della strada guidando senza percorso", "Nome da estrada ao conduzir sem rota", "Nazwa drogi podczas jazdy bez trasy"),
+        "Heading next to the road name" to listOf("Direzione accanto al nome della strada", "Direção junto ao nome da estrada", "Kierunek obok nazwy drogi"),
+        "\"Heading E\" after the road. Off shows just the road" to listOf("«Direzione E» dopo la strada. Disattivato mostra solo la strada", "«Direção E» depois da estrada. Desligado mostra só a estrada", "„Kierunek E\" po nazwie drogi. Wyłączone pokazuje tylko drogę"),
     )
 }

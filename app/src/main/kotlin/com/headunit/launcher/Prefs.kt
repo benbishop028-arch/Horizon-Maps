@@ -127,6 +127,8 @@ internal object PreferenceKeys {
     const val COUNTRY = "country"
     const val COUNTRYDETECTED = "countrydetected"
     const val CRUISE = "cruise"
+    /** "Heading E" after the road name in that pill (liamstears: a switch of its own). */
+    const val CRUISE_HEADING = "cruise_heading"
     const val DATAPROV = "dataprov"
     const val DATASNOOZE = "datasnooze"
     const val DEMO = "demo"

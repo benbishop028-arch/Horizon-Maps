@@ -1580,5 +1580,11 @@ object I18nD {
         "Couldn't read that track" to listOf("Трасето не може да се прочете"),
         "End of the track" to listOf("Край на трасето"),
         "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Импортирайте .gpx файл, покажете го на картата или го карайте с гласови указания"),
+        "1 track" to listOf("1 трасе"),
+        "{0} tracks" to listOf("{0} трасета"),
+        "GPX track" to listOf("GPX трасе"),
+        "Road name when driving without a route" to listOf("Име на пътя при шофиране без маршрут"),
+        "Heading next to the road name" to listOf("Посока до името на пътя"),
+        "\"Heading E\" after the road. Off shows just the road" to listOf("„Посока И\" след пътя. Изключено показва само пътя"),
     )
 }

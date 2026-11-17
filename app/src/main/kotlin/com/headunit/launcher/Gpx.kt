@@ -11,7 +11,7 @@ import org.xmlpull.v1.XmlPullParser
 import java.io.File
 
 /** A GPX track you imported (GitHub #153): [len] in metres, [at] when it was imported. */
-class GpxTrack(val id: String, val name: String, val len: Double, val at: Long, val pts: List<LL>)
+class GpxTrack(val id: String, val name: String, val len: Double, val at: Long, val pts: List<LL>, val group: String = "", val start: LL? = null)
 
 /**
  * GPX tracks (GitHub #153): imported from a .gpx file (Komoot, Strava, Garmin, a track you recorded…), kept in files/gpx, shown on
@@ -31,14 +31,51 @@ object GpxStore {
         if (loaded) return
         loaded = true
         Thread {
-            val list = try {
-                (dir(c).listFiles { f -> f.name.endsWith(".json") } ?: emptyArray()).mapNotNull { f ->
-                    try { val o = JSONObject(f.readText()); GpxTrack(f.nameWithoutExtension, o.optString("name"), o.optDouble("len", 0.0), o.optLong("at", 0L), emptyList()) }
-                    catch (e: Exception) { null }
-                }.sortedByDescending { it.at }
-            } catch (e: Exception) { emptyList() }
+            val list = readAll(c)
             android.os.Handler(android.os.Looper.getMainLooper()).post { tracks = list }
         }.start()
+    }
+
+    /** The list, read now if it hasn't been yet (for the search, which runs off the main thread). */
+    fun tracksNow(c: Context): List<GpxTrack> {
+        if (loaded) return tracks
+        loaded = true
+        val list = readAll(c)
+        android.os.Handler(android.os.Looper.getMainLooper()).post { tracks = list }
+        return list
+    }
+
+    private fun readAll(c: Context): List<GpxTrack> = try {
+        (dir(c).listFiles { f -> f.name.endsWith(".json") } ?: emptyArray()).mapNotNull { f ->
+            try {
+                val o = JSONObject(f.readText())
+                // where it starts (the first point), for the search's distance
+                val a = o.optJSONArray("pts")
+                val st = if (a != null && a.length() >= 2) LL(a.getDouble(0), a.getDouble(1)) else null
+                GpxTrack(f.nameWithoutExtension, o.optString("name"), o.optDouble("len", 0.0), o.optLong("at", 0L), emptyList(), o.optString("group"), st)
+            } catch (e: Exception) { null }
+        }.sortedByDescending { it.at }
+    } catch (e: Exception) { emptyList() }
+
+    /** The groups in use, A to Z (GitHub #162). */
+    fun groups(): List<String> = tracks.map { it.group }.filter { it.isNotBlank() }.distinct().sortedBy { it.lowercase() }
+
+    /** Files a track in a group ("" for none). */
+    fun setGroup(c: Context, id: String, group: String) {
+        val g = group.trim().take(24)
+        try {
+            val f = File(dir(c), "$id.json")
+            val o = JSONObject(f.readText()).put("group", g)
+            f.writeText(o.toString())
+        } catch (e: Exception) { return }
+        tracks = tracks.map { if (it.id == id) GpxTrack(it.id, it.name, it.len, it.at, emptyList(), g, it.start) else it }
+    }
+
+    /** Renames a group: every track in it moves to the new name. */
+    fun renameGroup(c: Context, from: String, to: String) {
+        val t = to.trim().take(24)
+        if (t.isBlank() || t == from) return
+        for (tr in tracks.filter { it.group == from }) setGroup(c, tr.id, t)
     }
 
     /** The track with its points, or null if it can't be read. (Call off the main thread.) */
@@ -48,7 +85,7 @@ object GpxStore {
         val pts = ArrayList<LL>(a.length() / 2)
         var i = 0
         while (i + 1 < a.length()) { pts += LL(a.getDouble(i), a.getDouble(i + 1)); i += 2 }
-        GpxTrack(id, o.optString("name"), o.optDouble("len", 0.0), o.optLong("at", 0L), pts)
+        GpxTrack(id, o.optString("name"), o.optDouble("len", 0.0), o.optLong("at", 0L), pts, o.optString("group"), pts.firstOrNull())
     } catch (e: Exception) { null }
 
     fun delete(c: Context, id: String) {
@@ -80,7 +117,7 @@ object GpxStore {
         val o = JSONObject().put("name", title).put("len", len).put("at", System.currentTimeMillis()).put("pts", arr)
         return try {
             File(dir(c), "$id.json").writeText(o.toString())
-            val t = GpxTrack(id, title, len, System.currentTimeMillis(), emptyList())
+            val t = GpxTrack(id, title, len, System.currentTimeMillis(), emptyList(), "", pts.first())
             android.os.Handler(android.os.Looper.getMainLooper()).post { tracks = listOf(t) + tracks.filter { it.id != id } }
             null
         } catch (e: Exception) { "Couldn't save the track" }

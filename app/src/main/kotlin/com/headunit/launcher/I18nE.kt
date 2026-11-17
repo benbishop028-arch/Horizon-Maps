@@ -1580,5 +1580,11 @@ object I18nE {
         "Couldn't read that track" to listOf("Te sledi ni bilo mogoče prebrati"),
         "End of the track" to listOf("Konec sledi"),
         "Import a .gpx file, show it on the map or drive it with spoken turns" to listOf("Uvozite datoteko .gpx, jo prikažite na zemljevidu ali jo prevozite z izgovorjenimi zavoji"),
+        "1 track" to listOf("1 sled"),
+        "{0} tracks" to listOf("Sledi: {0}"),
+        "GPX track" to listOf("Sled GPX"),
+        "Road name when driving without a route" to listOf("Ime ceste med vožnjo brez poti"),
+        "Heading next to the road name" to listOf("Smer poleg imena ceste"),
+        "\"Heading E\" after the road. Off shows just the road" to listOf("»Smer V« za cesto. Izklopljeno prikaže samo cesto"),
     )
 }

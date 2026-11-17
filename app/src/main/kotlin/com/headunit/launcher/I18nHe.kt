@@ -1583,5 +1583,11 @@ object I18nHe {
         "Couldn't read that track" to "לא ניתן לקרוא את המסלול",
         "End of the track" to "סוף המסלול",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "ייבא קובץ ‎.gpx, הצג אותו במפה או נסע בו עם הנחיות פנייה קוליות",
+        "1 track" to "מסלול אחד",
+        "{0} tracks" to "{0} מסלולים",
+        "GPX track" to "מסלול GPX",
+        "Road name when driving without a route" to "שם הכביש בנהיגה ללא מסלול",
+        "Heading next to the road name" to "כיוון ליד שם הכביש",
+        "\"Heading E\" after the road. Off shows just the road" to "״כיוון מז״ אחרי הכביש. כבוי מציג רק את הכביש",
     )
 }

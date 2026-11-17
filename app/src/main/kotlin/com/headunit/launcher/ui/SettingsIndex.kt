@@ -3,7 +3,10 @@ package com.headunit.launcher.ui
 // Every setting by title, with its group and section (the number is its place in SettingsScreen's list of sections), for the settings search.
 internal class SettingRef(val title: String, val sub: String, val group: String, val section: Int)
 
-internal val settingsIndex get() = if (com.headunit.launcher.BuildConfig.STORE == "play") allSettingsIndex.filter { it.title !in playHidden } else allSettingsIndex
+internal val settingsIndex get() = if (com.headunit.launcher.BuildConfig.STORE == "play") allSettingsIndex.filter { it.title !in playHidden } else allSettingsIndex.filter { it.title !in githubHidden }
+
+/** Not in the GitHub edition (the media bar's song info needs notification access, which Play Protect blocks in apps installed from a file). */
+private val githubHidden = setOf("Song and artwork")
 
 /** Not in the Google Play edition (no updater, no PayPal, no Android Auto workarounds). */
 private val playHidden = setOf("Not showing in Android Auto?", "Donate", "Check for updates", "Look for updates by itself")
@@ -176,7 +179,8 @@ private val allSettingsIndex = listOf(
     SettingRef("Speedometer ring", "Fills towards the limit, turning amber then red", "Speed display", 11),
     SettingRef("Speed limit and speedometer size", "", "Speed display", 11),
     SettingRef("Speed position", "Bottom, middle or top", "Speed display", 11),
-    SettingRef("Road and heading when driving without a route", "", "While driving", 11),
+    SettingRef("Road name when driving without a route", "", "While driving", 11),
+    SettingRef("Heading next to the road name", "\"Heading E\" after the road. Off shows just the road", "While driving", 11),
     SettingRef("Keep the arrow on the road with no route", "", "While driving", 11),
     SettingRef("Dim the map in tunnels", "", "While driving", 11),
     SettingRef("Fewer buttons while driving", "", "While driving", 11),

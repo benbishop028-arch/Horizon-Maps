@@ -1583,5 +1583,11 @@ object I18nEl {
         "Couldn't read that track" to "Δεν ήταν δυνατή η ανάγνωση της διαδρομής",
         "End of the track" to "Τέλος διαδρομής",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Εισάγετε ένα αρχείο .gpx, δείτε το στον χάρτη ή οδηγήστε το με φωνητικές οδηγίες",
+        "1 track" to "1 διαδρομή",
+        "{0} tracks" to "{0} διαδρομές",
+        "GPX track" to "Διαδρομή GPX",
+        "Road name when driving without a route" to "Όνομα δρόμου όταν οδηγείτε χωρίς διαδρομή",
+        "Heading next to the road name" to "Κατεύθυνση δίπλα στο όνομα του δρόμου",
+        "\"Heading E\" after the road. Off shows just the road" to "«Κατεύθυνση Α» μετά τον δρόμο. Απενεργοποιημένο δείχνει μόνο τον δρόμο",
     )
 }

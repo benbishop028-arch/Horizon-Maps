@@ -54,7 +54,13 @@ object MediaNow {
     /** The bar is worth showing: playing now, or paused within the last few minutes. */
     fun showing(now: Long = SystemClock.uptimeMillis()): Boolean = playing || (lastPlayAt > 0L && now - lastPlayAt < KEEP_MS)
 
-    fun accessGranted(c: Context): Boolean = try {
+    /**
+     * The song and artwork need notification access, which only the Google Play edition asks for: Play Protect blocks apps that
+     * ask for it when installed from a file (GitHub, desko1973). The GitHub edition's bar has the buttons without the song.
+     */
+    val songInfoPossible: Boolean get() = BuildConfig.STORE == "play"
+
+    fun accessGranted(c: Context): Boolean = songInfoPossible && try {
         androidx.core.app.NotificationManagerCompat.getEnabledListenerPackages(c).contains(c.packageName)
     } catch (e: Throwable) { false }
 

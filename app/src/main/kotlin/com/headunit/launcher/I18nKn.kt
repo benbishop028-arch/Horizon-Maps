@@ -1583,5 +1583,11 @@ object I18nKn {
         "Couldn't read that track" to "ಆ ಟ್ರ್ಯಾಕ್ ಓದಲಾಗಲಿಲ್ಲ",
         "End of the track" to "ಟ್ರ್ಯಾಕ್‌ನ ಕೊನೆ",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to ".gpx ಫೈಲ್ ಆಮದು ಮಾಡಿ, ನಕ್ಷೆಯಲ್ಲಿ ತೋರಿಸಿ ಅಥವಾ ಧ್ವನಿ ತಿರುವುಗಳೊಂದಿಗೆ ಚಲಾಯಿಸಿ",
+        "1 track" to "1 ಟ್ರ್ಯಾಕ್",
+        "{0} tracks" to "{0} ಟ್ರ್ಯಾಕ್‌ಗಳು",
+        "GPX track" to "GPX ಟ್ರ್ಯಾಕ್",
+        "Road name when driving without a route" to "ಮಾರ್ಗವಿಲ್ಲದೆ ಚಾಲನೆ ಮಾಡುವಾಗ ರಸ್ತೆಯ ಹೆಸರು",
+        "Heading next to the road name" to "ರಸ್ತೆಯ ಹೆಸರಿನ ಪಕ್ಕ ದಿಕ್ಕು",
+        "\"Heading E\" after the road. Off shows just the road" to "ರಸ್ತೆಯ ನಂತರ “ದಿಕ್ಕು ಪೂರ್ವ”. ಆಫ್ ಆದರೆ ರಸ್ತೆ ಮಾತ್ರ",
     )
 }

@@ -1583,5 +1583,11 @@ object I18nSv {
         "Couldn't read that track" to "Det gick inte att läsa spåret",
         "End of the track" to "Spårets slut",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importera en .gpx-fil, visa den på kartan eller kör den med upplästa svängar",
+        "1 track" to "1 spår",
+        "{0} tracks" to "{0} spår",
+        "GPX track" to "GPX-spår",
+        "Road name when driving without a route" to "Vägnamn vid körning utan rutt",
+        "Heading next to the road name" to "Riktning bredvid vägnamnet",
+        "\"Heading E\" after the road. Off shows just the road" to "”Riktning Ö” efter vägen. Av visar bara vägen",
     )
 }

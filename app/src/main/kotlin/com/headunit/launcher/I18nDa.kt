@@ -1583,5 +1583,11 @@ object I18nDa {
         "Couldn't read that track" to "Kunne ikke læse sporet",
         "End of the track" to "Sporets slutning",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importér en .gpx-fil, vis den på kortet, eller kør den med oplæste sving",
+        "1 track" to "1 spor",
+        "{0} tracks" to "{0} spor",
+        "GPX track" to "GPX-spor",
+        "Road name when driving without a route" to "Vejnavn ved kørsel uden rute",
+        "Heading next to the road name" to "Retning ved siden af vejnavnet",
+        "\"Heading E\" after the road. Off shows just the road" to "»Retning Ø« efter vejen. Fra viser kun vejen",
     )
 }

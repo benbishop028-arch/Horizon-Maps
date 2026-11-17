@@ -62,7 +62,7 @@ internal fun MediaBar(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Row(
-            Modifier.weight(1f).then(if (!MediaNow.hasAccess) Modifier.pressClick { MediaNow.openAccessSettings(ctx) } else Modifier),
+            Modifier.weight(1f).then(if (!MediaNow.hasAccess && MediaNow.songInfoPossible) Modifier.pressClick { MediaNow.openAccessSettings(ctx) } else Modifier),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(c.tile), contentAlignment = Alignment.Center) {
@@ -73,7 +73,7 @@ internal fun MediaBar(modifier: Modifier = Modifier) {
             Column(Modifier.padding(start = 10.dp, end = 4.dp)) {
                 val title = MediaNow.title.ifBlank { L.t("Media") }
                 val sub = when {
-                    !MediaNow.hasAccess -> L.t("Tap to allow song info")
+                    !MediaNow.hasAccess -> if (MediaNow.songInfoPossible) L.t("Tap to allow song info") else ""
                     MediaNow.artist.isNotBlank() && MediaNow.app.isNotBlank() -> "${MediaNow.artist} · ${MediaNow.app}"
                     else -> MediaNow.artist.ifBlank { MediaNow.app }
                 }

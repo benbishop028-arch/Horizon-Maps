@@ -1583,5 +1583,11 @@ object I18nZhHans {
         "Couldn't read that track" to "无法读取该轨迹",
         "End of the track" to "轨迹终点",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "导入 .gpx 文件，在地图上显示，或沿轨迹语音导航",
+        "1 track" to "1 条轨迹",
+        "{0} tracks" to "{0} 条轨迹",
+        "GPX track" to "GPX 轨迹",
+        "Road name when driving without a route" to "无路线行驶时显示道路名称",
+        "Heading next to the road name" to "道路名称旁显示行驶方向",
+        "\"Heading E\" after the road. Off shows just the road" to "在道路后显示“方向 东”。关闭则只显示道路",
     )
 }

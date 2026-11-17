@@ -1583,5 +1583,11 @@ object I18nEsAr {
         "Couldn't read that track" to "No se pudo leer esa ruta",
         "End of the track" to "Fin de la ruta",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importá un archivo .gpx, mostralo en el mapa o recorrelo con giros por voz",
+        "1 track" to "1 ruta",
+        "{0} tracks" to "{0} rutas",
+        "GPX track" to "Ruta GPX",
+        "Road name when driving without a route" to "Nombre de la calle al manejar sin ruta",
+        "Heading next to the road name" to "Dirección junto al nombre de la calle",
+        "\"Heading E\" after the road. Off shows just the road" to "«Dirección E» después de la calle. Desactivado muestra solo la calle",
     )
 }

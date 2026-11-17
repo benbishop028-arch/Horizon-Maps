@@ -1691,6 +1691,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val job = coroutineContext[kotlinx.coroutines.Job]
         val alive = { job?.isActive != false }
         try {
+            // your GPX tracks whose name matches (GitHub #162), as places at their start, marked so a tap shows the track
+            val qt = q.trim()
+            val gpx = if (qt.length < 2) emptyList() else GpxStore.tracksNow(ctx).filter { it.start != null && it.name.contains(qt, ignoreCase = true) }.take(5).map { t ->
+                Place(t.name, L.t("GPX track") + " · " + Geo.fmtDist(t.len, imperial), t.start!!, "gpx:" + t.id)
+            }
             val own = places.searchLocal(q, near)
             val addr = OfflineRouter.searchAddresses(ctx, q, near, alive).filter { t -> own.none { Geo.dist(it.pos, t.pos) < 30 } }
             val pack = (if (q.trim().length >= 3) {
@@ -1704,7 +1709,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             } else emptyList()).filter { t -> own.none { Geo.dist(it.pos, t.pos) < 150 } }
             val towns = OfflinePlaces.search(ctx, q, near).filter { t -> own.none { Geo.dist(it.pos, t.pos) < 400 } && pack.none { Geo.dist(it.pos, t.pos) < 1500 && it.name.equals(t.name, true) } }
-            own + addr + pack + towns
+            gpx + own + addr + pack + towns
         } catch (e: Throwable) { emptyList() }
     }
 
@@ -1715,7 +1720,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val full = q.trim().lowercase()
         val all = ArrayList<Pair<Place, Int>>()
         net.forEachIndexed { i, p -> all += p to i }
-        extra.forEachIndexed { i, p -> if (all.none { it.first.name.equals(p.name, true) && Geo.dist(it.first.pos, p.pos) < 300 || Geo.dist(it.first.pos, p.pos) < 40 }) all += p to (1000 + i) }
+        // (a GPX track is always kept, even where a search result sits near its start)
+        extra.forEachIndexed { i, p -> if (p.web.startsWith("gpx:") || all.none { it.first.name.equals(p.name, true) && Geo.dist(it.first.pos, p.pos) < 300 || Geo.dist(it.first.pos, p.pos) < 40 }) all += p to (1000 + i) }
         fun strong(p: Place) = p.name.lowercase().let { it == full || it.startsWith(full) }
         fun d(p: Place) = if (near != null) Geo.dist(near, p.pos) else 0.0
         val top = all.filter { strong(it.first) }.sortedBy { d(it.first) }
@@ -2009,6 +2015,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun pickPlace(p: Place) {
+        // a GPX track found by the search (GitHub #162): shown on the map with its card
+        if (p.web.startsWith("gpx:")) { results = emptyList(); showTrack(p.web.removePrefix("gpx:")); return }
         val slot = pendingSave
         if (slot != null) {
             places.setSlot(slot, p)
@@ -2140,6 +2148,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false, preferVia: String = "", fromTrack: Boolean = false) {
+        // a GPX track picked from the search (on the car screen, say): drive it rather than to its start
+        if (to.web.startsWith("gpx:")) { driveTrack(to.web.removePrefix("gpx:")); return }
         // (a new destination ends driving a GPX track; re-planning the same trip keeps it)
         if (!fromTrack && !keepVia) stopTrackDrive()
         syncRoutePrefs(fix?.pos ?: map.center(), to.pos)

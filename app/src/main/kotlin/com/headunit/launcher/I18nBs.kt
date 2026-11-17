@@ -1583,5 +1583,11 @@ object I18nBs {
         "Couldn't read that track" to "Staza se ne može pročitati",
         "End of the track" to "Kraj staze",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Uvezite .gpx datoteku, prikažite je na karti ili je vozite s izgovorenim skretanjima",
+        "1 track" to "1 staza",
+        "{0} tracks" to "Staza: {0}",
+        "GPX track" to "GPX staza",
+        "Road name when driving without a route" to "Naziv puta pri vožnji bez rute",
+        "Heading next to the road name" to "Smjer pored naziva puta",
+        "\"Heading E\" after the road. Off shows just the road" to "»Smjer I« iza puta. Isključeno prikazuje samo put",
     )
 }

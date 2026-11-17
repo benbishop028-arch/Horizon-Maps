@@ -1583,5 +1583,11 @@ object I18nTr {
         "Couldn't read that track" to "İz okunamadı",
         "End of the track" to "İzin sonu",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Bir .gpx dosyası içe aktarın, haritada gösterin veya sesli dönüşlerle sürün",
+        "1 track" to "1 iz",
+        "{0} tracks" to "{0} iz",
+        "GPX track" to "GPX izi",
+        "Road name when driving without a route" to "Rotasız sürüşte yol adı",
+        "Heading next to the road name" to "Yol adının yanında yön",
+        "\"Heading E\" after the road. Off shows just the road" to "Yoldan sonra “Yön D”. Kapalıyken yalnızca yol görünür",
     )
 }

@@ -1583,5 +1583,11 @@ object I18nCs {
         "Couldn't read that track" to "Trasu nelze načíst",
         "End of the track" to "Konec trasy",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to "Importujte soubor .gpx, zobrazte ho na mapě nebo ho projeďte s hlasovými pokyny",
+        "1 track" to "1 trasa",
+        "{0} tracks" to "Tras: {0}",
+        "GPX track" to "Trasa GPX",
+        "Road name when driving without a route" to "Název silnice při jízdě bez trasy",
+        "Heading next to the road name" to "Směr vedle názvu silnice",
+        "\"Heading E\" after the road. Off shows just the road" to "„Směr V“ za silnicí. Vypnuto ukazuje jen silnici",
     )
 }

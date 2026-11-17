@@ -1583,5 +1583,11 @@ object I18nMr {
         "Couldn't read that track" to "तो ट्रॅक वाचता आला नाही",
         "End of the track" to "ट्रॅकचा शेवट",
         "Import a .gpx file, show it on the map or drive it with spoken turns" to ".gpx फाइल आयात करा, नकाशावर दाखवा किंवा बोललेल्या वळणांसह चालवा",
+        "1 track" to "1 ट्रॅक",
+        "{0} tracks" to "{0} ट्रॅक",
+        "GPX track" to "GPX ट्रॅक",
+        "Road name when driving without a route" to "मार्गाशिवाय चालवताना रस्त्याचे नाव",
+        "Heading next to the road name" to "रस्त्याच्या नावाशेजारी दिशा",
+        "\"Heading E\" after the road. Off shows just the road" to "रस्त्यानंतर “दिशा पूर्व”. बंद केल्यास फक्त रस्ता",
     )
 }
