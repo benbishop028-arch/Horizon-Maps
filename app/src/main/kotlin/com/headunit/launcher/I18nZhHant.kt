@@ -1629,5 +1629,16 @@ object I18nZhHant {
         "Fixed" to "修正",
         "Close Horizon Nav" to "關閉 Horizon Nav",
         "Ends the route and stops GPS" to "結束路線並停止 GPS",
+        "Your places next to Home and Work" to "在「住家」和「公司」旁顯示你的地點",
+        "Only the starred ones show there" to "只顯示加星號的",
+        "Shown next to Home and Work" to "顯示在「住家」和「公司」旁",
+        "Not shown next to Home and Work" to "不顯示在「住家」和「公司」旁",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "加星號的會顯示在搜尋列下方「住家」和「公司」旁；輕觸星號即可變更。所有地點都可在搜尋和「你的地點」捷徑中找到。",
+        "Road name, arrow, tunnels, media, locking" to "道路名稱、箭頭、隧道、媒體、鎖定",
+        "Light, weather & 3D" to "光線、天氣與 3D",
+        "Light, rain and snow, radar, 3D, sky" to "光線、雨雪、雷達、3D、天空",
+        "Traffic, lights, cameras, signs, lamps" to "交通、號誌、測速、標誌、路燈",
+        "Brightness, sizes, speed, card positions, units" to "亮度、大小、速度、卡片位置、單位",
+        "Colours and lettering" to "顏色與文字",
     )
 }

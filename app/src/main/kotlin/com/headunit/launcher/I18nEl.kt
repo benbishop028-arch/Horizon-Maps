@@ -1629,5 +1629,16 @@ object I18nEl {
         "Fixed" to "Διορθώθηκε",
         "Close Horizon Nav" to "Κλείσιμο Horizon Nav",
         "Ends the route and stops GPS" to "Τερματίζει τη διαδρομή και σταματά το GPS",
+        "Your places next to Home and Work" to "Τα μέρη σας δίπλα σε Σπίτι και Δουλειά",
+        "Only the starred ones show there" to "Εμφανίζονται μόνο όσα έχουν αστέρι",
+        "Shown next to Home and Work" to "Εμφανίζεται δίπλα σε Σπίτι και Δουλειά",
+        "Not shown next to Home and Work" to "Δεν εμφανίζεται δίπλα σε Σπίτι και Δουλειά",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Όσα έχουν αστέρι εμφανίζονται δίπλα σε Σπίτι και Δουλειά κάτω από τη γραμμή αναζήτησης· πατήστε ένα αστέρι για αλλαγή. Όλα υπάρχουν στην αναζήτηση και στη συντόμευση Τα μέρη σας.",
+        "Road name, arrow, tunnels, media, locking" to "Όνομα δρόμου, βέλος, σήραγγες, πολυμέσα, κλείδωμα",
+        "Light, weather & 3D" to "Φως, καιρός και 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Φως, βροχή και χιόνι, ραντάρ, 3D, ουρανός",
+        "Traffic, lights, cameras, signs, lamps" to "Κίνηση, φανάρια, κάμερες, πινακίδες, φανοστάτες",
+        "Brightness, sizes, speed, card positions, units" to "Φωτεινότητα, μεγέθη, ταχύτητα, θέσεις καρτών, μονάδες",
+        "Colours and lettering" to "Χρώματα και γράμματα",
     )
 }

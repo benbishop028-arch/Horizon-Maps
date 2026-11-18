@@ -1629,5 +1629,16 @@ object I18nSr {
         "Fixed" to "Поправљено",
         "Close Horizon Nav" to "Затвори Horizon Nav",
         "Ends the route and stops GPS" to "Завршава руту и зауставља GPS",
+        "Your places next to Home and Work" to "Ваша места поред Куће и Посла",
+        "Only the starred ones show there" to "Тамо се приказују само она са звездицом",
+        "Shown next to Home and Work" to "Приказано поред Куће и Посла",
+        "Not shown next to Home and Work" to "Није приказано поред Куће и Посла",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Места са звездицом приказују се поред Куће и Посла испод траке за претрагу; додирните звездицу за промену. Сва су у претрази и пречици Ваша места.",
+        "Road name, arrow, tunnels, media, locking" to "Име пута, стрелица, тунели, медији, закључавање",
+        "Light, weather & 3D" to "Светло, време и 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Светло, киша и снег, радар, 3D, небо",
+        "Traffic, lights, cameras, signs, lamps" to "Саобраћај, семафори, камере, знакови, светиљке",
+        "Brightness, sizes, speed, card positions, units" to "Осветљеност, величине, брзина, положаји картица, јединице",
+        "Colours and lettering" to "Боје и натписи",
     )
 }

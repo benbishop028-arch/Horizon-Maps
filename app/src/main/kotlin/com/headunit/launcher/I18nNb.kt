@@ -1629,5 +1629,16 @@ object I18nNb {
         "Fixed" to "Rettet",
         "Close Horizon Nav" to "Lukk Horizon Nav",
         "Ends the route and stops GPS" to "Avslutter ruten og stopper GPS",
+        "Your places next to Home and Work" to "Stedene dine ved siden av Hjem og Jobb",
+        "Only the starred ones show there" to "Bare de med stjerne vises der",
+        "Shown next to Home and Work" to "Vises ved siden av Hjem og Jobb",
+        "Not shown next to Home and Work" to "Vises ikke ved siden av Hjem og Jobb",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "De med stjerne vises ved siden av Hjem og Jobb under søkefeltet; trykk på en stjerne for å endre det. Alle finnes i søket og snarveien Stedene dine.",
+        "Road name, arrow, tunnels, media, locking" to "Veinavn, pil, tunneler, medier, lås",
+        "Light, weather & 3D" to "Lys, vær og 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Lys, regn og snø, radar, 3D, himmel",
+        "Traffic, lights, cameras, signs, lamps" to "Trafikk, lys, kameraer, skilt, lykter",
+        "Brightness, sizes, speed, card positions, units" to "Lysstyrke, størrelser, fart, kortplasseringer, enheter",
+        "Colours and lettering" to "Farger og skrift",
     )
 }

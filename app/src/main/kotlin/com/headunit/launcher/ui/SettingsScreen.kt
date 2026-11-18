@@ -27,6 +27,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.rounded.DriveEta
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Shop
 import androidx.compose.material.icons.rounded.Close
@@ -100,17 +102,18 @@ private class Section(val title: String, val sub: String, val icon: ImageVector,
 // (made each time it's read, so the names follow a change of language straight away)
 private val sections: List<Section> get() = listOf(
     Section(L.t("Map style"), L.t("Colours, day and night, map detail"), Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
-    Section(L.t("Light & 3D"), L.t("Light, weather, 3D, tilt, sky"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
-    Section(L.t("On the map"), L.t("Traffic, lights, cameras, signs, weather"), Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
+    Section(L.t("Light, weather & 3D"), L.t("Light, rain and snow, radar, 3D, sky"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
+    Section(L.t("On the map"), L.t("Traffic, lights, cameras, signs, lamps"), Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
     Section(L.t("Your arrow & route line"), L.t("Arrow or car, colours, route look"), Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
     Section(L.t("Routes"), L.t("Vehicle, avoid, choosing, starting"), Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
     Section(L.t("Turn card & lanes"), L.t("Signs, lanes, trip card, arriving"), Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
     Section(L.t("Alerts"), L.t("Speed, cameras, hazards, reports"), Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
     Section(L.t("Sound & voice"), L.t("Spoken directions and volume"), Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
+    Section(L.t("While driving"), L.t("Road name, arrow, tunnels, media, locking"), Icons.Rounded.DriveEta, Color(0xFF12A4B4)),
     Section(L.t("Places & trips"), L.t("Home, work, favourites, sharing, trip log"), Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
     Section(L.t("Fuel & charging"), L.t("Your fuel, prices, electric car"), Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
     Section(L.t("Offline maps"), L.t("Maps, routes and town names with no signal"), Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
-    Section(L.t("Screen & sizes"), L.t("Brightness, sizes, glass, units, while driving"), Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
+    Section(L.t("Screen & sizes"), L.t("Brightness, sizes, speed, card positions, units"), Icons.Rounded.BrightnessMedium, Color(0xFFFFB020), "DEVICE"),
     Section(L.t("Android Auto"), L.t("Car-screen sizes and setting it up"), Icons.Rounded.DirectionsCar, Color(0xFF9CA4BF)),
     Section(L.t("Performance"), L.t("Smoothness on slower head units, demo"), Icons.Rounded.Speed, Color(0xFF9CA4BF)),
     Section(L.t("Keys & accounts"), L.t("Map keys and search"), Icons.Rounded.VpnKey, Color(0xFF9CA4BF)),
@@ -259,13 +262,14 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         5 -> GuidanceSection(prefs, engine)
                         6 -> AlertsSection(prefs, engine)
                         7 -> SoundSection(prefs, engine)
-                        8 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
-                        9 -> FuelSection(prefs, engine)
-                        10 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
-                        11 -> ScreenSection(prefs, engine)
-                        12 -> AndroidAutoSection(prefs)
-                        13 -> PerformanceSection(prefs)
-                        14 -> KeysSection(prefs, engine)
+                        8 -> WhileDrivingSection(prefs)
+                        9 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
+                        10 -> FuelSection(prefs, engine)
+                        11 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
+                        12 -> ScreenSection(prefs, engine)
+                        13 -> AndroidAutoSection(prefs)
+                        14 -> PerformanceSection(prefs)
+                        15 -> KeysSection(prefs, engine)
                         else -> AboutSection(prefs, engine)
                     }
                 }
@@ -302,7 +306,7 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             SFieldItem(L.t("Day starts at"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"), L.t("24-hour clock, for example 06:45"), placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
     }
-    if (prefs.mapSource() == "mapbox") SGroup(L.t("Colours")) {
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Colours and lettering")) {
         MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { picked ->
             val now = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
             // Custom starts as exactly the theme you had (nothing changes until you change something)
@@ -325,8 +329,6 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             }
             SPercent(L.t("How strong"), L.t("How much of the colour the map takes"), prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
         }
-    }
-    if (prefs.mapSource() == "mapbox") SGroup(L.t("Map lettering")) {
         // (karthikeyansr: Mapbox's own lettering is narrow, and hard to read at a glance; these are wider and heavier)
         SChoice(L.t("Font"), listOf("" to L.t("Standard")) + com.headunit.launcher.MAP_FONTS.map { it to it }, prefs.s(PreferenceKeys.MAP_FONT, ""),
             L.t("The lettering for road and place names on the map"), wrap = true) { prefs.put(PreferenceKeys.MAP_FONT, it) }
@@ -379,6 +381,10 @@ private fun LightSection(prefs: Prefs) {
         SToggle(prefs, L.t("Fog and sky"), "skyweather", true, L.t("Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog"))
         SToggle(prefs, L.t("Night sky in 3D"), "nightsky", true, L.t("Twinkling stars above the horizon after dark"))
     }
+    SGroup(L.t("Weather")) {
+        SToggle(prefs, L.t("Weather effects on the map"), "rainfx", false, L.t("Real rain and snow falling on the map (and fog) to match the weather where you are"))
+        SToggle(prefs, L.t("Rain radar layer"), "radar", false, L.t("Live radar from RainViewer, under the route"))
+    }
 }
 
 // ------------------------------------------------------------------ On the map
@@ -406,10 +412,6 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("3D street lamps, traffic lights and cameras"), "furniture3d", true, L.t("Real-size 3D models with lit lamps and lights (Full 3D). Off: the simpler badges and blocks"))
         SToggle(prefs, L.t("Street lamps"), "lamps", true, if (prefs.b(PreferenceKeys.LAMPS, true)) L.t("Now: ") + engine.map.lampInfo() else null)
         if (prefs.b(PreferenceKeys.LAMPS, true)) SSlider(L.t("Street lamp spacing"), prefs.s(PreferenceKeys.LAMPGAP, "40").toFloatOrNull() ?: 40f, 15f..120f, " m", reset = 40f) { prefs.put(PreferenceKeys.LAMPGAP, it.toString()) }
-    }
-    SGroup(L.t("Weather")) {
-        SToggle(prefs, L.t("Weather effects on the map"), "rainfx", false, L.t("Real rain and snow falling on the map (and fog) to match the weather where you are"))
-        SToggle(prefs, L.t("Rain radar layer"), "radar", false, L.t("Live radar from RainViewer, under the route"))
     }
 }
 
@@ -808,7 +810,7 @@ private fun PlacesSection(engine: NavEngine) {
     var openGroups by remember { mutableStateOf(setOf<String>()) }
     var renamingGroup by remember { mutableStateOf<String?>(null) }
     val groups = remember(raw) { pl.groups() }
-    SGroup(L.t("Your places"), footer = L.t("Shown as pills under the search bar, after Home and Work. Add one with the + pill there.")) {
+    SGroup(L.t("Your places"), footer = L.t("The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut.")) {
         if (mine.isEmpty()) SNote(L.t("No places of your own yet."))
         @Composable
         fun placeRow(i: Int, lp: com.headunit.launcher.LabeledPlace, indent: Boolean) {
@@ -820,11 +822,18 @@ private fun PlacesSection(engine: NavEngine) {
                         SField(t, { t = it.take(24) }, width = 220.dp)
                         SButton(L.t("Save"), primary = true) { pl.renameCustom(lp.label, t); renaming = null }
                     }
-                } else SItem(lp.label, lp.place.name + if (lp.place.sub.isNotBlank()) ", " + lp.place.sub else "") {
+                } else Row(verticalAlignment = Alignment.CenterVertically) {
+                    // the star: shown next to Home and Work (yellow) or not (grey)
+                    Icon(if (lp.pinned) Icons.Rounded.Star else Icons.Rounded.StarBorder,
+                        if (lp.pinned) L.t("Shown next to Home and Work") else L.t("Not shown next to Home and Work"),
+                        tint = if (lp.pinned) Color(0xFFFFC928) else LocalVw.current.sub,
+                        modifier = Modifier.size(40.dp).clip(CircleShape).clickable { pl.setPinned(lp.label, !lp.pinned) }.padding(8.dp))
+                    Box(Modifier.weight(1f)) { SItem(lp.label, lp.place.name + if (lp.place.sub.isNotBlank()) ", " + lp.place.sub else "") {
                     if (i > 0) SButton("↑") { pl.moveCustom(lp.label, -1) }
                     SButton(L.t("Group")) { grouping = if (grouping == lp.label) null else lp.label }
                     SButton(L.t("Rename")) { renaming = lp.label }
                     SButton(L.t("Remove"), danger = true) { pl.removeCustom(lp.label) }
+                } }
                 }
                 if (grouping == lp.label) {
                     var newName by remember(lp.label) { mutableStateOf("") }
@@ -891,17 +900,17 @@ private fun PlacesSection(engine: NavEngine) {
         if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
     }
     // (the Home and Work buttons under the search bar, in the app and on Android Auto: each can be left off)
-    SGroup(L.t("Search bar")) {
+    // everything about the area under the search bar in one place (it was spread over four groups)
+    SGroup(L.t("Under the search bar"), footer = L.t("On this screen and on Android Auto. Your Home and Work places are kept either way.")) {
         SToggle(engine.prefs, L.t("Search as a button"), PreferenceKeys.SEARCH_BUTTON, false,
             L.t("With no route, a round search button in the corner instead of the search bar and its buttons, so the arrow sits in the middle. Tap it to search"))
-    }
-    SGroup(L.t("Home and Work under the search bar"), footer = L.t("On this screen and on Android Auto. Your Home and Work places are kept either way.")) {
         SToggle(engine.prefs, L.t("Home button"), PreferenceKeys.HOME_BTN, true)
         SToggle(engine.prefs, L.t("Work button"), PreferenceKeys.WORK_BTN, true)
+        SToggle(engine.prefs, L.t("Your places next to Home and Work"), PreferenceKeys.ROW_PLACES, true, L.t("Only the starred ones show there"))
+        SToggle(engine.prefs, L.t("Recent places under the search bar"), "quicklist", true, L.t("Your saved places are in the row of tiles under the search bar, which ends with Add a place"))
     }
     ShortcutsGroup(engine)
     SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
-        SToggle(engine.prefs, L.t("Recent places under the search bar"), "quicklist", true, L.t("Your saved places are in the row of tiles under the search bar, which ends with Add a place"))
         SItem(L.t("Recent destinations"), L.t("{0} recent, plus places remembered for searching without signal", pl.recents().size)) {
             SButton(L.t("Clear"), danger = true) { pl.clearHistory(); engine.toast(L.t("History cleared"), 2000) }
         }
@@ -1156,6 +1165,25 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "left" to L.t("Bottom left"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.TRIP_POS, "auto")) { prefs.put(PreferenceKeys.TRIP_POS, it) }
         SChoice(L.t("Speedometer"), listOf("auto" to L.t("Away from the cards"), "left" to L.t("Bottom left"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.SPEED_SIDE, "auto")) { prefs.put(PreferenceKeys.SPEED_SIDE, it) }
     }
+    SGroup(L.t("Units")) {
+        SChoice(L.t("Distance and speed"), listOf("mi" to L.t("Miles"), "km" to L.t("Kilometres")), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
+        SChoice(L.t("Clock"), listOf("auto" to L.t("Automatic"), "24" to "24-hour", "12" to "12-hour"), prefs.s(PreferenceKeys.CLOCK, "auto"),
+            L.t("Automatic follows the phone's or head unit's own 12 / 24-hour setting")) { prefs.put(PreferenceKeys.CLOCK, it) }
+        SChoice(L.t("Temperature"), listOf("C" to "°C", "F" to "°F"), if (isImperial(prefs)) "F" else "C") { prefs.put(PreferenceKeys.TEMPERATURE_UNIT, it) }
+        SChoice(L.t("Driving side"), listOf("" to L.t("Automatic"), "rhd" to L.t("Right-hand drive"), "lhd" to L.t("Left-hand drive")), prefs.s(PreferenceKeys.DRIVE, ""),
+            when (prefs.s(PreferenceKeys.DRIVE, "")) {
+                "rhd" -> L.t("Driver on the right (UK): cards on the left, buttons on the right")
+                "lhd" -> L.t("Driver on the left (US, Europe): the screen is mirrored, cards on the right")
+                else -> L.t("Follows the country you're in") + (if (engine.mirrored) L.t(": left-hand drive, screen mirrored") else L.t(": right-hand drive"))
+            }) { prefs.put(PreferenceKeys.DRIVE, it) }
+    }
+}
+
+// ------------------------------------------------------------------ While driving
+
+/** What the screen does while you drive (it used to be a group at the end of Screen & sizes, which had grown very long). */
+@Composable
+private fun WhileDrivingSection(prefs: Prefs) {
     SGroup(L.t("While driving")) {
         SToggle(prefs, L.t("Road name when driving without a route"), "cruise", true)
         if (prefs.b("cruise", true)) SToggle(prefs, L.t("Heading next to the road name"), PreferenceKeys.CRUISE_HEADING, true, L.t("\"Heading E\" after the road. Off shows just the road"))
@@ -1175,18 +1203,6 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
                 if (granted) Text(L.t("Allowed"), color = LocalVw.current.sub, fontSize = 14.sp) else SButton(L.t("Allow")) { com.headunit.launcher.MediaNow.openAccessSettings(ctx) }
             }
         }
-    }
-    SGroup(L.t("Units")) {
-        SChoice(L.t("Distance and speed"), listOf("mi" to L.t("Miles"), "km" to L.t("Kilometres")), if (engine.imperial) "mi" else "km") { prefs.put(PreferenceKeys.DISTANCE_UNIT, it) }
-        SChoice(L.t("Clock"), listOf("auto" to L.t("Automatic"), "24" to "24-hour", "12" to "12-hour"), prefs.s(PreferenceKeys.CLOCK, "auto"),
-            L.t("Automatic follows the phone's or head unit's own 12 / 24-hour setting")) { prefs.put(PreferenceKeys.CLOCK, it) }
-        SChoice(L.t("Temperature"), listOf("C" to "°C", "F" to "°F"), if (isImperial(prefs)) "F" else "C") { prefs.put(PreferenceKeys.TEMPERATURE_UNIT, it) }
-        SChoice(L.t("Driving side"), listOf("" to L.t("Automatic"), "rhd" to L.t("Right-hand drive"), "lhd" to L.t("Left-hand drive")), prefs.s(PreferenceKeys.DRIVE, ""),
-            when (prefs.s(PreferenceKeys.DRIVE, "")) {
-                "rhd" -> L.t("Driver on the right (UK): cards on the left, buttons on the right")
-                "lhd" -> L.t("Driver on the left (US, Europe): the screen is mirrored, cards on the right")
-                else -> L.t("Follows the country you're in") + (if (engine.mirrored) L.t(": left-hand drive, screen mirrored") else L.t(": right-hand drive"))
-            }) { prefs.put(PreferenceKeys.DRIVE, it) }
     }
 }
 

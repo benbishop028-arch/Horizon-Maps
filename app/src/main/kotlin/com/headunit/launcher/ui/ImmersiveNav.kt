@@ -1386,9 +1386,12 @@ private fun ImmChips(engine: NavEngine, focusSearch: () -> Unit) {
         // recent places; the row always ends with "Add a place"
         val rawRoutes = engine.prefs.s(PreferenceKeys.PLACES_ROUTES, "[]")
         val routes = remember(rawRoutes) { engine.savedRoutes() }
-        val extra: List<Pair<String, com.headunit.launcher.Place>> = remember(rawCustom, rawFav) {
-            val mine = engine.places.customs()
-            val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } &&
+        val rowPlaces = engine.prefs.b(PreferenceKeys.ROW_PLACES, true)
+        val extra: List<Pair<String, com.headunit.launcher.Place>> = remember(rawCustom, rawFav, rowPlaces) {
+            val all = engine.places.customs()
+            // (only the starred ones, and none with "Your places next to Home and Work" off: GitHub bijindas)
+            val mine = if (rowPlaces) all.filter { it.pinned } else emptyList()
+            val favs = engine.places.favourites().filter { f -> all.none { Geo.dist(it.place.pos, f.pos) < 60 } &&
                 listOfNotNull(home, work).none { Geo.dist(it.pos, f.pos) < 60 } }
             (mine.map { it.label to it.place } + favs.map { it.name to it }).take(40)
         }

@@ -1629,5 +1629,16 @@ object I18nFi {
         "Fixed" to "Korjattu",
         "Close Horizon Nav" to "Sulje Horizon Nav",
         "Ends the route and stops GPS" to "Lopettaa reitin ja pysäyttää GPS:n",
+        "Your places next to Home and Work" to "Omat paikat Kodin ja Työn vieressä",
+        "Only the starred ones show there" to "Vain tähdellä merkityt näkyvät siinä",
+        "Shown next to Home and Work" to "Näytetään Kodin ja Työn vieressä",
+        "Not shown next to Home and Work" to "Ei näytetä Kodin ja Työn vieressä",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Tähdellä merkityt näkyvät hakupalkin alla Kodin ja Työn vieressä; vaihda napauttamalla tähteä. Kaikki löytyvät hausta ja Omat paikat -pikakuvakkeesta.",
+        "Road name, arrow, tunnels, media, locking" to "Tien nimi, nuoli, tunnelit, media, lukitus",
+        "Light, weather & 3D" to "Valo, sää ja 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Valo, sade ja lumi, tutka, 3D, taivas",
+        "Traffic, lights, cameras, signs, lamps" to "Liikenne, valot, kamerat, merkit, lamput",
+        "Brightness, sizes, speed, card positions, units" to "Kirkkaus, koot, nopeus, korttien paikat, yksiköt",
+        "Colours and lettering" to "Värit ja tekstit",
     )
 }

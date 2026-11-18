@@ -1629,5 +1629,16 @@ object I18nAr {
         "Fixed" to "تم الإصلاح",
         "Close Horizon Nav" to "إغلاق Horizon Nav",
         "Ends the route and stops GPS" to "ينهي المسار ويوقف GPS",
+        "Your places next to Home and Work" to "أماكنك بجانب المنزل والعمل",
+        "Only the starred ones show there" to "تظهر هناك المميزة بنجمة فقط",
+        "Shown next to Home and Work" to "يظهر بجانب المنزل والعمل",
+        "Not shown next to Home and Work" to "لا يظهر بجانب المنزل والعمل",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "تظهر الأماكن المميزة بنجمة بجانب المنزل والعمل أسفل شريط البحث؛ اضغط على النجمة للتغيير. وكلها موجودة في البحث واختصار أماكنك.",
+        "Road name, arrow, tunnels, media, locking" to "اسم الطريق، السهم، الأنفاق، الوسائط، القفل",
+        "Light, weather & 3D" to "الإضاءة والطقس و3D",
+        "Light, rain and snow, radar, 3D, sky" to "الإضاءة، المطر والثلج، الرادار، 3D، السماء",
+        "Traffic, lights, cameras, signs, lamps" to "حركة المرور، الإشارات، الكاميرات، اللافتات، المصابيح",
+        "Brightness, sizes, speed, card positions, units" to "السطوع، الأحجام، السرعة، مواضع البطاقات، الوحدات",
+        "Colours and lettering" to "الألوان والكتابة",
     )
 }

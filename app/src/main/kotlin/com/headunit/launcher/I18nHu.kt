@@ -1629,5 +1629,16 @@ object I18nHu {
         "Fixed" to "Hibajavítás",
         "Close Horizon Nav" to "Horizon Nav bezárása",
         "Ends the route and stops GPS" to "Befejezi az útvonalat és leállítja a GPS-t",
+        "Your places next to Home and Work" to "Saját helyek az Otthon és a Munka mellett",
+        "Only the starred ones show there" to "Csak a csillagozottak jelennek meg ott",
+        "Shown next to Home and Work" to "Megjelenik az Otthon és a Munka mellett",
+        "Not shown next to Home and Work" to "Nem jelenik meg az Otthon és a Munka mellett",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "A csillagozottak a keresősáv alatt, az Otthon és a Munka mellett jelennek meg; a csillagra koppintva módosíthatja. Mindegyik megtalálható a keresésben és a Saját helyek parancsikonban.",
+        "Road name, arrow, tunnels, media, locking" to "Útnév, nyíl, alagutak, média, zárolás",
+        "Light, weather & 3D" to "Fény, időjárás és 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Fény, eső és hó, radar, 3D, égbolt",
+        "Traffic, lights, cameras, signs, lamps" to "Forgalom, lámpák, kamerák, táblák, lámpaoszlopok",
+        "Brightness, sizes, speed, card positions, units" to "Fényerő, méretek, sebesség, kártyák helye, mértékegységek",
+        "Colours and lettering" to "Színek és feliratok",
     )
 }

@@ -2356,6 +2356,17 @@ object L {
         "Fixed" to listOf("Opgelost", "Behoben", "Corrigé", "Corregido"),
         "Close Horizon Nav" to listOf("Horizon Nav sluiten", "Horizon Nav schließen", "Fermer Horizon Nav", "Cerrar Horizon Nav"),
         "Ends the route and stops GPS" to listOf("Beëindigt de route en stopt de gps", "Beendet die Route und stoppt das GPS", "Termine l’itinéraire et arrête le GPS", "Termina la ruta y detiene el GPS"),
+        "Your places next to Home and Work" to listOf("Je plaatsen naast Thuis en Werk", "Deine Orte neben Zuhause und Arbeit", "Vos lieux à côté de Domicile et Travail", "Tus lugares junto a Casa y Trabajo"),
+        "Only the starred ones show there" to listOf("Alleen die met een ster staan daar", "Dort erscheinen nur die mit Stern", "Seuls ceux avec une étoile s’y affichent", "Solo aparecen los marcados con estrella"),
+        "Shown next to Home and Work" to listOf("Getoond naast Thuis en Werk", "Neben Zuhause und Arbeit angezeigt", "Affiché à côté de Domicile et Travail", "Se muestra junto a Casa y Trabajo"),
+        "Not shown next to Home and Work" to listOf("Niet getoond naast Thuis en Werk", "Nicht neben Zuhause und Arbeit angezeigt", "Non affiché à côté de Domicile et Travail", "No se muestra junto a Casa y Trabajo"),
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to listOf("Die met een ster staan naast Thuis en Werk onder de zoekbalk; tik op een ster om dat te wijzigen. Allemaal staan ze in het zoeken en in de snelkoppeling Jouw plaatsen.", "Die mit Stern stehen unter der Suchleiste neben Zuhause und Arbeit; tippe auf einen Stern, um das zu ändern. Alle sind in der Suche und in der Verknüpfung „Deine Orte“.", "Ceux avec une étoile s’affichent à côté de Domicile et Travail sous la barre de recherche ; touchez une étoile pour changer. Tous sont dans la recherche et le raccourci Vos lieux.", "Los marcados con estrella aparecen junto a Casa y Trabajo bajo la barra de búsqueda; toca una estrella para cambiarlo. Todos están en la búsqueda y en el acceso Tus lugares."),
+        "Road name, arrow, tunnels, media, locking" to listOf("Wegnaam, pijl, tunnels, media, vergrendelen", "Straßenname, Pfeil, Tunnel, Medien, Sperre", "Nom de rue, flèche, tunnels, médias, verrouillage", "Nombre de calle, flecha, túneles, multimedia, bloqueo"),
+        "Light, weather & 3D" to listOf("Licht, weer en 3D", "Licht, Wetter & 3D", "Lumière, météo et 3D", "Luz, tiempo y 3D"),
+        "Light, rain and snow, radar, 3D, sky" to listOf("Licht, regen en sneeuw, radar, 3D, lucht", "Licht, Regen und Schnee, Radar, 3D, Himmel", "Lumière, pluie et neige, radar, 3D, ciel", "Luz, lluvia y nieve, radar, 3D, cielo"),
+        "Traffic, lights, cameras, signs, lamps" to listOf("Verkeer, verkeerslichten, camera’s, borden, lantaarns", "Verkehr, Ampeln, Kameras, Schilder, Laternen", "Trafic, feux, radars, panneaux, lampadaires", "Tráfico, semáforos, cámaras, señales, farolas"),
+        "Brightness, sizes, speed, card positions, units" to listOf("Helderheid, formaten, snelheid, kaartposities, eenheden", "Helligkeit, Größen, Tempo, Kartenpositionen, Einheiten", "Luminosité, tailles, vitesse, positions des cartes, unités", "Brillo, tamaños, velocidad, posición de tarjetas, unidades"),
+        "Colours and lettering" to listOf("Kleuren en letters", "Farben und Schrift", "Couleurs et lettrage", "Colores y letras"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3983,5 +3994,16 @@ object L {
         "Fixed" to listOf("Corretto", "Corrigido", "Naprawione"),
         "Close Horizon Nav" to listOf("Chiudi Horizon Nav", "Fechar o Horizon Nav", "Zamknij Horizon Nav"),
         "Ends the route and stops GPS" to listOf("Termina il percorso e ferma il GPS", "Termina o percurso e desliga o GPS", "Kończy trasę i wyłącza GPS"),
+        "Your places next to Home and Work" to listOf("I tuoi luoghi accanto a Casa e Lavoro", "Os seus locais ao lado de Casa e Trabalho", "Twoje miejsca obok Domu i Pracy"),
+        "Only the starred ones show there" to listOf("Lì compaiono solo quelli con la stella", "Só aparecem lá os marcados com estrela", "Pokazują się tam tylko te z gwiazdką"),
+        "Shown next to Home and Work" to listOf("Mostrato accanto a Casa e Lavoro", "Mostrado ao lado de Casa e Trabalho", "Pokazywane obok Domu i Pracy"),
+        "Not shown next to Home and Work" to listOf("Non mostrato accanto a Casa e Lavoro", "Não mostrado ao lado de Casa e Trabalho", "Niepokazywane obok Domu i Pracy"),
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to listOf("Quelli con la stella compaiono accanto a Casa e Lavoro sotto la barra di ricerca; tocca una stella per cambiare. Tutti sono nella ricerca e nella scorciatoia I tuoi luoghi.", "Os marcados com estrela aparecem ao lado de Casa e Trabalho sob a barra de pesquisa; toque numa estrela para alterar. Todos estão na pesquisa e no atalho Os seus locais.", "Te z gwiazdką widać obok Domu i Pracy pod paskiem wyszukiwania; dotknij gwiazdki, aby to zmienić. Wszystkie są w wyszukiwaniu i skrócie Twoje miejsca."),
+        "Road name, arrow, tunnels, media, locking" to listOf("Nome strada, freccia, gallerie, media, blocco", "Nome da estrada, seta, túneis, multimédia, bloqueio", "Nazwa drogi, strzałka, tunele, multimedia, blokada"),
+        "Light, weather & 3D" to listOf("Luce, meteo e 3D", "Luz, tempo e 3D", "Światło, pogoda i 3D"),
+        "Light, rain and snow, radar, 3D, sky" to listOf("Luce, pioggia e neve, radar, 3D, cielo", "Luz, chuva e neve, radar, 3D, céu", "Światło, deszcz i śnieg, radar, 3D, niebo"),
+        "Traffic, lights, cameras, signs, lamps" to listOf("Traffico, semafori, telecamere, cartelli, lampioni", "Trânsito, semáforos, radares, sinais, candeeiros", "Ruch, światła, kamery, znaki, latarnie"),
+        "Brightness, sizes, speed, card positions, units" to listOf("Luminosità, dimensioni, velocità, posizione schede, unità", "Brilho, tamanhos, velocidade, posição dos cartões, unidades", "Jasność, rozmiary, prędkość, położenie kart, jednostki"),
+        "Colours and lettering" to listOf("Colori e scritte", "Cores e letras", "Kolory i napisy"),
     )
 }

@@ -1629,5 +1629,16 @@ object I18nHe {
         "Fixed" to "תוקן",
         "Close Horizon Nav" to "סגירת Horizon Nav",
         "Ends the route and stops GPS" to "מסיים את המסלול ועוצר את ה-GPS",
+        "Your places next to Home and Work" to "המקומות שלך ליד בית ועבודה",
+        "Only the starred ones show there" to "רק המסומנים בכוכב מוצגים שם",
+        "Shown next to Home and Work" to "מוצג ליד בית ועבודה",
+        "Not shown next to Home and Work" to "לא מוצג ליד בית ועבודה",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "המסומנים בכוכב מוצגים ליד בית ועבודה מתחת לשורת החיפוש; הקישו על כוכב כדי לשנות. כולם נמצאים בחיפוש ובקיצור הדרך המקומות שלך.",
+        "Road name, arrow, tunnels, media, locking" to "שם הדרך, חץ, מנהרות, מדיה, נעילה",
+        "Light, weather & 3D" to "תאורה, מזג אוויר ו-3D",
+        "Light, rain and snow, radar, 3D, sky" to "תאורה, גשם ושלג, מכ״ם, 3D, שמיים",
+        "Traffic, lights, cameras, signs, lamps" to "תנועה, רמזורים, מצלמות, תמרורים, פנסים",
+        "Brightness, sizes, speed, card positions, units" to "בהירות, גדלים, מהירות, מיקום כרטיסים, יחידות",
+        "Colours and lettering" to "צבעים וכיתוב",
     )
 }

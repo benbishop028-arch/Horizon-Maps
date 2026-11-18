@@ -1629,5 +1629,16 @@ object I18nRo {
         "Fixed" to "Reparat",
         "Close Horizon Nav" to "Închide Horizon Nav",
         "Ends the route and stops GPS" to "Încheie traseul și oprește GPS-ul",
+        "Your places next to Home and Work" to "Locurile tale lângă Acasă și Serviciu",
+        "Only the starred ones show there" to "Acolo apar doar cele cu stea",
+        "Shown next to Home and Work" to "Afișat lângă Acasă și Serviciu",
+        "Not shown next to Home and Work" to "Neafișat lângă Acasă și Serviciu",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Cele cu stea apar lângă Acasă și Serviciu sub bara de căutare; atingeți o stea ca să schimbați. Toate sunt în căutare și în scurtătura Locurile tale.",
+        "Road name, arrow, tunnels, media, locking" to "Nume de drum, săgeată, tuneluri, media, blocare",
+        "Light, weather & 3D" to "Lumină, vreme și 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Lumină, ploaie și ninsoare, radar, 3D, cer",
+        "Traffic, lights, cameras, signs, lamps" to "Trafic, semafoare, camere, indicatoare, felinare",
+        "Brightness, sizes, speed, card positions, units" to "Luminozitate, dimensiuni, viteză, poziții carduri, unități",
+        "Colours and lettering" to "Culori și litere",
     )
 }

@@ -1626,5 +1626,16 @@ object I18nE {
         "Fixed" to listOf("Popravljeno"),
         "Close Horizon Nav" to listOf("Zapri Horizon Nav"),
         "Ends the route and stops GPS" to listOf("Konča pot in ustavi GPS"),
+        "Your places next to Home and Work" to listOf("Vaši kraji poleg Doma in Službe"),
+        "Only the starred ones show there" to listOf("Tam so prikazani le tisti z zvezdico"),
+        "Shown next to Home and Work" to listOf("Prikazano poleg Doma in Službe"),
+        "Not shown next to Home and Work" to listOf("Ni prikazano poleg Doma in Službe"),
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to listOf("Tisti z zvezdico so pod iskalno vrstico poleg Doma in Službe; za spremembo tapnite zvezdico. Vsi so v iskanju in v bližnjici Vaši kraji."),
+        "Road name, arrow, tunnels, media, locking" to listOf("Ime ceste, puščica, predori, mediji, zaklepanje"),
+        "Light, weather & 3D" to listOf("Svetloba, vreme in 3D"),
+        "Light, rain and snow, radar, 3D, sky" to listOf("Svetloba, dež in sneg, radar, 3D, nebo"),
+        "Traffic, lights, cameras, signs, lamps" to listOf("Promet, semaforji, kamere, znaki, svetilke"),
+        "Brightness, sizes, speed, card positions, units" to listOf("Svetlost, velikosti, hitrost, položaji kartic, enote"),
+        "Colours and lettering" to listOf("Barve in napisi"),
     )
 }

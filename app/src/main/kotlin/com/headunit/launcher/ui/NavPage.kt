@@ -38,6 +38,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddRoad
 import androidx.compose.foundation.layout.widthIn
@@ -478,7 +481,7 @@ internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier =
     }
 }
 
-private fun nearbyIcon(kind: String?): androidx.compose.ui.graphics.vector.ImageVector = when (kind) {
+private fun nearbyIcon(kind: String?): androidx.compose.ui.graphics.vector.ImageVector = when (kind?.substringBefore(':')) {
     "fuel" -> Icons.Rounded.LocalGasStation
     "charging" -> Icons.Rounded.EvStation
     "food" -> Icons.Rounded.Restaurant
@@ -490,7 +493,7 @@ private fun nearbyIcon(kind: String?): androidx.compose.ui.graphics.vector.Image
     else -> Icons.Rounded.LocalParking
 }
 
-private fun nearbyTitle(kind: String?): String = when (kind) {
+private fun nearbyTitle(kind: String?): String = if (kind != null && kind.contains(':')) kind.substringAfter(':') else when (kind) {
     "fuel" -> L.t("Fuel stations"); "charging" -> L.t("Charging points"); "food" -> L.t("Food"); "coffee" -> L.t("Coffee")
     "toilets" -> L.t("Toilets"); "services" -> L.t("Services"); "lorrypark" -> L.t("Lorry parks")
     "places" -> L.t("Your places"); "tracks" -> L.t("Your tracks"); else -> L.t("Car parks")
@@ -505,7 +508,11 @@ internal fun NearbyCard(engine: NavEngine) {
     val hasPrices = engine.nearby.any { it.price != null }
     Column(Modifier.floating(24.dp).padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconBadge(nearbyIcon(engine.nearbyKind), c.accent, Modifier.padding(end = 12.dp), 36.dp)
+            // in one of your folders: ‹ goes back to the folders
+            val nk = engine.nearbyKind
+            if (nk != null && nk.contains(':')) Icon(Icons.AutoMirrored.Rounded.ArrowBack, L.t("Back"), tint = c.accent,
+                modifier = Modifier.padding(end = 8.dp).size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).clickable { engine.loadNearby(nk.substringBefore(':'), false) }.padding(6.dp))
+            IconBadge(if (nk != null && nk.contains(':')) Icons.Rounded.FolderOpen else nearbyIcon(nk), c.accent, Modifier.padding(end = 12.dp), 36.dp)
             Text(title, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             if (engine.nearbyBusy) CircularProgressIndicator(Modifier.size(18.dp), color = c.accent, strokeWidth = 2.dp)
             Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 12.dp).size(22.dp).clickable { engine.clearNearby() })
@@ -518,12 +525,13 @@ internal fun NearbyCard(engine: NavEngine) {
         LazyColumn(Modifier.heightIn(max = 230.dp).padding(top = 6.dp)) {
             items(engine.nearby) { n ->
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).clickable {
-                    // (a GPX track is shown on the map with its card, rather than added as a stop or driven straight away)
-                    if (n.place.web.startsWith("gpx:")) { engine.nearbyKind = null; engine.pickPlace(n.place) }
+                    // (a GPX track is shown on the map with its card, rather than added as a stop or driven straight away; a folder opens)
+                    if (n.place.web.startsWith("folder:")) engine.loadNearby((engine.nearbyKind ?: "places").substringBefore(':') + ":" + n.place.web.removePrefix("folder:"), false)
+                    else if (n.place.web.startsWith("gpx:")) { engine.nearbyKind = null; engine.pickPlace(n.place) }
                     else if (adding) engine.addStop(n.place) else engine.startRoute(n.place)
                 }.padding(vertical = 8.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
-                        Icon(nearbyIcon(engine.nearbyKind), null, tint = c.accent, modifier = Modifier.size(20.dp))
+                        Icon(if (n.place.web.startsWith("folder:")) Icons.Rounded.Folder else nearbyIcon(engine.nearbyKind), null, tint = c.accent, modifier = Modifier.size(20.dp))
                     }
                     Column(Modifier.weight(1f).padding(start = 12.dp)) {
                         Text(n.place.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -539,7 +547,8 @@ internal fun NearbyCard(engine: NavEngine) {
                         Text(n.free, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1,
                             modifier = Modifier.padding(start = 8.dp).clip(RoundedCornerShape(8.dp)).background(bg).padding(horizontal = 8.dp, vertical = 3.dp))
                     }
-                    Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 10.dp)) {
+                    if (n.place.web.startsWith("folder:")) Icon(Icons.Rounded.ChevronRight, null, tint = c.sub, modifier = Modifier.padding(start = 10.dp).size(22.dp))
+                    else Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(start = 10.dp)) {
                         Text(Geo.fmtDist(n.dist, engine.imperial), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.14f)).padding(horizontal = 10.dp, vertical = 4.dp))
                         if (n.detourMin >= 0) Text(L.t("+{0} min", n.detourMin), color = c.sub, fontSize = 11.sp, modifier = Modifier.padding(top = 2.dp))
                     }

@@ -1629,5 +1629,16 @@ object I18nSv {
         "Fixed" to "Åtgärdat",
         "Close Horizon Nav" to "Stäng Horizon Nav",
         "Ends the route and stops GPS" to "Avslutar rutten och stänger av GPS",
+        "Your places next to Home and Work" to "Dina platser bredvid Hem och Jobb",
+        "Only the starred ones show there" to "Bara de stjärnmärkta visas där",
+        "Shown next to Home and Work" to "Visas bredvid Hem och Jobb",
+        "Not shown next to Home and Work" to "Visas inte bredvid Hem och Jobb",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "De stjärnmärkta visas bredvid Hem och Jobb under sökfältet; tryck på en stjärna för att ändra. Alla finns i sökningen och genvägen Dina platser.",
+        "Road name, arrow, tunnels, media, locking" to "Vägnamn, pil, tunnlar, media, lås",
+        "Light, weather & 3D" to "Ljus, väder och 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Ljus, regn och snö, radar, 3D, himmel",
+        "Traffic, lights, cameras, signs, lamps" to "Trafik, ljus, kameror, skyltar, lyktor",
+        "Brightness, sizes, speed, card positions, units" to "Ljusstyrka, storlekar, fart, kortpositioner, enheter",
+        "Colours and lettering" to "Färger och text",
     )
 }

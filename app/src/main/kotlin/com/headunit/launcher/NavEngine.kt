@@ -2141,29 +2141,44 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * The "Your places" and "Your tracks" shortcuts (GitHub #164): your saved places (with their group) or your GPX tracks, in the
      * same list as a nearby search, nearest first. A track is marked so a tap shows it (or drives it, on the car screen).
      */
+    /**
+     * [kind] "places" or "tracks" (the top: folders first, then what's in no folder), or "places:Folder" / "tracks:Folder" (one
+     * folder's contents). Nearest first. A folder is a row whose place's web is "folder:" + its name (GitHub bijindas).
+     */
     private fun listMine(kind: String) {
         val here = fix?.pos ?: map.center()
+        val tracks = kind.startsWith("tracks")
+        val folder = kind.substringAfter(':', "").takeIf { kind.contains(':') }
         nearbyKind = kind; nearbyBusy = true; nearby = emptyList()
         scope.launch {
             val list = withContext(Dispatchers.IO) {
                 try {
-                    if (kind == "tracks") GpxStore.tracksNow(ctx).mapNotNull { t ->
+                    // (each thing with its folder, "" for none)
+                    val all: List<Pair<Nearby, String>> = if (tracks) GpxStore.tracksNow(ctx).mapNotNull { t ->
                         val s = t.start ?: return@mapNotNull null
-                        Nearby(Place(t.name, L.t("GPX track"), s, "gpx:" + t.id), here?.let { Geo.dist(it, s) } ?: 0.0,
-                            listOf(Geo.fmtDist(t.len, imperial), t.group).filter { it.isNotBlank() }.joinToString(" · "))
+                        Nearby(Place(t.name, L.t("GPX track"), s, "gpx:" + t.id), here?.let { Geo.dist(it, s) } ?: 0.0, Geo.fmtDist(t.len, imperial)) to t.group
                     } else {
                         val mine = places.customs()
                         val favs = places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
-                        mine.map { cp -> Nearby(cp.place.copy(name = cp.label), here?.let { Geo.dist(it, cp.place.pos) } ?: 0.0, cp.group) } +
-                            favs.map { f -> Nearby(f, here?.let { Geo.dist(it, f.pos) } ?: 0.0, "") }
-                    }.sortedBy { it.dist }
+                        mine.map { cp -> Nearby(cp.place.copy(name = cp.label), here?.let { Geo.dist(it, cp.place.pos) } ?: 0.0, "") to cp.group } +
+                            favs.map { f -> Nearby(f, here?.let { Geo.dist(it, f.pos) } ?: 0.0, "") to "" }
+                    }
+                    if (folder != null) all.filter { it.second == folder }.map { it.first }.sortedBy { it.dist }
+                    else {
+                        val folders = all.map { it.second }.filter { it.isNotBlank() }.distinct().map { g ->
+                            val n = all.count { it.second == g }
+                            Nearby(Place(g, "", here ?: LL(0.0, 0.0), "folder:$g"), -1.0,
+                                if (tracks) (if (n == 1) L.t("1 track") else L.t("{0} tracks", n)) else (if (n == 1) L.t("1 place") else L.t("{0} places", n)))
+                        }
+                        folders + all.filter { it.second.isBlank() }.map { it.first }.sortedBy { it.dist }
+                    }
                 } catch (e: Exception) { emptyList() }
             }
             if (nearbyKind != kind) return@launch
             nearbyBusy = false
             if (list.isEmpty()) {
                 nearbyKind = null
-                toast(L.t(if (kind == "tracks") "No tracks yet." else "No saved places yet."), 3500)
+                toast(L.t(if (tracks) "No tracks yet." else "No saved places yet."), 3500)
             } else nearby = list
         }
     }
@@ -2998,7 +3013,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun addBestStop(kind: String) { loadNearby(kind, false, pickBest = true) }
 
     fun loadNearby(kind: String, nearDest: Boolean, pickBest: Boolean = false) {
-        if (kind == "places" || kind == "tracks") { listMine(kind); return }
+        if (kind == "places" || kind == "tracks" || kind.startsWith("places:") || kind.startsWith("tracks:")) { listMine(kind); return }
         val centre = (if (nearDest) dest?.pos else null) ?: fix?.pos ?: map.center() ?: run { toast(L.t("No position yet")); return }
         val origin = fix?.pos ?: centre
         val rt = route

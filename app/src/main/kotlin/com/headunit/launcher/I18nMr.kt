@@ -1629,5 +1629,16 @@ object I18nMr {
         "Fixed" to "दुरुस्त",
         "Close Horizon Nav" to "Horizon Nav बंद करा",
         "Ends the route and stops GPS" to "मार्ग संपवून GPS थांबवते",
+        "Your places next to Home and Work" to "घर आणि कामाशेजारी तुमची ठिकाणे",
+        "Only the starred ones show there" to "तिथे फक्त तारांकित दिसतात",
+        "Shown next to Home and Work" to "घर आणि कामाशेजारी दाखवले",
+        "Not shown next to Home and Work" to "घर आणि कामाशेजारी दाखवले नाही",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "तारांकित ठिकाणे शोध पट्टीखाली घर आणि कामाशेजारी दिसतात; बदलण्यासाठी तारा टॅप करा. सर्व शोधात आणि तुमची ठिकाणे शॉर्टकटमध्ये आहेत.",
+        "Road name, arrow, tunnels, media, locking" to "रस्त्याचे नाव, बाण, बोगदे, मीडिया, लॉक",
+        "Light, weather & 3D" to "प्रकाश, हवामान आणि 3D",
+        "Light, rain and snow, radar, 3D, sky" to "प्रकाश, पाऊस आणि बर्फ, रडार, 3D, आकाश",
+        "Traffic, lights, cameras, signs, lamps" to "वाहतूक, सिग्नल, कॅमेरे, फलक, दिवे",
+        "Brightness, sizes, speed, card positions, units" to "ब्राइटनेस, आकार, वेग, कार्ड स्थान, एकके",
+        "Colours and lettering" to "रंग आणि अक्षरे",
     )
 }

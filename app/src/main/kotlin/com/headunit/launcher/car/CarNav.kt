@@ -1362,14 +1362,18 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
     init {
         holder.engine?.loadNearby(kind, false)
         lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStart(owner: LifecycleOwner) { handler.post(poll) }
+            override fun onStart(owner: LifecycleOwner) {
+                // back from one of your folders: its list replaced this one, so this one's is loaded again
+                holder.engine?.let { if (it.nearbyKind != kind && (kind.startsWith("places") || kind.startsWith("tracks"))) it.loadNearby(kind, false) }
+                handler.post(poll)
+            }
             override fun onStop(owner: LifecycleOwner) { handler.removeCallbacks(poll) }
             // the places drawn on the map go with the list (picking one already cleared them)
             override fun onDestroy(owner: LifecycleOwner) { holder.engine?.clearNearby() }
         })
     }
 
-    private val title = L.t(when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry parks"; "places" -> "Your places"; "tracks" -> "Your tracks"; else -> "Nearby" })
+    private val title = if (kind.contains(':')) kind.substringAfter(':') else L.t(when (kind) { "fuel" -> "Fuel"; "charging" -> "Charging"; "food" -> "Food"; "coffee" -> "Coffee"; "parking" -> "Parking"; "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry parks"; "places" -> "Your places"; "tracks" -> "Your tracks"; else -> "Nearby" })
     private val iconRes = when (kind) { "fuel" -> R.drawable.ic_car_fuel; "charging" -> R.drawable.ic_car_charging; "food" -> R.drawable.ic_car_food; "coffee" -> R.drawable.ic_car_coffee; "parking" -> R.drawable.ic_car_parking; else -> R.drawable.ic_car_pin }
     private val tint = when (kind) { "fuel" -> 0xFFEA4335.toInt(); "charging" -> 0xFF34A853.toInt(); "food" -> 0xFFF29900.toInt(); "coffee" -> 0xFFA56BFF.toInt(); else -> 0xFF4C8DFF.toInt() }
 
@@ -1384,7 +1388,7 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
         for (n in items.take(limit.coerceIn(1, 12))) {
             val r = Row.Builder().setTitle(n.place.name).setImage(rowIcon(carContext, iconRes, tint))
             val bits = ArrayList<String>()
-            bits += com.headunit.launcher.Geo.fmtDist(n.dist, e?.imperial ?: true)
+            if (!n.place.web.startsWith("folder:")) bits += com.headunit.launcher.Geo.fmtDist(n.dist, e?.imperial ?: true)
             // (the local way: 139.9p, €1.789, 189.9c; it always said "p" before, even for euro prices)
             n.price?.let { bits += com.headunit.launcher.fmtFuelPrice(it, n.unit) }
             if (n.free.isNotBlank()) bits += n.free
@@ -1394,6 +1398,11 @@ class NearbyScreen(carContext: CarContext, private val holder: CarHolder, privat
             if (n.place.sub.isNotBlank()) r.addText(n.place.sub)
             r.setOnClickListener {
                 val en = holder.engine ?: return@setOnClickListener
+                // one of your folders: its own list (the car's back button comes back here)
+                if (n.place.web.startsWith("folder:")) {
+                    screenManager.push(NearbyScreen(carContext, holder, kind.substringBefore(':') + ":" + n.place.web.removePrefix("folder:")))
+                    return@setOnClickListener
+                }
                 // on a route it becomes a stop (as in the app); otherwise it's where you're going
                 if (en.route != null && !en.previewing) en.addStop(n.place) else en.startRoute(n.place)
                 screenManager.popToRoot()

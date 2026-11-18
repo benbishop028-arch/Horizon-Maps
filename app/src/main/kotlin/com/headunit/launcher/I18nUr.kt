@@ -1629,5 +1629,16 @@ object I18nUr {
         "Fixed" to "درست",
         "Close Horizon Nav" to "Horizon Nav بند کریں",
         "Ends the route and stops GPS" to "راستہ ختم کر کے GPS روک دیتا ہے",
+        "Your places next to Home and Work" to "آپ کی جگہیں گھر اور کام کے ساتھ",
+        "Only the starred ones show there" to "وہاں صرف ستارے والی دکھتی ہیں",
+        "Shown next to Home and Work" to "گھر اور کام کے ساتھ دکھایا گیا",
+        "Not shown next to Home and Work" to "گھر اور کام کے ساتھ نہیں دکھایا گیا",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "ستارے والی جگہیں سرچ بار کے نیچے گھر اور کام کے ساتھ دکھتی ہیں؛ بدلنے کے لیے ستارہ تھپتھپائیں۔ سب تلاش اور آپ کی جگہیں شارٹ کٹ میں موجود ہیں۔",
+        "Road name, arrow, tunnels, media, locking" to "سڑک کا نام، تیر، سرنگیں، میڈیا، لاک",
+        "Light, weather & 3D" to "روشنی، موسم اور 3D",
+        "Light, rain and snow, radar, 3D, sky" to "روشنی، بارش اور برف، ریڈار، 3D، آسمان",
+        "Traffic, lights, cameras, signs, lamps" to "ٹریفک، سگنل، کیمرے، نشانات، لیمپ",
+        "Brightness, sizes, speed, card positions, units" to "چمک، سائز، رفتار، کارڈ کی جگہ، اکائیاں",
+        "Colours and lettering" to "رنگ اور تحریر",
     )
 }

@@ -1629,5 +1629,16 @@ object I18nMs {
         "Fixed" to "Dibaiki",
         "Close Horizon Nav" to "Tutup Horizon Nav",
         "Ends the route and stops GPS" to "Menamatkan laluan dan menghentikan GPS",
+        "Your places next to Home and Work" to "Tempat anda di sebelah Rumah dan Kerja",
+        "Only the starred ones show there" to "Hanya yang berbintang dipaparkan di situ",
+        "Shown next to Home and Work" to "Dipaparkan di sebelah Rumah dan Kerja",
+        "Not shown next to Home and Work" to "Tidak dipaparkan di sebelah Rumah dan Kerja",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Yang berbintang dipaparkan di sebelah Rumah dan Kerja di bawah bar carian; ketik bintang untuk menukarnya. Semuanya ada dalam carian dan pintasan Tempat anda.",
+        "Road name, arrow, tunnels, media, locking" to "Nama jalan, anak panah, terowong, media, kunci",
+        "Light, weather & 3D" to "Cahaya, cuaca & 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Cahaya, hujan dan salji, radar, 3D, langit",
+        "Traffic, lights, cameras, signs, lamps" to "Trafik, lampu isyarat, kamera, papan tanda, lampu",
+        "Brightness, sizes, speed, card positions, units" to "Kecerahan, saiz, kelajuan, kedudukan kad, unit",
+        "Colours and lettering" to "Warna dan tulisan",
     )
 }

@@ -1629,5 +1629,16 @@ object I18nSk {
         "Fixed" to "Opravené",
         "Close Horizon Nav" to "Zavrieť Horizon Nav",
         "Ends the route and stops GPS" to "Ukončí trasu a vypne GPS",
+        "Your places next to Home and Work" to "Vaše miesta vedľa Domova a Práce",
+        "Only the starred ones show there" to "Zobrazujú sa tam len tie s hviezdičkou",
+        "Shown next to Home and Work" to "Zobrazené vedľa Domova a Práce",
+        "Not shown next to Home and Work" to "Nezobrazené vedľa Domova a Práce",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Miesta s hviezdičkou sú pod vyhľadávacím riadkom vedľa Domova a Práce; ťuknutím na hviezdičku to zmeníte. Všetky sú vo vyhľadávaní a v skratke Vaše miesta.",
+        "Road name, arrow, tunnels, media, locking" to "Názov cesty, šípka, tunely, médiá, zámok",
+        "Light, weather & 3D" to "Svetlo, počasie a 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Svetlo, dážď a sneh, radar, 3D, obloha",
+        "Traffic, lights, cameras, signs, lamps" to "Premávka, semafory, kamery, značky, lampy",
+        "Brightness, sizes, speed, card positions, units" to "Jas, veľkosti, rýchlosť, umiestnenie kariet, jednotky",
+        "Colours and lettering" to "Farby a písmo",
     )
 }

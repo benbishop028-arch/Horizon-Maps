@@ -1629,5 +1629,16 @@ object I18nTr {
         "Fixed" to "Düzeltildi",
         "Close Horizon Nav" to "Horizon Nav’ı kapat",
         "Ends the route and stops GPS" to "Rotayı bitirir ve GPS’i durdurur",
+        "Your places next to Home and Work" to "Yerleriniz Ev ve İş’in yanında",
+        "Only the starred ones show there" to "Orada yalnızca yıldızlılar görünür",
+        "Shown next to Home and Work" to "Ev ve İş’in yanında gösterilir",
+        "Not shown next to Home and Work" to "Ev ve İş’in yanında gösterilmez",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Yıldızlılar arama çubuğunun altında Ev ve İş’in yanında görünür; değiştirmek için yıldıza dokunun. Hepsi aramada ve Yerleriniz kısayolunda bulunur.",
+        "Road name, arrow, tunnels, media, locking" to "Yol adı, ok, tüneller, medya, kilit",
+        "Light, weather & 3D" to "Işık, hava ve 3B",
+        "Light, rain and snow, radar, 3D, sky" to "Işık, yağmur ve kar, radar, 3B, gökyüzü",
+        "Traffic, lights, cameras, signs, lamps" to "Trafik, ışıklar, kameralar, işaretler, lambalar",
+        "Brightness, sizes, speed, card positions, units" to "Parlaklık, boyutlar, hız, kart konumları, birimler",
+        "Colours and lettering" to "Renkler ve yazılar",
     )
 }

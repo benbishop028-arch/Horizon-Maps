@@ -1626,5 +1626,16 @@ object I18nD {
         "Fixed" to listOf("Поправено"),
         "Close Horizon Nav" to listOf("Затвори Horizon Nav"),
         "Ends the route and stops GPS" to listOf("Прекратява маршрута и спира GPS"),
+        "Your places next to Home and Work" to listOf("Вашите места до Дом и Работа"),
+        "Only the starred ones show there" to listOf("Там се показват само тези със звезда"),
+        "Shown next to Home and Work" to listOf("Показва се до Дом и Работа"),
+        "Not shown next to Home and Work" to listOf("Не се показва до Дом и Работа"),
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to listOf("Тези със звезда се показват до Дом и Работа под търсачката; докоснете звезда, за да промените. Всички са в търсенето и в прекия път Вашите места."),
+        "Road name, arrow, tunnels, media, locking" to listOf("Име на пътя, стрелка, тунели, медия, заключване"),
+        "Light, weather & 3D" to listOf("Светлина, време и 3D"),
+        "Light, rain and snow, radar, 3D, sky" to listOf("Светлина, дъжд и сняг, радар, 3D, небе"),
+        "Traffic, lights, cameras, signs, lamps" to listOf("Трафик, светофари, камери, знаци, лампи"),
+        "Brightness, sizes, speed, card positions, units" to listOf("Яркост, размери, скорост, позиции на картите, единици"),
+        "Colours and lettering" to listOf("Цветове и надписи"),
     )
 }

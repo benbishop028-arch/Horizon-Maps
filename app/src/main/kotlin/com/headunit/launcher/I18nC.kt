@@ -1635,5 +1635,16 @@ object I18nC {
         "Fixed" to listOf("แก้ไขแล้ว", "修正", "Diperbaiki"),
         "Close Horizon Nav" to listOf("ปิด Horizon Nav", "Horizon Nav を閉じる", "Tutup Horizon Nav"),
         "Ends the route and stops GPS" to listOf("จบเส้นทางและหยุด GPS", "ルートを終了し GPS を止めます", "Mengakhiri rute dan menghentikan GPS"),
+        "Your places next to Home and Work" to listOf("สถานที่ของคุณข้างบ้านและที่ทำงาน", "自宅・職場の横にあなたの場所", "Tempat Anda di samping Rumah dan Kantor"),
+        "Only the starred ones show there" to listOf("แสดงเฉพาะที่ติดดาวไว้", "星付きのものだけが表示されます", "Hanya yang berbintang tampil di sana"),
+        "Shown next to Home and Work" to listOf("แสดงข้างบ้านและที่ทำงาน", "自宅・職場の横に表示", "Ditampilkan di samping Rumah dan Kantor"),
+        "Not shown next to Home and Work" to listOf("ไม่แสดงข้างบ้านและที่ทำงาน", "自宅・職場の横に表示しない", "Tidak ditampilkan di samping Rumah dan Kantor"),
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to listOf("รายการที่ติดดาวจะแสดงข้างบ้านและที่ทำงานใต้แถบค้นหา แตะดาวเพื่อเปลี่ยน ทั้งหมดอยู่ในการค้นหาและทางลัดสถานที่ของคุณ", "星付きのものは検索バーの下、自宅・職場の横に表示されます。星をタップして切り替えます。すべて検索と「あなたの場所」ショートカットにあります。", "Yang berbintang tampil di samping Rumah dan Kantor di bawah bilah pencarian; ketuk bintang untuk mengubahnya. Semuanya ada di pencarian dan pintasan Tempat Anda."),
+        "Road name, arrow, tunnels, media, locking" to listOf("ชื่อถนน ลูกศร อุโมงค์ สื่อ การล็อก", "道路名、矢印、トンネル、メディア、ロック", "Nama jalan, panah, terowongan, media, kunci"),
+        "Light, weather & 3D" to listOf("แสง สภาพอากาศ และ 3D", "光・天気・3D", "Cahaya, cuaca & 3D"),
+        "Light, rain and snow, radar, 3D, sky" to listOf("แสง ฝนและหิมะ เรดาร์ 3D ท้องฟ้า", "光、雨と雪、レーダー、3D、空", "Cahaya, hujan dan salju, radar, 3D, langit"),
+        "Traffic, lights, cameras, signs, lamps" to listOf("การจราจร ไฟจราจร กล้อง ป้าย โคมไฟ", "交通、信号、カメラ、標識、街灯", "Lalu lintas, lampu, kamera, rambu, lampu jalan"),
+        "Brightness, sizes, speed, card positions, units" to listOf("ความสว่าง ขนาด ความเร็ว ตำแหน่งการ์ด หน่วย", "明るさ、サイズ、速度、カード位置、単位", "Kecerahan, ukuran, kecepatan, posisi kartu, satuan"),
+        "Colours and lettering" to listOf("สีและตัวอักษร", "色と文字", "Warna dan tulisan"),
     )
 }

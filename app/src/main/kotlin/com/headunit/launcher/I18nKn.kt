@@ -1629,5 +1629,16 @@ object I18nKn {
         "Fixed" to "ಸರಿಪಡಿಸಲಾಗಿದೆ",
         "Close Horizon Nav" to "Horizon Nav ಮುಚ್ಚಿ",
         "Ends the route and stops GPS" to "ಮಾರ್ಗ ಮುಗಿಸಿ GPS ನಿಲ್ಲಿಸುತ್ತದೆ",
+        "Your places next to Home and Work" to "ಮನೆ ಮತ್ತು ಕೆಲಸದ ಪಕ್ಕ ನಿಮ್ಮ ಸ್ಥಳಗಳು",
+        "Only the starred ones show there" to "ಅಲ್ಲಿ ನಕ್ಷತ್ರ ಹಾಕಿದವು ಮಾತ್ರ ಕಾಣುತ್ತವೆ",
+        "Shown next to Home and Work" to "ಮನೆ ಮತ್ತು ಕೆಲಸದ ಪಕ್ಕ ತೋರಿಸಲಾಗಿದೆ",
+        "Not shown next to Home and Work" to "ಮನೆ ಮತ್ತು ಕೆಲಸದ ಪಕ್ಕ ತೋರಿಸಿಲ್ಲ",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "ನಕ್ಷತ್ರ ಹಾಕಿದವು ಹುಡುಕು ಪಟ್ಟಿಯ ಕೆಳಗೆ ಮನೆ ಮತ್ತು ಕೆಲಸದ ಪಕ್ಕ ಕಾಣುತ್ತವೆ; ಬದಲಿಸಲು ನಕ್ಷತ್ರ ಟ್ಯಾಪ್ ಮಾಡಿ. ಎಲ್ಲವೂ ಹುಡುಕಾಟ ಮತ್ತು ನಿಮ್ಮ ಸ್ಥಳಗಳು ಶಾರ್ಟ್‌ಕಟ್‌ನಲ್ಲಿ ಇವೆ.",
+        "Road name, arrow, tunnels, media, locking" to "ರಸ್ತೆ ಹೆಸರು, ಬಾಣ, ಸುರಂಗಗಳು, ಮಾಧ್ಯಮ, ಲಾಕ್",
+        "Light, weather & 3D" to "ಬೆಳಕು, ಹವಾಮಾನ ಮತ್ತು 3D",
+        "Light, rain and snow, radar, 3D, sky" to "ಬೆಳಕು, ಮಳೆ ಮತ್ತು ಹಿಮ, ರೇಡಾರ್, 3D, ಆಕಾಶ",
+        "Traffic, lights, cameras, signs, lamps" to "ಸಂಚಾರ, ದೀಪಗಳು, ಕ್ಯಾಮೆರಾಗಳು, ಫಲಕಗಳು, ಬೀದಿದೀಪಗಳು",
+        "Brightness, sizes, speed, card positions, units" to "ಹೊಳಪು, ಗಾತ್ರಗಳು, ವೇಗ, ಕಾರ್ಡ್ ಸ್ಥಾನಗಳು, ಘಟಕಗಳು",
+        "Colours and lettering" to "ಬಣ್ಣಗಳು ಮತ್ತು ಅಕ್ಷರಗಳು",
     )
 }

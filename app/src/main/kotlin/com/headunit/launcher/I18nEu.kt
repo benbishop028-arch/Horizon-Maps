@@ -1629,5 +1629,16 @@ object I18nEu {
         "Fixed" to "Konponduta",
         "Close Horizon Nav" to "Itxi Horizon Nav",
         "Ends the route and stops GPS" to "Ibilbidea amaitu eta GPSa gelditzen du",
+        "Your places next to Home and Work" to "Zure lekuak Etxea eta Lanaren ondoan",
+        "Only the starred ones show there" to "Izardunak bakarrik agertzen dira han",
+        "Shown next to Home and Work" to "Etxea eta Lanaren ondoan erakutsita",
+        "Not shown next to Home and Work" to "Ez da Etxea eta Lanaren ondoan erakusten",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Izardunak bilaketa-barraren azpian agertzen dira, Etxea eta Lanaren ondoan; sakatu izar bat aldatzeko. Denak daude bilaketan eta Zure lekuak lasterbidean.",
+        "Road name, arrow, tunnels, media, locking" to "Errepidearen izena, gezia, tunelak, multimedia, blokeoa",
+        "Light, weather & 3D" to "Argia, eguraldia eta 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Argia, euria eta elurra, radarra, 3D, zerua",
+        "Traffic, lights, cameras, signs, lamps" to "Trafikoa, semaforoak, kamerak, seinaleak, farolak",
+        "Brightness, sizes, speed, card positions, units" to "Distira, tamainak, abiadura, txartelen kokapena, unitateak",
+        "Colours and lettering" to "Koloreak eta letrak",
     )
 }

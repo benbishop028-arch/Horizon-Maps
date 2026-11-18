@@ -65,6 +65,8 @@ internal object PreferenceKeys {
     const val MAP_FONT = "mapfont"
     /** The Google Play testers invitation (GitHub edition): "never", or when to show it next (milliseconds); "" = not shown yet. */
     const val PLAY_INVITE = "playinvite"
+    /** Your own places in the row next to Home and Work (the starred ones). */
+    const val ROW_PLACES = "rowplaces"
     const val MAP_RESOLUTION = "mapres"
     const val MAPBOX_TOKEN = "mbtoken"
     const val MAPBOX_AUTO_NETWORK = "mbautonet"

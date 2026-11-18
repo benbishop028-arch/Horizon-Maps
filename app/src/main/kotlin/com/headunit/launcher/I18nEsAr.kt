@@ -1629,5 +1629,16 @@ object I18nEsAr {
         "Fixed" to "Corregido",
         "Close Horizon Nav" to "Cerrar Horizon Nav",
         "Ends the route and stops GPS" to "Termina la ruta y detiene el GPS",
+        "Your places next to Home and Work" to "Tus lugares junto a Casa y Trabajo",
+        "Only the starred ones show there" to "Ahí solo aparecen los marcados con estrella",
+        "Shown next to Home and Work" to "Se muestra junto a Casa y Trabajo",
+        "Not shown next to Home and Work" to "No se muestra junto a Casa y Trabajo",
+        "The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut." to "Los marcados con estrella aparecen junto a Casa y Trabajo bajo la barra de búsqueda; tocá una estrella para cambiarlo. Todos están en la búsqueda y en el acceso Tus lugares.",
+        "Road name, arrow, tunnels, media, locking" to "Nombre de calle, flecha, túneles, multimedia, bloqueo",
+        "Light, weather & 3D" to "Luz, clima y 3D",
+        "Light, rain and snow, radar, 3D, sky" to "Luz, lluvia y nieve, radar, 3D, cielo",
+        "Traffic, lights, cameras, signs, lamps" to "Tránsito, semáforos, cámaras, señales, faroles",
+        "Brightness, sizes, speed, card positions, units" to "Brillo, tamaños, velocidad, posición de tarjetas, unidades",
+        "Colours and lettering" to "Colores y letras",
     )
 }

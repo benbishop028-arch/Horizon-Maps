@@ -39,6 +39,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Tidier Settings: While driving has its own page (road name, arrow, tunnels, media controls, locking), so Screen & sizes is shorter. Weather now sits with the light (Light, weather & 3D). Everything about the search bar is in one group, Under the search bar, and Map lettering is part of Colours and lettering. Settings search finds everything in its new place
+- Choose which of your places sit next to Home and Work: each place in Settings › Places & trips › Your places has a star. Starred ones show in the row under the search bar, and a switch hides them all. Every place is still in search and the Your places shortcut (thanks to bijindas)
+- Folders in Your places and Your tracks: the shortcut lists show your folders first, then what's in no folder. Tap a folder to open it, and ‹ goes back. This works on Android Auto too (thanks to bijindas)
 - Fuel cost on each route: the route options show roughly what each route costs in fuel (or charging) on its own card. It used to sit at the far end of the Stops row, out of sight (thanks to pc4096)
 - Update card: now styled like the What's new card, showing your version and the new one, and how many changes are new, improved and fixed. "What's in it" folds open to the headlines of everything since your version. It fits a short landscape screen too
 - Trip card progress bar: the coloured bar now has rounded ends
