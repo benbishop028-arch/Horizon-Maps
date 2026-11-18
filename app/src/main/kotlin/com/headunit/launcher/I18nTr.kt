@@ -1627,5 +1627,7 @@ object I18nTr {
         "New" to "Yeni",
         "Improved" to "İyileştirildi",
         "Fixed" to "Düzeltildi",
+        "Close Horizon Nav" to "Horizon Nav’ı kapat",
+        "Ends the route and stops GPS" to "Rotayı bitirir ve GPS’i durdurur",
     )
 }

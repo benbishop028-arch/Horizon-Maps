@@ -1627,5 +1627,7 @@ object I18nHu {
         "New" to "Új",
         "Improved" to "Javítva",
         "Fixed" to "Hibajavítás",
+        "Close Horizon Nav" to "Horizon Nav bezárása",
+        "Ends the route and stops GPS" to "Befejezi az útvonalat és leállítja a GPS-t",
     )
 }

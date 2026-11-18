@@ -1627,5 +1627,7 @@ object I18nZhHant {
         "New" to "新功能",
         "Improved" to "改進",
         "Fixed" to "修正",
+        "Close Horizon Nav" to "關閉 Horizon Nav",
+        "Ends the route and stops GPS" to "結束路線並停止 GPS",
     )
 }

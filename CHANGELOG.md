@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Close Horizon Nav: a button at the bottom of Map options ends any route, stops the GPS and closes the app, so nothing keeps running in the background (thanks to pc4096)
 - Help test Horizon Maps on Google Play: a one-off invitation to join the testers for the coming Google Play version, with a QR code for head units. It never shows while you are driving, and a banner at the top of Settings opens it any time
 - Your places and Your tracks shortcuts: two new buttons for the row under the search bar (Settings › Places & trips › Shortcuts). One lists your saved places, the other your GPX tracks, nearest first, on the phone and on Android Auto (thanks to bijindas)
 - Map lettering: choose a wider, bolder font for road and place names on the map (Settings › Map style › Map lettering): Roboto, Open Sans, Inter, Lato or Montserrat (thanks to karthikeyansr-lgtm)
@@ -38,6 +39,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Fuel cost on each route: the route options show roughly what each route costs in fuel (or charging) on its own card. It used to sit at the far end of the Stops row, out of sight (thanks to pc4096)
 - Update card: now styled like the What's new card, showing your version and the new one, and how many changes are new, improved and fixed. "What's in it" folds open to the headlines of everything since your version. It fits a short landscape screen too
 - Trip card progress bar: the coloured bar now has rounded ends
 - Recent places under the search bar: all of them show in the list, which scrolls, instead of three with an "All" / "Less" switch
@@ -76,6 +78,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Arriving in a big car park: stopping for a minute within 250 m of your destination now counts as arriving, so the route ends when you park, not only at the shop's front door (thanks to pc4096)
+- Routes left running in the background: a route still going after half an hour parked, with the app put away, now ends by itself, stopping the GPS (thanks to pc4096)
 - Driving the route the wrong way: turning round, or setting off the other way along the route, now finds a new route in about 2 seconds. Your arrow follows you instead of freezing, facing backwards, with the map standing still (thanks to jvricardo1)
 - Map not appearing: if the map still hasn't loaded after 25 seconds with no error, the app now checks with Mapbox itself and says what's in the way: a blocked server (private DNS or an ad blocker), the head unit's clock, the token, or the connection
 - Arrow running into the junction: stopping at a junction no longer leaves your arrow out in the middle of the road you are turning into. The arrow slows with you and moves back to where you really are (thanks to jvricardo1)

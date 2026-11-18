@@ -1627,5 +1627,7 @@ object I18nFi {
         "New" to "Uutta",
         "Improved" to "Parannettu",
         "Fixed" to "Korjattu",
+        "Close Horizon Nav" to "Sulje Horizon Nav",
+        "Ends the route and stops GPS" to "Lopettaa reitin ja pysäyttää GPS:n",
     )
 }

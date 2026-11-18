@@ -1627,5 +1627,7 @@ object I18nSk {
         "New" to "Nové",
         "Improved" to "Vylepšené",
         "Fixed" to "Opravené",
+        "Close Horizon Nav" to "Zavrieť Horizon Nav",
+        "Ends the route and stops GPS" to "Ukončí trasu a vypne GPS",
     )
 }

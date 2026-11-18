@@ -48,6 +48,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.SkipNext
@@ -735,6 +736,22 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
                 )
                 SheetHeading(if (engine.route != null) L.t("Find along the route") else L.t("Find nearby"))
                 WideTiles(4, finds)
+                // closes the app properly: ends any route and stops the GPS, so nothing keeps running in the background (pc4096: swiping
+                // it away left a route, and the GPS with it, going for hours)
+                val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+                Row(Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(14.dp)).border(1.5.dp, Bad.copy(alpha = 0.8f), RoundedCornerShape(14.dp))
+                    .clickable {
+                        close()
+                        try { if (engine.route != null || engine.previewing) engine.endRoute() } catch (e: Exception) { }
+                        try { engine.stopLocation() } catch (e: Exception) { }
+                        try { act?.let { com.headunit.launcher.NavService.stop(it.applicationContext) } } catch (e: Exception) { }
+                        try { act?.finishAndRemoveTask() } catch (e: Exception) { }
+                    }.padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.PowerSettingsNew, null, tint = Bad, modifier = Modifier.size(18.dp))
+                    Text(L.t("Close Horizon Nav"), color = Bad, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+                }
+                Text(L.t("Ends the route and stops GPS"), color = c.sub, fontSize = 11.sp, modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
         if (wide) Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {

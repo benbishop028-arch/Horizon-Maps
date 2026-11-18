@@ -1627,5 +1627,7 @@ object I18nSr {
         "New" to "Ново",
         "Improved" to "Побољшано",
         "Fixed" to "Поправљено",
+        "Close Horizon Nav" to "Затвори Horizon Nav",
+        "Ends the route and stops GPS" to "Завршава руту и зауставља GPS",
     )
 }

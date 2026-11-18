@@ -1627,5 +1627,7 @@ object I18nEl {
         "New" to "Νέο",
         "Improved" to "Βελτιώθηκε",
         "Fixed" to "Διορθώθηκε",
+        "Close Horizon Nav" to "Κλείσιμο Horizon Nav",
+        "Ends the route and stops GPS" to "Τερματίζει τη διαδρομή και σταματά το GPS",
     )
 }

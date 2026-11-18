@@ -1624,5 +1624,7 @@ object I18nD {
         "New" to listOf("Ново"),
         "Improved" to listOf("Подобрено"),
         "Fixed" to listOf("Поправено"),
+        "Close Horizon Nav" to listOf("Затвори Horizon Nav"),
+        "Ends the route and stops GPS" to listOf("Прекратява маршрута и спира GPS"),
     )
 }

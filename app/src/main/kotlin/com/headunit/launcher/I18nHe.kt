@@ -1627,5 +1627,7 @@ object I18nHe {
         "New" to "חדש",
         "Improved" to "שופר",
         "Fixed" to "תוקן",
+        "Close Horizon Nav" to "סגירת Horizon Nav",
+        "Ends the route and stops GPS" to "מסיים את המסלול ועוצר את ה-GPS",
     )
 }

@@ -1627,5 +1627,7 @@ object I18nEsAr {
         "New" to "Nuevo",
         "Improved" to "Mejorado",
         "Fixed" to "Corregido",
+        "Close Horizon Nav" to "Cerrar Horizon Nav",
+        "Ends the route and stops GPS" to "Termina la ruta y detiene el GPS",
     )
 }

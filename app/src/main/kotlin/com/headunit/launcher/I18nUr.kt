@@ -1627,5 +1627,7 @@ object I18nUr {
         "New" to "نیا",
         "Improved" to "بہتر",
         "Fixed" to "درست",
+        "Close Horizon Nav" to "Horizon Nav بند کریں",
+        "Ends the route and stops GPS" to "راستہ ختم کر کے GPS روک دیتا ہے",
     )
 }

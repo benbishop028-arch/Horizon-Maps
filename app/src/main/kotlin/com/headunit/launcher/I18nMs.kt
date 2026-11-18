@@ -1627,5 +1627,7 @@ object I18nMs {
         "New" to "Baharu",
         "Improved" to "Dipertingkat",
         "Fixed" to "Dibaiki",
+        "Close Horizon Nav" to "Tutup Horizon Nav",
+        "Ends the route and stops GPS" to "Menamatkan laluan dan menghentikan GPS",
     )
 }

@@ -1624,5 +1624,7 @@ object I18nE {
         "New" to listOf("Novo"),
         "Improved" to listOf("Izboljšano"),
         "Fixed" to listOf("Popravljeno"),
+        "Close Horizon Nav" to listOf("Zapri Horizon Nav"),
+        "Ends the route and stops GPS" to listOf("Konča pot in ustavi GPS"),
     )
 }

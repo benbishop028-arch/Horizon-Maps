@@ -1627,5 +1627,7 @@ object I18nMr {
         "New" to "नवीन",
         "Improved" to "सुधारित",
         "Fixed" to "दुरुस्त",
+        "Close Horizon Nav" to "Horizon Nav बंद करा",
+        "Ends the route and stops GPS" to "मार्ग संपवून GPS थांबवते",
     )
 }

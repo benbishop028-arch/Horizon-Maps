@@ -1627,5 +1627,7 @@ object I18nNb {
         "New" to "Nytt",
         "Improved" to "Forbedret",
         "Fixed" to "Rettet",
+        "Close Horizon Nav" to "Lukk Horizon Nav",
+        "Ends the route and stops GPS" to "Avslutter ruten og stopper GPS",
     )
 }

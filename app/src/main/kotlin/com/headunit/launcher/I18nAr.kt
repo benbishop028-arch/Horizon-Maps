@@ -1627,5 +1627,7 @@ object I18nAr {
         "New" to "جديد",
         "Improved" to "محسّن",
         "Fixed" to "تم الإصلاح",
+        "Close Horizon Nav" to "إغلاق Horizon Nav",
+        "Ends the route and stops GPS" to "ينهي المسار ويوقف GPS",
     )
 }

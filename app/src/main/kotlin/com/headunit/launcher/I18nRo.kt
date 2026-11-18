@@ -1627,5 +1627,7 @@ object I18nRo {
         "New" to "Nou",
         "Improved" to "Îmbunătățit",
         "Fixed" to "Reparat",
+        "Close Horizon Nav" to "Închide Horizon Nav",
+        "Ends the route and stops GPS" to "Încheie traseul și oprește GPS-ul",
     )
 }

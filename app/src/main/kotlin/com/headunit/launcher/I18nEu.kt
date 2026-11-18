@@ -1627,5 +1627,7 @@ object I18nEu {
         "New" to "Berria",
         "Improved" to "Hobetua",
         "Fixed" to "Konponduta",
+        "Close Horizon Nav" to "Itxi Horizon Nav",
+        "Ends the route and stops GPS" to "Ibilbidea amaitu eta GPSa gelditzen du",
     )
 }

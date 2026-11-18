@@ -211,7 +211,6 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         if (engine.prefs.s(PreferenceKeys.VEHICLE, "car") == "lorry") Pill(L.t("+ Lorry park"), engine.stopMode && engine.nearbyKind == "lorrypark", { engine.stopMode = true; engine.loadNearby("lorrypark", false) })
         Pill(if (engine.via.isEmpty()) L.t("+ Stop") else L.t("Edit stops"), false, { engine.stopsEditor = true })
         if (engine.via.isNotEmpty()) Text(engine.via.joinToString(" › ") { it.name }, color = c.text, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 220.dp))
-        if (costText != null) Text(costText, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 8.dp))
         engine.destRain?.let { Text(it, color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 8.dp)) }
     }
     val leavePart: @Composable () -> Unit = {
@@ -299,6 +298,14 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) "via $via" else L.t("No delays"),
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                // roughly what this route costs in fuel (or charging), from Settings › Fuel (pc4096: it was only at the far end of the
+                // Stops row, scrolled out of sight)
+                if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                    Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(13.dp))
+                    Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
+                        if (ev) r.len / 1609.344 / mpg * ppl / 100.0 else r.len / 1609.344 / mpg * 4.54609 * ppl / 100.0),
+                        color = c.text.copy(alpha = 0.8f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
+                }
                 LorryBadge(r)
                 if (i == engine.active) LorryCheck(engine, r)
             }

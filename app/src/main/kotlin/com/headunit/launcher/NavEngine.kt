@@ -3601,6 +3601,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         fix = p
         val newFix = p !== lastMeasured
         if (newFix) isStill = try { stillCheck(p) } catch (e: Exception) { false }
+        // a route left running with the app put away and the car standing still for half an hour (parked, the journey long over):
+        // it's ended, which also stops the GPS and the notification, so nothing runs on in the background for hours (pc4096)
+        if (newFix) {
+            val nowI = android.os.SystemClock.elapsedRealtime()
+            if (route == null || previewing || appVisible || !(isStill || p.speed < 1.0) || simMode != 0) idleSince = 0L
+            else if (idleSince == 0L) idleSince = nowI
+            else if (nowI - idleSince > 30 * 60_000L) { idleSince = 0L; scope.launch { try { endRoute() } catch (e: Exception) { } } }
+        }
         // the GPS's direction is only worth anything when moving: slowing for a red light it swings about, and the arrow turned
         // into the car park or plaza beside the road. Below walking pace the last good direction is kept
         if (newFix && p.speed > 2.5) goodHead = p.heading
@@ -5245,7 +5253,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         // arrived: at the end of the route and really there (not just level with the end of the route on another road)
-        val atEnd = rem < 25 && fix.let { f -> f == null || Geo.dist(f.pos, dest?.pos ?: r.pts.last()) < 120.0 || Geo.dist(f.pos, r.pts.last()) < 120.0 }
+        val nearEnd = rem < 25 && fix.let { f -> f == null || Geo.dist(f.pos, dest?.pos ?: r.pts.last()) < 120.0 || Geo.dist(f.pos, r.pts.last()) < 120.0 }
+        // parked in a big car park: the route ends at the shop's door, so you'd never get within 25 m of it (pc4096). Stopped for a
+        // minute within 250 m of the destination, with less than 400 m of the route left, counts as having arrived
+        val f0 = fix
+        val closeBy = f0 != null && rem < 400 && (Geo.dist(f0.pos, dest?.pos ?: r.pts.last()) < 250.0 || Geo.dist(f0.pos, r.pts.last()) < 250.0)
+        val nowP = android.os.SystemClock.elapsedRealtime()
+        if (!closeBy || (f0?.speed ?: 0.0) > 1.5) parkedSince = 0L else if (parkedSince == 0L) parkedSince = nowP
+        val parked = closeBy && parkedSince > 0L && nowP - parkedSince > 60_000L
+        val atEnd = nearEnd || parked
         if (atEnd && said.add("end")) {
             toast(L.t("You have arrived"), 5000)
             if (navStartMs > 0) {
@@ -5264,6 +5280,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             scope.launch { delay(4000); if (route === doneRoute || route == null) endRoute() }
         }
     }
+
+    /** On a route, with the app in the background: since when you've been standing still (0 = not). */
+    private var idleSince = 0L
+    /** When you stopped near the destination (0 = not stopped there), for arriving in a big car park. */
+    private var parkedSince = 0L
 
     // ---- live rain radar ----
     private var radarJob: Job? = null

@@ -1633,5 +1633,7 @@ object I18nC {
         "New" to listOf("ใหม่", "新機能", "Baru"),
         "Improved" to listOf("ปรับปรุง", "改善", "Ditingkatkan"),
         "Fixed" to listOf("แก้ไขแล้ว", "修正", "Diperbaiki"),
+        "Close Horizon Nav" to listOf("ปิด Horizon Nav", "Horizon Nav を閉じる", "Tutup Horizon Nav"),
+        "Ends the route and stops GPS" to listOf("จบเส้นทางและหยุด GPS", "ルートを終了し GPS を止めます", "Mengakhiri rute dan menghentikan GPS"),
     )
 }

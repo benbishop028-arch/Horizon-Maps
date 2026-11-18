@@ -1627,5 +1627,7 @@ object I18nKn {
         "New" to "ಹೊಸದು",
         "Improved" to "ಸುಧಾರಿತ",
         "Fixed" to "ಸರಿಪಡಿಸಲಾಗಿದೆ",
+        "Close Horizon Nav" to "Horizon Nav ಮುಚ್ಚಿ",
+        "Ends the route and stops GPS" to "ಮಾರ್ಗ ಮುಗಿಸಿ GPS ನಿಲ್ಲಿಸುತ್ತದೆ",
     )
 }

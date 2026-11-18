@@ -2354,6 +2354,8 @@ object L {
         "New" to listOf("Nieuw", "Neu", "Nouveau", "Nuevo"),
         "Improved" to listOf("Verbeterd", "Verbessert", "Amélioré", "Mejorado"),
         "Fixed" to listOf("Opgelost", "Behoben", "Corrigé", "Corregido"),
+        "Close Horizon Nav" to listOf("Horizon Nav sluiten", "Horizon Nav schließen", "Fermer Horizon Nav", "Cerrar Horizon Nav"),
+        "Ends the route and stops GPS" to listOf("Beëindigt de route en stopt de gps", "Beendet die Route und stoppt das GPS", "Termine l’itinéraire et arrête le GPS", "Termina la ruta y detiene el GPS"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -3979,5 +3981,7 @@ object L {
         "New" to listOf("Novità", "Novo", "Nowe"),
         "Improved" to listOf("Migliorato", "Melhorado", "Ulepszone"),
         "Fixed" to listOf("Corretto", "Corrigido", "Naprawione"),
+        "Close Horizon Nav" to listOf("Chiudi Horizon Nav", "Fechar o Horizon Nav", "Zamknij Horizon Nav"),
+        "Ends the route and stops GPS" to listOf("Termina il percorso e ferma il GPS", "Termina o percurso e desliga o GPS", "Kończy trasę i wyłącza GPS"),
     )
 }
