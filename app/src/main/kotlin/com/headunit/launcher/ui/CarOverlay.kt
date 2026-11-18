@@ -182,7 +182,10 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     val xHd = hdRoadsWanted(prefs, prefs.s(PreferenceKeys.COUNTRYDETECTED, ""))
     OnChange(xHd) { map.setHdRoads(xHd) }
     val b3d = prefs.b(PreferenceKeys.BUILDINGS_3D, true)
-    OnChange(b3d) { map.setBuildings3d(b3d) }
+    // satellite as set on the phone (the car's map always stayed on the drawn map, so with Android Auto it looked as though
+    // satellite didn't work)
+    val satOn = prefs.b(PreferenceKeys.SATELLITE, false)
+    OnChange(b3d, satOn) { map.setView(satOn, b3d) }
     val treesOn = prefs.b(PreferenceKeys.TREES, true)
     OnChange(treesOn) { map.treesEnabled(treesOn) }
     val signalsOn = prefs.b(PreferenceKeys.SIGNALS, true)

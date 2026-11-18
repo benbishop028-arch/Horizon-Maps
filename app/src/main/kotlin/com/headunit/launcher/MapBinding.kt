@@ -2600,7 +2600,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         pushRadar()
     }
 
-    /** Just the 3D buildings setting, keeping the map as it is otherwise (the car screen, which has no satellite choice). */
+    /** Just the 3D buildings setting, keeping the map as it is otherwise. */
     fun setBuildings3d(b3d: Boolean) = setView(satellite, b3d)
 
     fun setView(sat: Boolean, b3d: Boolean) {
