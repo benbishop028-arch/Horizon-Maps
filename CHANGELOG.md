@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Russian: the whole app in Russian (Русский), on the phone, head unit and Android Auto, with spoken directions ("Через 200 м поверните налево", "выполните второй съезд") and Russian voice commands. Phones set to Russian pick it up by themselves; others can choose it in Settings › Sound & voice › Language (thanks to Zerux)
 - Big speed limit sign: a new switch in Settings › Speed display swaps them round, with the speed limit sign big where the speedometer was and your speed small beside it. Your speed still turns amber and red near and over the limit (thanks to ole1993)
 - Fuel prices in Italy: the fuel list and fuel stop suggestions show prices across Italy, from the government's own daily price list (MIMIT), with no key needed. The list is fetched at most once a day and kept on the device (thanks to TheDMAI)
 - LPG (Autogas): a new choice under Your fuel. Prices show in Italy, France and Australia (NSW); elsewhere the list shows stations mapped as selling LPG (thanks to TheDMAI)
@@ -45,6 +46,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Phone held upright, on a route: the turn card takes the full width and the map buttons sit underneath it, instead of being squeezed in beside it
+- Phone held sideways: the big lane picture is lower on short screens, so the turn card no longer reaches down behind the trip card and hides the "Then" line (thanks to fahadfadi)
 - Search with both: with a TomTom key and a Mapbox token, search now asks both at the same time and puts their results together (the same place listed once, the nearest exact match first). Before, Mapbox was only asked when TomTom found fewer than four places, so a nearer street of the same name could be missing (thanks to jvricardo1)
 - Choosing another route with the phone held sideways: the Routes panel sits beside the buttons (scrolling if it's long), the turn card goes to one line on the other side, the speed, Re-centre button and trip card step aside, and the map fits the routes in between. The panel no longer covers the screen or the turn card (thanks to fahadfadi)
 - Other routes: tap a route once to see it (shown in yellow on the map), then tap it again to switch to it. This works in the Routes panel and on the map's route labels (thanks to fahadfadi)

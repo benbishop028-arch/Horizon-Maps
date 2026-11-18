@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.animation.fadeIn
@@ -316,7 +317,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         LaunchedEffect(searchOpen, searchBusy) { if (searchOpen && !searchBusy) { delay(20_000); searchOpen = false } }
         LaunchedEffect(routing) { if (routing) searchOpen = false }
         LaunchedEffect(searchOpen) { if (searchOpen && !typingLocked) { delay(350); try { focus.requestFocus() } catch (_: Exception) {} } }
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        // a phone held upright, on a route: the turn card takes the whole width and the map buttons go under it, instead of being
+        // squeezed in beside it (the cards that come and go under the turn card still leave room for the buttons)
+        var turnBottomPx by remember { mutableStateOf(0f) }
+        var boxTopPx by remember { mutableStateOf(0f) }
+        var railHPx by remember { mutableStateOf(0) }
+        val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
+        Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -370,13 +378,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                 val turnDensity = LocalDensity.current
                                 val cardSize = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
                                 CompositionLocalProvider(LocalDensity provides Density(turnDensity.density * cardSize, turnDensity.fontScale)) {
-                                    ImmTurnCard(engine, t, slim = altFocus)
+                                    Box(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }) { ImmTurnCard(engine, t, slim = altFocus) }
                                 }
                             }
                         }
                     }
                     // (not while choosing a route on a phone: the map is kept clear for the routes)
-                    if (!altFocus) {
+                    if (!altFocus) Column(if (railBelow) Modifier.sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         engine.advice?.let { AdvicePill(it) }
                         LorryWarnCard(engine)
                         JunctionCloseup(engine)
@@ -468,7 +476,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                     }
                 }
                 // (its outline goes to the camera too, so with no route your arrow sits in the middle of the clear map)
-                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
+                // (under the turn card on an upright phone on a route; kept clear of the trip card at the bottom if the screen is short)
+                // (worked out in the buttons' own size, as the padding below is: Settings › sizes › map buttons scales it)
+                val railTop = if (!railBelow) 16.dp else with(LocalDensity.current) {
+                    val below = turnBottomPx - boxTopPx + 10.dp.toPx()
+                    val lowest = boxH - tripPx - railHPx - 26.dp.toPx()
+                    minOf(below, lowest).coerceAtLeast(16.dp.toPx()).toDp()
+                }
+                if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
                 }
                 else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
@@ -1372,7 +1387,10 @@ internal fun ImmTurnCard(
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
             // (not in Android Auto: the big lane picture made the card grow to fill much of a car screen as soon as a junction came up)
             val hero = !car && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && ls.lanes.size >= 2 && t.dist < 900.0
-            if (hero) FixedSides { LaneHero(ls, t.maneuver, if (car) null else t.laneAdvice) }
+            // (a short, wide screen, like a phone held sideways: a lower lane picture, so the turn card no longer reaches down behind
+            // the trip card and hides the "Then" line, fahadfadi)
+            val shortScreen = androidx.compose.ui.platform.LocalConfiguration.current.let { it.screenHeightDp < 450 && it.screenWidthDp > it.screenHeightDp }
+            if (hero) FixedSides { LaneHero(ls, t.maneuver, if (car) null else t.laneAdvice, canvasH = if (shortScreen) 60.dp else 118.dp) }
             else Box(Modifier.fillMaxWidth().background(TealDeep).padding(vertical = 4.dp), contentAlignment = Alignment.Center) { FixedSides { LaneRow(ls, t.maneuver, t.dist < 400.0) } }
         }
         val heroShown = !car && engine.prefs.b(PreferenceKeys.LANE_STRIP, true) && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && (t.lanes?.lanes?.size ?: 0) >= 2 && t.dist < 900.0

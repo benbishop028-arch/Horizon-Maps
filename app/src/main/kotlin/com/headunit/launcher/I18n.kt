@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文", "zhhk" to "繁體中文（香港・粵語）",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "esar" to "Español (Argentina)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "esar" to "Español (Argentina)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "esar" -> Locale("es", "AR")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "esar" -> Locale("es", "AR")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -512,6 +512,20 @@ object L {
                 "zoom inn" to "zoom in", "zoom ut" to "zoom out", "nord opp" to "north up", "hva er klokka|hva er klokken" to "what time",
                 "^\\s*(naviger til|kjør til|ta meg til|før meg til|til)\\s" to "go to",
             ),
+            // Russian (GitHub #207)
+            "ru" to r(
+                "\\s(домой|поехали домой|едем домой|отвези меня домой)\\s" to "go home", "\\s(на работу|в офис)\\s" to "go to work",
+                "^\\s*(сообщить о|сообщить|сообщи)\\s" to "report", "авария|дтп|столкновение" to "accident", "полиция|гаи|дпс|патруль" to "police", "поломка|сломался|сломанная машина" to "breakdown", "камера|радар" to "camera",
+                "заправк[аиу]|бензин|топливо|дизель|азс" to "fuel", "зарядк[аиу]|зарядная станция|зарядную станцию" to "charging", "туалет" to "toilet", "кофе|кафе" to "coffee",
+                "\\sеда\\s|ресторан|поесть|перекусить" to "food", "зона отдыха|придорожный сервис" to "services", "парковк[аиу]|стоянк[аиу]|припарковаться" to "parking",
+                "\\s(найди|найти|ближайш[а-я]+|где|мне нужн[аоы]?)\\s" to "find", "самая дешёвая|самую дешёвую|самый дешёвый|дешёв[а-я]*|дешевле" to "cheap",
+                "без платных дорог|избегать платных( дорог)?|объезжать платные" to "avoid toll", "без автомагистралей|избегать автомагистралей|без трасс" to "avoid motorway",
+                "объехать эту дорогу|избегать этой дороги" to "avoid this road", "когда я приеду|когда прибуду|сколько ехать|сколько ещё ехать" to "eta", "\\s(отправь|поделись|поделиться) (время|прибытием|прибытие)" to "share",
+                "включи голос|голос включ[её]н" to "voice on", "только оповещения|только предупреждения" to "alerts only", "без звука|выключи голос|замолчи" to "mute",
+                "(заверши|останови|отмени|закончи) (маршрут|навигацию)" to "end route", "обзор маршрута|весь маршрут|обзор" to "overview",
+                "приблизь|увеличь" to "zoom in", "отдали|уменьши" to "zoom out", "север вверху" to "north up", "который час|сколько времени" to "what time",
+                "^\\s*(поехали в|поехали на|едем в|едем на|отвези меня в|отвези меня на|проложи маршрут до|маршрут до|навигация до|до)\\s" to "go to",
+            ),
             "da" to r(
                 "\\s(hjem|kør hjem|tag mig hjem)\\s" to "go home", "\\s(på arbejde|til arbejde|til kontoret)\\s" to "go to work",
                 "^\\s*(rapportér|rapporter|meld)\\s" to "report", "ulykke|uheld" to "accident", "politi|politiet" to "police", "i stykker|motorstop|nedbrud" to "breakdown", "fartkamera|kamera|fotovogn" to "camera",
@@ -595,6 +609,8 @@ object L {
         // (1:a, 2:a, 3:e … but 11:e and 12:e)
         "sv" -> if (n % 10 in 1..2 && n % 100 !in 11..12) "$n:a" else "$n:e"
         "ar", "he", "ur" -> "$n"
+        // (Russian: "2-й съезд")
+        "ru" -> "$n-й"
         "kn" -> "${n}ನೇ"
         "mr" -> "${n}वा"
         "el" -> "${n}η"
@@ -660,6 +676,8 @@ object L {
         "tr" -> "birinci|ikinci|üçüncü|dördüncü|beşinci|altıncı|yedinci|sekizinci|dokuzuncu|onuncu"
         "da" -> "første|anden|tredje|fjerde|femte|sjette|syvende|ottende|niende|tiende"
         "nb" -> "første|andre|tredje|fjerde|femte|sjette|sjuende|åttende|niende|tiende"
+        // (in the form the roundabout phrase needs: "выполните второй съезд")
+        "ru" -> "первый|второй|третий|четвёртый|пятый|шестой|седьмой|восьмой|девятый|десятый"
         "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
         "mr" -> "पहिला|दुसरा|तिसरा|चौथा|पाचवा|सहावा|सातवा|आठवा|नववा|दहावा"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
@@ -686,7 +704,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "esar", "zhhk")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "esar", "zhhk")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -716,6 +734,7 @@ object L {
         addOwn(m, "kn", I18nKn.rows())
         addOwn(m, "mr", I18nMr.rows())
         addOwn(m, "nb", I18nNb.rows())
+        addOwn(m, "ru", I18nRu.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         m
     }
