@@ -1264,7 +1264,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // the map for this, re-placed many times a second, and it flickered
             // (only the car: the 3D arrow is low and flat, so its beam starts at its tip as before. Cutting the arrow's outline out
             // left a gap, and the light seemed to hover in front of it)
-            val carModel = modelOn && carLike
+            // (not your own model: its shape is unknown, so a car-shaped box cut out of the light didn't match it and left an odd
+            // dark patch round it, GitHub #152. Its beam starts at its nose instead, like the flat arrow's)
+            val carModel = modelOn && carLike && modelShape != "own"
             val start = if (carOnTop) ahead * 0.15 else if (carModel) ahead * 0.45 else ahead
             bv.mask = if (carModel) try { modelMask(p, h) } catch (e: Throwable) { null } else null
             val nose = if (start > 0.0) Furniture.offset(p, h, start) else p
@@ -1273,7 +1275,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val l = len * sc + (ahead - start)
             val far = Furniture.offset(nose, h, l * 0.88)
             val tipO = Furniture.offset(nose, h, l * 1.05); val tipI = Furniture.offset(nose, h, l)
-            val wO = l * 0.42; val wI = l * 0.34
+            // (about half as wide as it was: the wide cone lit up the buildings either side, GitHub #152)
+            val wO = l * 0.24; val wI = l * 0.19
             val places = arrayOf(nose, Furniture.offset(far, h - 90.0, wO), tipO, Furniture.offset(far, h + 90.0, wO),
                 Furniture.offset(far, h - 90.0, wI), tipI, Furniture.offset(far, h + 90.0, wI),
                 Furniture.offset(nose, h - 90.0, l * 0.025), Furniture.offset(nose, h + 90.0, l * 0.025), Furniture.offset(nose, h, l))

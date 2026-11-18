@@ -46,6 +46,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Headlight beam: about half as wide, so it lights the road ahead rather than the buildings either side (thanks to liamstears)
 - Add a stop: now a panel down the side with your route still on the map, instead of a box over everything. Tapping Fuel, Charger, Coffee, Food, Services or Toilets lists those places along your route in the same panel, each with the time it adds and shown on the map, rather than adding one you hadn't seen. The arrow goes back. Search sits at the top, clear of the keyboard, and the map only zooms out while places along the route are listed
 - Phone held upright, on a route: the turn card takes the full width and the map buttons sit underneath it, instead of being squeezed in beside it
 - Phone held sideways: the big lane picture is lower on short screens, so the turn card no longer reaches down behind the trip card and hides the "Then" line (thanks to fahadfadi)
@@ -101,6 +102,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Headlight beam with your own 3D model: no more odd dark patch round the car. The beam now starts at the front of your model instead of having a car-shaped box cut out of it that didn't match your model's shape (thanks to liamstears)
 - Offline mode: the downloaded country map now shows. With Offline mode on, Mapbox's map engine was kept off the network so strictly that it couldn't load the downloaded map from the unit itself either, leaving a blank map with only street names and traffic lights on it (thanks to Johnm76)
 - Phone held upright: the turn card no longer goes off the right of the screen as a turn comes up (it now grows evenly from the middle), and the map buttons sit lower, between the turn card and the trip card, with or without the Settings button above them
 - What's new: an update with no new notes no longer shows a card saying "No release notes were found"; the card only appears when there's something new to tell you
