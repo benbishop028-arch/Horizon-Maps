@@ -1668,5 +1668,6 @@ object I18nKn {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "ಇಟಲಿ ಕೂಡ ತಾನಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆಯ ಸರ್ಕಾರಿ ಬೆಲೆಗಳೊಂದಿಗೆ, ದಿನಕ್ಕೆ ಒಮ್ಮೆ ನವೀಕರಿಸಲಾಗುತ್ತದೆ.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox ನಿಮ್ಮ ಟೋಕನ್‌ಗೆ ಉಪಗ್ರಹ ಚಿತ್ರಗಳನ್ನು ನಿರಾಕರಿಸುತ್ತಿದೆ (ಹಲವು ವಿನಂತಿಗಳು). ಮುಂದುವರಿದರೆ ಟೋಕನ್ ನಿಮ್ಮದೇ ಎಂದು ಪರಿಶೀಲಿಸಿ: ನಕಲು ಮಾಡಿದ ಟೋಕನ್ ಬಳಸುವ ಎಲ್ಲರಲ್ಲಿ ಹಂಚಿಕೆಯಾಗುತ್ತದೆ. ಉಚಿತ ಟೋಕನ್ account.mapbox.com ನಲ್ಲಿ",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "ನಕ್ಷೆ ನಿಮ್ಮ 3D ಮಾದರಿಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ, ಆದ್ದರಿಂದ ಕಾರು ತೋರಿಸಲಾಗುತ್ತಿದೆ. ಸಾಮಾನ್ಯ .glb ಆಗಿ ಮತ್ತೆ ರಫ್ತು ಮಾಡಿ (Draco ಅಥವಾ KTX2 ಸಂಕುಚನ ಇಲ್ಲದೆ)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Mapbox ಸರ್ವರ್‌ಗಳು ಈಗ ಉಪಗ್ರಹ ಚಿತ್ರಗಳನ್ನು ನಿರಾಕರಿಸುತ್ತಿವೆ (ಹಲವು ವಿನಂತಿಗಳು). ಸಮಸ್ಯೆ Mapbox ಕಡೆಯದು, ನಿಮ್ಮ ಟೋಕನ್ ಅಥವಾ ಆ್ಯಪ್‌ನದ್ದಲ್ಲ: ಉಪಗ್ರಹ ತಾನಾಗಿ ಮರಳಬೇಕು, ನಂತರ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
     )
 }

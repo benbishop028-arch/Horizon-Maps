@@ -1668,5 +1668,6 @@ object I18nFi {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia toimii myös itsestään, valtion joka aamun hinnoilla, jotka päivitetään kerran päivässä.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox hylkää satelliittikuvat tunnuksellesi (liikaa pyyntöjä). Jos tämä jatkuu, tarkista, että tunnus on oma: kopioitu tunnus on kaikkien sitä käyttävien yhteinen. Ilmainen osoitteesta account.mapbox.com",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Kartta ei voinut ladata 3D-malliasi, joten auto näytetään. Vie se uudelleen tavallisena .glb-tiedostona (ilman Draco- tai KTX2-pakkausta)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Mapboxin palvelimet hylkäävät nyt satelliittikuvat (liikaa pyyntöjä). Vika on Mapboxissa, ei tunnuksessasi tai sovelluksessa: satelliitin pitäisi palata itsestään, yritä myöhemmin",
     )
 }

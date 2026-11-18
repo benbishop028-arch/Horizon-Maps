@@ -1668,5 +1668,6 @@ object I18nHu {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Olaszország is magától működik, az állami, minden reggeli árakkal, naponta egyszer frissítve.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "A Mapbox elutasítja a műholdképeket a tokenedhez (túl sok kérés). Ha ismétlődik, ellenőrizd, hogy a token a sajátod-e: a másoltat mindenki használja, aki megkapta. Ingyenes az account.mapbox.com oldalon",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "A térkép nem tudta betölteni a 3D modelledet, ezért az autó látszik. Exportáld újra sima .glb-ként (Draco vagy KTX2 tömörítés nélkül)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "A Mapbox szerverei most elutasítják a műholdképeket (túl sok kérés). A hiba a Mapboxnál van, nem a tokenedben vagy az alkalmazásban: a műhold magától vissza kell jöjjön, próbáld később",
     )
 }

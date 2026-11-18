@@ -1668,5 +1668,6 @@ object I18nRo {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia funcționează și ea singură, cu prețurile oficiale din fiecare dimineață, actualizate o dată pe zi.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox refuză imaginile satelit pentru tokenul tău (prea multe cereri). Dacă se repetă, verifică dacă tokenul e al tău: unul copiat e folosit de toți cei care îl au. Unul gratuit la account.mapbox.com",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Harta nu a putut încărca modelul tău 3D, așa că apare mașina. Exportă-l din nou ca .glb simplu (fără compresie Draco sau KTX2)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Serverele Mapbox refuză acum imaginile satelit (prea multe cereri). Problema e la Mapbox, nu la tokenul tău sau la aplicație: satelitul ar trebui să revină singur, încearcă mai târziu",
     )
 }

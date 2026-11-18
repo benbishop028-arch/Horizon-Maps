@@ -44,6 +44,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- UK road numbers as signs on the turn card: motorways in blue with white, A roads in green with yellow and B roads in white with black, as on the real signs. The turn card's corners are also a little less rounded (thanks to karthikeyansr)
 - GPX tracks in backups: Back up and Restore now include your GPX tracks, with their groups, as well as your settings and saved places (thanks to bijindas)
 - "Navigate" for GPX tracks: the button that drives a track now says Navigate instead of "Drive this" (thanks to bijindas)
 - The moon in its real place: with "Sun in its real place" on (Settings › Light, weather & 3D), the night light and shadows now come from where the moon really is, as bright as it is full, and there are no shadows once it has set. Before, night shadows always came from the same side (thanks to dubrava4ever)
@@ -90,7 +91,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### Fixed
 - Own 3D models that were invisible: a model whose file scales itself down (common in models from Sketchfab and other sites) came out far too small to see. Models are now measured the way the map draws them, and ones picked before are measured again once (thanks to Matattack99)
-- Says why satellite or your own model didn't show: when Mapbox turns down satellite pictures for your token, or can't load your 3D model, a message now says so and what to try, and the feedback report includes Mapbox's reason (thanks to Matattack99)
+- Says why satellite or your own model didn't show: when Mapbox's servers turn down satellite pictures (a problem on Mapbox's side since late October), or can't load your 3D model, a message now says so and what to try, and the feedback report includes Mapbox's reason (thanks to Matattack99)
 - Satellite at night: with Night chosen (or after dark), satellite photos were dimmed until they hardly showed, so it looked as though satellite wasn't on. They now show in daylight at night (the screen's own night dimming still applies) (thanks to Matattack99)
 - Your own 3D model with satellite: switching satellite on swapped the real 3D model for the built-in car picture. The model now shows on satellite too. Feedback reports also say which map is really on screen and what's drawing your arrow (thanks to Matattack99)
 - Satellite view on Android Auto: the car screen now shows satellite view when it's switched on, instead of always staying on the drawn map, which made it look as though satellite didn't work. Feedback reports now also say whether satellite is on and the last error the map gave

@@ -1668,5 +1668,6 @@ object I18nUr {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "اٹلی بھی خود بخود کام کرتا ہے، ہر صبح کی حکومتی قیمتوں کے ساتھ، جو دن میں ایک بار اپ ڈیٹ ہوتی ہیں۔",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox آپ کے ٹوکن کے لیے سیٹلائٹ تصاویر رد کر رہا ہے (بہت زیادہ درخواستیں)۔ اگر یہ جاری رہے تو دیکھیں کہ ٹوکن آپ کا اپنا ہے: کاپی کیا ہوا ٹوکن سب استعمال کرنے والوں میں مشترک ہوتا ہے۔ مفت ٹوکن account.mapbox.com پر",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "نقشہ آپ کا 3D ماڈل لوڈ نہیں کر سکا، اس لیے کار دکھائی جا رہی ہے۔ اسے سادہ .glb کے طور پر دوبارہ ایکسپورٹ کریں (Draco یا KTX2 کمپریشن کے بغیر)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Mapbox کے سرور ابھی سیٹلائٹ تصاویر رد کر رہے ہیں (بہت زیادہ درخواستیں)۔ مسئلہ Mapbox کی طرف ہے، آپ کے ٹوکن یا ایپ میں نہیں: سیٹلائٹ خود واپس آ جانا چاہیے، بعد میں دوبارہ کوشش کریں",
     )
 }

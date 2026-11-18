@@ -1668,5 +1668,6 @@ object I18nBs {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italija također radi sama, s državnim cijenama od svakog jutra, ažuriranim jednom dnevno.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox odbija satelitske slike za tvoj token (previše zahtjeva). Ako se nastavi, provjeri je li token tvoj: kopirani dijele svi koji ga koriste. Besplatan na account.mapbox.com",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Mapa nije mogla učitati tvoj 3D model pa se prikazuje auto. Ponovo ga izvezi kao običan .glb (bez Draco ili KTX2 kompresije)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Mapboxovi serveri trenutno odbijaju satelitske slike (previše zahtjeva). Problem je kod Mapboxa, ne u tvom tokenu ili aplikaciji: satelit bi se trebao sam vratiti, pokušaj kasnije",
     )
 }

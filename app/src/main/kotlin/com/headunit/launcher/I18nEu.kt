@@ -1668,5 +1668,6 @@ object I18nEu {
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italiak ere berez funtzionatzen du, gobernuaren goizeroko prezioekin, egunean behin eguneratuta.",
         "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapboxek satelite-irudiak ukatzen ditu zure tokenarentzat (eskaera gehiegi). Jarraitzen badu, egiaztatu tokena zurea dela: kopiatutakoa erabiltzen duten guztiek partekatzen dute. Doakoa account.mapbox.com-en",
         "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Mapak ezin izan du zure 3D eredua kargatu, beraz autoa erakusten da. Esportatu berriro .glb arrunt gisa (Draco edo KTX2 konpresiorik gabe)",
+        "Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later" to "Mapboxen zerbitzariak satelite-irudiak ukatzen ari dira orain (eskaera gehiegi). Mapboxen arazoa da, ez zure tokenarena edo aplikazioarena: sateliteak berez itzuli beharko luke, saiatu geroago",
     )
 }

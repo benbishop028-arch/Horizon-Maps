@@ -1187,7 +1187,8 @@ internal fun ImmTurnCard(
     /** Extra row along the bottom of the card (Android Auto puts the hazards ahead there). */
     footer: (@Composable () -> Unit)? = null,
 ) { TextSides {
-    val shape = RoundedCornerShape(28.dp)
+    // (20: a touch less round than before, karthikeyansr)
+    val shape = RoundedCornerShape(20.dp)
     val frac = ((450.0 - t.dist) / 450.0).coerceIn(0.0, 1.0).toFloat()
     // living card: it grows a touch and starts to glow as the turn comes up, and pulses in the last 80 m
     val alive = engine.prefs.b(PreferenceKeys.LIVECARD, true)
@@ -1213,7 +1214,7 @@ internal fun ImmTurnCard(
                     val sw = (1.5f + 1.5f * pv) * density
                     drawRoundRect(Color.White.copy(alpha = 0.45f * glow * pv), topLeft = Offset(sw / 2, sw / 2),
                         size = androidx.compose.ui.geometry.Size(size.width - sw, size.height - sw),
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(28.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
                 }
             }
             .animateContentSize()
@@ -1223,7 +1224,7 @@ internal fun ImmTurnCard(
         if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut))
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
-            Text(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 12.dp))
+            RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp))
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1239,7 +1240,7 @@ internal fun ImmTurnCard(
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))
                     if (!ukSign && t.sign.isNotBlank() && t.sign != t.street) Text(t.sign, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 130.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF1E8E55)).padding(horizontal = 7.dp, vertical = 2.dp))
-                    Text(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, color = Color.White, fontSize = if (compact) 16.sp else 19.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp)
                 }
             }
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)
@@ -1849,4 +1850,32 @@ internal fun TextSides(content: @Composable () -> Unit) {
 internal fun FixedSides(content: @Composable () -> Unit) {
     if (!L.rtl) { content(); return }
     CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) { content() }
+}
+
+/**
+ * A road name on the turn card, with UK road numbers drawn as small signs (karthikeyansr): motorways blue with white, A roads green
+ * with yellow, B roads white with black, as on the real signs. Only in the UK ([badges]); elsewhere, and for roads with no number,
+ * it's the plain white text it always was.
+ */
+@Composable
+internal fun RoadLine(text: String, badges: Boolean, size: androidx.compose.ui.unit.TextUnit, modifier: Modifier = Modifier) {
+    val rx = remember { Regex("\\b([MAB][0-9]{1,4})(\\s?\\(M\\))?\\b") }
+    val refs = if (badges) rx.findAll(text).toList().take(2) else emptyList()
+    if (refs.isEmpty()) { Text(text, color = Color.White, fontSize = size, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier); return }
+    // what's left once the numbers are taken out (and the brackets and dots that went with them)
+    val rest = rx.replace(text, "").replace("()", "").replace(Regex("\\s*[·/,]\\s*(?=[·/,]|$)"), "").replace(Regex("^\\s*[·/,]\\s*"), "").trim()
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        for (m in refs) {
+            val r = m.groupValues[1] + (if (m.groupValues[2].isNotBlank()) " (M)" else "")
+            val mway = r.startsWith("M") || r.endsWith("(M)")
+            val (bg, fg, edge) = when {
+                mway -> Triple(Color(0xFF0065B3), Color.White, Color.White)
+                r.startsWith("A") -> Triple(Color(0xFF00703C), Color(0xFFFFD200), Color.White)
+                else -> Triple(Color.White, Color(0xFF111111), Color(0xFF111111))
+            }
+            Text(r, color = fg, fontSize = size * 0.85f, fontWeight = FontWeight.Bold, maxLines = 1,
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(bg).border(1.5.dp, edge, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
+        }
+        if (rest.isNotBlank()) Text(rest, color = Color.White, fontSize = size, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    }
 }

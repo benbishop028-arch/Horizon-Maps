@@ -726,12 +726,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             scope.launch { toast(L.t("The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)") + (if (why.isNotBlank()) " ($why)" else ""), 10_000) }
         }
         map.onTileMissing = {
-            // satellite pictures refused by Mapbox for this token (too many requests): said once a run, as the map otherwise
-            // just shows the plain satellite background (Matattack99, #186)
+            // satellite pictures refused by Mapbox (too many requests): said once a run, as the map otherwise just shows the plain
+            // satellite background (Matattack99, #186). Mapbox has been doing this to tokens well inside their limits since late
+            // October 2026 (mapbox-gl-js #13744), so it's put down to Mapbox, not the person's token
             val te = map.lastTileError
             if (!satRefusedSaid && te.contains("satellite", true) && te.contains("429")) {
                 satRefusedSaid = true
-                scope.launch { toast(L.t("Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com"), 12_000) }
+                scope.launch { toast(L.t("Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later"), 12_000) }
             }
             val now = android.os.SystemClock.uptimeMillis()
             if (!mapboxGaps && !online()) {
@@ -845,6 +846,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val layoutMirrored: Boolean get() = when (prefs.s(PreferenceKeys.CARDS_SIDE, "auto")) { "left" -> false; "right" -> true; else -> mirrored }
 
     /** The speed limit sign to draw: the white "SPEED LIMIT" board in the US, "MAXIMUM" in Canada, the red roundel elsewhere. */
+    /** UK road numbers as little signs on the turn card (karthikeyansr): in the UK, the Isle of Man and the Channel Islands. */
+    val ukRoadBadges: Boolean get() = detectedCountry.uppercase() in setOf("GB", "UK", "IM", "JE", "GG")
+
     val limitSignStyle: String get() = when (detectedCountry.uppercase()) { "US", "PR", "GU", "VI", "AS", "MP" -> "us"; "CA" -> "ca"; else -> "round" }
 
     fun countryCode(): String { val v = prefs.s(PreferenceKeys.COUNTRY, "auto"); return if (v == "auto") detectedCountry else v }
