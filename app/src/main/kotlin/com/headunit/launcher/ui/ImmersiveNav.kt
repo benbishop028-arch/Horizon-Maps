@@ -478,10 +478,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 // (its outline goes to the camera too, so with no route your arrow sits in the middle of the clear map)
                 // (under the turn card on an upright phone on a route; kept clear of the trip card at the bottom if the screen is short)
                 // (worked out in the buttons' own size, as the padding below is: Settings › sizes › map buttons scales it)
+                // (just past halfway down the space between the turn card and the trip card, and never down into the speed sign)
                 val railTop = if (!railBelow) 16.dp else with(LocalDensity.current) {
-                    val below = turnBottomPx - boxTopPx + 10.dp.toPx()
-                    val lowest = boxH - tripPx - railHPx - 26.dp.toPx()
-                    minOf(below, lowest).coerceAtLeast(16.dp.toPx()).toDp()
+                    val gapTop = turnBottomPx - boxTopPx + 10.dp.toPx()
+                    val tripTop = boxH - tripPx - 16.dp.toPx()
+                    val gapBottom = (if (speedTopPx > 0) minOf(tripTop, speedTopPx.toFloat()) else tripTop) - 10.dp.toPx()
+                    val mid = gapTop + (gapBottom - gapTop) * 0.55f
+                    (mid - railHPx / 2f).coerceAtMost(gapBottom - railHPx).coerceAtLeast(gapTop).coerceAtLeast(16.dp.toPx()).toDp()
                 }
                 if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
@@ -1293,7 +1296,9 @@ internal fun ImmTurnCard(
     val glowCol = Color(0xFF7FFFE6)
     Column(
         Modifier.fillMaxWidth()
-            .graphicsLayer { scaleX = grow; scaleY = grow; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0f) }
+            // (grows from its top middle, evenly both ways: grown from its left edge, a card the full width of an upright phone went off
+            // the right of the screen as the turn came up)
+            .graphicsLayer { scaleX = grow; scaleY = grow; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 0f) }
             .shadow((if (compact) 5f else 12f + 14f * glow).dp, shape, ambientColor = glowCol, spotColor = glowCol)
             .clip(shape)
             .background(androidx.compose.ui.graphics.lerp(Teal, Color(0xFF14C9A6), 0.35f * glow))
