@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Fuel prices in Add a stop: tap the fuel icon in Add a stop and each petrol station along your route shows the price of your fuel, with the cheapest in green and the detour time under it. A new Cheapest tab sits next to Least detour, and priced stations the map search missed are added to the list. Prices come from the same place as the fuel list (Fuel Finder in the UK, and the price services in France, Austria, Italy, Germany and NSW)
 - Russian: the whole app in Russian (Русский), on the phone, head unit and Android Auto, with spoken directions ("Через 200 м поверните налево", "выполните второй съезд") and Russian voice commands. Phones set to Russian pick it up by themselves; others can choose it in Settings › Sound & voice › Language (thanks to Zerux)
 - Big speed limit sign: a new switch in Settings › Speed display swaps them round, with the speed limit sign big where the speedometer was and your speed small beside it. Your speed still turns amber and red near and over the limit (thanks to ole1993)
 - Fuel prices in Italy: the fuel list and fuel stop suggestions show prices across Italy, from the government's own daily price list (MIMIT), with no key needed. The list is fetched at most once a day and kept on the device (thanks to TheDMAI)
@@ -46,6 +47,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Add a stop: the Fuel, Charger, Coffee, Food, Services and Toilets buttons are now the same round coloured icons as under the search bar, in one row
 - Headlight beam: about half as wide, so it lights the road ahead rather than the buildings either side (thanks to liamstears)
 - Add a stop: now a panel down the side with your route still on the map, instead of a box over everything. Tapping Fuel, Charger, Coffee, Food, Services or Toilets lists those places along your route in the same panel, each with the time it adds and shown on the map, rather than adding one you hadn't seen. The arrow goes back. Search sits at the top, clear of the keyboard, and the map only zooms out while places along the route are listed
 - Phone held upright, on a route: the turn card takes the full width and the map buttons sit underneath it, instead of being squeezed in beside it

@@ -135,7 +135,10 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
             }
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text(if (view.forStop) L.t("Add a stop: {0}", view.name) else view.name, color = c.text, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(if (view.forStop) L.t("{0} along your route", view.spots.size) else L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
+                // (petrol stations with prices: which fuel the prices are for)
+                val priced = view.forStop && view.spots.any { it.price != null }
+                val fuelName = if (priced) " · " + L.t(com.headunit.launcher.FuelFinder.fuelName(engine.prefs.s(com.headunit.launcher.PreferenceKeys.FUEL_TYPE, "E10"))) else ""
+                Text(if (view.forStop) L.t("{0} along your route", view.spots.size) + fuelName else L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
             }
             Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true); if (fromStops) engine.stopsEditor = false }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.text)
@@ -143,7 +146,8 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
         }
         // the order: Quickest (drive time now), Nearest, On my route (while driving somewhere)
         // (adding a stop: least detour, soonest along the way, nearest to you)
-        val sorts = if (view.forStop) listOf("route" to L.t("Least detour"), "soon" to L.t("Soonest"), "near" to L.t("Nearest")) else buildList {
+        val sorts = if (view.forStop) listOfNotNull("route" to L.t("Least detour"), if (view.spots.any { it.price != null }) "cheap" to L.t("Cheapest") else null,
+            "soon" to L.t("Soonest"), "near" to L.t("Nearest")) else buildList {
             if (view.spots.any { it.secs >= 0 }) add("quick" to L.t("Quickest"))
             add("near" to L.t("Nearest"))
             if (view.spots.any { it.detour >= 0 }) add("route" to L.t("On my route"))
@@ -153,11 +157,13 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                 val on = engine.chainSort == id
                 Box(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(if (on) ChainBlue else Color.Transparent).clickable { engine.sortChainBy(id) }.padding(vertical = 8.dp),
                     contentAlignment = Alignment.Center) {
-                    Text(label, color = if (on) Color.White else c.sub, fontSize = 15.sp, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
+                    Text(label, color = if (on) Color.White else c.sub, fontSize = if (sorts.size >= 4) 13.sp else 15.sp, fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal, maxLines = 1)
                 }
             }
         }
         val list = engine.chainSorted()
+        // the cheapest price on the list, shown in green
+        val low = view.spots.mapNotNull { it.price }.minOrNull()
         LazyColumn(Modifier.padding(top = 10.dp).fillMaxWidth().weight(1f, fill = false)) {
             items(list, key = { "${it.place.pos.lat},${it.place.pos.lon}" }) { s ->
                 val sel = engine.chainSel === s
@@ -181,7 +187,13 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                                 Text(s.place.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(where, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
-                            Text(L.t("+{0} min", mn), color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
+                            // a price: the price, with the detour small under it; no price: the detour as before
+                            val pr = s.price
+                            if (pr != null) Column(Modifier.padding(start = 8.dp), horizontalAlignment = Alignment.End) {
+                                Text(com.headunit.launcher.fmtFuelPrice(pr, s.unit), color = if (low != null && pr <= low) Color(0xFF5FBF6A) else c.text,
+                                    fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Text(L.t("+{0} min", mn), color = tint, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                            } else Text(L.t("+{0} min", mn), color = tint, fontSize = 17.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                     if (sel) Column(Modifier.padding(vertical = 4.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(ChainBlue.copy(alpha = 0.12f))

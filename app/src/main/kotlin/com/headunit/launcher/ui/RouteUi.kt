@@ -4,6 +4,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Wc
+import androidx.compose.material.icons.rounded.LocalConvenienceStore
+import androidx.compose.material.icons.rounded.Restaurant
+import androidx.compose.material.icons.rounded.EvStation
+import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.ExpandLess
 import com.headunit.launcher.L
@@ -12,6 +17,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -423,15 +429,19 @@ fun StopsPanel(engine: NavEngine, modifier: Modifier, onClose: () -> Unit) {
             Text(L.t("Find along the route"), color = c.sub, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
             // (searched for along the route by these words: the search services know them in any country)
-            val kinds = listOfNotNull(if (ev) null else "petrol station" to L.t("Fuel"), "EV charging station" to L.t("Charger"), "coffee" to L.t("Coffee"),
-                "restaurant" to L.t("Food"), "rest area" to L.t("Services"), "public toilet" to L.t("Toilets"))
-            Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.tile).padding(4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                for (row in kinds.chunked(3)) Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    for ((term, name) in row) Box(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(c.surface.copy(alpha = 1f))
-                        .clickable { engine.openStopSearch(term, title = name, category = true) }.padding(vertical = 11.dp), contentAlignment = Alignment.Center) {
-                        Text(name, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // the same round icons as under the search bar (each named for TalkBack)
+            class Kind(val term: String, val name: String, val icon: androidx.compose.ui.graphics.vector.ImageVector, val tint: Color)
+            val kinds = listOfNotNull(if (ev) null else Kind("petrol station", L.t("Fuel"), Icons.Rounded.LocalGasStation, Color(0xFFEA4335)),
+                Kind("EV charging station", L.t("Charger"), Icons.Rounded.EvStation, Color(0xFF34A853)), Kind("coffee", L.t("Coffee"), Icons.Rounded.LocalCafe, Color(0xFFA56BFF)),
+                Kind("restaurant", L.t("Food"), Icons.Rounded.Restaurant, Color(0xFFF29900)), Kind("rest area", L.t("Services"), Icons.Rounded.LocalConvenienceStore, Color(0xFF00A3A3)),
+                Kind("public toilet", L.t("Toilets"), Icons.Rounded.Wc, Color(0xFF4C8DFF)))
+            // (each gets an equal share of the width, up to 56 dp, so six still fit on a small phone)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                for (k in kinds) Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxWidth().widthIn(max = 56.dp).aspectRatio(1f).clip(CircleShape).background(c.tile)
+                        .clickable { engine.openStopSearch(k.term, title = k.name, category = true) }, contentAlignment = Alignment.Center) {
+                        Icon(k.icon, k.name, tint = k.tint, modifier = Modifier.size(26.dp))
                     }
-                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
                 }
             }
         }

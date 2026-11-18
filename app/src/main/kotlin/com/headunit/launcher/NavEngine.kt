@@ -1957,7 +1957,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** One branch: [secs]/[road] from the matrix service (or -1 when it couldn't be timed), [detour] extra seconds on the route. */
     class ChainSpot(val place: Place, val dist: Double, val secs: Double, val road: Double, val detour: Double,
                     /** Adding a stop: how far along the route ahead it is, and how far off the route (metres; -1 not known). */
-                    val ahead: Double = -1.0, val off: Double = -1.0)
+                    val ahead: Double = -1.0, val off: Double = -1.0,
+                    /** Petrol stations: the price of your fuel there (pence or cents a litre, in [unit]), or null when not known. */
+                    val price: Double? = null, val unit: String = "p")
     /** The list on show: [name] as searched, [domain] for its logo, [radius] metres looked within. */
     class ChainView(val name: String, val domain: String?, val spots: List<ChainSpot>, val radius: Int, val centre: LL,
                     /** Picking a stop to add along the route (the list is about the detour, and the only button is Add as a stop). */
@@ -2070,7 +2072,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (own.size >= 2) own else out
             }
             val from = fix?.pos ?: ahead.first()
-            val spots = found.mapNotNull { (p, t) ->
+            val fuelList = category && q == "petrol station"
+            val spots0 = found.mapNotNull { (p, t) ->
                 // where it is against the route: the nearest point of the route still ahead
                 var best = Double.MAX_VALUE; var at = -1
                 var j = i0
@@ -2079,7 +2082,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (at < 0 || best > 6000.0) return@mapNotNull null
                 val detour = if (t >= 0) t.toDouble() else best * 2.6 / 13.0
                 ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
-            }.sortedBy { it.detour }.take(25)
+            }
+            // petrol stations: each one's price for your fuel, from the price service the app already uses (and any priced station
+            // the search missed); everything else as it was
+            val spots = if (fuelList) {
+                val priced = try { withContext(Dispatchers.Default) { priceFuelSpots(r, prog, from, spots0) } } catch (e: Exception) { spots0 }
+                priced.sortedBy { it.detour }.take(40)
+            } else spots0.sortedBy { it.detour }.take(25)
             if (spots.isEmpty()) { chainBusy = false; toast(L.t("Nothing found along the route ahead"), 3000); return@launch }
             withContext(Dispatchers.IO) { spots.mapNotNull { Logos.domainFor(it.place) }.distinct().take(6).forEach { Logos.load(ctx, it) } }
             val domain = spots.asSequence().mapNotNull { Logos.domainFor(it.place) }.firstOrNull()
@@ -2093,6 +2102,66 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             following = false
             drawChain()
         }
+    }
+
+    /**
+     * Prices for the petrol stations along the route (Add a stop › Fuel): the UK's Fuel Finder when it's set up, otherwise the
+     * country's own price service where the app has one. Only stored prices are waited on for long: a slow download is given
+     * 6 seconds, then the last saved prices are used (the download carries on for next time).
+     */
+    private suspend fun priceFuelSpots(r: Route, prog: Double, from: LL, spots: List<ChainSpot>): List<ChainSpot> {
+        val fuel = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
+        if (fuel == "EV") return spots
+        class Pr(val place: Place, val price: Double, val along: Double, val off: Double)
+        val found = ArrayList<Pr>()
+        var unit = "p"
+        val end = minOf(r.len, prog + 300_000.0)
+        if (FuelFinder.configured(prefs) && fuel != "E85" && fuel != "LPG") {
+            val job = searchScope.async { try { FuelFinder.refresh(ctx, prefs) } catch (e: Exception) { } }
+            kotlinx.coroutines.withTimeoutOrNull(6000L) { job.await() }
+            val st = FuelFinder.stations(ctx)
+            if (st.isNotEmpty()) {
+                var bMinLat = 90.0; var bMaxLat = -90.0; var bMinLon = 180.0; var bMaxLon = -180.0
+                for (i in r.pts.indices) {
+                    if (r.cum[i] < prog - 200 || r.cum[i] > end) continue
+                    val q = r.pts[i]
+                    bMinLat = min(bMinLat, q.lat); bMaxLat = max(bMaxLat, q.lat); bMinLon = min(bMinLon, q.lon); bMaxLon = max(bMaxLon, q.lon)
+                }
+                for (s0 in st) {
+                    if (s0.pos.lat < bMinLat - 0.015 || s0.pos.lat > bMaxLat + 0.015 || s0.pos.lon < bMinLon - 0.025 || s0.pos.lon > bMaxLon + 0.025) continue
+                    val price = FuelFinder.priceOf(ctx, s0.id, fuel) ?: continue
+                    val pr = RouteExtras.project(r, s0.pos, 1500.0, prog) ?: continue
+                    if (pr.first < prog - 100 || pr.first > end) continue
+                    found += Pr(Place(s0.name, listOf(s0.brand, s0.postcode).filter { it.isNotBlank() && it != s0.name }.joinToString(" · "), s0.pos), price.pence, pr.first, pr.second)
+                }
+            }
+        }
+        val cc = detectedCountry.uppercase()
+        if (found.isEmpty() && cc != "GB" && EuFuel.supported(cc, prefs) && EuFuel.hasFuel(cc, fuel) && online()) {
+            unit = EuFuel.unit(cc)
+            val eu = withContext(Dispatchers.IO) {
+                try { EuFuel.along(cc, prefs, RouteExtras.line(r, prog, prog + 60_000.0, 1500.0, 45), fuel) } catch (e: Exception) { emptyList() }
+            }
+            for (s0 in eu) {
+                val pr = RouteExtras.project(r, s0.pos, 1500.0, prog) ?: continue
+                if (pr.first < prog - 100) continue
+                found += Pr(Place(s0.name, s0.sub, s0.pos), s0.cents, pr.first, pr.second)
+            }
+        }
+        if (found.isEmpty()) return spots
+        val used = HashSet<Pr>()
+        // the stations the search found, with the price of the one in the same spot (within 150 m)
+        val out = spots.map { s ->
+            val m = found.filter { it !in used && Geo.dist(it.place.pos, s.place.pos) < 150.0 }.minByOrNull { Geo.dist(it.place.pos, s.place.pos) }
+            if (m == null) s else {
+                used += m
+                ChainSpot(s.place, s.dist, s.secs, s.road, s.detour, s.ahead, s.off, m.price, unit)
+            }
+        }.toMutableList()
+        // and the priced ones it missed
+        for (m in found) if (m !in used && out.none { Geo.dist(it.place.pos, m.place.pos) < 150.0 })
+            out += ChainSpot(m.place, Geo.dist(from, m.place.pos), -1.0, -1.0, m.off * 2.6 / 13.0, (m.along - prog).coerceAtLeast(0.0), m.off, m.price, unit)
+        return out
     }
 
     /** Roughly how much time a branch adds to the route being driven: there and back from the nearest point of the route. */
@@ -2110,6 +2179,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return when (chainSort) {
             "route" -> c.spots.sortedBy { if (it.detour >= 0) it.detour else Double.MAX_VALUE }
             "soon" -> c.spots.sortedBy { if (it.ahead >= 0) it.ahead else Double.MAX_VALUE }
+            // (no price last; the same price: the smaller detour first)
+            "cheap" -> c.spots.sortedWith(compareBy<ChainSpot>({ it.price ?: Double.MAX_VALUE }, { if (it.detour >= 0) it.detour else Double.MAX_VALUE }))
             "quick" -> c.spots.sortedBy { if (it.secs >= 0) it.secs else it.dist / 9.0 }
             else -> c.spots.sortedBy { it.dist }
         }
