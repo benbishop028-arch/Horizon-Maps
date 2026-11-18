@@ -335,6 +335,8 @@ object I18nEsAr {
         "Via {0} · " to "Por {0} · ",
         "Looking for other routes…" to "Buscando otras rutas…",
         "Tap a route to switch to it, or tap it on the map" to "Tocá una ruta para cambiar, o tocala en el mapa",
+        "Tap a route to see it, then tap it again to switch" to "Tocá una ruta para verla y tocala otra vez para cambiar",
+        "Tap again to switch" to "Tocá otra vez para cambiar",
         "AVERAGE SPEED CHECK AHEAD" to "TRAMO DE CONTROL MÁS ADELANTE",
         "AVERAGE SPEED CHECK" to "TRAMO DE CONTROL",
         "Starts in {0} · {1} long" to "Empieza en {0} · de {1}",

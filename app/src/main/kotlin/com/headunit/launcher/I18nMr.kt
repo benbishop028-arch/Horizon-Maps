@@ -335,6 +335,8 @@ object I18nMr {
         "Via {0} · " to "{0} मार्गे · ",
         "Looking for other routes…" to "इतर मार्ग शोधत आहे…",
         "Tap a route to switch to it, or tap it on the map" to "बदलण्यासाठी मार्गावर टॅप करा, किंवा नकाशावर त्यावर टॅप करा",
+        "Tap a route to see it, then tap it again to switch" to "मार्ग पाहण्यासाठी त्यावर टॅप करा, बदलण्यासाठी पुन्हा टॅप करा",
+        "Tap again to switch" to "बदलण्यासाठी पुन्हा टॅप करा",
         "AVERAGE SPEED CHECK AHEAD" to "पुढे सरासरी वेग तपासणी",
         "AVERAGE SPEED CHECK" to "सरासरी वेग तपासणी",
         "Starts in {0} · {1} long" to "{0} नंतर सुरू · {1} लांब",

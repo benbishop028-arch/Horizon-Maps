@@ -832,8 +832,8 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             Maneuver.TYPE_KEEP_RIGHT -> R.drawable.ic_man_keep_right
             Maneuver.TYPE_U_TURN_LEFT -> R.drawable.ic_man_uturn_left
             Maneuver.TYPE_U_TURN_RIGHT -> R.drawable.ic_man_uturn_right
-            Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW, Maneuver.TYPE_ROUNDABOUT_ENTER_CW -> R.drawable.ic_man_roundabout_cw
-            Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW, Maneuver.TYPE_ROUNDABOUT_ENTER_CCW -> R.drawable.ic_man_roundabout_ccw
+            Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW, Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE, Maneuver.TYPE_ROUNDABOUT_ENTER_CW -> R.drawable.ic_man_roundabout_cw
+            Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW, Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE, Maneuver.TYPE_ROUNDABOUT_ENTER_CCW -> R.drawable.ic_man_roundabout_ccw
             Maneuver.TYPE_DESTINATION, Maneuver.TYPE_DESTINATION_LEFT, Maneuver.TYPE_DESTINATION_RIGHT -> R.drawable.ic_man_destination
             else -> R.drawable.ic_man_straight
         }
@@ -920,11 +920,42 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             return bmp
         }
 
+        /**
+         * How far round the roundabout your exit is, in degrees (1 to 360) in the direction the traffic goes round: clockwise where
+         * you drive on the left, anticlockwise where you drive on the right. Straight on is 180; the first exit to the side is
+         * about 90; going all the way round is 360. From the roads' real directions in and out when the route has them (Mapbox),
+         * otherwise from the turn's direction (left, right, straight on, back). Null when neither is known.
+         */
+        private fun roundaboutExitAngle(t: TurnInfo, m: String, clockwise: Boolean): Int? {
+            // the turn: 0 straight on, positive to the right, negative to the left (-180 to 180)
+            val exact = com.headunit.launcher.ui.roundaboutTurn(t.rbIn, t.rbOut).toDouble()
+            val d: Double = if (!exact.isNaN()) exact else when {
+                m.contains("BACK") || m.contains("UTURN") || m.contains("U_TURN") -> 180.0
+                m.contains("SHARP_LEFT") -> -135.0
+                m.contains("SHARP_RIGHT") -> 135.0
+                m.contains("SLIGHT_LEFT") || m.contains("BEAR_LEFT") -> -45.0
+                m.contains("SLIGHT_RIGHT") || m.contains("BEAR_RIGHT") -> 45.0
+                m.contains("LEFT") -> -90.0
+                m.contains("RIGHT") -> 90.0
+                m.contains("CROSS") || m.contains("STRAIGHT") -> 0.0
+                else -> return null
+            }
+            // going round clockwise, a left turn is the first quarter; anticlockwise, a right turn is
+            val a = Math.round(((if (clockwise) 180.0 + d else 180.0 - d) % 360.0 + 360.0) % 360.0).toInt()
+            return if (a <= 0 || a > 360) 360 else a
+        }
+
         fun step(e: NavEngine, t: TurnInfo, ctx: CarContext): Step {
             val left = !e.mirrored
             val m = t.maneuver.uppercase()
+            // A roundabout's exit angle: how far round the roundabout the exit is (degrees, the way the traffic goes round). The
+            // car's own displays (a head-up display, the dashboard) draw the exit from it; without it some, like the VW ID.7's
+            // head-up display, showed every roundabout as a right turn (desko1973)
+            val rbAngle = if (m.startsWith("ROUNDABOUT") && t.exit > 0) roundaboutExitAngle(t, m, left) else null
             val type = when {
-                m.startsWith("ROUNDABOUT") -> if (t.exit > 0) (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW)
+                m.startsWith("ROUNDABOUT") -> if (t.exit > 0) (
+                                                  if (rbAngle != null) (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE)
+                                                  else (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW))
                                                else (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_CCW)
                 m == "TURN_LEFT" -> Maneuver.TYPE_TURN_NORMAL_LEFT
                 m == "TURN_RIGHT" -> Maneuver.TYPE_TURN_NORMAL_RIGHT
@@ -946,9 +977,12 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
                 else -> Maneuver.TYPE_UNKNOWN
             }
             val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
-            if (type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW) mb.setRoundaboutExitNumber(t.exit.coerceAtLeast(1))
+            val rbExitType = type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW ||
+                type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
+            if (rbExitType) mb.setRoundaboutExitNumber(t.exit.coerceAtLeast(1))
+            if (rbAngle != null) mb.setRoundaboutExitAngle(rbAngle)
             val what = when {
-                type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW -> L.t("Take exit {0}", t.exit)
+                rbExitType -> L.t("Take exit {0}", t.exit)
                 m.startsWith("ARRIVE") -> L.t("Arrive")
                 t.tag.isNotBlank() -> t.tag
                 else -> com.headunit.launcher.Geo.maneuverText(m, t.exit).replaceFirstChar { it.uppercase() }

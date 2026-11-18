@@ -335,6 +335,8 @@ object I18nFi {
         "Via {0} · " to "Kautta {0} · ",
         "Looking for other routes…" to "Etsitään muita reittejä…",
         "Tap a route to switch to it, or tap it on the map" to "Vaihda reittiä napauttamalla sitä tai napauta sitä kartalla",
+        "Tap a route to see it, then tap it again to switch" to "Napauta reittiä nähdäksesi sen ja napauta uudelleen vaihtaaksesi",
+        "Tap again to switch" to "Napauta uudelleen vaihtaaksesi",
         "AVERAGE SPEED CHECK AHEAD" to "KESKINOPEUDEN VALVONTA EDESSÄ",
         "AVERAGE SPEED CHECK" to "KESKINOPEUDEN VALVONTA",
         "Starts in {0} · {1} long" to "Alkaa {0} päästä · pituus {1}",

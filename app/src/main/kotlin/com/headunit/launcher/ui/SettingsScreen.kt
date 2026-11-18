@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.material3.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.height
@@ -246,7 +247,9 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
            val pinPreview = !narrowS || androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= 600
            Column(Modifier.fillMaxSize()) {
             if (withPreview && pinPreview) SettingsMapPreview(engine, if (narrowS) 170 else 210)
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 4.dp)) {
+            // (the on-screen keyboard takes the bottom of the screen: the settings scroll in the space above it, so the box being
+            // typed in can be seen, smikkelvriend #200)
+            Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 4.dp)) {
                 if (withPreview && !pinPreview) SettingsMapPreview(engine, 170)
                 if (narrowS) Row(Modifier.padding(bottom = 6.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
@@ -1074,14 +1077,14 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
             prefs.put(PreferenceKeys.EVMPK, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.3f", it / 1.609344) } ?: "")
         }
         SFieldItem(L.t("Usable battery (kWh)"), prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), L.t("For the battery estimate and charging stops (60 if left blank)"), placeholder = L.t("e.g. 64"), number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
-        SFieldItem(if (mi) L.t("Electricity price (pence per kWh)") else L.t("Electricity price (cents per kWh)"), prefs.s(PreferenceKeys.EVPPK, ""), placeholder = L.t("e.g. 28"), number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' }.take(6)) }
+        SFieldItem(if (mi) L.t("Electricity price (pence per kWh)") else L.t("Electricity price (cents per kWh)"), prefs.s(PreferenceKeys.EVPPK, ""), placeholder = L.t("e.g. 28"), number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
     } else SGroup(L.t("Fuel cost on the route options"), footer = L.t("With both filled in, each route shows roughly what it will cost in fuel.")) {
         if (mi) SFieldItem(L.t("Fuel economy (miles per gallon)"), prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = L.t("e.g. 45"), number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, num(s).take(5)) }
         // litres per 100 km: 282.48 / UK miles per gallon
         else SFieldItem(L.t("Fuel use (litres per 100 km)"), prefs.s(PreferenceKeys.FUELMPG, "").toDoubleOrNull()?.takeIf { it > 0 }?.let { fmt1(282.481 / it) } ?: "", placeholder = L.t("e.g. 6.3"), number = true) { s ->
             prefs.put(PreferenceKeys.FUELMPG, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.2f", 282.481 / it) } ?: "")
         }
-        SFieldItem(if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = L.t("e.g. 139.9"), number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' }.take(6)) }
+        SFieldItem(if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = L.t("e.g. 139.9"), number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
     }
 }
 

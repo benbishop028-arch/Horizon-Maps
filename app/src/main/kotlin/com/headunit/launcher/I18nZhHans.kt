@@ -335,6 +335,8 @@ object I18nZhHans {
         "Via {0} · " to "途经{0} · ",
         "Looking for other routes…" to "正在查找其他路线…",
         "Tap a route to switch to it, or tap it on the map" to "点按路线即可切换，或在地图上点按",
+        "Tap a route to see it, then tap it again to switch" to "点按路线即可查看，再点一次即可切换",
+        "Tap again to switch" to "再点一次即可切换",
         "AVERAGE SPEED CHECK AHEAD" to "前方区间测速",
         "AVERAGE SPEED CHECK" to "区间测速",
         "Starts in {0} · {1} long" to "{0}后开始 · 全长{1}",

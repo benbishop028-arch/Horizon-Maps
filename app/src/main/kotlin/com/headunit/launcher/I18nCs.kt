@@ -335,6 +335,8 @@ object I18nCs {
         "Via {0} · " to "Přes {0} · ",
         "Looking for other routes…" to "Hledám jiné trasy…",
         "Tap a route to switch to it, or tap it on the map" to "Klepnutím na trasu ji vyberete, nebo na ni klepněte v mapě",
+        "Tap a route to see it, then tap it again to switch" to "Klepnutím trasu zobrazíte, dalším klepnutím na ni přepnete",
+        "Tap again to switch" to "Klepněte znovu pro přepnutí",
         "AVERAGE SPEED CHECK AHEAD" to "ÚSEKOVÉ MĚŘENÍ PŘED VÁMI",
         "AVERAGE SPEED CHECK" to "ÚSEKOVÉ MĚŘENÍ",
         "Starts in {0} · {1} long" to "Začíná za {0} · délka {1}",

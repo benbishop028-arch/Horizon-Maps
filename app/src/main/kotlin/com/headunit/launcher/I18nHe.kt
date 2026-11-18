@@ -335,6 +335,8 @@ object I18nHe {
         "Via {0} · " to "דרך {0} · ",
         "Looking for other routes…" to "מחפש מסלולים אחרים…",
         "Tap a route to switch to it, or tap it on the map" to "הקש על מסלול כדי לעבור אליו, או הקש עליו במפה",
+        "Tap a route to see it, then tap it again to switch" to "הקש על מסלול כדי לראות אותו, ושוב כדי לעבור אליו",
+        "Tap again to switch" to "הקש שוב כדי לעבור",
         "AVERAGE SPEED CHECK AHEAD" to "אכיפת מהירות ממוצעת לפניך",
         "AVERAGE SPEED CHECK" to "אכיפת מהירות ממוצעת",
         "Starts in {0} · {1} long" to "מתחיל בעוד {0} · באורך {1}",

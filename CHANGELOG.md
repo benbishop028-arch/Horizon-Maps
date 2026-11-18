@@ -44,6 +44,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Choosing another route with the phone held sideways: the Routes panel sits beside the buttons (scrolling if it's long), the turn card goes to one line on the other side, the speed, Re-centre button and trip card step aside, and the map fits the routes in between. The panel no longer covers the screen or the turn card (thanks to fahadfadi)
+- Other routes: tap a route once to see it (shown in yellow on the map), then tap it again to switch to it. This works in the Routes panel and on the map's route labels (thanks to fahadfadi)
+- Start navigation on phones: it gets the bigger share of the row and stays on one line, and Fly over route may use two lines, so long wordings (like Dutch) are no longer cut off (thanks to smikkelvriend)
 - Choosing another route on a phone: with the phone held upright, Other routes now opens as a panel along the bottom instead of in the middle of the map. The turn card goes to one line, the speed signs, speedometer, Re-centre button and trip card step aside, and the map zooms to fit the routes above the panel. Head units and Android Auto are unchanged (thanks to smikkelvriend)
 - UK road signs on the "Then" line: the road numbers in the turn card's "Then" line now show as the same blue, green and white signs, in their place in the sentence (thanks to karthikeyansr)
 - UK road numbers as signs on the turn card: motorways in blue with white, A roads in green with yellow and B roads in white with black, as on the real signs. The turn card's corners are also a little less rounded (thanks to karthikeyansr)
@@ -92,6 +95,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Fuel cost on the route options: a price typed in euros or pounds per litre (2.15 or 2,15) is now understood as well as cents or pence (215); it was read as 2.15 cents. The same goes for the electricity price (thanks to smikkelvriend)
+- Settings: the on-screen keyboard no longer covers the box you're typing in; the settings scroll above it (Android 11 and newer, with full screen on) (thanks to smikkelvriend)
+- Roundabouts on the car's own displays: Android Auto is now told which way each roundabout exit goes, so a car's head-up display or dashboard draws the right exit instead of always a right turn (thanks to desko1973)
 - Your own 3D model: its glow is now the same size round it as round the built-in car (with some models it covered nearly the whole screen), and the headlight beam and road name under it are placed to fit it too (thanks to Matattack99)
 - UK road signs: roads like A1(M) now show as one blue motorway sign instead of a green A1 with "(M)" after it, and a road number written with a space ("M 25") now gets its sign too (thanks to karthikeyansr)
 - Own 3D models that were invisible: a model whose file scales itself down (common in models from Sketchfab and other sites) came out far too small to see. Models are now measured the way the map draws them, and ones picked before are measured again once (thanks to Matattack99)

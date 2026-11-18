@@ -335,6 +335,8 @@ object I18nUr {
         "Via {0} · " to "بذریعہ {0} · ",
         "Looking for other routes…" to "دوسرے راستے تلاش ہو رہے ہیں…",
         "Tap a route to switch to it, or tap it on the map" to "کسی راستے پر جانے کے لیے اسے ٹیپ کریں، یا نقشے پر ٹیپ کریں",
+        "Tap a route to see it, then tap it again to switch" to "راستہ دیکھنے کے لیے اسے ٹیپ کریں، پھر بدلنے کے لیے دوبارہ ٹیپ کریں",
+        "Tap again to switch" to "بدلنے کے لیے دوبارہ ٹیپ کریں",
         "AVERAGE SPEED CHECK AHEAD" to "آگے اوسط رفتار کی جانچ",
         "AVERAGE SPEED CHECK" to "اوسط رفتار کی جانچ",
         "Starts in {0} · {1} long" to "{0} میں شروع · {1} لمبی",

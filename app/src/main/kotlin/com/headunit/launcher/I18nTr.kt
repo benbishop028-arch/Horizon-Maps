@@ -335,6 +335,8 @@ object I18nTr {
         "Via {0} · " to "{0} üzerinden · ",
         "Looking for other routes…" to "Diğer rotalar aranıyor…",
         "Tap a route to switch to it, or tap it on the map" to "Geçmek için bir rotaya veya haritada ona dokunun",
+        "Tap a route to see it, then tap it again to switch" to "Görmek için bir rotaya dokunun, geçmek için tekrar dokunun",
+        "Tap again to switch" to "Geçmek için tekrar dokunun",
         "AVERAGE SPEED CHECK AHEAD" to "İLERİDE ORTALAMA HIZ KONTROLÜ",
         "AVERAGE SPEED CHECK" to "ORTALAMA HIZ KONTROLÜ",
         "Starts in {0} · {1} long" to "{0} sonra başlar · {1} uzunluğunda",

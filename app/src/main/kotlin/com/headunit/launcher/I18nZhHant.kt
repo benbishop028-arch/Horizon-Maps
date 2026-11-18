@@ -335,6 +335,8 @@ object I18nZhHant {
         "Via {0} · " to "經由{0} · ",
         "Looking for other routes…" to "正在搜尋其他路線…",
         "Tap a route to switch to it, or tap it on the map" to "點選路線即可切換，或在地圖上點選",
+        "Tap a route to see it, then tap it again to switch" to "點選路線即可查看，再點一次即可切換",
+        "Tap again to switch" to "再點一次即可切換",
         "AVERAGE SPEED CHECK AHEAD" to "前方區間測速",
         "AVERAGE SPEED CHECK" to "區間測速",
         "Starts in {0} · {1} long" to "{0}後開始 · 長{1}",

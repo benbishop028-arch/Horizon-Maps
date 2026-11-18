@@ -335,6 +335,8 @@ object I18nNb {
         "Via {0} · " to "Via {0} · ",
         "Looking for other routes…" to "Ser etter andre ruter…",
         "Tap a route to switch to it, or tap it on the map" to "Trykk på en rute for å bytte til den, eller trykk på den på kartet",
+        "Tap a route to see it, then tap it again to switch" to "Trykk på en rute for å se den, og trykk igjen for å bytte",
+        "Tap again to switch" to "Trykk igjen for å bytte",
         "AVERAGE SPEED CHECK AHEAD" to "STREKNINGSMÅLING FORAN",
         "AVERAGE SPEED CHECK" to "STREKNINGSMÅLING",
         "Starts in {0} · {1} long" to "Starter om {0} · {1} lang",

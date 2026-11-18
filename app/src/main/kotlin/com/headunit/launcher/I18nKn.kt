@@ -335,6 +335,8 @@ object I18nKn {
         "Via {0} · " to "{0} ಮೂಲಕ · ",
         "Looking for other routes…" to "ಇತರ ಮಾರ್ಗಗಳನ್ನು ಹುಡುಕುತ್ತಿದೆ…",
         "Tap a route to switch to it, or tap it on the map" to "ಬದಲಾಯಿಸಲು ಮಾರ್ಗವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ, ಅಥವಾ ನಕ್ಷೆಯಲ್ಲಿ ಟ್ಯಾಪ್ ಮಾಡಿ",
+        "Tap a route to see it, then tap it again to switch" to "ಮಾರ್ಗವನ್ನು ನೋಡಲು ಅದನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ, ಬದಲಾಯಿಸಲು ಮತ್ತೆ ಟ್ಯಾಪ್ ಮಾಡಿ",
+        "Tap again to switch" to "ಬದಲಾಯಿಸಲು ಮತ್ತೆ ಟ್ಯಾಪ್ ಮಾಡಿ",
         "AVERAGE SPEED CHECK AHEAD" to "ಮುಂದೆ ಸರಾಸರಿ ವೇಗ ತಪಾಸಣೆ",
         "AVERAGE SPEED CHECK" to "ಸರಾಸರಿ ವೇಗ ತಪಾಸಣೆ",
         "Starts in {0} · {1} long" to "{0} ನಂತರ ಪ್ರಾರಂಭ · {1} ಉದ್ದ",

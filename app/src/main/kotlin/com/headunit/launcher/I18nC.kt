@@ -338,6 +338,8 @@ object I18nC {
         "Via {0} · " to listOf("ผ่าน {0} · ", "{0}経由 · ", "Lewat {0} ·"),
         "Looking for other routes…" to listOf("กำลังหาเส้นทางอื่น…", "他のルートを検索中…", "Mencari rute lain…"),
         "Tap a route to switch to it, or tap it on the map" to listOf("แตะเส้นทางเพื่อเปลี่ยน หรือแตะบนแผนที่", "ルートをタップするか、地図上でタップして切り替え", "Ketuk rute untuk beralih, atau ketuk di peta"),
+        "Tap a route to see it, then tap it again to switch" to listOf("แตะเส้นทางเพื่อดู แล้วแตะอีกครั้งเพื่อเปลี่ยน", "ルートをタップして表示し、もう一度タップで切り替え", "Ketuk rute untuk melihatnya, lalu ketuk lagi untuk beralih"),
+        "Tap again to switch" to listOf("แตะอีกครั้งเพื่อเปลี่ยน", "もう一度タップで切り替え", "Ketuk lagi untuk beralih"),
         "AVERAGE SPEED CHECK AHEAD" to listOf("ข้างหน้ามีการตรวจจับความเร็วเฉลี่ย", "この先 平均速度取締", "PEMERIKSAAN KECEPATAN RATA-RATA DI DEPAN"),
         "AVERAGE SPEED CHECK" to listOf("ตรวจจับความเร็วเฉลี่ย", "平均速度取締", "PEMERIKSAAN KECEPATAN RATA-RATA"),
         "Starts in {0} · {1} long" to listOf("เริ่มในอีก {0} · ยาว {1}", "{0}先から · 長さ{1}", "Mulai dalam {0} · sepanjang {1}"),

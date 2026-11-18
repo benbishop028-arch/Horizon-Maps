@@ -335,6 +335,8 @@ object I18nMs {
         "Via {0} · " to "Melalui {0} · ",
         "Looking for other routes…" to "Mencari laluan lain…",
         "Tap a route to switch to it, or tap it on the map" to "Ketik laluan untuk bertukar, atau ketik pada peta",
+        "Tap a route to see it, then tap it again to switch" to "Ketik laluan untuk melihatnya, kemudian ketik sekali lagi untuk bertukar",
+        "Tap again to switch" to "Ketik sekali lagi untuk bertukar",
         "AVERAGE SPEED CHECK AHEAD" to "KAWALAN PURATA LAJU DI HADAPAN",
         "AVERAGE SPEED CHECK" to "KAWALAN PURATA LAJU",
         "Starts in {0} · {1} long" to "Bermula dalam {0} · sepanjang {1}",

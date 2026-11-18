@@ -726,7 +726,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
         map.onUserGesture = { if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) } }
-        map.onAltTap = { i -> switchToAlt(i) }
+        map.onAltTap = { i -> tapAlt(i) }
         map.onChainTap = { i -> chainTapped(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
         if (prefs.s(PreferenceKeys.PLACE_PARKED, "").isNotBlank()) places.clearParked()
@@ -4829,7 +4829,43 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Closes the routes box, keeping your route, and goes back to following you. */
     fun closeAlternatives() {
         altListOpen = false
+        pickAlt(null)
         recenter(byUser = true)
+    }
+
+    /**
+     * The other route tapped once (fahadfadi): shown in yellow on the map and marked in the routes box; tapping it again switches
+     * to it. Null when none is picked. Forgotten when the routes are looked up afresh and it's no longer one of them.
+     */
+    var altPicked by mutableStateOf<LiveAlt?>(null)
+        private set
+
+    private fun pickAlt(a: LiveAlt?) {
+        altPicked = a
+        map.setPickedAlt(if (a == null) -1 else liveAlts.indexOf(a))
+    }
+
+    /** Keeps the picked route's mark right after the other routes change (its number can change; it's let go if it's gone). */
+    private fun syncPicked() {
+        val a = altPicked ?: return
+        val l = liveAlts
+        // (looked up afresh, it's a new copy of the same way: matched by where it turns off yours)
+        var i = l.indexOfFirst { it === a }
+        if (i < 0) i = l.indexOfFirst { Geo.dist(it.bubble, a.bubble) < 60.0 && it.diffMin == a.diffMin }
+        altPicked = l.getOrNull(i)
+        map.setPickedAlt(i)
+    }
+
+    /**
+     * A tap on another route, in the routes box or on the map: the first tap shows it (yellow on the map), a second tap on the
+     * same one switches to it. (The car screen's own list of routes still switches with one tap: it has no map beside it.)
+     */
+    fun tapAlt(i: Int) {
+        val a = liveAlts.getOrNull(i) ?: return
+        if (altPicked === a) { switchToAlt(i); return }
+        pickAlt(a)
+        // (on the map with the routes box closed there's no line saying so: a short note instead)
+        if (!altListOpen) toast(L.t("Tap again to switch"), 2500)
     }
 
     /** The routes box beside the Other routes button: open, and still looking. */
@@ -4877,7 +4913,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val list = withContext(Dispatchers.Default) { altsFor(cur, same, others, curProgress) }
                     if (route !== cur) return@launch
                     liveAlts = list
-                    map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic })
+                    map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic }); syncPicked()
                     if (force && list.isNotEmpty()) showAlternatives(list.map { it.line() })
                     val best = list.minByOrNull { it.diffMin }
                     if (best != null && best.diffMin <= -3 && liveSaid.add(best.diffMin / 2)) speak(L.t("A faster route is available, saving {0} minutes. Tap it on the map to switch.", -best.diffMin), true)
@@ -4909,12 +4945,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         altFitting = true
         // a phone held upright: the routes panel is along the bottom (this part of the screen), with the one-line turn card above
         val cover = altSheetCover
-        if (cover > 0.0) map.fitFrac(pts, 0.07, 0.14, 0.07, (cover + 0.04).coerceAtMost(0.7)) else map.fit(pts)
+        val side = altSideCover
+        when {
+            cover > 0.0 -> map.fitFrac(pts, 0.07, 0.14, 0.07, (cover + 0.04).coerceAtMost(0.7))
+            // a phone held sideways: the panel down one side, the one-line turn card at the top of the other
+            side != null -> map.fitFrac(pts, (side.first + 0.04).coerceAtMost(0.75), 0.2, (side.second + 0.04).coerceAtMost(0.75), 0.08)
+            else -> map.fit(pts)
+        }
         scheduleRecentre(15_000)
     }
 
     /** How much of the screen's height the routes panel takes along the bottom (a phone held upright; 0 otherwise). */
     @Volatile var altSheetCover = 0.0
+    /** A phone held sideways: how much of the screen's width the routes panel takes from the left and from the right (null otherwise). */
+    @Volatile var altSideCover: Pair<Double, Double>? = null
     // the map is showing the routes zoomed out (not moved by hand since): so it can be fitted again when the panel changes height
     private var altFitting = false
 
@@ -5074,7 +5118,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     .map { LiveAlt(it.route, -a.diffMin, it.bubble, it.divergeOff, -a.traffic, it.divIdx) }
                 if (route !== nr || back.isEmpty()) return@launch
                 liveAlts = back
-                map.setLiveAlts(back.map { it.line() }, back.map { it.bubble }, back.map { it.diffMin }, back.map { it.traffic })
+                map.setLiveAlts(back.map { it.line() }, back.map { it.bubble }, back.map { it.diffMin }, back.map { it.traffic }); syncPicked()
             }
         }
     }
@@ -5122,11 +5166,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             map.setRoute(cur.pts, emptyList(), cur.sev)
             map.setStopFlags(via.map { it.pos })
             map.setTunnels(cur.tunnels.map { (a, b) -> slice(r = cur, a = a, b = b) })
-            map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic })
+            map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic }); syncPicked()
         }
     }
 
-    private fun clearLiveAlts() { if (liveAlts.isNotEmpty()) liveAlts = emptyList(); map.setLiveAlts(emptyList(), emptyList(), emptyList(), emptyList()) }
+    private fun clearLiveAlts() { if (liveAlts.isNotEmpty()) liveAlts = emptyList(); map.setLiveAlts(emptyList(), emptyList(), emptyList(), emptyList()); pickAlt(null) }
 
     /** Drops alternatives whose turn-off is already behind you. */
     private fun pruneLiveAlts(progress: Double) {
@@ -5135,7 +5179,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val keep = l.filter { it.divergeOff > progress - 15.0 }
         if (keep.size != l.size) {
             liveAlts = keep
-            map.setLiveAlts(keep.map { it.line() }, keep.map { it.bubble }, keep.map { it.diffMin }, keep.map { it.traffic })
+            map.setLiveAlts(keep.map { it.line() }, keep.map { it.bubble }, keep.map { it.diffMin }, keep.map { it.traffic }); syncPicked()
         }
     }
 

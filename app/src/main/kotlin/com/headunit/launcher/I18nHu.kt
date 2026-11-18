@@ -335,6 +335,8 @@ object I18nHu {
         "Via {0} · " to "Ezen át: {0} · ",
         "Looking for other routes…" to "Más útvonalak keresése…",
         "Tap a route to switch to it, or tap it on the map" to "Koppintson egy útvonalra a váltáshoz, vagy koppintson rá a térképen",
+        "Tap a route to see it, then tap it again to switch" to "Koppintson egy útvonalra a megtekintéséhez, majd újra a váltáshoz",
+        "Tap again to switch" to "Koppintson újra a váltáshoz",
         "AVERAGE SPEED CHECK AHEAD" to "SZAKASZOS SEBESSÉGMÉRÉS ELŐTTÜNK",
         "AVERAGE SPEED CHECK" to "SZAKASZOS SEBESSÉGMÉRÉS",
         "Starts in {0} · {1} long" to "Kezdődik {0} múlva · {1} hosszú",

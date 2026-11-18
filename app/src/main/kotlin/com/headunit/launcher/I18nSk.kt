@@ -335,6 +335,8 @@ object I18nSk {
         "Via {0} · " to "Cez {0} · ",
         "Looking for other routes…" to "Hľadám iné trasy…",
         "Tap a route to switch to it, or tap it on the map" to "Ťuknutím na trasu ju vyberiete, alebo na ňu ťuknite v mape",
+        "Tap a route to see it, then tap it again to switch" to "Ťuknutím trasu zobrazíte, ďalším ťuknutím na ňu prepnete",
+        "Tap again to switch" to "Ťuknite znova na prepnutie",
         "AVERAGE SPEED CHECK AHEAD" to "ÚSEKOVÉ MERANIE PRED VAMI",
         "AVERAGE SPEED CHECK" to "ÚSEKOVÉ MERANIE",
         "Starts in {0} · {1} long" to "Začína o {0} · dĺžka {1}",

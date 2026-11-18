@@ -335,6 +335,8 @@ object I18nEu {
         "Via {0} · " to "{0} bidez · ",
         "Looking for other routes…" to "Beste ibilbide batzuk bilatzen…",
         "Tap a route to switch to it, or tap it on the map" to "Ukitu ibilbide bat hari aldatzeko, edo ukitu mapan",
+        "Tap a route to see it, then tap it again to switch" to "Ukitu ibilbide bat ikusteko, eta ukitu berriro aldatzeko",
+        "Tap again to switch" to "Ukitu berriro aldatzeko",
         "AVERAGE SPEED CHECK AHEAD" to "BATEZ BESTEKO ABIADURA-KONTROLA AURREAN",
         "AVERAGE SPEED CHECK" to "BATEZ BESTEKO ABIADURA-KONTROLA",
         "Starts in {0} · {1} long" to "{0} barru hasten da · {1} luze",

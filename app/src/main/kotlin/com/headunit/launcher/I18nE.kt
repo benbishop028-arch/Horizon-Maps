@@ -335,6 +335,8 @@ object I18nE {
         "Via {0} · " to listOf("Čez {0} · "),
         "Looking for other routes…" to listOf("Iskanje drugih poti …"),
         "Tap a route to switch to it, or tap it on the map" to listOf("Tapnite pot, da preklopite nanjo, ali jo tapnite na zemljevidu"),
+        "Tap a route to see it, then tap it again to switch" to listOf("Tapnite pot, da jo vidite, nato jo tapnite znova, da preklopite"),
+        "Tap again to switch" to listOf("Tapnite znova za preklop"),
         "AVERAGE SPEED CHECK AHEAD" to listOf("PRED VAMI MERJENJE POVPREČNE HITROSTI"),
         "AVERAGE SPEED CHECK" to listOf("MERJENJE POVPREČNE HITROSTI"),
         "Starts in {0} · {1} long" to listOf("Začetek čez {0} · dolžina {1}"),

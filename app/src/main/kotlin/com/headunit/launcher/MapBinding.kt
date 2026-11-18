@@ -3438,7 +3438,27 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             liveLines.forEachIndexed { i, l -> if (l.size >= 2) fl += line(l).also { it.addNumberProperty("i", i) } }
             src("dl-live-alts")?.featureCollection(FeatureCollection.fromFeatures(fl))
         } catch (e: Exception) { }
+        stylePicked()
         pushCards()
+    }
+
+    // the other route tapped once (fahadfadi): drawn in yellow on top of the others until it's tapped again to switch to it; -1 none
+    private var pickedLive = -1
+
+    /** Shows which other route has been tapped once ([i] its number; -1 for none). */
+    fun setPickedAlt(i: Int) { main0.post { if (pickedLive != i) { pickedLive = i; stylePicked() } } }
+
+    private fun stylePicked() {
+        val ly = layer("dl-live-alts-line") as? LineLayer ?: return
+        val base = prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")
+        try {
+            val i = pickedLive
+            if (i < 0) { ly.lineColor(base); ly.lineSortKey(0.0) }
+            else {
+                ly.lineColor(Expression.fromRaw("[\"case\",[\"==\",[\"get\",\"i\"],$i],\"#F0B429\",\"$base\"]"))
+                ly.lineSortKey(Expression.fromRaw("[\"case\",[\"==\",[\"get\",\"i\"],$i],1,0]"))
+            }
+        } catch (e: Exception) { }
     }
 
     /** Where each card is on the map right now (for taps), by alternative number. */

@@ -335,6 +335,8 @@ object I18nD {
         "Via {0} · " to listOf("През {0} ·"),
         "Looking for other routes…" to listOf("Търсене на други маршрути…"),
         "Tap a route to switch to it, or tap it on the map" to listOf("Докоснете маршрут, за да превключите, или го докоснете на картата"),
+        "Tap a route to see it, then tap it again to switch" to listOf("Докоснете маршрут, за да го видите, и отново, за да превключите"),
+        "Tap again to switch" to listOf("Докоснете отново, за да превключите"),
         "AVERAGE SPEED CHECK AHEAD" to listOf("НАПРЕД КОНТРОЛ НА СРЕДНА СКОРОСТ"),
         "AVERAGE SPEED CHECK" to listOf("КОНТРОЛ НА СРЕДНА СКОРОСТ"),
         "Starts in {0} · {1} long" to listOf("Започва след {0} · дълъг {1}"),

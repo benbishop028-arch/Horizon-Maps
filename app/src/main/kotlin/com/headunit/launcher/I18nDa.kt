@@ -335,6 +335,8 @@ object I18nDa {
         "Via {0} · " to "Via {0} · ",
         "Looking for other routes…" to "Leder efter andre ruter…",
         "Tap a route to switch to it, or tap it on the map" to "Tryk på en rute for at skifte til den, eller tryk på den på kortet",
+        "Tap a route to see it, then tap it again to switch" to "Tryk på en rute for at se den, og tryk igen for at skifte",
+        "Tap again to switch" to "Tryk igen for at skifte",
         "AVERAGE SPEED CHECK AHEAD" to "STRÆKNINGSMÅLING FORUDE",
         "AVERAGE SPEED CHECK" to "STRÆKNINGSMÅLING",
         "Starts in {0} · {1} long" to "Starter om {0} · {1} lang",

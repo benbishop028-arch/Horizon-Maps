@@ -335,6 +335,8 @@ object I18nEl {
         "Via {0} · " to "Μέσω {0} · ",
         "Looking for other routes…" to "Αναζήτηση άλλων διαδρομών…",
         "Tap a route to switch to it, or tap it on the map" to "Πατήστε μια διαδρομή για αλλαγή, ή πατήστε την στον χάρτη",
+        "Tap a route to see it, then tap it again to switch" to "Πατήστε μια διαδρομή για να τη δείτε και ξανά για να αλλάξετε",
+        "Tap again to switch" to "Πατήστε ξανά για αλλαγή",
         "AVERAGE SPEED CHECK AHEAD" to "ΜΕΤΡΗΣΗ ΜΕΣΗΣ ΤΑΧΥΤΗΤΑΣ ΜΠΡΟΣΤΑ",
         "AVERAGE SPEED CHECK" to "ΜΕΤΡΗΣΗ ΜΕΣΗΣ ΤΑΧΥΤΗΤΑΣ",
         "Starts in {0} · {1} long" to "Ξεκινά σε {0} · μήκος {1}",

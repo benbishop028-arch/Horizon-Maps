@@ -335,6 +335,8 @@ object I18nRo {
         "Via {0} · " to "Prin {0} · ",
         "Looking for other routes…" to "Se caută alte trasee…",
         "Tap a route to switch to it, or tap it on the map" to "Atingeți un traseu pentru a-l alege sau atingeți-l pe hartă",
+        "Tap a route to see it, then tap it again to switch" to "Atingeți un traseu pentru a-l vedea, apoi atingeți-l din nou pentru a-l alege",
+        "Tap again to switch" to "Atingeți din nou pentru a schimba",
         "AVERAGE SPEED CHECK AHEAD" to "CONTROL DE VITEZĂ MEDIE ÎN FAȚĂ",
         "AVERAGE SPEED CHECK" to "CONTROL DE VITEZĂ MEDIE",
         "Starts in {0} · {1} long" to "Începe în {0} · lung de {1}",

@@ -258,7 +258,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // to one line, and the speed, Re-centre and trip card step aside, so the map between shows the routes clearly
         val altSheet = narrow && !previewing && engine.altListOpen && engine.route != null
         var altSheetPx by remember { mutableStateOf(0) }
-        BackHandler(enabled = altSheet && !sheet) { engine.closeAlternatives() }
+        // the same on a phone held sideways (a short, wide screen, fahadfadi): the routes panel stays beside the buttons but the
+        // turn card goes to one line on the other side and the rest steps aside, so the panel no longer covers the turn card
+        val shortWide = !narrow && maxHeight < 430.dp
+        val altSide = shortWide && !previewing && engine.altListOpen && engine.route != null
+        // either way: the map kept clear for the routes
+        val altFocus = altSheet || altSide
+        var altSideL by remember { mutableStateOf(0f) }
+        var altSideR by remember { mutableStateOf(0f) }
+        BackHandler(enabled = altFocus && !sheet) { engine.closeAlternatives() }
         // (the routes panel counts like the trip card, which steps aside for it: your arrow is kept clear of it)
         LaunchedEffect(narrow, tripPx, screenH, altSheet, altSheetPx) {
             val coverPx = if (altSheet) altSheetPx else tripPx
@@ -268,6 +276,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         LaunchedEffect(altSheet, altSheetPx, engine.liveAlts.size) {
             engine.altSheetCover = if (altSheet && altSheetPx > 0) (with(dens) { altSheetPx.toDp() } / screenH).toDouble().coerceIn(0.0, 0.6) else 0.0
             if (altSheet && altSheetPx > 0 && engine.liveAlts.isNotEmpty()) { delay(150); engine.refitAlternatives() }
+        }
+        // sideways: the routes are fitted into the map beside the panel (how much of the width it covers on each side)
+        LaunchedEffect(altSide, altSideL, altSideR, engine.liveAlts.size) {
+            engine.altSideCover = if (altSide && altSideL + altSideR > 0f) altSideL.toDouble() to altSideR.toDouble() else null
+            if (altSide && altSideL + altSideR > 0f && engine.liveAlts.isNotEmpty()) { delay(150); engine.refitAlternatives() }
         }
         // left-hand drive: everything swaps sides (cards on the right, round buttons on the left). Settings > Screen and sizes >
         // Card positions can put the turn card (and with it the buttons, on the other side) on either side whatever you drive
@@ -357,13 +370,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                 val turnDensity = LocalDensity.current
                                 val cardSize = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
                                 CompositionLocalProvider(LocalDensity provides Density(turnDensity.density * cardSize, turnDensity.fontScale)) {
-                                    ImmTurnCard(engine, t, slim = altSheet)
+                                    ImmTurnCard(engine, t, slim = altFocus)
                                 }
                             }
                         }
                     }
                     // (not while choosing a route on a phone: the map is kept clear for the routes)
-                    if (!altSheet) {
+                    if (!altFocus) {
                         engine.advice?.let { AdvicePill(it) }
                         LorryWarnCard(engine)
                         JunctionCloseup(engine)
@@ -485,7 +498,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val besideRail = with(dens) { buttonsWPx.toDp() } + 26.dp
             // (on a narrow, portrait screen there's no room beside the buttons: it's a panel along the bottom instead)
             if (altSheet) Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().zIndex(7f).onSizeChanged { altSheetPx = it.height }) { RoutesBox(engine, sheet = true) }
-            else Box(Modifier.align(side(Alignment.TopEnd)).sides(end = besideRail, top = 16.dp)) { RoutesBox(engine) }
+            else Box(Modifier.align(side(Alignment.TopEnd)).sides(end = besideRail, top = if (altSide) 8.dp else 16.dp)
+                .then(if (altSide) Modifier.zIndex(7f).onGloballyPositioned { lc ->
+                    val b = lc.boundsInParent()
+                    altSideL = if (b.left < boxW / 2f) (b.right / boxW).coerceIn(0f, 0.7f) else 0f
+                    altSideR = if (b.left >= boxW / 2f) ((boxW - b.left) / boxW).coerceIn(0f, 0.7f) else 0f
+                } else Modifier)) { RoutesBox(engine, maxH = if (altSide) screenH - 16.dp else null) }
         }
 
         // ---- speed limit and speedometer: bottom right, or bottom left when mirrored for left-hand drive (the cards are on the
@@ -493,7 +511,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val besideButtons = with(dens) { buttonsWPx.toDp() } + 26.dp
         // (Card positions: on the other side if chosen, and lifted above the trip card when they share a corner)
         val speedShareTrip = !narrow && tripPx > 0 && tripAt == speedAt
-        if (!previewing && !altSheet) Box(
+        if (!previewing && !altFocus) Box(
             when {
                 speedOnCardSide -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
                     .padding(start = 16.dp, end = 16.dp, bottom = if (speedShareTrip) tripH + 8.dp else 16.dp)
@@ -511,7 +529,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- bottom left: hazards and the trip card (not while the "all locations" / add-a-stop panel is open: it's in the same
         // corner and the panel lets the map show through, so the trip card's figures showed through it)
-        if (!previewing && !altSheet && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
+        if (!previewing && !altFocus && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
             val tripAlign = when (tripAt) { "centre" -> Alignment.BottomCenter; "right" -> Alignment.BottomEnd; "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
@@ -531,7 +549,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, true)
         FollowMedia(mediaOn)
         val mediaShow = mediaOn && com.headunit.launcher.MediaNow.showing() && !previewing && engine.arrival == null && engine.here == null &&
-            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altSheet
+            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus
         val tripW = with(dens) { tripWPx.toDp() }
         val speedW = with(dens) { speedWPx.toDp() }
         val mediaMax = 360.dp
@@ -565,7 +583,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- bottom centre: re-centre once you have panned away, or zoomed in / out with the buttons (it puts the zoom back to automatic)
         AnimatedVisibility(
-            !previewing && !altSheet && (!engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01) && engine.arrival == null, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = (if (narrow && tripPx > 0) tripH + 10.dp else 18.dp) + mediaLift),
+            !previewing && !altFocus && (!engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01) && engine.arrival == null, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = (if (narrow && tripPx > 0) tripH + 10.dp else 18.dp) + mediaLift),
             enter = fadeIn(tween(200)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.85f), exit = fadeOut(tween(150)) + androidx.compose.animation.scaleOut(tween(150), targetScale = 0.9f),
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -588,7 +606,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             tripPx > 0 && !narrow -> Modifier.align(side(Alignment.BottomStart)).sides(start = 16.dp, bottom = tripH + 10.dp)
             else -> Modifier.align(Alignment.BottomCenter).padding(bottom = if (tripPx > 0) tripH + 10.dp else 18.dp)
         }
-        AnimatedVisibility(engine.stoppedOverview && !previewing && !altSheet, modifier = trafficMod,
+        AnimatedVisibility(engine.stoppedOverview && !previewing && !altFocus, modifier = trafficMod,
             enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.dismissStoppedOverview() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.Traffic, null, tint = c.accent, modifier = Modifier.size(18.dp))
@@ -601,7 +619,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // traffic pill (never shown together)
         val sf = engine.startFrom
         // (not over the route choice on a phone: there the bottom of the screen is the route card's buttons, and it covered them)
-        AnimatedVisibility(sf != null && !altSheet && !engine.stoppedOverview && !(previewing && (narrow || maxHeight < 480.dp)), modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
+        AnimatedVisibility(sf != null && !altFocus && !engine.stoppedOverview && !(previewing && (narrow || maxHeight < 480.dp)), modifier = trafficMod, enter = fadeIn(tween(300)), exit = fadeOut(tween(250))) {
             Row(Modifier.onSizeChanged { if (it.width > 0) trafficPillWPx = it.width }.panel(6.dp, RoundedCornerShape(20.dp), c.surface).pressClick { engine.clearStartFrom() }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(18.dp))
                 Text(L.t("Starting from {0}", sf?.name ?: ""), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
@@ -1791,7 +1809,7 @@ private fun ItineraryCard(engine: NavEngine) {
 
 /** The routes box (Other routes): your route first, then each other way, with how it compares. */
 @Composable
-internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier, sheet: Boolean = false) {
+internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier, sheet: Boolean = false, maxH: androidx.compose.ui.unit.Dp? = null) {
     val c = LocalVw.current
     val eta = engine.eta
     val alts = engine.liveAlts
@@ -1800,7 +1818,10 @@ internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier, sheet: 
     // sheet: a phone held upright, where it's a solid panel along the bottom (the see-through one let the map's names show through it)
     val boxMod = if (sheet) modifier.fillMaxWidth().panel(12.dp, RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp), c.surface.copy(alpha = 1f))
         .pointerInput(Unit) { detectTapGestures { } }.padding(top = 6.dp, bottom = 10.dp)
-        else modifier.width(340.dp).panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 8.dp)
+        // maxH: a phone held sideways, where it's no taller than the screen (the routes scroll inside it) and a little narrower
+        else modifier.width(if (maxH != null) 300.dp else 340.dp).then(if (maxH != null) Modifier.heightIn(max = maxH) else Modifier)
+            .panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 8.dp)
+    val picked = engine.altPicked
     Column(boxMod) {
         if (sheet) Box(Modifier.align(Alignment.CenterHorizontally).padding(bottom = 2.dp).width(36.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(c.line))
         Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1810,6 +1831,9 @@ internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier, sheet: 
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(22.dp))
             }
         }
+        // the routes scroll when there isn't room for them all (a phone held sideways); the title and close button stay put.
+        // (Only then: the car screen measures the box with no height limit, where a scrolling list would crash)
+        Column(if (maxH != null) Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()) else Modifier) {
         // yours
         if (eta != null) RouteRow(
             title = Geo.fmtDur(eta.secs), titleCol = c.text,
@@ -1833,33 +1857,41 @@ internal fun RoutesBox(engine: NavEngine, modifier: Modifier = Modifier, sheet: 
                 titleCol = if (a.diffMin < 0) Good else if (a.diffMin > 0) Warn else c.text,
                 line2 = L.t("Arrive {0} · {1}", arrive, Geo.fmtDist(dist, engine.imperial)),
                 line3 = (if (via != null) L.t("Via {0} · ", via) else "") + traffic, selected = false,
-                tap = if (car) "alt-$i" else null,
-            ) { engine.switchToAlt(i) }
+                tap = if (car) "alt-$i" else null, picked = picked != null && picked === a,
+            ) { engine.tapAlt(i) }
         }
         if (alts.isEmpty()) Text(
             if (engine.altSearching) L.t("Looking for other routes…") else L.t("No other routes right now"),
             color = c.sub, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
         )
-        else Text(L.t("Tap a route to switch to it, or tap it on the map"), color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp))
+        else Text(L.t("Tap a route to see it, then tap it again to switch"), color = c.sub, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 18.dp, vertical = 6.dp))
+        }
     }
 }
 
 @Composable
-private fun RouteRow(title: String, titleCol: Color, line2: String, line3: String, selected: Boolean, tap: String? = null, onClick: () -> Unit) {
+private fun RouteRow(title: String, titleCol: Color, line2: String, line3: String, selected: Boolean, tap: String? = null, picked: Boolean = false, onClick: () -> Unit) {
     val c = LocalVw.current
     Row(
-        Modifier.fillMaxWidth().pressClick(onClick).then(if (tap != null) Modifier.carTap(tap, onClick) else Modifier).padding(horizontal = 18.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().pressClick(onClick).then(if (tap != null) Modifier.carTap(tap, onClick) else Modifier)
+            // tapped once: a yellow tint, as its line on the map, until it's tapped again to switch
+            .then(if (picked) Modifier.padding(horizontal = 8.dp).clip(RoundedCornerShape(12.dp)).background(PickedAlt.copy(alpha = 0.16f)).padding(horizontal = 10.dp, vertical = 10.dp)
+                  else Modifier.padding(horizontal = 18.dp, vertical = 10.dp)),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(4.dp).height(46.dp).clip(RoundedCornerShape(2.dp)).background(if (selected) c.accent else c.line))
+        Box(Modifier.width(4.dp).height(46.dp).clip(RoundedCornerShape(2.dp)).background(if (selected) c.accent else if (picked) PickedAlt else c.line))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(title, color = titleCol, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             Text(line2, color = c.text, fontSize = 13.sp, maxLines = 1)
             Text(line3, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            if (picked) Text(L.t("Tap again to switch"), color = PickedAlt, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         }
     }
 }
+
+/** The other route tapped once: the same yellow as its line on the map. */
+private val PickedAlt = Color(0xFFF0B429)
 
 
 /** Arabic, Hebrew and Urdu: the inside of a card reads right to left (arrow on the right, text right-aligned). */

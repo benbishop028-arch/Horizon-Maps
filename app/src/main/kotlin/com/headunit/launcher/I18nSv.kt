@@ -335,6 +335,8 @@ object I18nSv {
         "Via {0} · " to "Via {0} · ",
         "Looking for other routes…" to "Letar efter andra rutter…",
         "Tap a route to switch to it, or tap it on the map" to "Tryck på en rutt för att byta till den, eller tryck på den på kartan",
+        "Tap a route to see it, then tap it again to switch" to "Tryck på en rutt för att se den och tryck igen för att byta",
+        "Tap again to switch" to "Tryck igen för att byta",
         "AVERAGE SPEED CHECK AHEAD" to "MEDELHASTIGHETSKONTROLL FRAMFÖR",
         "AVERAGE SPEED CHECK" to "MEDELHASTIGHETSKONTROLL",
         "Starts in {0} · {1} long" to "Börjar om {0} · {1} lång",

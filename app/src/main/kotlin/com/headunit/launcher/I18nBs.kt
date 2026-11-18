@@ -335,6 +335,8 @@ object I18nBs {
         "Via {0} · " to "Preko {0} · ",
         "Looking for other routes…" to "Tražim druge rute…",
         "Tap a route to switch to it, or tap it on the map" to "Dodirnite rutu za promjenu ili je dodirnite na karti",
+        "Tap a route to see it, then tap it again to switch" to "Dodirnite rutu da je vidite, a zatim ponovo da se prebacite",
+        "Tap again to switch" to "Dodirnite ponovo za promjenu",
         "AVERAGE SPEED CHECK AHEAD" to "MJERENJE PROSJEČNE BRZINE ISPRED",
         "AVERAGE SPEED CHECK" to "MJERENJE PROSJEČNE BRZINE",
         "Starts in {0} · {1} long" to "Počinje za {0} · duljina {1}",

@@ -335,6 +335,8 @@ object I18nAr {
         "Via {0} · " to "عبر {0} · ",
         "Looking for other routes…" to "جارٍ البحث عن مسارات أخرى…",
         "Tap a route to switch to it, or tap it on the map" to "اضغط على مسار للتبديل إليه، أو اضغط عليه في الخريطة",
+        "Tap a route to see it, then tap it again to switch" to "اضغط على مسار لرؤيته، ثم اضغط عليه مرة أخرى للتبديل",
+        "Tap again to switch" to "اضغط مرة أخرى للتبديل",
         "AVERAGE SPEED CHECK AHEAD" to "مراقبة متوسط السرعة أمامك",
         "AVERAGE SPEED CHECK" to "مراقبة متوسط السرعة",
         "Starts in {0} · {1} long" to "تبدأ بعد {0} · بطول {1}",
