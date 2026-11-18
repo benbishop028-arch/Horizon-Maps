@@ -106,6 +106,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Roundabout arrow: the arrowhead now sits clear of the ring on a short stem, so it reads as an arrow again, especially in the small icon on the "Then" line
 - Numbers off-centre: the exit number in the roundabout icon and the number on the round speed limit sign sat slightly high; both are now exactly in the middle (thanks to karthikeyansr-lgtm)
 - Add a stop on a phone held upright: the panel and the list of places along the route now sit along the bottom, with the places shown on the map above them (the list covered them). The first screen now has the same look as the list (the same solid panel, round buttons, tiles and blue), and neither lets the map show through the text
 - Headlight beam with your own 3D model: no more odd dark patch round the car. The beam now starts at the front of your model instead of having a car-shaped box cut out of it that didn't match your model's shape (thanks to liamstears)

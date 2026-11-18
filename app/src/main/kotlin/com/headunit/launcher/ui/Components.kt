@@ -334,13 +334,13 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
         drawContext.canvas.restore()
     }
     // the arrowhead: a point with a notch cut into its back, corners slightly rounded
-    fun notched(ex: Float, ey: Float, ux: Float, uy: Float) {
+    fun notched(ex: Float, ey: Float, ux: Float, uy: Float, len: Float = 11f, wing: Float = 9.5f) {
         val px = -uy; val py = ux
         val head = Path().apply {
-            moveTo((ex + ux * 11f) * s, (ey + uy * 11f) * s)
-            lineTo((ex + px * 9.5f) * s, (ey + py * 9.5f) * s)
+            moveTo((ex + ux * len) * s, (ey + uy * len) * s)
+            lineTo((ex + px * wing) * s, (ey + py * wing) * s)
             lineTo((ex + ux * 2.5f) * s, (ey + uy * 2.5f) * s)
-            lineTo((ex - px * 9.5f) * s, (ey - py * 9.5f) * s)
+            lineTo((ex - px * wing) * s, (ey - py * wing) * s)
             close()
         }
         drawPath(head, color)
@@ -354,7 +354,7 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
         // The other roads (left, ahead, right) show faded, and the exit's number sits in the middle on a half-faded disc
         // (karthikeyansr's redesign, #188)
         val numbered = exitNumber in 1..20
-        val cx = 24f; val cy = 23f; val rr = 11f
+        val cx = 24f; val cy = 23f; val rr = 10.5f
         val ringRect = Rect(Offset((cx - rr) * s, (cy - rr) * s), Size(rr * 2f * s, rr * 2f * s))
         val turn = if (exitAngle.isFinite()) exitAngle else angle
         fun wrap(d: Float) = ((d % 360f) + 360f) % 360f
@@ -373,24 +373,26 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
                 if (diff < 35f) continue
                 val gd = Math.toRadians((g - 90f).toDouble())
                 val gx = kotlin.math.cos(gd).toFloat(); val gy = kotlin.math.sin(gd).toFloat()
-                drawLine(color, p(cx + gx * rr, cy + gy * rr), p(cx + gx * (rr + 11f), cy + gy * (rr + 11f)), 6f * s, StrokeCap.Round)
+                drawLine(color, p(cx + gx * rr, cy + gy * rr), p(cx + gx * (rr + 10f), cy + gy * (rr + 10f)), 6f * s, StrokeCap.Round)
             }
         }
         val drive = Stroke(width = sw, cap = StrokeCap.Round, join = StrokeJoin.Round)
         drawLine(color, p(24f, 46f), p(24f, cy + rr), sw, StrokeCap.Round)
         drawArc(color, 90f, sweep, false, ringRect.topLeft, ringRect.size, style = drive)
-        val ex = cx + dx * (rr + 1.5f); val ey = cy + dy * (rr + 1.5f)
+        // (the head sits out on a short stem, a little slimmer than a turn's: right against the ring, the back of it ran into the
+        // ring's bright and faded parts and it no longer read as an arrow)
+        val ex = cx + dx * (rr + 3.6f); val ey = cy + dy * (rr + 3.6f)
         drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
-        notched(ex, ey, dx, dy)
+        notched(ex, ey, dx, dy, len = 9f, wing = 7.5f)
         if (numbered) {
             // the number knocked out of the disc, so it shows in the turn card's own colour whatever the theme; centred on the
             // digits themselves (centring on the font's full height left it sitting high)
             drawContext.canvas.saveLayer(Rect(Offset.Zero, size), androidx.compose.ui.graphics.Paint())
-            drawCircle(color.copy(alpha = color.alpha * 0.65f), 6.5f * s, p(cx, cy))
+            drawCircle(color.copy(alpha = color.alpha * 0.65f), 6f * s, p(cx, cy))
             drawContext.canvas.nativeCanvas.apply {
                 val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
                     textAlign = android.graphics.Paint.Align.CENTER
-                    textSize = (if (exitNumber >= 10) 7.5f else 9.5f) * s
+                    textSize = (if (exitNumber >= 10) 7f else 9f) * s
                     typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                     xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT)
                 }
