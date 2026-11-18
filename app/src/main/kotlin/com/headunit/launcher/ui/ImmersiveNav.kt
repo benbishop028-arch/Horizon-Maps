@@ -486,7 +486,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
                 }
-                else Row(Modifier.align(side(Alignment.TopEnd)).padding(16.dp).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                // (the same with no Settings button above the panel: the panel itself goes under the turn card, Duddon Close)
+                else Row(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
                 }
             }
