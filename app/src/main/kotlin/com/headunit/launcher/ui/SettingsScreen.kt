@@ -1167,6 +1167,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Speed display")) {
         SToggle(prefs, L.t("Your speed next to the limit"), "mapspeed", true)
         SToggle(prefs, L.t("Speedometer ring"), "speedring", true, L.t("Fills towards the limit, turning amber then red"))
+        SToggle(prefs, L.t("Big speed limit sign"), PreferenceKeys.SPEED_SWAP, false, L.t("Swaps them round: the limit sign big, your speed small beside it"))
         SSlider(L.t("Speed limit and speedometer size"), prefs.i(PreferenceKeys.SPEED_SIZE, 100).toFloat(), 50f..200f, "%", sub = L.t("On this screen (Android Auto has its own size, under Android Auto)"), steps = 29, reset = 100f) { prefs.put(PreferenceKeys.SPEED_SIZE, it) }
         SPictureChoice(L.t("Speed position"), L.t("On the side away from the cards, so it never covers them. Move it up if your hand covers it"),
             listOf("bottom" to L.t("Bottom"), "middle" to L.t("Middle"), "top" to L.t("Top")), prefs.s(PreferenceKeys.SPEED_POS, "bottom"), { id, c -> speedPicture(id, c) },
@@ -1400,7 +1401,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             mainH.post { android.widget.Toast.makeText(ctx, if (ok) L.t("Backup saved") else L.t("Could not save the backup"), android.widget.Toast.LENGTH_SHORT).show() }
         }.start()
     }
-    val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val restoreFrom: (android.net.Uri?) -> Unit = { uri ->
         if (uri != null) Thread {
             val msg = try {
                 val text = ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
@@ -1410,6 +1411,10 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
             mainH.post { android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show() }
         }.start()
     }
+    val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> restoreFrom(uri) }
+    // (the older kind of file picker, for a phone or unit where nothing answers the newer one: franciscoserranoadt's Xiaomi
+    // crashed on Restore)
+    val importer2 = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res -> restoreFrom(res.data?.data) }
     // automatic backup: a folder picked once (its permission kept), then a backup there once a day when the app opens
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
@@ -1421,8 +1426,17 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Backup"), footer = L.t("Includes settings, saved places and GPX tracks, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
         SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
         SItem(L.t("Settings, places and tracks")) {
-            SButton(L.t("Back up")) { exporter.launch("horizon-nav-backup.json") }
-            SButton(L.t("Restore")) { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }
+            SButton(L.t("Back up")) {
+                try { exporter.launch("horizon-nav-backup.json") }
+                catch (e: Exception) { android.widget.Toast.makeText(ctx, L.t("No app on this unit can pick a file (try installing a file manager)"), android.widget.Toast.LENGTH_LONG).show() }
+            }
+            SButton(L.t("Restore")) {
+                try { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }
+                catch (e: Exception) {
+                    try { importer2.launch(android.content.Intent(android.content.Intent.ACTION_GET_CONTENT).setType("*/*").addCategory(android.content.Intent.CATEGORY_OPENABLE)) }
+                    catch (e2: Exception) { android.widget.Toast.makeText(ctx, L.t("No app on this unit can pick a file (try installing a file manager)"), android.widget.Toast.LENGTH_LONG).show() }
+                }
+            }
         }
         val autoDir = prefs.s(PreferenceKeys.AUTO_BACKUP_DIR, "")
         val lastAt = prefs.s(PreferenceKeys.AUTO_BACKUP_AT, "0").toLongOrNull() ?: 0L

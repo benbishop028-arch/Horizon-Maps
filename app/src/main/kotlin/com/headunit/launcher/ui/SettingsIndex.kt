@@ -179,6 +179,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Road name size", "", "Sizes", 12),
     SettingRef("Your speed next to the limit", "", "Speed display", 12),
     SettingRef("Speedometer ring", "Fills towards the limit, turning amber then red", "Speed display", 12),
+    SettingRef("Big speed limit sign", "Swaps them round: the limit sign big, your speed small beside it", "Speed display", 12),
     SettingRef("Speed limit and speedometer size", "", "Speed display", 12),
     SettingRef("Speed position", "Bottom, middle or top", "Speed display", 12),
     SettingRef("Road name when driving without a route", "", "While driving", 8),

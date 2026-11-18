@@ -1079,6 +1079,8 @@ object I18nD {
         "Speed display" to listOf("Показване на скоростта"),
         "Your speed next to the limit" to listOf("Скоростта ви до ограничението"),
         "Speedometer ring" to listOf("Пръстен на скоростомера"),
+        "Big speed limit sign" to listOf("Голям знак за ограничение"),
+        "Swaps them round: the limit sign big, your speed small beside it" to listOf("Разменя ги: знакът за ограничение голям, скоростта ви малка до него"),
         "Fills towards the limit, turning amber then red" to listOf("Запълва се към ограничението, става жълт, после червен"),
         "Speed limit and speedometer size" to listOf("Размер на ограничението и скоростомера"),
         "On this screen (Android Auto has its own size, under Android Auto)" to listOf("На този екран (Android Auto има свой размер, под Android Auto)"),

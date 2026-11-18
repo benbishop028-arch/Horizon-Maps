@@ -1079,6 +1079,8 @@ object I18nAr {
         "Speed display" to "عرض السرعة",
         "Your speed next to the limit" to "سرعتك بجانب الحد",
         "Speedometer ring" to "حلقة عداد السرعة",
+        "Big speed limit sign" to "لافتة حد السرعة كبيرة",
+        "Swaps them round: the limit sign big, your speed small beside it" to "يبدّل بينهما: لافتة حد السرعة كبيرة وسرعتك صغيرة بجانبها",
         "Fills towards the limit, turning amber then red" to "تمتلئ نحو الحد، فتصبح برتقالية ثم حمراء",
         "Speed limit and speedometer size" to "حجم حد السرعة وعداد السرعة",
         "On this screen (Android Auto has its own size, under Android Auto)" to "على هذه الشاشة (لـ Android Auto حجمه الخاص، تحت Android Auto)",

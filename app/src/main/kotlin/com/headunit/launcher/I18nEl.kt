@@ -1079,6 +1079,8 @@ object I18nEl {
         "Speed display" to "Ένδειξη ταχύτητας",
         "Your speed next to the limit" to "Η ταχύτητά σας δίπλα στο όριο",
         "Speedometer ring" to "Δακτύλιος ταχύμετρου",
+        "Big speed limit sign" to "Μεγάλη πινακίδα ορίου ταχύτητας",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Τα αντιστρέφει: η πινακίδα ορίου μεγάλη, η ταχύτητά σας μικρή δίπλα της",
         "Fills towards the limit, turning amber then red" to "Γεμίζει προς το όριο, γίνεται πορτοκαλί και μετά κόκκινος",
         "Speed limit and speedometer size" to "Μέγεθος ορίου ταχύτητας και ταχύμετρου",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Σε αυτή την οθόνη (το Android Auto έχει δικό του μέγεθος, στο Android Auto)",

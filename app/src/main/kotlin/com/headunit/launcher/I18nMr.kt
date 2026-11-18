@@ -1079,6 +1079,8 @@ object I18nMr {
         "Speed display" to "वेग प्रदर्शन",
         "Your speed next to the limit" to "मर्यादेशेजारी तुमचा वेग",
         "Speedometer ring" to "स्पीडोमीटर कडे",
+        "Big speed limit sign" to "मोठा वेगमर्यादा फलक",
+        "Swaps them round: the limit sign big, your speed small beside it" to "दोघांची जागा बदलते: मर्यादा फलक मोठा, तुमचा वेग शेजारी लहान",
         "Fills towards the limit, turning amber then red" to "मर्यादेकडे भरते, नारिंगी मग लाल होते",
         "Speed limit and speedometer size" to "वेगमर्यादा आणि स्पीडोमीटरचा आकार",
         "On this screen (Android Auto has its own size, under Android Auto)" to "या स्क्रीनवर (Android Auto चा स्वतःचा आकार आहे, Android Auto खाली)",

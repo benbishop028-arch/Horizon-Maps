@@ -1079,6 +1079,8 @@ object I18nE {
         "Speed display" to listOf("Prikaz hitrosti"),
         "Your speed next to the limit" to listOf("Vaša hitrost poleg omejitve"),
         "Speedometer ring" to listOf("Obroč merilnika hitrosti"),
+        "Big speed limit sign" to listOf("Velik znak omejitve hitrosti"),
+        "Swaps them round: the limit sign big, your speed small beside it" to listOf("Zamenja ju: znak omejitve velik, vaša hitrost majhna ob njem"),
         "Fills towards the limit, turning amber then red" to listOf("Polni se proti omejitvi in postane oranžen, nato rdeč"),
         "Speed limit and speedometer size" to listOf("Velikost omejitve hitrosti in merilnika hitrosti"),
         "On this screen (Android Auto has its own size, under Android Auto)" to listOf("Na tem zaslonu (Android Auto ima svojo velikost, pod Android Auto)"),

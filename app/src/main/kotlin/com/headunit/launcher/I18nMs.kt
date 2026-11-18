@@ -1079,6 +1079,8 @@ object I18nMs {
         "Speed display" to "Paparan laju",
         "Your speed next to the limit" to "Laju anda di sebelah had",
         "Speedometer ring" to "Gelang meter laju",
+        "Big speed limit sign" to "Papan had laju besar",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Menukar kedudukan: papan had laju besar, kelajuan anda kecil di sebelahnya",
         "Fills towards the limit, turning amber then red" to "Terisi ke arah had, bertukar jingga kemudian merah",
         "Speed limit and speedometer size" to "Saiz had laju dan meter laju",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Pada skrin ini (Android Auto mempunyai saiznya sendiri, di bawah Android Auto)",

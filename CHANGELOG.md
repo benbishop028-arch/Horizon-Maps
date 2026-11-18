@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Big speed limit sign: a new switch in Settings › Speed display swaps them round, with the speed limit sign big where the speedometer was and your speed small beside it. Your speed still turns amber and red near and over the limit (thanks to ole1993)
 - Fuel prices in Italy: the fuel list and fuel stop suggestions show prices across Italy, from the government's own daily price list (MIMIT), with no key needed. The list is fetched at most once a day and kept on the device (thanks to TheDMAI)
 - LPG (Autogas): a new choice under Your fuel. Prices show in Italy, France and Australia (NSW); elsewhere the list shows stations mapped as selling LPG (thanks to TheDMAI)
 - Automatic backup: Settings › About › Backup can now back up by itself once a day to a folder you choose, either replacing the last file or keeping the last 7 (thanks to bijindas)
@@ -95,6 +96,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Arriving: a route that went right past your destination and round to come back (to arrive on your side of the road) is now spotted, and the plain way is used unless it's slower. And stopping within about 40 m of your destination now counts as arriving, however much route is left (thanks to Nubber99)
+- Backup: Restore no longer closes the app on a phone or unit where the usual file picker is missing. It tries the older picker, and says so if neither is there. Back up gets the same protection (thanks to franciscoserranoadt)
 - Media bar: the song's name now shows with more music apps; some send it in a different place, which left the bar saying just "Media" (thanks to bijindas)
 - TomTom's map: when TomTom won't show its map with your key (even if the key still plans routes), Mapbox's map now shows instead with a note saying why. Before, the refusal was mistaken for a Mapbox token problem and no map showed at all (thanks to zedje85)
 - Feedback reports no longer include your TomTom key or Mapbox token: they're blanked out wherever they appear, including in the address of a map that failed to load (thanks to zedje85)

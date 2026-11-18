@@ -1079,6 +1079,8 @@ object I18nBs {
         "Speed display" to "Prikaz brzine",
         "Your speed next to the limit" to "Vaša brzina pokraj ograničenja",
         "Speedometer ring" to "Prsten brzinomjera",
+        "Big speed limit sign" to "Veliki znak ograničenja brzine",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Zamjenjuje ih: znak ograničenja velik, vaša brzina mala pored njega",
         "Fills towards the limit, turning amber then red" to "Puni se prema ograničenju, postaje narančast pa crven",
         "Speed limit and speedometer size" to "Veličina ograničenja i brzinomjera",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Na ovom ekranu (Android Auto ima vlastitu veličinu, pod Android Auto)",

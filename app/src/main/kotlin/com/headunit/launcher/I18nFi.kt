@@ -1079,6 +1079,8 @@ object I18nFi {
         "Speed display" to "Nopeusnäyttö",
         "Your speed next to the limit" to "Nopeutesi rajoituksen vieressä",
         "Speedometer ring" to "Nopeusmittarin rengas",
+        "Big speed limit sign" to "Iso nopeusrajoitusmerkki",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Vaihtaa ne päittäin: rajoitusmerkki isona, oma nopeutesi pienenä sen vieressä",
         "Fills towards the limit, turning amber then red" to "Täyttyy kohti rajoitusta, muuttuu oranssiksi ja sitten punaiseksi",
         "Speed limit and speedometer size" to "Nopeusrajoituksen ja nopeusmittarin koko",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Tällä näytöllä (Android Autolla on oma kokonsa kohdassa Android Auto)",

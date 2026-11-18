@@ -1079,6 +1079,8 @@ object I18nHu {
         "Speed display" to "Sebességkijelzés",
         "Your speed next to the limit" to "Az Ön sebessége a korlátozás mellett",
         "Speedometer ring" to "Sebességmérő gyűrű",
+        "Big speed limit sign" to "Nagy sebességkorlátozó tábla",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Felcseréli őket: a korlátozó tábla nagy, a sebessége kicsi mellette",
         "Fills towards the limit, turning amber then red" to "A korlátozás felé telik, narancssárga, majd piros lesz",
         "Speed limit and speedometer size" to "Sebességkorlátozás és sebességmérő mérete",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Ezen a képernyőn (az Android Autónak saját mérete van, az Android Auto alatt)",

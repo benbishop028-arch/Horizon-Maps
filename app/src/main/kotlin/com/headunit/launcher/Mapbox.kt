@@ -418,7 +418,8 @@ object MapboxRest {
         // when going straight on and turning across into the drive is the obvious way. When the end of the route looks like such a
         // loop, it's asked again without that: if that's clearly quicker or shorter, it's used instead
         val r0 = got.firstOrNull()
-        if (curbSide && r0 != null && !quick && usedUrl.contains("&approaches=") && looksLikeLoop(r0)) {
+        val pastIt = r0 != null && drivesPastEnd(r0)
+        if (curbSide && r0 != null && !quick && usedUrl.contains("&approaches=") && (pastIt || looksLikeLoop(r0))) {
             try {
                 val plain = usedUrl.replace(Regex("&approaches=[^&]*"), "")
                 val o3 = JSONObject(get(plain, 8000, 15000))
@@ -426,11 +427,27 @@ object MapboxRest {
                     val a3 = o3.optJSONArray("routes") ?: JSONArray()
                     val alt = (0 until a3.length()).mapNotNull { try { parse(a3.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
                     val p0 = alt.firstOrNull()
-                    if (p0 != null && (p0.time <= r0.time - 40.0 || p0.len <= r0.len - 300.0)) return alt
+                    // (going right past the door and round to come back: the plain way is used unless it's actually slower)
+                    if (p0 != null && (p0.time <= r0.time - 40.0 || p0.len <= r0.len - 300.0 || (pastIt && p0.time <= r0.time + 15.0))) return alt
                 }
             } catch (e: Exception) { /* keep the kerb-side route */ }
         }
         return got
+    }
+
+    /**
+     * The route goes right past where it ends (within 40 m) and then carries on for 250 m or more before coming back to it: a
+     * detour just to arrive on your side of the road (Nubber99 was taken past his own front door, round a roundabout and back,
+     * nearly 2 km; that was too long and had no plain turns, so the check below missed it).
+     */
+    private fun drivesPastEnd(r: Route): Boolean {
+        val end = r.pts.lastOrNull() ?: return false
+        val n = minOf(r.pts.size, r.cum.size)
+        for (i in 0 until n) {
+            if (r.cum[i] > r.len - 250.0) break
+            if (Geo.dist(r.pts[i], end) < 40.0) return true
+        }
+        return false
     }
 
     /** Two or more turns in the last 700 m before arriving: perhaps a loop round the block just to arrive on the kerb side. */

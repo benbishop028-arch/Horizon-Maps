@@ -1079,6 +1079,8 @@ object I18nEsAr {
         "Speed display" to "Indicador de velocidad",
         "Your speed next to the limit" to "Tu velocidad junto al límite",
         "Speedometer ring" to "Anillo del velocímetro",
+        "Big speed limit sign" to "Cartel de límite grande",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Los intercambia: el cartel de límite grande y tu velocidad chica al lado",
         "Fills towards the limit, turning amber then red" to "Se llena hacia el límite, ámbar y luego rojo",
         "Speed limit and speedometer size" to "Tamaño del límite y del velocímetro",
         "On this screen (Android Auto has its own size, under Android Auto)" to "En esta pantalla (Android Auto tiene su propio tamaño, en Android Auto)",

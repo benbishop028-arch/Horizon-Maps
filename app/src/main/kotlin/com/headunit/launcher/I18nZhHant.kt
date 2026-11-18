@@ -1079,6 +1079,8 @@ object I18nZhHant {
         "Speed display" to "車速顯示",
         "Your speed next to the limit" to "您的車速顯示在速限旁",
         "Speedometer ring" to "速度計圓環",
+        "Big speed limit sign" to "大型速限標誌",
+        "Swaps them round: the limit sign big, your speed small beside it" to "互換位置：速限標誌放大，您的車速縮小在旁邊",
         "Fills towards the limit, turning amber then red" to "朝速限填滿，轉為橘色再轉紅色",
         "Speed limit and speedometer size" to "速限與速度計大小",
         "On this screen (Android Auto has its own size, under Android Auto)" to "此螢幕上（Android Auto有自己的大小，在Android Auto下）",

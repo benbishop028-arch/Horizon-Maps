@@ -1079,6 +1079,8 @@ object I18nTr {
         "Speed display" to "Hız göstergesi",
         "Your speed next to the limit" to "Sınırın yanında hızınız",
         "Speedometer ring" to "Hız göstergesi halkası",
+        "Big speed limit sign" to "Büyük hız sınırı işareti",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Yerlerini değiştirir: hız sınırı işareti büyük, hızınız yanında küçük",
         "Fills towards the limit, turning amber then red" to "Sınıra doğru dolar, önce turuncu sonra kırmızı olur",
         "Speed limit and speedometer size" to "Hız sınırı ve hız göstergesi boyutu",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Bu ekranda (Android Auto'nun kendi boyutu var, Android Auto altında)",

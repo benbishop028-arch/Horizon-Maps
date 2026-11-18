@@ -1122,6 +1122,8 @@ private fun SpeedBlock(engine: NavEngine) {
     if (lim == null && !show) return
     val k = if (engine.imperial) 2.23694 else 3.6
     if (carCompactSpeed(engine)) { SpeedPill(engine, show, k); return }
+    // swapped round (Settings > Speed display > Big speed limit sign): only with a limit known, else the speedometer as usual
+    if (show && lim != null && engine.prefs.b(PreferenceKeys.SPEED_SWAP, false)) { SwappedSpeed(engine, k); return }
     if (engine.prefs.b(PreferenceKeys.SPEEDRING, true)) { SpeedRing(engine, show, k); return }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         // Keep the speed cluster in the same screen position, but mirror the sign's
@@ -1135,6 +1137,43 @@ private fun SpeedBlock(engine: NavEngine) {
             Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 12.sp)
         }
         if (lim != null && !(show && engine.mirrored && !engine.isCar)) SpeedLimitSign(engine, 70.dp)
+    }
+}
+
+/**
+ * The speed limit sign big, where the speedometer usually is, and your speed small on its inner top corner, where the sign
+ * usually is (ole1993: the limit matters more to him than his own speed). The speed still turns amber and red near and over
+ * the limit.
+ */
+@Composable
+private fun SwappedSpeed(engine: NavEngine, k: Double) {
+    val c = LocalVw.current
+    Box(contentAlignment = Alignment.Center) {
+        // (the ring's space, so the layout is the same size as usual; the sign itself is drawn last, below, so it's always in front)
+        Box(Modifier.size(104.dp))
+        // (on the side towards the middle of the screen, worked out as for the usual layout, so it never runs off the edge)
+        var onLeftHalf by remember { mutableStateOf(engine.mirrored && !engine.isCar) }
+        Box(Modifier.matchParentSize().onGloballyPositioned { lc ->
+            val rootW = lc.findRootCoordinates().size.width
+            if (rootW > 0) {
+                val left = lc.positionInRoot().x + lc.size.width / 2f < rootW / 2f
+                if (left != onLeftHalf) onLeftHalf = left
+            }
+        })
+        val signRight = onLeftHalf
+        val atTop = LocalSpeedAtTop.current
+        Column(
+            Modifier.align(if (atTop) (if (signRight) Alignment.BottomEnd else Alignment.BottomStart) else if (signRight) Alignment.TopEnd else Alignment.TopStart)
+                .offset(x = if (signRight) 26.dp else (-26).dp, y = if (atTop) 14.dp else (-14).dp)
+                .size(56.dp).panel(8.dp, CircleShape, c.surface),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center,
+        ) {
+            val num = "${Math.round((engine.fix?.speed ?: 0.0) * k)}"
+            Text(num, color = speedTint(engine) ?: c.text, fontSize = if (num.length >= 3) 17.sp else 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, lineHeight = 20.sp)
+            Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 9.sp, maxLines = 1, lineHeight = 10.sp)
+        }
+        // the speed limit sign last, so it's always in front of the speed circle where the two meet
+        Box(Modifier.size(104.dp).zIndex(1f), contentAlignment = Alignment.Center) { SpeedLimitSign(engine, 100.dp) }
     }
 }
 

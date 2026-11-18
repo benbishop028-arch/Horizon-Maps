@@ -1079,6 +1079,8 @@ object I18nEu {
         "Speed display" to "Abiaduraren bistaratzea",
         "Your speed next to the limit" to "Zure abiadura mugaren ondoan",
         "Speedometer ring" to "Abiadura-neurgailuaren eraztuna",
+        "Big speed limit sign" to "Abiadura-mugaren seinale handia",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Trukatu egiten ditu: muga-seinalea handia, zure abiadura txikia ondoan",
         "Fills towards the limit, turning amber then red" to "Mugaraino betetzen da, laranja eta gero gorri bihurtuz",
         "Speed limit and speedometer size" to "Abiadura-mugaren eta abiadura-neurgailuaren tamaina",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Pantaila honetan (Android Autok bere tamaina du, Android Auto atalean)",

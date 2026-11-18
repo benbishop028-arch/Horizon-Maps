@@ -335,6 +335,8 @@ internal object PreferenceKeys {
     const val SMARTVOICE = "smartvoice"
     const val SNAPROAD = "snaproad"
     const val SPEEDRING = "speedring"
+    /** Settings > Speed display > Big speed limit sign: the limit sign big where the speedometer was, your speed small beside it (ole1993). */
+    const val SPEED_SWAP = "speedswap"
     const val SPEEDTILT = "speedtilt"
     const val SPEEDWARN = "speedwarn"
     const val STARTPOS = "startpos"

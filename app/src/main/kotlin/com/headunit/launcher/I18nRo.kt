@@ -1079,6 +1079,8 @@ object I18nRo {
         "Speed display" to "Afișarea vitezei",
         "Your speed next to the limit" to "Viteza dvs. lângă limită",
         "Speedometer ring" to "Inelul vitezometrului",
+        "Big speed limit sign" to "Indicator de limită mare",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Le inversează: indicatorul de limită mare, viteza dvs. mică alături",
         "Fills towards the limit, turning amber then red" to "Se umple spre limită, devenind portocaliu, apoi roșu",
         "Speed limit and speedometer size" to "Dimensiunea limitei de viteză și a vitezometrului",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Pe acest ecran (Android Auto are propria dimensiune, sub Android Auto)",

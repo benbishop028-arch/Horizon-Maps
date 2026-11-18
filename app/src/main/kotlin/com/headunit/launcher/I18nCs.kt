@@ -1079,6 +1079,8 @@ object I18nCs {
         "Speed display" to "Zobrazení rychlosti",
         "Your speed next to the limit" to "Vaše rychlost vedle limitu",
         "Speedometer ring" to "Kruh tachometru",
+        "Big speed limit sign" to "Velká značka omezení rychlosti",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Prohodí je: značka omezení velká, vaše rychlost malá vedle ní",
         "Fills towards the limit, turning amber then red" to "Plní se k limitu, zbarví se oranžově a pak červeně",
         "Speed limit and speedometer size" to "Velikost limitu a tachometru",
         "On this screen (Android Auto has its own size, under Android Auto)" to "Na této obrazovce (Android Auto má vlastní velikost v sekci Android Auto)",

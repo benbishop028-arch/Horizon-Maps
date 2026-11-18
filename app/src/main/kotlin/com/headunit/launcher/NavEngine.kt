@@ -5416,7 +5416,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val nowP = android.os.SystemClock.elapsedRealtime()
         if (!closeBy || (f0?.speed ?: 0.0) > 1.5) parkedSince = 0L else if (parkedSince == 0L) parkedSince = nowP
         val parked = closeBy && parkedSince > 0L && nowP - parkedSince > 60_000L
-        val atEnd = nearEnd || parked
+        // stopped right by the destination (within 40 m for 15 s), however much of the route is left: the route may go on past it
+        // and round to come back (Nubber99 was outside his own house with the route still saying 1.9 km)
+        val dNow = dest
+        val atDoor = f0 != null && dNow != null && Geo.dist(f0.pos, dNow.pos) < 40.0 && f0.speed <= 1.5 && simMode == 0
+        if (!atDoor) atDoorSince = 0L else if (atDoorSince == 0L) atDoorSince = nowP
+        val atEnd = nearEnd || parked || (atDoor && nowP - atDoorSince > 15_000L)
         if (atEnd && said.add("end")) {
             toast(L.t("You have arrived"), 5000)
             if (navStartMs > 0) {
@@ -5440,6 +5445,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var idleSince = 0L
     /** When you stopped near the destination (0 = not stopped there), for arriving in a big car park. */
     private var parkedSince = 0L
+    private var atDoorSince = 0L
 
     // ---- live rain radar ----
     private var radarJob: Job? = null

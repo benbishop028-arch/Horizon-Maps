@@ -1085,6 +1085,8 @@ object I18nC {
         "Speed display" to listOf("การแสดงความเร็ว", "速度表示", "Tampilan kecepatan"),
         "Your speed next to the limit" to listOf("ความเร็วของคุณข้างป้ายจำกัดความเร็ว", "制限速度の横に自分の速度", "Kecepatan Anda di sebelah batas"),
         "Speedometer ring" to listOf("วงแหวนมาตรวัดความเร็ว", "スピードメーターのリング", "Cincin speedometer"),
+        "Big speed limit sign" to listOf("ป้ายจำกัดความเร็วขนาดใหญ่", "制限速度標識を大きく", "Rambu batas kecepatan besar"),
+        "Swaps them round: the limit sign big, your speed small beside it" to listOf("สลับกัน: ป้ายจำกัดความเร็วใหญ่ ความเร็วของคุณเล็กอยู่ข้างๆ", "入れ替えます：制限速度標識を大きく、現在の速度を横に小さく表示", "Menukar keduanya: rambu batas besar, kecepatan Anda kecil di sampingnya"),
         "Fills towards the limit, turning amber then red" to listOf("เติมเข้าหาความเร็วจำกัด เปลี่ยนเป็นสีเหลืองแล้วแดง", "制限速度に近づくと満ちて、黄色、赤に変わります", "Terisi menuju batas, berubah kuning lalu merah"),
         "Speed limit and speedometer size" to listOf("ขนาดป้ายจำกัดความเร็วและมาตรวัดความเร็ว", "制限速度とスピードメーターのサイズ", "Ukuran batas kecepatan dan speedometer"),
         "On this screen (Android Auto has its own size, under Android Auto)" to listOf("บนหน้าจอนี้ (Android Auto มีขนาดของตัวเอง ใต้ Android Auto)", "この画面（Android Autoは「Android Auto」の下に別のサイズがあります）", "Di layar ini (Android Auto punya ukurannya sendiri, di bawah Android Auto)"),

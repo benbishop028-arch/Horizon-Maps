@@ -1079,6 +1079,8 @@ object I18nHe {
         "Speed display" to "תצוגת מהירות",
         "Your speed next to the limit" to "המהירות שלך ליד המגבלה",
         "Speedometer ring" to "טבעת מד המהירות",
+        "Big speed limit sign" to "שלט מהירות מותרת גדול",
+        "Swaps them round: the limit sign big, your speed small beside it" to "מחליף ביניהם: שלט המהירות המותרת גדול, המהירות שלך קטנה לידו",
         "Fills towards the limit, turning amber then red" to "מתמלאת לכיוון המגבלה, הופכת לכתומה ואז לאדומה",
         "Speed limit and speedometer size" to "גודל מגבלת המהירות ומד המהירות",
         "On this screen (Android Auto has its own size, under Android Auto)" to "במסך זה (ל-Android Auto יש גודל משלו, תחת Android Auto)",

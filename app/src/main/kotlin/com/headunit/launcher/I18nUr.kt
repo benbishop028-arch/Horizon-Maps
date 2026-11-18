@@ -1079,6 +1079,8 @@ object I18nUr {
         "Speed display" to "رفتار کا ڈسپلے",
         "Your speed next to the limit" to "حد کے ساتھ آپ کی رفتار",
         "Speedometer ring" to "سپیڈومیٹر رنگ",
+        "Big speed limit sign" to "رفتار کی حد کا بڑا نشان",
+        "Swaps them round: the limit sign big, your speed small beside it" to "دونوں کی جگہ بدل دیتا ہے: حد کا نشان بڑا، آپ کی رفتار اس کے ساتھ چھوٹی",
         "Fills towards the limit, turning amber then red" to "حد کی طرف بھرتی ہے، پہلے نارنجی پھر سرخ ہوتی ہے",
         "Speed limit and speedometer size" to "رفتار کی حد اور سپیڈومیٹر کا سائز",
         "On this screen (Android Auto has its own size, under Android Auto)" to "اس اسکرین پر (Android Auto کا اپنا سائز ہے، Android Auto کے تحت)",

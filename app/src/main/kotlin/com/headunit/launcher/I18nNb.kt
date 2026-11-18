@@ -1079,6 +1079,8 @@ object I18nNb {
         "Speed display" to "Fartsvisning",
         "Your speed next to the limit" to "Farten din ved siden av grensen",
         "Speedometer ring" to "Speedometerring",
+        "Big speed limit sign" to "Stort fartsgrenseskilt",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Bytter dem om: fartsgrenseskiltet stort, farten din liten ved siden av",
         "Fills towards the limit, turning amber then red" to "Fylles mot grensen, blir oransje og så rød",
         "Speed limit and speedometer size" to "Størrelse på fartsgrense og speedometer",
         "On this screen (Android Auto has its own size, under Android Auto)" to "På denne skjermen (Android Auto har sin egen størrelse, under Android Auto)",

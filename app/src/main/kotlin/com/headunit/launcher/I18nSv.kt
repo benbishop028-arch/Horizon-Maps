@@ -1079,6 +1079,8 @@ object I18nSv {
         "Speed display" to "Hastighetsvisning",
         "Your speed next to the limit" to "Din hastighet bredvid gränsen",
         "Speedometer ring" to "Hastighetsmätarring",
+        "Big speed limit sign" to "Stor hastighetsskylt",
+        "Swaps them round: the limit sign big, your speed small beside it" to "Byter plats på dem: hastighetsskylten stor, din hastighet liten bredvid",
         "Fills towards the limit, turning amber then red" to "Fylls mot gränsen och blir gul och sedan röd",
         "Speed limit and speedometer size" to "Storlek på hastighetsgräns och hastighetsmätare",
         "On this screen (Android Auto has its own size, under Android Auto)" to "På den här skärmen (Android Auto har sin egen storlek, under Android Auto)",

@@ -1079,6 +1079,8 @@ object I18nKn {
         "Speed display" to "ವೇಗ ಪ್ರದರ್ಶನ",
         "Your speed next to the limit" to "ಮಿತಿಯ ಪಕ್ಕ ನಿಮ್ಮ ವೇಗ",
         "Speedometer ring" to "ಸ್ಪೀಡೋಮೀಟರ್ ಉಂಗುರ",
+        "Big speed limit sign" to "ದೊಡ್ಡ ವೇಗ ಮಿತಿ ಫಲಕ",
+        "Swaps them round: the limit sign big, your speed small beside it" to "ಅವುಗಳನ್ನು ಅದಲು ಬದಲು ಮಾಡುತ್ತದೆ: ಮಿತಿ ಫಲಕ ದೊಡ್ಡದು, ನಿಮ್ಮ ವೇಗ ಪಕ್ಕದಲ್ಲಿ ಚಿಕ್ಕದು",
         "Fills towards the limit, turning amber then red" to "ಮಿತಿಯ ಕಡೆಗೆ ತುಂಬುತ್ತದೆ, ಕಿತ್ತಳೆ ನಂತರ ಕೆಂಪಾಗುತ್ತದೆ",
         "Speed limit and speedometer size" to "ವೇಗ ಮಿತಿ ಮತ್ತು ಸ್ಪೀಡೋಮೀಟರ್ ಗಾತ್ರ",
         "On this screen (Android Auto has its own size, under Android Auto)" to "ಈ ಪರದೆಯಲ್ಲಿ (Android Auto ಗೆ ತನ್ನದೇ ಗಾತ್ರವಿದೆ, Android Auto ಅಡಿಯಲ್ಲಿ)",
