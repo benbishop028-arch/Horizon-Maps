@@ -603,7 +603,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var tripDest = ""
 
     init {
-        EuFuel.filesDir = ctx.filesDir   // (Italy's fuel price list is kept on the device)
+        EuFuel.filesDir = ctx.filesDir
+        CarTrains.filesDir = ctx.filesDir   // (the car-train lines, for Avoid car trains)   // (Italy's fuel price list is kept on the device)
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
         try { L.set(prefs.s(PreferenceKeys.APP_LANG, "auto")) } catch (e: Exception) { }
         // offline mode (Settings > Offline maps): set before anything goes online
