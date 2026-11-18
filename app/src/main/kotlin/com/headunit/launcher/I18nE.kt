@@ -1661,5 +1661,7 @@ object I18nE {
         "Keep the last 7" to listOf("Obdrži zadnjih 7"),
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to listOf("Zamenjaj zadnjo ohrani eno datoteko, ki se vsak dan prepiše. Obdrži zadnjih 7 doda eno na dan in izbriše najstarejšo"),
         "Back up or restore your settings, saved places and GPX tracks" to listOf("Varnostno kopiraj ali obnovi nastavitve, mesta in sledi GPX"),
+        "LPG (Autogas)" to listOf("Avtoplin (LPG)"),
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("Italija deluje tudi sama, z vladnimi cenami vsakega jutra, posodobljenimi enkrat na dan."),
     )
 }

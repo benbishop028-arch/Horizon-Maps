@@ -1664,5 +1664,7 @@ object I18nUr {
         "Keep the last 7" to "آخری 7 رکھیں",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "آخری کو بدلیں ایک فائل رکھتا ہے جو ہر روز اوور رائٹ ہوتی ہے۔ آخری 7 رکھیں روزانہ ایک شامل کرتا ہے اور سب سے پرانی حذف کرتا ہے",
         "Back up or restore your settings, saved places and GPX tracks" to "سیٹنگز، مقامات اور GPX راستوں کا بیک اپ لیں یا بحال کریں",
+        "LPG (Autogas)" to "ایل پی جی (آٹو گیس)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "اٹلی بھی خود بخود کام کرتا ہے، ہر صبح کی حکومتی قیمتوں کے ساتھ، جو دن میں ایک بار اپ ڈیٹ ہوتی ہیں۔",
     )
 }

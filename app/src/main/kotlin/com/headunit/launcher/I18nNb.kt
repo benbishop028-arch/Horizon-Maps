@@ -1664,5 +1664,7 @@ object I18nNb {
         "Keep the last 7" to "Behold de siste 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Erstatt den siste beholder én fil som overskrives hver dag. Behold de siste 7 legger til én om dagen og sletter den eldste",
         "Back up or restore your settings, saved places and GPX tracks" to "Ta sikkerhetskopi av eller gjenopprett innstillinger, steder og GPX-spor",
+        "LPG (Autogas)" to "LPG (autogass)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia fungerer også av seg selv, med statens priser fra hver morgen, oppdatert én gang om dagen.",
     )
 }

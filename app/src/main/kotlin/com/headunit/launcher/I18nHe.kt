@@ -1664,5 +1664,7 @@ object I18nHe {
         "Keep the last 7" to "שמור את 7 האחרונים",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "החלף את האחרון שומר קובץ אחד שנדרס כל יום. שמור את 7 האחרונים מוסיף אחד ביום ומוחק את הישן ביותר",
         "Back up or restore your settings, saved places and GPX tracks" to "גבה או שחזר הגדרות, מקומות ומסלולי GPX",
+        "LPG (Autogas)" to "גפ״מ (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "גם איטליה עובדת לבד, עם המחירים הממשלתיים של כל בוקר, שמתעדכנים פעם ביום.",
     )
 }

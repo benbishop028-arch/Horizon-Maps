@@ -2391,6 +2391,8 @@ object L {
         "Keep the last 7" to listOf("Bewaar de laatste 7", "Letzte 7 behalten", "Garder les 7 dernières", "Guardar las 7 últimas"),
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to listOf("Vervang de vorige houdt één bestand, elke dag overschreven. Bewaar de laatste 7 voegt er elke dag één toe en verwijdert de oudste", "Letzte ersetzen behält eine Datei, die täglich überschrieben wird. Letzte 7 behalten legt täglich eine an und löscht die älteste", "Remplacer la dernière garde un seul fichier, écrasé chaque jour. Garder les 7 dernières en ajoute une par jour et supprime la plus ancienne", "Sustituir la última mantiene un solo archivo, sobrescrito cada día. Guardar las 7 últimas añade una al día y borra la más antigua"),
         "Back up or restore your settings, saved places and GPX tracks" to listOf("Maak een back-up of zet je instellingen, plaatsen en GPX-tracks terug", "Einstellungen, Orte und GPX-Tracks sichern oder wiederherstellen", "Sauvegarder ou restaurer vos réglages, lieux et traces GPX", "Haz copia o restaura tus ajustes, lugares y rutas GPX"),
+        "LPG (Autogas)" to listOf("LPG (autogas)", "LPG (Autogas)", "GPL", "GLP (autogas)"),
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("Italië werkt ook vanzelf, met de prijzen van de overheid van elke ochtend, eens per dag bijgewerkt.", "Italien funktioniert ebenfalls von selbst, mit den staatlichen Preisen von jedem Morgen, einmal täglich aktualisiert.", "L’Italie fonctionne aussi toute seule, avec les prix officiels de chaque matin, mis à jour une fois par jour.", "Italia también funciona sola, con los precios oficiales de cada mañana, actualizados una vez al día."),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -4053,5 +4055,7 @@ object L {
         "Keep the last 7" to listOf("Tieni gli ultimi 7", "Guardar as últimas 7", "Zachowaj ostatnie 7"),
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to listOf("Sostituisci l’ultimo tiene un solo file, sovrascritto ogni giorno. Tieni gli ultimi 7 ne aggiunge uno al giorno ed elimina il più vecchio", "Substituir a última mantém um só ficheiro, substituído todos os dias. Guardar as últimas 7 junta uma por dia e apaga a mais antiga", "Zastąp ostatnią zachowuje jeden plik, nadpisywany codziennie. Zachowaj ostatnie 7 dodaje jedną dziennie i usuwa najstarszą"),
         "Back up or restore your settings, saved places and GPX tracks" to listOf("Fai il backup o ripristina impostazioni, luoghi e tracce GPX", "Faça cópia ou restaure definições, locais e trajetos GPX", "Zrób kopię lub przywróć ustawienia, miejsca i ślady GPX"),
+        "LPG (Autogas)" to listOf("GPL", "GPL (autogás)", "LPG (autogaz)"),
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("Anche l’Italia funziona da sola, con i prezzi ministeriali di ogni mattina, aggiornati una volta al giorno.", "Itália também funciona sozinha, com os preços oficiais de cada manhã, atualizados uma vez por dia.", "Włochy też działają same, z rządowymi cenami z każdego ranka, aktualizowanymi raz dziennie."),
     )
 }

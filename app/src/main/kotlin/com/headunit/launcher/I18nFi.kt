@@ -1664,5 +1664,7 @@ object I18nFi {
         "Keep the last 7" to "Säilytä viimeiset 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Korvaa edellinen pitää yhden tiedoston, joka korvataan päivittäin. Säilytä viimeiset 7 lisää yhden päivässä ja poistaa vanhimman",
         "Back up or restore your settings, saved places and GPX tracks" to "Varmuuskopioi tai palauta asetukset, paikat ja GPX-reitit",
+        "LPG (Autogas)" to "Nestekaasu (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia toimii myös itsestään, valtion joka aamun hinnoilla, jotka päivitetään kerran päivässä.",
     )
 }

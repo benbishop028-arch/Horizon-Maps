@@ -1670,5 +1670,7 @@ object I18nC {
         "Keep the last 7" to listOf("เก็บ 7 ไฟล์ล่าสุด", "直近7件を保存", "Simpan 7 terakhir"),
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to listOf("แทนที่ไฟล์ล่าสุดจะเก็บไฟล์เดียวและเขียนทับทุกวัน เก็บ 7 ไฟล์ล่าสุดจะเพิ่มวันละไฟล์และลบไฟล์เก่าที่สุด", "前回分を置き換えは1つのファイルを毎日上書きします。直近7件を保存は毎日1つ追加し、最も古いものを削除します", "Ganti yang terakhir menyimpan satu file yang ditimpa setiap hari. Simpan 7 terakhir menambah satu per hari dan menghapus yang terlama"),
         "Back up or restore your settings, saved places and GPX tracks" to listOf("สำรองหรือกู้คืนการตั้งค่า สถานที่ และเส้นทาง GPX", "設定・場所・GPXトラックのバックアップと復元", "Cadangkan atau pulihkan setelan, tempat, dan trek GPX"),
+        "LPG (Autogas)" to listOf("แอลพีจี (ก๊าซรถยนต์)", "LPG(オートガス)", "LPG (Autogas)"),
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("อิตาลีก็ใช้ได้เองเช่นกัน ด้วยราคาจากรัฐบาลของแต่ละเช้า อัปเดตวันละครั้ง", "イタリアも自動で使えます(政府が毎朝の価格を1日1回更新)。", "Italia juga berfungsi sendiri, dengan harga pemerintah setiap pagi, diperbarui sekali sehari."),
     )
 }

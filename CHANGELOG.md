@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Fuel prices in Italy: the fuel list and fuel stop suggestions show prices across Italy, from the government's own daily price list (MIMIT), with no key needed. The list is fetched at most once a day and kept on the device (thanks to TheDMAI)
+- LPG (Autogas): a new choice under Your fuel. Prices show in Italy, France and Australia (NSW); elsewhere the list shows stations mapped as selling LPG (thanks to TheDMAI)
 - Automatic backup: Settings › About › Backup can now back up by itself once a day to a folder you choose, either replacing the last file or keeping the last 7 (thanks to bijindas)
 - Clock on the map: a small clock with the speedometer, for head units whose status bar is covered (Settings › While driving › Clock on the map) (thanks to bijindas)
 - Avoid car trains: a new switch next to Avoid ferries keeps your route off trains that carry cars, such as the Channel Tunnel shuttle and the Alpine tunnel trains. If a car train is the only way there, it is still used (thanks to Resul9704)

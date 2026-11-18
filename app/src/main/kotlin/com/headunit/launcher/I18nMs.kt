@@ -1664,5 +1664,7 @@ object I18nMs {
         "Keep the last 7" to "Simpan 7 terakhir",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Ganti yang terakhir menyimpan satu fail, ditulis ganti setiap hari. Simpan 7 terakhir menambah satu sehari dan memadam yang paling lama",
         "Back up or restore your settings, saved places and GPX tracks" to "Sandarkan atau pulihkan tetapan, tempat dan trek GPX",
+        "LPG (Autogas)" to "LPG (Autogas)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Itali juga berfungsi sendiri, dengan harga kerajaan setiap pagi, dikemas kini sekali sehari.",
     )
 }

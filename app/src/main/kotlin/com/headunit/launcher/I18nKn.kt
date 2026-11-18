@@ -1664,5 +1664,7 @@ object I18nKn {
         "Keep the last 7" to "ಕೊನೆಯ 7 ಇಡಿ",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "ಕೊನೆಯದನ್ನು ಬದಲಿಸಿ ಒಂದೇ ಫೈಲ್ ಇಡುತ್ತದೆ, ಪ್ರತಿದಿನ ಮೇಲ್ಬರಹ. ಕೊನೆಯ 7 ಇಡಿ ದಿನಕ್ಕೆ ಒಂದು ಸೇರಿಸಿ ಹಳೆಯದನ್ನು ಅಳಿಸುತ್ತದೆ",
         "Back up or restore your settings, saved places and GPX tracks" to "ಸೆಟ್ಟಿಂಗ್‌ಗಳು, ಸ್ಥಳಗಳು ಮತ್ತು GPX ಮಾರ್ಗಗಳನ್ನು ಬ್ಯಾಕಪ್ ಅಥವಾ ಮರುಸ್ಥಾಪಿಸಿ",
+        "LPG (Autogas)" to "ಎಲ್‌ಪಿಜಿ (ಆಟೋಗ್ಯಾಸ್)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "ಇಟಲಿ ಕೂಡ ತಾನಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತದೆ, ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆಯ ಸರ್ಕಾರಿ ಬೆಲೆಗಳೊಂದಿಗೆ, ದಿನಕ್ಕೆ ಒಮ್ಮೆ ನವೀಕರಿಸಲಾಗುತ್ತದೆ.",
     )
 }

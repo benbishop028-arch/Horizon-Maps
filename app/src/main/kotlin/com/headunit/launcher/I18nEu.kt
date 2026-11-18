@@ -1664,5 +1664,7 @@ object I18nEu {
         "Keep the last 7" to "Gorde azken 7ak",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Ordeztu azkenak fitxategi bakarra gordetzen du, egunero gainidatzita. Gorde azken 7ak egunean bat gehitzen du eta zaharrena ezabatzen du",
         "Back up or restore your settings, saved places and GPX tracks" to "Egin babeskopia edo leheneratu ezarpenak, lekuak eta GPX ibilbideak",
+        "LPG (Autogas)" to "GLP (autogasa)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italiak ere berez funtzionatzen du, gobernuaren goizeroko prezioekin, egunean behin eguneratuta.",
     )
 }

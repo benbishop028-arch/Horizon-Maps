@@ -1661,5 +1661,7 @@ object I18nD {
         "Keep the last 7" to listOf("Пази последните 7"),
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to listOf("Замени последното пази един файл, презаписван всеки ден. Пази последните 7 добавя по един на ден и изтрива най-стария"),
         "Back up or restore your settings, saved places and GPX tracks" to listOf("Архивирай или възстанови настройки, места и GPX следи"),
+        "LPG (Autogas)" to listOf("Пропан-бутан (LPG)"),
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("Италия също работи сама, с правителствените цени от всяка сутрин, обновявани веднъж дневно."),
     )
 }

@@ -1664,5 +1664,7 @@ object I18nAr {
         "Keep the last 7" to "الاحتفاظ بآخر 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "استبدال الأخيرة يحتفظ بملف واحد يُستبدل يوميًا. الاحتفاظ بآخر 7 يضيف واحدًا يوميًا ويحذف الأقدم",
         "Back up or restore your settings, saved places and GPX tracks" to "انسخ احتياطيًا أو استعد الإعدادات والأماكن ومسارات GPX",
+        "LPG (Autogas)" to "غاز البترول المسال (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "إيطاليا تعمل تلقائيًا أيضًا، بأسعار الحكومة لكل صباح، وتُحدَّث مرة يوميًا.",
     )
 }

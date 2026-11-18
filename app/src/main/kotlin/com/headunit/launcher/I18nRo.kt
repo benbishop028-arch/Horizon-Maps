@@ -1664,5 +1664,7 @@ object I18nRo {
         "Keep the last 7" to "Păstrează ultimele 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Înlocuiește ultima păstrează un singur fișier, suprascris zilnic. Păstrează ultimele 7 adaugă unul pe zi și îl șterge pe cel mai vechi",
         "Back up or restore your settings, saved places and GPX tracks" to "Fă o copie sau restaurează setările, locurile și traseele GPX",
+        "LPG (Autogas)" to "GPL (autogaz)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia funcționează și ea singură, cu prețurile oficiale din fiecare dimineață, actualizate o dată pe zi.",
     )
 }

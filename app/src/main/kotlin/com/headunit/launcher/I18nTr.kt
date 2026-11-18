@@ -1664,5 +1664,7 @@ object I18nTr {
         "Keep the last 7" to "Son 7’yi sakla",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Sonuncuyu değiştir tek bir dosya tutar ve her gün üzerine yazar. Son 7’yi sakla her gün bir tane ekler ve en eskisini siler",
         "Back up or restore your settings, saved places and GPX tracks" to "Ayarları, yerleri ve GPX rotalarını yedekle veya geri yükle",
+        "LPG (Autogas)" to "LPG (Otogaz)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "İtalya da kendiliğinden çalışır; devletin her sabahki fiyatlarıyla, günde bir kez güncellenir.",
     )
 }

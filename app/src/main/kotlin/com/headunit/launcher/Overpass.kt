@@ -473,6 +473,8 @@ object Overpass {
         "fuel" -> "[\"amenity\"=\"fuel\"]"
         // stations mapped as selling bioethanol (E85)
         "fuel_e85" -> "[\"amenity\"=\"fuel\"][\"fuel:e85\"=\"yes\"]"
+        // stations mapped as selling LPG (autogas)
+        "fuel_lpg" -> "[\"amenity\"=\"fuel\"][\"fuel:lpg\"=\"yes\"]"
         "charging" -> "[\"amenity\"=\"charging_station\"]"
         "food" -> "[\"amenity\"~\"^(restaurant|fast_food)$\"]"
         "coffee" -> "[\"amenity\"=\"cafe\"]"
@@ -482,7 +484,7 @@ object Overpass {
     }
 
     fun kindLabel(kind: String): String = when (kind) {
-        "fuel" -> "Fuel station"; "fuel_e85" -> "E85 station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
+        "fuel" -> "Fuel station"; "fuel_e85" -> "E85 station"; "fuel_lpg" -> "LPG station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
         "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry park"; else -> "Car park"
     }
 
@@ -532,7 +534,7 @@ object Overpass {
             val name = tags.optString("name").ifBlank { tags.optString("brand") }.ifBlank { tags.optString("operator") }.ifBlank { label }
             val extra = ArrayList<String>()
             when (kind) {
-                "fuel", "fuel_e85" -> {
+                "fuel", "fuel_e85", "fuel_lpg" -> {
                     tags.optString("brand").takeIf { it.isNotBlank() && it != name }?.let { extra += it }
                     tags.optString("opening_hours").takeIf { it.isNotBlank() }?.let { extra += it }
                 }

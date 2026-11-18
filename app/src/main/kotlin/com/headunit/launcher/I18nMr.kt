@@ -1664,5 +1664,7 @@ object I18nMr {
         "Keep the last 7" to "शेवटचे 7 ठेवा",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "शेवटचा बदला एकच फाइल ठेवतो, रोज ओव्हरराइट होते. शेवटचे 7 ठेवा रोज एक जोडतो आणि सर्वात जुनी हटवतो",
         "Back up or restore your settings, saved places and GPX tracks" to "सेटिंग्ज, ठिकाणे आणि GPX मार्गांचा बॅकअप घ्या किंवा पुनर्संचयित करा",
+        "LPG (Autogas)" to "एलपीजी (ऑटोगॅस)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "इटलीही आपोआप चालते, दररोज सकाळच्या सरकारी किमतींसह, दिवसातून एकदा अद्ययावत.",
     )
 }

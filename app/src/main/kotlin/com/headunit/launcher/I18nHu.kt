@@ -1664,5 +1664,7 @@ object I18nHu {
         "Keep the last 7" to "Az utolsó 7 megtartása",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "A legutóbbi cseréje egyetlen fájlt tart meg, naponta felülírva. Az utolsó 7 megtartása naponta hozzáad egyet és törli a legrégebbit",
         "Back up or restore your settings, saved places and GPX tracks" to "Beállítások, helyek és GPX-útvonalak mentése vagy visszaállítása",
+        "LPG (Autogas)" to "LPG (autógáz)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Olaszország is magától működik, az állami, minden reggeli árakkal, naponta egyszer frissítve.",
     )
 }

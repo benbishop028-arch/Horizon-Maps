@@ -1664,5 +1664,7 @@ object I18nEsAr {
         "Keep the last 7" to "Guardar las últimas 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Reemplazar la última mantiene un solo archivo, sobrescrito cada día. Guardar las últimas 7 agrega una por día y borra la más vieja",
         "Back up or restore your settings, saved places and GPX tracks" to "Hacé copia o restaurá tus ajustes, lugares y recorridos GPX",
+        "LPG (Autogas)" to "GLP (autogás)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia también funciona sola, con los precios oficiales de cada mañana, actualizados una vez por día.",
     )
 }

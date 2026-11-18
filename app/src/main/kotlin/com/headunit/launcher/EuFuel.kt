@@ -12,6 +12,8 @@ import java.net.URLEncoder
  *  - Austria: E-Control's Spritpreisrechner, no key needed (it gives the cheapest few stations round a point).
  *  - Germany: Tankerkönig (Markttransparenzstelle data), with a free key pasted in Settings.
  *  - Australia (New South Wales and Tasmania): the NSW government's FuelCheck, with a free API key and secret pasted in Settings.
+ *  - Italy: the ministry's (MIMIT) open price files, no key needed (TheDMAI). Two files for the whole country, fetched at most
+ *    once a day and kept on the device as one small list, so a search there is just a look through that list.
  * Prices come back in cents a litre. Everything here is network work: call it off the main thread. Any failure gives an empty
  * list, so the app simply falls back to its normal station search without prices.
  */
@@ -20,7 +22,7 @@ object EuFuel {
 
     /** Countries with a price service here (Germany only once a Tankerkönig key is in). */
     fun supported(country: String, prefs: Prefs): Boolean = when (country.uppercase()) {
-        "FR", "AT" -> true
+        "FR", "AT", "IT" -> true
         "DE" -> prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").isNotBlank()
         "AU" -> prefs.s(PreferenceKeys.NSW_FUEL_KEY, "").isNotBlank() && prefs.s(PreferenceKeys.NSW_FUEL_SECRET, "").isNotBlank()
         else -> false
@@ -31,9 +33,11 @@ object EuFuel {
 
     /** Whether the country's service has prices for this fuel at all ("E10", "E5", "B7" or "E85"). */
     fun hasFuel(country: String, fuel: String): Boolean = when (country.uppercase()) {
-        "FR" -> fuel in setOf("E10", "E5", "B7", "E85")
+        "FR" -> fuel in setOf("E10", "E5", "B7", "E85", "LPG")
         "AT", "DE" -> fuel in setOf("E10", "E5", "B7")
-        "AU" -> fuel in setOf("E10", "E5", "B7", "E85")
+        "AU" -> fuel in setOf("E10", "E5", "B7", "E85", "LPG")
+        // (Italy's petrol is all one "Benzina", so Unleaded and Super both get it)
+        "IT" -> fuel in setOf("E10", "E5", "B7", "LPG")
         else -> false
     }
 
@@ -44,6 +48,7 @@ object EuFuel {
             "AT" -> austria(c, fuel)
             "DE" -> germany(prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").trim(), c, radiusKm.coerceIn(1, 25), fuel)
             "AU" -> nsw(prefs, c, radiusKm.coerceIn(1, 25), fuel)
+            "IT" -> italy(c, radiusKm.coerceIn(1, 25), fuel)
             else -> emptyList()
         }
     } catch (e: Exception) { emptyList() }
@@ -75,7 +80,7 @@ object EuFuel {
     }
 
     private fun france(c: LL, km: Int, fuel: String): List<Station> {
-        val field = when (fuel) { "B7" -> "gazole_prix"; "E5" -> "sp95_prix"; "E85" -> "e85_prix"; else -> "e10_prix" }
+        val field = when (fuel) { "B7" -> "gazole_prix"; "E5" -> "sp95_prix"; "E85" -> "e85_prix"; "LPG" -> "gplc_prix"; else -> "e10_prix" }
         val where = "within_distance(geom, GEOM'POINT(${c.lon} ${c.lat})', ${km}km) AND $field IS NOT NULL"
         val url = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records" +
             "?limit=60&where=" + URLEncoder.encode(where, "UTF-8")
@@ -160,7 +165,7 @@ object EuFuel {
             nswTokenUntil = now + (secs - 300).coerceAtLeast(300) * 1000L
             nswTokenFor = key
         }
-        val type = when (fuel) { "B7" -> "DL"; "E5" -> "P95"; "E85" -> "E85"; else -> "U91" }
+        val type = when (fuel) { "B7" -> "DL"; "E5" -> "P95"; "E85" -> "E85"; "LPG" -> "LPG"; else -> "U91" }
         val stamp = java.text.SimpleDateFormat("dd/MM/yyyy hh:mm:ss a", java.util.Locale.US).apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.format(java.util.Date())
         val body = JSONObject().put("fueltype", type).put("latitude", c.lat.toString()).put("longitude", c.lon.toString())
             .put("radius", km.toString()).put("sortby", "Price").put("sortascending", "true").toString()
@@ -199,5 +204,155 @@ object EuFuel {
             if (code !in 200..299) throw java.io.IOException("HTTP $code")
             return c.inputStream.bufferedReader().use { it.readText() }
         } finally { c.disconnect() }
+    }
+
+    // ------------------------------------------------------------------ Italy (MIMIT open data)
+
+    /** Where the app keeps its files (set when the app starts), for Italy's list. */
+    @Volatile var filesDir: java.io.File? = null
+
+    /** One Italian station: where, its name and town, and its price in cents for petrol, diesel and LPG (NaN when it has none). */
+    private class ItSt(val pos: LL, val name: String, val town: String, val petrol: Double, val diesel: Double, val lpg: Double)
+    @Volatile private var itList: List<ItSt>? = null
+    @Volatile private var itListAt = 0L
+    @Volatile private var itFailAt = 0L
+    private val itLock = Any()
+
+    private fun italy(c: LL, km: Int, fuel: String): List<Station> {
+        val list = italyList() ?: return emptyList()
+        val r = km * 1000.0
+        val dLat = r / 111_000.0
+        val dLon = r / (111_000.0 * Math.cos(Math.toRadians(c.lat)).coerceAtLeast(0.2))
+        val out = ArrayList<Station>()
+        for (s in list) {
+            if (Math.abs(s.pos.lat - c.lat) > dLat || Math.abs(s.pos.lon - c.lon) > dLon) continue
+            val p = when (fuel) { "B7" -> s.diesel; "LPG" -> s.lpg; else -> s.petrol }
+            if (p.isNaN()) continue
+            if (Geo.dist(c, s.pos) <= r) out += Station(s.name, s.town, s.pos, p)
+        }
+        // the cheapest 60, as the other services give
+        return out.sortedBy { it.cents }.take(60)
+    }
+
+    /** The list for the whole of Italy: from memory, else from the device, fetched fresh when it's over a day old. */
+    private fun italyList(): List<ItSt>? = synchronized(itLock) {
+        val dir = filesDir ?: return null
+        val f = java.io.File(dir, "it_fuel.tsv")
+        val now = System.currentTimeMillis()
+        // fresh enough: the ministry publishes once a day (the prices in force at 8 that morning)
+        // (after a failed fetch, not tried again for half an hour: with no signal every search would wait on it)
+        if ((!f.exists() || now - f.lastModified() > 20 * 3600_000L) && now - itFailAt > 30 * 60_000L) {
+            try { italyFetch(f) } catch (e: Exception) { itFailAt = now }   // (no signal: yesterday's prices beat none)
+        }
+        if (!f.exists()) return null
+        if (itList != null && itListAt == f.lastModified()) return itList
+        val out = ArrayList<ItSt>(24_000)
+        try {
+            f.bufferedReader().useLines { lines ->
+                for (ln in lines) {
+                    val p = ln.split('\t')
+                    if (p.size < 7) continue
+                    val lat = p[0].toDoubleOrNull() ?: continue; val lon = p[1].toDoubleOrNull() ?: continue
+                    out += ItSt(LL(lat, lon), p[2], p[3], p[4].toDoubleOrNull() ?: Double.NaN, p[5].toDoubleOrNull() ?: Double.NaN, p[6].toDoubleOrNull() ?: Double.NaN)
+                }
+            }
+        } catch (e: Exception) { return null }
+        itList = out; itListAt = f.lastModified()
+        return out
+    }
+
+    /**
+     * Fetches the two files (the stations, then the prices) and boils them down to one line per station with a price:
+     * position, name, town, then petrol, diesel and LPG in cents. Read line by line as they arrive, so the few megabytes never sit
+     * in memory at once. Written to a new file and swapped in only when both came through whole.
+     */
+    private fun italyFetch(out: java.io.File) {
+        class Row(val pos: LL, val name: String, val town: String) { var petrol = Double.NaN; var diesel = Double.NaN; var lpg = Double.NaN; var self = BooleanArray(3) }
+        val rows = HashMap<String, Row>(30_000)
+        italyLines("anagrafica_impianti_attivi.csv") { cols, ix ->
+            val id = cols.getOrNull(ix("idimpianto")) ?: return@italyLines
+            val lat = cols.getOrNull(ix("latitudine"))?.replace(',', '.')?.toDoubleOrNull() ?: return@italyLines
+            val lon = cols.getOrNull(ix("longitudine"))?.replace(',', '.')?.toDoubleOrNull() ?: return@italyLines
+            // (stations with no position, or a made-up one outside Italy, are left out)
+            if (lat !in 35.0..48.0 || lon !in 6.0..19.0) return@italyLines
+            val brand = cols.getOrNull(ix("bandiera")).orEmpty().trim()
+            val name = cols.getOrNull(ix("nome impianto")).orEmpty().trim()
+            val shown = (if (brand.isNotBlank() && !brand.equals("Pompe Bianche", true)) brand else name).ifBlank { "Distributore" }
+            val town = cols.getOrNull(ix("comune")).orEmpty().trim().lowercase().split(' ').joinToString(" ") { w -> w.replaceFirstChar { it.uppercase() } }
+            rows[id.trim()] = Row(LL(lat, lon), shown.replace('\t', ' '), town.replace('\t', ' '))
+        }
+        if (rows.size < 1000) throw java.io.IOException("Station list too short")
+        // prices older than two months are left out (a station that stopped reporting)
+        val tooOld = System.currentTimeMillis() - 60L * 86_400_000L
+        val df = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.ITALY)
+        var priced = 0
+        italyLines("prezzo_alle_8.csv") { cols, ix ->
+            val r = rows[cols.getOrNull(ix("idimpianto"))?.trim() ?: return@italyLines] ?: return@italyLines
+            val kind = cols.getOrNull(ix("desccarburante")).orEmpty().trim().lowercase()
+            val slot = when (kind) { "benzina" -> 0; "gasolio" -> 1; "gpl" -> 2; else -> return@italyLines }
+            val euros = cols.getOrNull(ix("prezzo"))?.replace(',', '.')?.toDoubleOrNull() ?: return@italyLines
+            if (euros !in 0.3..4.0) return@italyLines
+            val at = try { df.parse(cols.getOrNull(ix("dtcomu")).orEmpty().trim())?.time ?: 0L } catch (e: Exception) { 0L }
+            if (at in 1 until tooOld) return@italyLines
+            val self = cols.getOrNull(ix("isself"))?.trim() == "1"
+            val cents = euros * 100.0
+            // self-service when the station has it (the price most drivers pay), else the served price; the lower of each
+            val cur = when (slot) { 0 -> r.petrol; 1 -> r.diesel; else -> r.lpg }
+            val better = cur.isNaN() || (self && !r.self[slot]) || (self == r.self[slot] && cents < cur)
+            if (!better) return@italyLines
+            r.self[slot] = self
+            when (slot) { 0 -> r.petrol = cents; 1 -> r.diesel = cents; else -> r.lpg = cents }
+            priced++
+        }
+        if (priced < 1000) throw java.io.IOException("Price list too short")
+        val tmp = java.io.File(out.parentFile, out.name + ".tmp")
+        tmp.bufferedWriter().use { w ->
+            for (r in rows.values) {
+                if (r.petrol.isNaN() && r.diesel.isNaN() && r.lpg.isNaN()) continue
+                fun n(x: Double) = if (x.isNaN()) "" else String.format(java.util.Locale.US, "%.1f", x)
+                w.write("${r.pos.lat}\t${r.pos.lon}\t${r.name}\t${r.town}\t${n(r.petrol)}\t${n(r.diesel)}\t${n(r.lpg)}\n")
+            }
+        }
+        if (!tmp.renameTo(out)) { out.delete(); if (!tmp.renameTo(out)) throw java.io.IOException("Couldn't save") }
+    }
+
+    /**
+     * One of the ministry's files, a line at a time: the first line is the extraction date, the second the column names. The
+     * columns have been split by ";" and (since February 2026) by "|": whichever the names line uses is used. [ix] finds a
+     * column by its name (any case). Tried at the ministry's current address, then its old one.
+     */
+    private fun italyLines(file: String, each: (List<String>, (String) -> Int) -> Unit) {
+        var last: Exception? = null
+        for (host in listOf("https://www.mimit.gov.it/images/exportCSV/", "https://www.mise.gov.it/images/exportCSV/")) {
+            val c = URL(host + file).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+            c.connectTimeout = 10_000; c.readTimeout = 30_000
+            c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
+            try {
+                if (c.responseCode !in 200..299) throw java.io.IOException("HTTP ${c.responseCode}")
+                var total = 0L
+                c.inputStream.bufferedReader(Charsets.UTF_8).use { rd ->
+                    var names: List<String>? = null
+                    var sep = '|'
+                    var index: (String) -> Int = { -1 }
+                    while (true) {
+                        val ln = rd.readLine() ?: break
+                        total += ln.length
+                        if (total > 60_000_000L) throw java.io.IOException("File too large")
+                        if (names == null) {
+                            if (!ln.contains("idImpianto", true)) continue   // (the "Estrazione del ..." line)
+                            sep = if (ln.count { it == '|' } >= ln.count { it == ';' }) '|' else ';'
+                            val nm = ln.split(sep).map { it.trim().trim('"').lowercase() }
+                            names = nm
+                            index = { n -> nm.indexOf(n) }
+                            continue
+                        }
+                        each(ln.split(sep).map { it.trim('"') }, index)
+                    }
+                    if (names == null) throw java.io.IOException("No column names")
+                }
+                return
+            } catch (e: Exception) { last = e } finally { c.disconnect() }
+        }
+        throw last ?: java.io.IOException("Couldn't fetch $file")
     }
 }

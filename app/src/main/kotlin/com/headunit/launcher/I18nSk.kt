@@ -1664,5 +1664,7 @@ object I18nSk {
         "Keep the last 7" to "Ponechať posledných 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Nahradiť poslednú drží jeden súbor, denne prepisovaný. Ponechať posledných 7 pridá jeden denne a zmaže najstarší",
         "Back up or restore your settings, saved places and GPX tracks" to "Zálohovať alebo obnoviť nastavenia, miesta a trasy GPX",
+        "LPG (Autogas)" to "LPG (autoplyn)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Taliansko funguje tiež samo, s vládnymi cenami z každého rána, aktualizovanými raz denne.",
     )
 }

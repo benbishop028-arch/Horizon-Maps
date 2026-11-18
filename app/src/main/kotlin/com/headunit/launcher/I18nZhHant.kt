@@ -1664,5 +1664,7 @@ object I18nZhHant {
         "Keep the last 7" to "保留最近 7 個",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "取代上一個只保留一個檔案,每天覆寫。保留最近 7 個每天新增一個並刪除最舊的",
         "Back up or restore your settings, saved places and GPX tracks" to "備份或還原設定、地點和 GPX 軌跡",
+        "LPG (Autogas)" to "液化石油氣 (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "義大利也能自動使用,採用政府每天早上的價格,每天更新一次。",
     )
 }

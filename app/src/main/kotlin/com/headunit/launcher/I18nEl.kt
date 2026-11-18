@@ -1664,5 +1664,7 @@ object I18nEl {
         "Keep the last 7" to "Διατήρηση των 7 τελευταίων",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Η αντικατάσταση κρατά ένα αρχείο, που αντικαθίσταται καθημερινά. Η διατήρηση των 7 προσθέτει ένα τη μέρα και σβήνει το παλαιότερο",
         "Back up or restore your settings, saved places and GPX tracks" to "Αντίγραφο ή επαναφορά ρυθμίσεων, μερών και διαδρομών GPX",
+        "LPG (Autogas)" to "Υγραέριο (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Η Ιταλία λειτουργεί επίσης μόνη της, με τις κρατικές τιμές κάθε πρωινού, που ενημερώνονται μία φορά τη μέρα.",
     )
 }

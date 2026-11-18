@@ -1038,7 +1038,7 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
     val ctx = LocalContext.current
     val sc = rememberCoroutineScope()
     SGroup(L.t("Fuel prices"), footer = L.t("Live prices come from the government's Fuel Finder scheme. It's free: on gov.uk search \"Fuel Finder\", register as an information recipient with a GOV.UK One Login, then paste the client ID and secret here. Without them the fuel list still works, just without prices.")) {
-        SChoice(L.t("Your fuel"), listOf("E10" to L.t("Unleaded"), "E5" to L.t("Super"), "B7" to L.t("Diesel"), "E85" to L.t("Bioethanol (E85)"), "EV" to L.t("Electric")), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
+        SChoice(L.t("Your fuel"), listOf("E10" to L.t("Unleaded"), "E5" to L.t("Super"), "B7" to L.t("Diesel"), "E85" to L.t("Bioethanol (E85)"), "LPG" to L.t("LPG (Autogas)"), "EV" to L.t("Electric")), prefs.s(PreferenceKeys.FUEL_TYPE, "E10")) { prefs.put(PreferenceKeys.FUEL_TYPE, it) }
         SToggle(prefs, L.t("Suggest a fuel stop on long trips"), "smartfuel", true, if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") (if (mi) L.t("Over about 95 miles") else L.t("Over about 150 km")) + L.t(", a charging point along the way with the shortest detour") else (if (mi) L.t("Over about 95 miles") else L.t("Over about 150 km")) + L.t(", the best-value station along the way"))
         SFieldItem(L.t("Client ID"), prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
         SFieldItem(L.t("Client secret"), prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
@@ -1057,7 +1057,7 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         }
         SItem(L.t("Spotted a wrong price?")) { SButton(L.t("Report it")) { openSystemSettings(ctx, android.content.Intent.ACTION_VIEW, android.net.Uri.parse(FuelFinder.REPORT_URL)) } }
     }
-    SGroup(L.t("Fuel prices outside the UK"), footer = L.t("France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Australia (NSW and Tasmania) needs a free API key and secret from api.nsw.gov.au (Fuel API). Prices show in cents a litre, e.g. 189.9c. Elsewhere the fuel list still works, without prices.")) {
+    SGroup(L.t("Fuel prices outside the UK"), footer = L.t("France and Austria work by themselves, from their governments' own price services. Germany needs a free key from creativecommons.tankerkoenig.de (Tankerkönig). Australia (NSW and Tasmania) needs a free API key and secret from api.nsw.gov.au (Fuel API). Prices show in cents a litre, e.g. 189.9c. Elsewhere the fuel list still works, without prices.") + " " + L.t("Italy works by itself too, with the government's prices from each morning, updated once a day.")) {
         SFieldItem(L.t("Tankerkönig key (Germany)"), prefs.s(PreferenceKeys.TANKERKOENIG_KEY, ""), placeholder = L.t("Paste the key"), password = true) { prefs.put(PreferenceKeys.TANKERKOENIG_KEY, it.trim()) }
         SFieldItem(L.t("FuelCheck API key (Australia)"), prefs.s(PreferenceKeys.NSW_FUEL_KEY, ""), sub = L.t("New South Wales and Tasmania"), placeholder = L.t("Paste the API key"), password = true) { prefs.put(PreferenceKeys.NSW_FUEL_KEY, it.trim()) }
         SFieldItem(L.t("FuelCheck API secret"), prefs.s(PreferenceKeys.NSW_FUEL_SECRET, ""), placeholder = L.t("Paste the API secret"), password = true) { prefs.put(PreferenceKeys.NSW_FUEL_SECRET, it.trim()) }

@@ -603,6 +603,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var tripDest = ""
 
     init {
+        EuFuel.filesDir = ctx.filesDir   // (Italy's fuel price list is kept on the device)
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
         try { L.set(prefs.s(PreferenceKeys.APP_LANG, "auto")) } catch (e: Exception) { }
         // offline mode (Settings > Offline maps): set before anything goes online
@@ -3024,7 +3025,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val radius = if (nearDest) 900 else if (kind == "parking") 2000 else if (kind == "toilets" || kind == "coffee") 3000 else 6000
         val fuelType = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
         // (Fuel Finder has no E85 prices, and its station list would show every station rather than ones selling it)
-        val fuelLive = kind == "fuel" && FuelFinder.configured(prefs) && fuelType != "E85"
+        val fuelLive = kind == "fuel" && FuelFinder.configured(prefs) && fuelType != "E85" && fuelType != "LPG"
         nearbyKind = kind; nearbyBusy = true; nearby = emptyList()
         scope.launch {
             try {
@@ -3087,14 +3088,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         } else Overpass.nearby("lorrypark", centre, 25_000).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                     }
                     // bioethanol: only stations mapped as selling E85 (TomTom's search can't tell which do)
-                    val e85 = kind == "fuel" && fuelType == "E85"
+                    val e85 = kind == "fuel" && (fuelType == "E85" || fuelType == "LPG")
+                    // (LPG the same way: stations mapped as selling it, where no price service covers the country: TheDMAI)
+                    val osmKind = if (fuelType == "LPG") "fuel_lpg" else "fuel_e85"
                     if (e85) {
                         return@async if (alongRoute && rt != null) {
-                            Overpass.nearbyAlong("fuel_e85", RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45), 1500).mapNotNull { n ->
+                            Overpass.nearbyAlong(osmKind, RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45), 1500).mapNotNull { n ->
                                 val pr = RouteExtras.project(rt, n.place.pos, 2000.0, progress) ?: return@mapNotNull null
                                 if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
                             }
-                        } else Overpass.nearby("fuel_e85", centre, 15_000).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
+                        } else Overpass.nearby(osmKind, centre, 15_000).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                     }
                     // TomTom's place search first (quick, and it knows the detour time along a route); OpenStreetMap if that fails
                     if (hasOnline && online()) {
@@ -5840,7 +5843,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             out += Nearby(Place(s0.name, s0.sub, s0.pos), pr.first, "", s0.cents, detour(pr.second), true, unit = EuFuel.unit(cc))
                         }
                     }
-                    if (out.isEmpty() && hasKey && online() && fuel != "E85") {
+                    if (out.isEmpty() && hasKey && online() && fuel != "E85" && fuel != "LPG") {
                         val line = RouteExtras.line(r, a, b, 800.0, 140)
                         for ((n, secs) in TomTomRest.poiAlong(apiKey, "fuel", line, 600)) {
                             val pr = RouteExtras.project(r, n.place.pos, 3000.0) ?: continue

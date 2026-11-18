@@ -1664,5 +1664,7 @@ object I18nSr {
         "Keep the last 7" to "Задржи последњих 7",
         "Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest" to "Замени последњу чува једну датотеку, преписану сваког дана. Задржи последњих 7 додаје једну дневно и брише најстарију",
         "Back up or restore your settings, saved places and GPX tracks" to "Сачувај или врати подешавања, места и GPX стазе",
+        "LPG (Autogas)" to "Аутогас (LPG)",
+        "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Италија такође ради сама, са државним ценама од сваког јутра, ажурираним једном дневно.",
     )
 }
