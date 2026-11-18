@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Map
@@ -122,7 +123,12 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
             return@Column
         }
         val sample = view.spots.first().place
+        // (opened from Add a stop: the arrow goes back to it, with the map back on you; the ✕ closes both)
+        val fromStops = view.forStop && engine.stopsEditor
         Row(verticalAlignment = Alignment.CenterVertically) {
+            if (fromStops) Box(Modifier.padding(end = 10.dp).size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true) }, contentAlignment = Alignment.Center) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, L.t("Back"), tint = c.text)
+            }
             PlaceLogo(sample, 46.dp) {
                 Box(Modifier.size(46.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Place, null, tint = Color(0xFFEA4335)) }
             }
@@ -130,7 +136,7 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                 Text(if (view.forStop) L.t("Add a stop: {0}", view.name) else view.name, color = c.text, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(if (view.forStop) L.t("{0} along your route", view.spots.size) else L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
             }
-            Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true) }, contentAlignment = Alignment.Center) {
+            Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true); if (fromStops) engine.stopsEditor = false }, contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.text)
             }
         }

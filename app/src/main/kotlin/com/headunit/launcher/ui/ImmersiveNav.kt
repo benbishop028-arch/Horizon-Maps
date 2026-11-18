@@ -691,7 +691,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             enter = slideInHorizontally(initialOffsetX = { if (mir) -it else it }) + fadeIn(),
             exit = slideOutHorizontally(targetOffsetX = { if (mir) -it else it }) + fadeOut(),
         ) { OptionsSheet(engine, shareEta, wide = !narrow && maxWidth >= 860.dp && maxHeight < maxWidth, onSettings = { sheet = false; onSettings() }, voice = voice) { sheet = false } }
-        if (engine.stopsEditor) StopsDialog(engine, onClose = { engine.stopsEditor = false })
+        // Add a stop: a panel down the side with the map still showing (where "all locations" goes); while the places of a kind
+        // along the route are listed, that list takes its place. The phone's Back button goes back a step
+        if (engine.stopsEditor && engine.chain == null && !engine.chainBusy)
+            StopsPanel(engine, Modifier.align(side(Alignment.TopStart)).zIndex(6f).padding(16.dp)
+                .then(if (narrow) Modifier.fillMaxWidth().heightIn(max = maxHeight * 0.5f) else Modifier.width(420.dp).heightIn(max = maxHeight - 32.dp)),
+                onClose = { engine.stopsEditor = false })
+        BackHandler(enabled = engine.stopsEditor) { if (engine.chain != null || engine.chainBusy) engine.closeChain(back = true) else engine.stopsEditor = false }
     }
 }
 

@@ -29,6 +29,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -337,11 +339,17 @@ fun CruisePill(engine: NavEngine, modifier: Modifier = Modifier) {
     }
 }
 
-/** Edit the stops on the way: add by searching, move them up or down, or remove them. */
+/**
+ * Edit the stops on the way, in a panel down the side with the map still showing (it was a box over the whole map): a category
+ * shows the places of that kind along your route in the same panel, with the time each adds (as "See them along your route"),
+ * rather than adding one unseen; or search, add one of your places, and move stops up or down or remove them. Opening it doesn't
+ * move the map: only the list of places along the route zooms out to show them.
+ */
 @Composable
-fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
+fun StopsPanel(engine: NavEngine, modifier: Modifier, onClose: () -> Unit) {
     val c = LocalVw.current
-    var stops by remember { mutableStateOf(engine.via) }
+    // (picked up again when a stop is added from the list of places along the route)
+    var stops by remember(engine.via) { mutableStateOf(engine.via) }
     var q by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<Place>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
@@ -352,19 +360,23 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
         results = try { engine.findPlaces(q) } catch (e: Exception) { emptyList() }
         busy = false
     }
-    Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(Modifier.padding(horizontal = 16.dp).widthIn(max = 620.dp).fillMaxWidth().heightIn(max = 560.dp).clip(RoundedCornerShape(26.dp)).background(c.surface).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    run {
+        // (taps on the panel's empty parts stay on the panel, not the map under it)
+        Column(modifier.clip(RoundedCornerShape(28.dp)).background(c.surface).pointerInput(Unit) { detectTapGestures { } }
+            .verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(L.t("Stops on the way"), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(if (stops.isEmpty() && engine.via.isEmpty()) L.t("Add a stop") else L.t("Stops on the way"), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(28.dp).clickable { onClose() })
             }
-            // one tap, no typing: the best one along the route ahead is added straight away
-            if (engine.dest != null) {
-                Text(L.t("ONE TAP: THE BEST ONE ALONG YOUR ROUTE"), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            // a kind of place: the ones along the route ahead, listed in this same spot with the map zoomed out to show them
+            if (engine.dest != null && engine.route != null) {
+                Text(L.t("Find along the route").uppercase(), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
-                    for ((kind, name) in listOfNotNull(if (ev) null else "fuel" to L.t("Fuel"), "charging" to L.t("Charger"), "coffee" to L.t("Coffee"), "food" to L.t("Food"), "services" to L.t("Services"), "toilets" to L.t("Toilets")))
-                        Pill(name, false, { engine.addBestStop(kind); onClose() })
+                    // (searched for along the route by these words: the search services know them in any country)
+                    for ((term, name) in listOfNotNull(if (ev) null else "petrol station" to L.t("Fuel"), "EV charging station" to L.t("Charger"), "coffee" to L.t("Coffee"),
+                            "restaurant" to L.t("Food"), "rest area" to L.t("Services"), "public toilet" to L.t("Toilets")))
+                        Pill(name, false, { engine.openStopSearch(term, title = name, category = true) })
                 }
             }
             // your own places, added to the list below (then Update route)
@@ -383,7 +395,7 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                 trailingIcon = { if (busy) CircularProgressIndicator(Modifier.size(20.dp), color = c.accent, strokeWidth = 2.dp) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 // the keyboard's search key: everything matching along the route, on the map
-                keyboardActions = KeyboardActions(onSearch = { if (q.isNotBlank() && engine.route != null && engine.dest != null) { engine.openStopSearch(q.trim()); onClose() } }),
+                keyboardActions = KeyboardActions(onSearch = { if (q.trim().length >= 2 && engine.route != null && engine.dest != null) engine.openStopSearch(q.trim()) }),
                 shape = RoundedCornerShape(50),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = c.tile, unfocusedContainerColor = c.tile, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
@@ -394,7 +406,7 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
             // see where they all are on the route, with the time each adds (like "See all locations")
             if (q.trim().length >= 3 && engine.route != null && engine.dest != null) Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.accent.copy(alpha = 0.13f)).border(2.dp, c.accent, RoundedCornerShape(16.dp))
-                    .clickable { engine.openStopSearch(q.trim()); onClose() }.padding(horizontal = 14.dp, vertical = 10.dp),
+                    .clickable { engine.openStopSearch(q.trim()) }.padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Rounded.Map, null, tint = c.accent, modifier = Modifier.size(22.dp))
@@ -403,8 +415,8 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                     Text(L.t("On the map, with the time each adds"), color = c.sub, fontSize = 12.sp)
                 }
             }
-            if (results.isNotEmpty()) LazyColumn(Modifier.heightIn(max = 200.dp).clip(RoundedCornerShape(16.dp)).background(c.tile)) {
-                itemsIndexed(results) { _, p ->
+            if (results.isNotEmpty()) Column(Modifier.clip(RoundedCornerShape(16.dp)).background(c.tile)) {
+                results.forEach { p ->
                     Row(Modifier.fillMaxWidth().clickable { stops = (stops + p).take(8); q = ""; results = emptyList() }.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.Add, null, tint = c.accent, modifier = Modifier.size(22.dp))
                         Column(Modifier.padding(start = 10.dp)) {
@@ -414,8 +426,8 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                     }
                 }
             }
-            LazyColumn(Modifier.weight(1f, fill = false).heightIn(max = 260.dp)) {
-                itemsIndexed(stops) { i, p ->
+            Column {
+                stops.forEachIndexed { i, p ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(30.dp).clip(CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
                             Text("${i + 1}", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -441,7 +453,7 @@ fun StopsDialog(engine: NavEngine, onClose: () -> Unit) {
                 }
                 Text(engine.dest?.name ?: L.t("Destination"), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(start = 12.dp))
             }
-            if (stops.isEmpty()) Text(L.t("No stops yet. Search above to add one; the route goes through them in this order."), color = c.sub, fontSize = 13.sp)
+            if (stops.isEmpty()) Text(L.t("No stops yet. Add one and the route goes through it on the way."), color = c.sub, fontSize = 13.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 4.dp)) {
                 Pill(L.t("Update route"), true, { engine.setStops(stops); onClose() })
                 Pill(L.t("Cancel"), false, onClose)

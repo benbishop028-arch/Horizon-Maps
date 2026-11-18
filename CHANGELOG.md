@@ -46,6 +46,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Add a stop: now a panel down the side with your route still on the map, instead of a box over everything. Tapping Fuel, Charger, Coffee, Food, Services or Toilets lists those places along your route in the same panel, each with the time it adds and shown on the map, rather than adding one you hadn't seen. The arrow goes back. Search sits at the top, clear of the keyboard, and the map only zooms out while places along the route are listed
 - Phone held upright, on a route: the turn card takes the full width and the map buttons sit underneath it, instead of being squeezed in beside it
 - Phone held sideways: the big lane picture is lower on short screens, so the turn card no longer reaches down behind the trip card and hides the "Then" line (thanks to fahadfadi)
 - Search with both: with a TomTom key and a Mapbox token, search now asks both at the same time and puts their results together (the same place listed once, the nearest exact match first). Before, Mapbox was only asked when TomTom found fewer than four places, so a nearer street of the same name could be missing (thanks to jvricardo1)

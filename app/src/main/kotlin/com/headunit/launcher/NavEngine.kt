@@ -2035,7 +2035,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * route with the time each adds, and a list by least detour, soonest along the way, or nearest to you. From TomTom's
      * along-route search (with the real detour times), or without a TomTom key the usual search round points along the route.
      */
-    fun openStopSearch(q: String) {
+    fun openStopSearch(q: String, title: String? = null, category: Boolean = false) {
         val r = route ?: return
         if (dest == null || q.isBlank()) return
         chainQuery = q
@@ -2065,7 +2065,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 for ((p, t) in all) if (out.none { Geo.dist(it.first.pos, p.pos) < 80 }) out += p to t
                 // a shop or chain: only its own branches when there are some ("Western Union, Sainsbury's" is a counter inside one,
                 // not a Sainsbury's)
-                val own = out.filter { chainHit(it.first, q) }
+                // (not for a kind of place, from Add a stop's buttons: "coffee" kept only the places with Coffee in their name)
+                val own = if (category) emptyList() else out.filter { chainHit(it.first, q) }
                 if (own.size >= 2) own else out
             }
             val from = fix?.pos ?: ahead.first()
@@ -2083,7 +2084,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             withContext(Dispatchers.IO) { spots.mapNotNull { Logos.domainFor(it.place) }.distinct().take(6).forEach { Logos.load(ctx, it) } }
             val domain = spots.asSequence().mapNotNull { Logos.domainFor(it.place) }.firstOrNull()
             val n = spots.first().place.name
-            chain = ChainView(if (Logos.norm(n).startsWith(Logos.norm(q)) && n.length <= q.length + 14) n else q.replaceFirstChar { it.uppercase() },
+            chain = ChainView(title ?: if (Logos.norm(n).startsWith(Logos.norm(q)) && n.length <= q.length + 14) n else q.replaceFirstChar { it.uppercase() },
                 domain, spots, 0, from, forStop = true)
             chainSort = "route"
             chainSel = chainSorted().firstOrNull()
@@ -2123,7 +2124,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun chainGo(s: ChainSpot) { closeChain(); startRoute(s.place) }
 
-    fun chainAddStop(s: ChainSpot) { closeChain(); if (route != null && dest != null) addStop(s.place) else startRoute(s.place) }
+    fun chainAddStop(s: ChainSpot) { closeChain(); stopsEditor = false; if (route != null && dest != null) addStop(s.place) else startRoute(s.place) }
 
     /** Closes "all locations"; [back] puts the map back to following you (the ✕), as it was before. */
     fun closeChain(back: Boolean = false) {
