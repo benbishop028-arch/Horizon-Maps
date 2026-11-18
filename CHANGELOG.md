@@ -95,6 +95,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Media bar: the song's name now shows with more music apps; some send it in a different place, which left the bar saying just "Media" (thanks to bijindas)
+- TomTom's map: when TomTom won't show its map with your key (even if the key still plans routes), Mapbox's map now shows instead with a note saying why. Before, the refusal was mistaken for a Mapbox token problem and no map showed at all (thanks to zedje85)
+- Feedback reports no longer include your TomTom key or Mapbox token: they're blanked out wherever they appear, including in the address of a map that failed to load (thanks to zedje85)
 - Fuel cost on the route options: a price typed in euros or pounds per litre (2.15 or 2,15) is now understood as well as cents or pence (215); it was read as 2.15 cents. The same goes for the electricity price (thanks to smikkelvriend)
 - Settings: the on-screen keyboard no longer covers the box you're typing in; the settings scroll above it (Android 11 and newer, with full screen on) (thanks to smikkelvriend)
 - Roundabouts on the car's own displays: Android Auto is now told which way each roundabout exit goes, so a car's head-up display or dashboard draws the right exit instead of always a right turn (thanks to desko1973)

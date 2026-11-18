@@ -832,7 +832,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     // ---- style ----
     fun styleUrl(dark: Boolean): String {
         val traffic = prefs.b(PreferenceKeys.TRAFFIC, true)
-        return if (hasKey && prefs.mapSource() == "tomtom" && refusedKey != apiKey) TomTomRest.styleUrl(apiKey, dark, traffic)
+        return if (hasKey && prefs.mapSource() == "tomtom" && refusedKey != apiKey && ttMapRefusedKey != apiKey) TomTomRest.styleUrl(apiKey, dark, traffic)
         else OsmStyle.json(dark)
     }
 
@@ -960,6 +960,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The map style failed to load (usually a signal blip): try again a few times, then fall back to the downloaded map if there is one. */
     /** A key TomTom's map server turned away (it may still work for search and routes): the OpenStreetMap map is used instead. */
     @Volatile private var refusedKey: String? = null
+    /** A TomTom key whose map wouldn't load (it may still plan routes and search): Mapbox's map shows instead until the app restarts. */
+    @Volatile private var ttMapRefusedKey: String? = null
 
     /**
      * The map never appearing with no error at all (reported now and then with a token that's right): 25 s after asking for it,
@@ -992,8 +994,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Volatile private var lastMapError = ""
 
     private fun onMapError(msg: String) {
-        lastMapError = msg.take(140)
+        // (kept for the feedback report without any key in it, and with the web address shortened so the reason itself fits)
+        lastMapError = scrubKeys(msg).replace(Regex("https?://([^/\\s']+)[^\\s']*"), "$1/…").take(200)
         val m = msg.lowercase()
+        // TomTom's map wouldn't load with this key, though the key may still plan routes (zedje85: TomTom's map for routes was
+        // set, and the refusal was taken for a Mapbox token problem, so no map showed at all). Mapbox's map shows instead for
+        // now, with a note saying why; TomTom's map is tried again next time the app starts. A signal problem is retried as usual.
+        val mNoUrl = m.replace(Regex("https?://\\S+"), "")
+        val sigProblem = mNoUrl.contains("resolve") || mNoUrl.contains("timeout") || mNoUrl.contains("timed out") || mNoUrl.contains("unreachable") || mNoUrl.contains("network")
+        if (m.contains("api.tomtom.com") && !sigProblem && !Net.offline) {
+            if (ttMapRefusedKey != apiKey) { ttMapRefusedKey = apiKey; scope.launch { applyStyle(lastDark) } }
+            return
+        }
         // with Plus set up, a turned-down token is the key server's hour-long one running out: a new one is fetched
         if (Plus.offered && (m.contains("401") || m.contains("unauthor") || m.contains("access token"))) { KeyServer.refreshSoon(); return }
         // Mapbox turned the token away: say so (the map can't show without a working token)
@@ -1151,7 +1163,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         when {
             map.isSatellite || src == "mapbox" -> map.setStyleUrl(map.baseStyle())
             src == "tomtom" -> {
-                if (hasKey && refusedKey != apiKey) {
+                if (hasKey && refusedKey != apiKey && ttMapRefusedKey != apiKey) {
                     // TomTom's map in the Horizon colours, as in Horizon Nav
                     map.recolourBase = true
                     map.setStyleUrl(TomTomRest.styleUrl(apiKey, dark, prefs.b(PreferenceKeys.TRAFFIC, true)))
@@ -1435,7 +1447,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- feedback ----
     /** Everything useful for a bug report, with your own words first: the app and unit, the main settings, the areas and the last crash. */
-    fun feedbackReport(note: String): String {
+    fun feedbackReport(note: String): String = scrubKeys(feedbackReport0(note))
+
+    /**
+     * Takes any key or token out of text that's going to be shared (a feedback report goes on a public GitHub page): the TomTom
+     * key and the Mapbox token wherever they appear, and anything given as key=, access_token=, token= or apiKey= in a web
+     * address (zedje85's report showed his whole TomTom key, in the address of a map that failed to load).
+     */
+    private fun scrubKeys(text: String): String {
+        var t = text
+        for (k in listOf(apiKey, mbToken)) if (k.length >= 8) t = t.replace(k, "•••")
+        return t.replace(Regex("(?i)\\b(key|access_token|token|apikey|api_key|subscription-key)=[^&\\s'\")]+"), "$1=•••")
+    }
+
+    private fun feedbackReport0(note: String): String {
         val dm = ctx.resources.displayMetrics
         val crash = try { java.io.File(ctx.filesDir, "lastcrash.txt").takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
         return buildString {

@@ -149,9 +149,13 @@ object MediaNow {
     }
 
     private fun readMeta(md: MediaMetadata?) {
-        title = md?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: ""
-        artist = md?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: md?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
-            ?: md?.getString(MediaMetadata.METADATA_KEY_ALBUM) ?: ""
+        // (a field sent empty counts as missing: some players send an empty title and put the name in the display title or the
+        // description instead, which left the bar saying just "Media", bijindas)
+        fun f(k: String): String? = try { md?.getString(k)?.trim()?.takeIf { it.isNotEmpty() } } catch (e: Throwable) { null }
+        val desc = try { md?.description } catch (e: Throwable) { null }
+        title = f(MediaMetadata.METADATA_KEY_TITLE) ?: f(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: desc?.title?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: ""
+        artist = f(MediaMetadata.METADATA_KEY_ARTIST) ?: f(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE) ?: f(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+            ?: f(MediaMetadata.METADATA_KEY_ALBUM) ?: desc?.subtitle?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: ""
         val b = try {
             md?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART) ?: md?.getBitmap(MediaMetadata.METADATA_KEY_ART) ?: md?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
         } catch (e: Throwable) { null }
