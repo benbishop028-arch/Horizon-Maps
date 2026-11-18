@@ -45,6 +45,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Search with both: with a TomTom key and a Mapbox token, search now asks both at the same time and puts their results together (the same place listed once, the nearest exact match first). Before, Mapbox was only asked when TomTom found fewer than four places, so a nearer street of the same name could be missing (thanks to jvricardo1)
 - Choosing another route with the phone held sideways: the Routes panel sits beside the buttons (scrolling if it's long), the turn card goes to one line on the other side, the speed, Re-centre button and trip card step aside, and the map fits the routes in between. The panel no longer covers the screen or the turn card (thanks to fahadfadi)
 - Other routes: tap a route once to see it (shown in yellow on the map), then tap it again to switch to it. This works in the Routes panel and on the map's route labels (thanks to fahadfadi)
 - Start navigation on phones: it gets the bigger share of the row and stays on one line, and Fly over route may use two lines, so long wordings (like Dutch) are no longer cut off (thanks to smikkelvriend)

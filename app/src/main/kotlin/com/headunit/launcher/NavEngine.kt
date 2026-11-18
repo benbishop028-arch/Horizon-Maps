@@ -553,13 +553,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val with = prefs.s(PreferenceKeys.SEARCHWITH, "auto")
         val tomtomOk = hasKey && refusedKey != apiKey && System.currentTimeMillis() >= ttDownUntil
         if (tomtomOk && (with == "tomtom" || (with == "auto") || !hasMapbox)) {
-            val tt = try { TomTomRest.geocode(apiKey, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; null }
+            // with a Mapbox token too, both are asked at the same time and their results put together (jvricardo1, #192: TomTom
+            // found streets of the same name further away, and Mapbox, which had the nearest one, was only asked when TomTom
+            // found fewer than 4). TomTom's still come first; the same place from both is listed once, and exact matches go
+            // nearest first (rankResults)
+            val mbJob = if (hasMapbox) java.util.concurrent.CompletableFuture.supplyAsync {
+                try { MapboxRest.geocode(mbToken, country, q, near) } catch (e: Throwable) { emptyList<Place>() }
+            } else null
+            val tt = try { TomTomRest.geocode(apiKey, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) { mbJob?.cancel(true); throw e }; null }
             // TomTom refused the search (a key without the Search API, the daily limit): said once a session, as the results
             // otherwise just look thin
             TomTomRest.lastSearchError?.let { err -> if (!ttSearchWarned) { ttSearchWarned = true; scope.launch { toast(L.t("TomTom search didn't work: {0}", err.take(160)), 8000) } } }
-            if (tt != null && (tt.size >= 4 || !hasMapbox)) return tt
-            if (!hasMapbox) return tt ?: OsmSearch.geocode(country, q, near)
-            val mb = try { MapboxRest.geocode(mbToken, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList() }
+            if (mbJob == null) return tt ?: OsmSearch.geocode(country, q, near)
+            // (Mapbox is given a few seconds more at most: TomTom's results aren't held up for long by a slow answer)
+            val mb = try { mbJob.get(if (tt.isNullOrEmpty()) 10L else 4L, java.util.concurrent.TimeUnit.SECONDS) } catch (e: Exception) { mbJob.cancel(true); emptyList() }
             val out = ArrayList(tt ?: emptyList())
             for (p in mb) if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p
             return out
