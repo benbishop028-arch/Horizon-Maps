@@ -1648,5 +1648,6 @@ object I18nC {
         "Colours and lettering" to listOf("สีและตัวอักษร", "色と文字", "Warna dan tulisan"),
         "Avoid car trains" to listOf("หลีกเลี่ยงรถไฟขนรถยนต์", "カートレインを避ける", "Hindari kereta pengangkut mobil"),
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("รถไฟที่ขนรถของคุณ เช่น รถไฟลอดอุโมงค์ช่องแคบอังกฤษ หรือรถไฟอุโมงค์เทือกเขาแอลป์", "車ごと運ぶ列車(英仏海峡トンネルのシャトルやアルプスのトンネル列車など)", "Kereta yang mengangkut mobil Anda, seperti shuttle Terowongan Channel atau kereta terowongan Alpen"),
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to listOf("แสงและเงามาจากตำแหน่งจริงของดวงอาทิตย์ตอนนี้ และตอนกลางคืนจากดวงจันทร์", "光と影が今の太陽の本当の位置から、夜は月から当たります", "Cahaya dan bayangan datang dari posisi matahari sebenarnya saat ini, dan pada malam hari dari bulan"),
     )
 }

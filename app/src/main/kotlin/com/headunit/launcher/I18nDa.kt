@@ -1642,5 +1642,6 @@ object I18nDa {
         "Colours and lettering" to "Farver og skrift",
         "Avoid car trains" to "Undgå biltog",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Tog, der kører din bil, som Kanaltunnelens shuttle eller togene gennem Alpernes tunneler",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Lys og skygger kommer fra, hvor solen faktisk står lige nu, og om natten fra månen",
     )
 }

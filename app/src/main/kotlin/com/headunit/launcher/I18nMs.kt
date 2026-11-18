@@ -1642,5 +1642,6 @@ object I18nMs {
         "Colours and lettering" to "Warna dan tulisan",
         "Avoid car trains" to "Elak kereta api pembawa kereta",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Kereta api yang membawa kereta anda, seperti shuttle Terowong Selat Inggeris atau kereta api terowong Alps",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Cahaya dan bayang datang dari kedudukan sebenar matahari sekarang, dan pada waktu malam dari bulan",
     )
 }

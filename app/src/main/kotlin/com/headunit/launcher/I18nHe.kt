@@ -1642,5 +1642,6 @@ object I18nHe {
         "Colours and lettering" to "צבעים וכיתוב",
         "Avoid car trains" to "הימנע מרכבות רכב",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "רכבות שמובילות את הרכב שלך, כמו השאטל של מנהרת התעלה או רכבות המנהרות בהרי האלפים",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "האור והצללים מגיעים מהמקום שבו השמש נמצאת עכשיו באמת, ובלילה מהירח",
     )
 }

@@ -148,7 +148,7 @@ object RouteExtras {
             "(node(around:14,$pl)[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"];" +
             "node(around:90,$pl)[\"amenity\"=\"school\"];way(around:90,$pl)[\"amenity\"=\"school\"];)->.a;.a out center tags 300;" +
             "node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"]->.c;.c out body 400;" +
-            "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;" +
+            "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;way(bn.s)[\"highway\"]->.sw;.sw out body geom 600;" +
             "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;"
         // (average speed checks are no longer part of this big request: they have their own, see avgZones, so a slow or failed
         // search for bumps and schools can't take them down with it, GitHub #135)
@@ -157,16 +157,20 @@ object RouteExtras {
         // (crossings come from their own set, so they never crowd out the bumps and schools)
         val nodes = HashMap<Long, LL>()
         val rels = ArrayList<JSONObject>()
+        // stop signs and the roads they're on, to keep only the ones for the way you're going (dubrava4ever, #178)
+        val stopWays = ArrayList<JSONObject>()
+        val stops = ArrayList<Triple<Long, LL, JSONObject>>()
         for (i in 0 until els.length()) {
             val e = els.getJSONObject(i)
             when (e.optString("type")) {
                 "relation" -> rels += e
+                "way" -> if (e.has("geometry") && e.has("nodes")) stopWays += e
                 else -> {
                     val pos = if (e.has("lat")) LL(e.getDouble("lat"), e.getDouble("lon")) else e.optJSONObject("center")?.let { LL(it.getDouble("lat"), it.getDouble("lon")) }
                     if (pos != null && e.optString("type") == "node") nodes[e.optLong("id")] = pos
                     val t = e.optJSONObject("tags") ?: continue
                     if (pos == null) continue
-                    if (t.optString("highway") == "stop") pois += RoutePoi("stop", "Stop", pos)
+                    if (t.optString("highway") == "stop") stops += Triple(e.optLong("id"), pos, t)
                     else if (t.optString("railway") == "level_crossing") pois += RoutePoi("rail", "Level crossing", pos)
                     else if (t.optString("ford") == "yes") pois += RoutePoi("ford", "Ford", pos)
                     else if (t.optString("highway") == "crossing") pois += RoutePoi("crossing", t.optString("crossing"), pos)
@@ -175,7 +179,54 @@ object RouteExtras {
                 }
             }
         }
+        for ((id, pos, t) in stops) if (try { stopForRoute(id, pos, t, stopWays, line) } catch (x: Exception) { true }) pois += RoutePoi("stop", "Stop", pos)
         return pois to parseAvgs(rels, nodes)
+    }
+
+    /**
+     * Whether a stop sign is for you, not for a side road you pass (dubrava4ever, #178). A sign on a side street a few metres
+     * before it meets your road was within reach of the route, so it warned. It's kept only when the road it's on runs the same
+     * way as the route there (and its direction tag, if it has one, faces the way you're going). A sign drawn on the junction
+     * itself, with no direction, can't say which road it's for, so it's only kept when it's a stop for everyone (stop=all).
+     * With no road data for it, it's kept, as before.
+     */
+    private fun stopForRoute(id: Long, pos: LL, t: JSONObject, ways: List<JSONObject>, line: List<LL>): Boolean {
+        // the route's heading at its closest point to the sign
+        // (flat sums, no trigonometry: up to 300 signs against a long route, on a slow unit)
+        if (line.size < 2) return true
+        val kx = cos(Math.toRadians(pos.lat))
+        var best = Double.MAX_VALUE; var bi = 0
+        for (i in 0 until line.size - 1) {
+            val p = line[i]; val q = line[i + 1]
+            val ax = (p.lon - pos.lon) * kx; val ay = p.lat - pos.lat; val bx = (q.lon - pos.lon) * kx; val by = q.lat - pos.lat
+            val d = hypot(ax, ay) + hypot(bx, by) - hypot(bx - ax, by - ay)
+            if (d < best) { best = d; bi = i }
+        }
+        if (Geo.dist(line[bi], line[bi + 1]) < 0.5) return true
+        val rb = Geo.bearing(line[bi], line[bi + 1])
+        val dirTag = t.optString("direction").lowercase()
+        val all = t.optString("stop") == "all"
+        var onWays = 0
+        var forUs = false
+        for (w in ways) {
+            val ids = w.getJSONArray("nodes"); val g = w.getJSONArray("geometry")
+            var k = -1
+            for (j in 0 until ids.length()) if (ids.optLong(j) == id) { k = j; break }
+            if (k < 0 || g.length() < 2) continue
+            onWays++
+            val a = g.getJSONObject(max(k - 1, 0)); val b = g.getJSONObject(min(k + 1, g.length() - 1))
+            val wb = Geo.bearing(LL(a.getDouble("lat"), a.getDouble("lon")), LL(b.getDouble("lat"), b.getDouble("lon")))
+            val diff = abs(((wb - rb + 540.0) % 360.0) - 180.0)   // 0 = same way, 180 = opposite
+            when {
+                diff < 40.0 -> if (dirTag != "backward") forUs = true
+                diff > 140.0 -> if (dirTag != "forward") forUs = true
+            }
+        }
+        if (onWays == 0) return true
+        if (!forUs) return false
+        // on the junction itself (where roads meet) with no direction: only a stop for everyone is clearly yours
+        if (onWays >= 2 && dirTag != "forward" && dirTag != "backward" && !all) return false
+        return true
     }
 
     /**

@@ -1642,5 +1642,6 @@ object I18nSk {
         "Colours and lettering" to "Farby a písmo",
         "Avoid car trains" to "Vyhnúť sa autovlakom",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Vlaky, ktoré vezú vaše auto, ako kyvadlo pod kanálom La Manche alebo vlaky alpskými tunelmi",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Svetlo a tiene prichádzajú odtiaľ, kde je slnko práve teraz, a v noci od mesiaca",
     )
 }

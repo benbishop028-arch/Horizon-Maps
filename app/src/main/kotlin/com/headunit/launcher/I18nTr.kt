@@ -1642,5 +1642,6 @@ object I18nTr {
         "Colours and lettering" to "Renkler ve yazılar",
         "Avoid car trains" to "Araç trenlerinden kaçın",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Arabanızı taşıyan trenler, örneğin Manş Tüneli servisi veya Alp tünel trenleri",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Işık ve gölgeler güneşin şu anki gerçek konumundan, gece ise aydan gelir",
     )
 }

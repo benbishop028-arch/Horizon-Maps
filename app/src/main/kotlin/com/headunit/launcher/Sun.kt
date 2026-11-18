@@ -4,6 +4,8 @@ import java.util.Calendar
 import java.util.TimeZone
 import kotlin.math.PI
 import kotlin.math.acos
+import kotlin.math.atan2
+import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
@@ -83,5 +85,32 @@ object Sun {
         }
         if (az < 0) az += 360
         return Pair(az, elev)
+    }
+
+    /**
+     * Where the moon is now, roughly (to a degree or so, as SunCalc does it): its compass bearing (0 = north, clockwise), its height
+     * above the horizon in degrees, and how much of it is lit (0 new to 1 full). For the night light when "Sun in its real place"
+     * is on (dubrava4ever, #178: the night shadows always came from the west).
+     */
+    fun moon(lat: Double, lon: Double, nowMs: Long): Triple<Double, Double, Double> {
+        val rad = PI / 180.0
+        val d = nowMs / 86_400_000.0 - 10_957.5          // days since 1 Jan 2000, noon
+        val e = rad * 23.4397
+        val ml = rad * (218.316 + 13.176396 * d)
+        val mm = rad * (134.963 + 13.064993 * d)
+        val mf = rad * (93.272 + 13.229350 * d)
+        val l = ml + rad * 6.289 * sin(mm)
+        val b = rad * 5.128 * sin(mf)
+        val ra = atan2(sin(l) * cos(e) - tan(b) * sin(e), cos(l))
+        val dec = asin(sin(b) * cos(e) + cos(b) * sin(e) * sin(l))
+        val lw = rad * -lon
+        val phi = rad * lat
+        val h = rad * (280.16 + 360.9856235 * d) - lw - ra
+        val alt = asin(sin(phi) * sin(dec) + cos(phi) * cos(dec) * cos(h))
+        val azSouth = atan2(sin(h), cos(h) * sin(phi) - tan(dec) * cos(phi))
+        val az = ((azSouth / rad + 180.0) % 360.0 + 360.0) % 360.0
+        val age = (((d - 5.26) % 29.530588853) + 29.530588853) % 29.530588853
+        val lit = (1 - cos(2 * PI * age / 29.530588853)) / 2
+        return Triple(az, alt / rad, lit)
     }
 }

@@ -387,7 +387,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val alert = engine.alert
         val inc = engine.incidentAhead; val cam = engine.cameraDist
         val incShown = inc != null && alert?.kind != "incident"
-        val camShown = cam != null && alert?.kind != "camera"
+        // (while the average speed card shows under the turn card, it takes the speed camera line's place, so the column
+        // doesn't grow too tall on a short car screen: magnazan, #177)
+        val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
         // one slim line while the turn is far off (about 2 km), the full card as it comes up (a little either side, so it can't flicker)
         val slimHold = remember { booleanArrayOf(false) }
         if (t != null) slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
@@ -436,6 +438,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 if (!small) engine.advice?.let { AdvicePill(it) }
                 // a low bridge or weight limit the lorry is over: shown even on a small car screen
                 LorryWarnCard(engine)
+                // an average speed check: your average so far, the limit, how far is left and what keeps you under, as on the
+                // phone (it only showed there: magnazan, #177). At the car cards' size, under the turn card
+                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { AvgSpeedCard(engine) }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then

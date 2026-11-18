@@ -1642,5 +1642,6 @@ object I18nRo {
         "Colours and lettering" to "Culori și litere",
         "Avoid car trains" to "Evită trenurile pentru mașini",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Trenuri care îți transportă mașina, ca naveta din Tunelul Mânecii sau trenurile din tunelurile alpine",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Lumina și umbrele vin de unde este acum soarele cu adevărat, iar noaptea de la lună",
     )
 }

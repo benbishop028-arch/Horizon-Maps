@@ -40,6 +40,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- The moon in its real place: with "Sun in its real place" on (Settings › Light, weather & 3D), the night light and shadows now come from where the moon really is, as bright as it is full, and there are no shadows once it has set. Before, night shadows always came from the same side (thanks to dubrava4ever)
 - Tidier Settings: While driving has its own page (road name, arrow, tunnels, media controls, locking), so Screen & sizes is shorter. Weather now sits with the light (Light, weather & 3D). Everything about the search bar is in one group, Under the search bar, and Map lettering is part of Colours and lettering. Settings search finds everything in its new place
 - Choose which of your places sit next to Home and Work: each place in Settings › Places & trips › Your places has a star. Starred ones show in the row under the search bar, and a switch hides them all. Every place is still in search and the Your places shortcut (thanks to bijindas)
 - Folders in Your places and Your tracks: the shortcut lists show your folders first, then what's in no folder. Tap a folder to open it, and ‹ goes back. This works on Android Auto too (thanks to bijindas)
@@ -82,6 +83,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Average speed checks on Android Auto: the average speed card (your average so far, the limit, how far is left and what keeps you under) now shows under the turn card on the car screen too, not just on the phone. While it shows, it takes the place of the speed camera line, and its colours are deeper on a light card (thanks to magnazan)
+- Stop signs on side roads: the "Stop sign ahead" warning no longer goes off for stop signs on the side streets you pass, only for ones on your own road facing your way (thanks to dubrava4ever)
 - Squashed settings: in languages with long words, a setting's name could be squeezed to one word or even one letter per line when it had buttons beside it. The buttons now move onto their own line underneath when there isn't room (thanks to fjanakovic)
 - Time left easier to read in daylight: on a light card the green, amber and red time left are now deeper shades, so they stand out against white (thanks to magnazan)
 - Arriving in a big car park: stopping for a minute within 250 m of your destination now counts as arriving, so the route ends when you park, not only at the shop's front door (thanks to pc4096)

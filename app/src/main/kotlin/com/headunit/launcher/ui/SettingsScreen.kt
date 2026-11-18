@@ -357,7 +357,7 @@ private fun LightSection(prefs: Prefs) {
         if (prefs.b(PreferenceKeys.MOONLIT, false))
             SPercent(L.t("Moon strength"), L.t("How strongly the moon lights walls and casts shadows"), prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
         SToggle(prefs, L.t("Shadows"), PreferenceKeys.SHADOWS, true, L.t("Buildings and trees cast shadows. Off is also lighter work for a slow head unit"))
-        SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("By day, the light and shadows come from where the sun really is right now"))
+        SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("Light and shadows come from where the sun really is right now, and at night from the moon"))
         SToggle(prefs, L.t("Overcast light"), PreferenceKeys.OVERCAST, false, L.t("Soft daylight with no hard shadows, calmer in glare"))
         SToggle(prefs, L.t("Weather light"), PreferenceKeys.WEATHER_LIGHT, false, L.t("A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow"))
     }

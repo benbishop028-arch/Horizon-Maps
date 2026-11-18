@@ -1642,5 +1642,6 @@ object I18nMr {
         "Colours and lettering" to "रंग आणि अक्षरे",
         "Avoid car trains" to "कार रेल्वे टाळा",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "तुमची कार नेणाऱ्या रेल्वे, जसे चॅनेल टनेल शटल किंवा आल्प्समधील बोगदा रेल्वे",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "प्रकाश आणि सावल्या आत्ता सूर्य जिथे खरोखर आहे तिथून, आणि रात्री चंद्राकडून येतात",
     )
 }

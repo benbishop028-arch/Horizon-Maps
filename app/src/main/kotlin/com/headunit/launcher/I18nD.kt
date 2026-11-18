@@ -1639,5 +1639,6 @@ object I18nD {
         "Colours and lettering" to listOf("Цветове и надписи"),
         "Avoid car trains" to listOf("Избягвай влаковете за коли"),
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Влакове, които превозват колата ви, като совалката през Ламанша или алпийските тунелни влакове"),
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to listOf("Светлината и сенките идват от мястото, където е слънцето в момента, а нощем от луната"),
     )
 }

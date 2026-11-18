@@ -1642,5 +1642,6 @@ object I18nFi {
         "Colours and lettering" to "Värit ja tekstit",
         "Avoid car trains" to "Vältä autojunia",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Junat, jotka kuljettavat autosi, kuten Kanaalitunnelin sukkulajuna tai Alppien tunnelijunat",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Valo ja varjot tulevat sieltä, missä aurinko oikeasti nyt on, ja yöllä kuusta",
     )
 }

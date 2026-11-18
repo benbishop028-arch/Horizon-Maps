@@ -1642,5 +1642,6 @@ object I18nEu {
         "Colours and lettering" to "Koloreak eta letrak",
         "Avoid car trains" to "Saihestu autoen trenak",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Autoa garraiatzen duten trenak, Mantxako tuneleko anezka edo Alpeetako tuneletako trenak bezala",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Argia eta itzalak eguzkia benetan dagoen lekutik datoz, eta gauez ilargitik",
     )
 }

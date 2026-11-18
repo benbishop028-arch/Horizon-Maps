@@ -2369,6 +2369,7 @@ object L {
         "Colours and lettering" to listOf("Kleuren en letters", "Farben und Schrift", "Couleurs et lettrage", "Colores y letras"),
         "Avoid car trains" to listOf("Autotreinen vermijden", "Autozüge meiden", "Éviter les trains autos", "Evitar trenes de coches"),
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Treinen die je auto meenemen, zoals de Kanaaltunnelshuttle of de Alpentunneltreinen", "Züge, die dein Auto mitnehmen, wie der Eurotunnel-Shuttle oder die Alpentunnel-Autozüge", "Trains qui transportent votre voiture, comme la navette du tunnel sous la Manche ou les trains des tunnels alpins", "Trenes que llevan tu coche, como el lanzadera del Eurotúnel o los trenes de los túneles alpinos"),
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to listOf("Licht en schaduwen komen van waar de zon nu echt staat, en ’s nachts van de maan", "Licht und Schatten kommen von dort, wo die Sonne gerade wirklich steht, nachts vom Mond", "La lumière et les ombres viennent de la position réelle du soleil, et la nuit de la lune", "La luz y las sombras vienen de donde está el sol ahora mismo, y de noche de la luna"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -4009,5 +4010,6 @@ object L {
         "Colours and lettering" to listOf("Colori e scritte", "Cores e letras", "Kolory i napisy"),
         "Avoid car trains" to listOf("Evita treni navetta per auto", "Evitar comboios de automóveis", "Unikaj pociągów samochodowych"),
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Treni che trasportano l’auto, come la navetta del tunnel della Manica o i treni dei tunnel alpini", "Comboios que levam o seu carro, como o shuttle do Eurotúnel ou os comboios dos túneis alpinos", "Pociągi przewożące samochód, jak wahadłowiec pod kanałem La Manche czy pociągi w tunelach alpejskich"),
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to listOf("Luce e ombre arrivano da dove si trova davvero il sole ora, e di notte dalla luna", "A luz e as sombras vêm de onde o sol está agora, e à noite da lua", "Światło i cienie padają z miejsca, gdzie naprawdę jest teraz słońce, a nocą księżyc"),
     )
 }

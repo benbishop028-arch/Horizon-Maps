@@ -1642,5 +1642,6 @@ object I18nHu {
         "Colours and lettering" to "Színek és feliratok",
         "Avoid car trains" to "Autószállító vonatok elkerülése",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Az autót szállító vonatok, mint a La Manche-alagút shuttle vagy az alpesi alagútvonatok",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "A fény és az árnyékok onnan jönnek, ahol a nap most valóban van, éjjel pedig a holdtól",
     )
 }

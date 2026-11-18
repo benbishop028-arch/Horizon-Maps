@@ -1642,5 +1642,6 @@ object I18nEsAr {
         "Colours and lettering" to "Colores y letras",
         "Avoid car trains" to "Evitar trenes de autos",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Trenes que llevan tu auto, como el shuttle del Eurotúnel o los trenes de los túneles alpinos",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "La luz y las sombras vienen de donde está el sol ahora mismo, y de noche de la luna",
     )
 }

@@ -519,8 +519,20 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val o = lightOpts
         return when (lightPreset) {
             "night" -> {
-                if (!o.moon && o.nightBright == 100 && o.shadows) return null
                 val k = o.nightBright / 100.0
+                // the moon in its real place (with "Sun in its real place"): its light and shadows from where it is, as bright as
+                // it is full; once it has set, an even light with no shadows (dubrava4ever, #178)
+                if (o.sunReal) {
+                    val m = try { val c = mbMap.cameraState.center; Sun.moon(c.latitude(), c.longitude(), System.currentTimeMillis()) } catch (e: Throwable) { null }
+                    if (m != null) {
+                        val (az, alt, lit) = m
+                        return if (alt > 2.0) {
+                            val str = (if (o.moon) o.moonStr else 60) / 100.0 * (0.35 + 0.65 * lit)
+                            lightJson("#8C9CE0", 0.085 * k, "#C8D8FF", 0.22 * k * str, az, (90.0 - alt).coerceIn(15.0, 80.0), o.shadows, 0.7)
+                        } else lightJson("#B4BCE6", 0.12 * k, "#D2DCFF", 0.04 * k, 200.0, 20.0, false, 0.0)
+                    }
+                }
+                if (!o.moon && o.nightBright == 100 && o.shadows) return null
                 // the moon: Dusk's low light from one side and long shadows, from a low, pale blue moon in the south-west
                 if (o.moon) lightJson("#8C9CE0", 0.085 * k, "#C8D8FF", 0.22 * k * o.moonStr / 100.0, 215.0, 68.0, o.shadows, 0.7)
                 // otherwise an even light like Mapbox's night one, brighter or darker

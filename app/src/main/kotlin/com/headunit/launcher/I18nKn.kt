@@ -1642,5 +1642,6 @@ object I18nKn {
         "Colours and lettering" to "ಬಣ್ಣಗಳು ಮತ್ತು ಅಕ್ಷರಗಳು",
         "Avoid car trains" to "ಕಾರು ರೈಲುಗಳನ್ನು ತಪ್ಪಿಸಿ",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "ನಿಮ್ಮ ಕಾರನ್ನು ಸಾಗಿಸುವ ರೈಲುಗಳು, ಉದಾ. ಚಾನೆಲ್ ಸುರಂಗ ಶಟಲ್ ಅಥವಾ ಆಲ್ಪ್ಸ್ ಸುರಂಗ ರೈಲುಗಳು",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "ಬೆಳಕು ಮತ್ತು ನೆರಳುಗಳು ಈಗ ಸೂರ್ಯ ನಿಜವಾಗಿ ಇರುವ ಕಡೆಯಿಂದ, ರಾತ್ರಿ ಚಂದ್ರನಿಂದ ಬರುತ್ತವೆ",
     )
 }

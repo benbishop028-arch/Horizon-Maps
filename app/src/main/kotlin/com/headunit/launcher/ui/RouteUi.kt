@@ -212,8 +212,10 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
     val k = if (engine.imperial) 2.23694 else 3.6
     val unit = if (engine.imperial) "mph" else "km/h"
     val shape = RoundedCornerShape(22.dp)
+    // (deeper red, amber and green on a light card, so they read in daylight: magnazan, #177)
+    val red = delayTint(10, c.surface); val amber = delayTint(5, c.surface); val green = delayTint(0, c.surface)
     Row(
-        modifier.fillMaxWidth().panel(8.dp, shape, c.surface).border(2.dp, if (a.over) Bad else Color.Transparent, shape).padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier.fillMaxWidth().panel(8.dp, shape, c.surface).border(2.dp, if (a.over) red else Color.Transparent, shape).padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         val lim = a.limitMs?.let { (Math.round(it * k / 5.0) * 5).toInt() }
@@ -221,7 +223,7 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
             Text(lim?.toString() ?: "?", color = Color.Black, fontSize = 17.sp, fontWeight = FontWeight.Bold)
         }
         Column(Modifier.weight(1f)) {
-            Text(if (a.ahead) L.t("AVERAGE SPEED CHECK AHEAD") else L.t("AVERAGE SPEED CHECK"), color = Bad, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text(if (a.ahead) L.t("AVERAGE SPEED CHECK AHEAD") else L.t("AVERAGE SPEED CHECK"), color = red, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             if (a.ahead) Text(L.t("Starts in {0} · {1} long", Geo.fmtDist(a.toStartM, engine.imperial), Geo.fmtDist(a.leftM, engine.imperial)), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             else {
                 Text("${Geo.fmtDist(a.leftM, engine.imperial)} left", color = c.sub, fontSize = 13.sp)
@@ -232,8 +234,8 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
                     val sv = Math.floor(safe * k).toInt()
                     val lv = Math.round(lm * k).toInt()
                     when {
-                        safe <= 0.5 || sv < lv - 25 -> Text(L.t("Slow down to bring your average back under"), color = Bad, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                        sv < lv -> Text(L.t("Keep under {0} {1} for the rest", sv, unit), color = Warn, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        safe <= 0.5 || sv < lv - 25 -> Text(L.t("Slow down to bring your average back under"), color = red, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        sv < lv -> Text(L.t("Keep under {0} {1} for the rest", sv, unit), color = amber, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                         sv > lv -> Text(L.t("Up to {0} {1} keeps you under", minOf(sv, lv + 15), unit), color = c.sub, fontSize = 13.sp)
                         else -> {}
                     }
@@ -241,7 +243,7 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
             }
         }
         if (!a.ahead) Column(horizontalAlignment = Alignment.End) {
-            Text("${Math.round(a.avgMs * k)}", color = if (a.over) Bad else Good, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text("${Math.round(a.avgMs * k)}", color = if (a.over) red else green, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Text("avg $unit", color = c.sub, fontSize = 11.sp)
         }
     }

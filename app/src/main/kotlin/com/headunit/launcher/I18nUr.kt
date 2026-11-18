@@ -1642,5 +1642,6 @@ object I18nUr {
         "Colours and lettering" to "رنگ اور تحریر",
         "Avoid car trains" to "کار ٹرینوں سے بچیں",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "وہ ٹرینیں جو آپ کی گاڑی لے جاتی ہیں، جیسے چینل ٹنل شٹل یا الپس کی سرنگ والی ٹرینیں",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "روشنی اور سائے سورج کی اس وقت کی اصل جگہ سے آتے ہیں، اور رات کو چاند سے",
     )
 }

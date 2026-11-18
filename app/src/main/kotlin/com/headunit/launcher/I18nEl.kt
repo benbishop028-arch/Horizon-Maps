@@ -1642,5 +1642,6 @@ object I18nEl {
         "Colours and lettering" to "Χρώματα και γράμματα",
         "Avoid car trains" to "Αποφυγή τρένων αυτοκινήτων",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Τρένα που μεταφέρουν το αυτοκίνητό σας, όπως το shuttle της σήραγγας της Μάγχης ή τα τρένα των αλπικών σηράγγων",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Το φως και οι σκιές έρχονται από εκεί που βρίσκεται πραγματικά ο ήλιος τώρα, και τη νύχτα από το φεγγάρι",
     )
 }

@@ -1642,5 +1642,6 @@ object I18nAr {
         "Colours and lettering" to "الألوان والكتابة",
         "Avoid car trains" to "تجنّب قطارات نقل السيارات",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "قطارات تنقل سيارتك، مثل مكوك نفق المانش أو قطارات أنفاق جبال الألب",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "يأتي الضوء والظلال من موقع الشمس الحقيقي الآن، وفي الليل من القمر",
     )
 }

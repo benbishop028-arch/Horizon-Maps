@@ -1642,5 +1642,6 @@ object I18nSr {
         "Colours and lettering" to "Боје и натписи",
         "Avoid car trains" to "Избегавај возове за аутомобиле",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Возови који превозе твој аутомобил, као шатл кроз тунел испод Ламанша или возови кроз алпске тунеле",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "Светло и сенке долазе одакле је сунце заиста сада, а ноћу од месеца",
     )
 }

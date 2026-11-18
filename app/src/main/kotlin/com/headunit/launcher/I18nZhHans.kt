@@ -1642,5 +1642,6 @@ object I18nZhHans {
         "Colours and lettering" to "颜色与文字",
         "Avoid car trains" to "避开汽车列车",
         "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "载运汽车的列车,例如英法海底隧道穿梭列车或阿尔卑斯山隧道列车",
+        "Light and shadows come from where the sun really is right now, and at night from the moon" to "光线与阴影来自太阳此刻的真实位置,夜间则来自月亮",
     )
 }
