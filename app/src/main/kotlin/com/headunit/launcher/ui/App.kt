@@ -138,15 +138,18 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     }
     // the head unit has switched to its night mode at least once (so it links night mode to the headlights): noted for "Headlights"
     val sysDarkRaw = rememberSystemNight(useLamps = prefs.s(PreferenceKeys.THEME, "auto") == "lights")
-    // On a phone, Auto follows the phone's own light / dark setting exactly (Sun times is there for sunrise and sunset). Head units
+    // On a phone, Auto goes by sunrise and sunset ("Phone's dark mode" follows the phone's own light / dark setting). Head units
     // still follow their own night mode once it's been seen switching, with sunrise and sunset until then.
     val phoneLike = remember {
         try { appCtx.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TELEPHONY) && appCtx.resources.configuration.smallestScreenWidthDp < 600 } catch (e: Exception) { false }
     }
     val sysDark = sysDarkRaw
     LaunchedEffect(sysDark) { if (sysDark && !prefs.b(PreferenceKeys.SYSDARKSEEN, false)) prefs.put(PreferenceKeys.SYSDARKSEEN, true) }
-    val dark = if (phoneLike && prefs.s(PreferenceKeys.THEME, "auto") == "auto") sysDark
-    else resolveDark(prefs.s(PreferenceKeys.THEME, "auto"), prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull(), prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull(), nowMs,
+    // (lukaszsakul, #181: with the phone's dark mode on all the time, Auto kept the map dark all day. On a phone, Auto now goes by
+    // sunrise and sunset; "Phone's dark mode" is the choice for matching the phone's own light / dark setting)
+    val themeNow = prefs.s(PreferenceKeys.THEME, "auto")
+    val dark = if (themeNow == "phone") sysDark
+    else resolveDark(if (phoneLike && themeNow == "auto") "sun" else themeNow, prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull(), prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull(), nowMs,
         prefs.b(PreferenceKeys.SYSDARKSEEN, false), sysDark,
         prefs.s(PreferenceKeys.NIGHT_FROM, "19:00"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"))
     val hostCtx = androidx.compose.ui.platform.LocalContext.current

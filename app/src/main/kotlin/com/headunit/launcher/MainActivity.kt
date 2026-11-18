@@ -219,6 +219,8 @@ class MainActivity : ComponentActivity() {
         engine.onOpened()
         // after the permission dialog closes, wait a beat so the UI is settled before starting GPS
         if (hasLocation()) window.decorView.postDelayed({ if (!isFinishing && !isDestroyed) engine.startLocation() }, 400)
+        // the daily automatic backup, if it's on and due (a minute in, once the start's heavy work is done; its own thread)
+        window.decorView.postDelayed({ if (!isFinishing && !isDestroyed) try { Backup.maybeRun(applicationContext, engine.prefs) } catch (e: Throwable) { } }, 60_000L)
     }
 
     override fun onStart() {

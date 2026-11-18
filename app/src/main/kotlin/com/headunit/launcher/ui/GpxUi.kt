@@ -92,7 +92,7 @@ internal fun GpxGroup(engine: NavEngine, onShown: () -> Unit) {
                         SButton(L.t("Cancel")) { ask = false }
                     } else {
                         SButton(L.t("Show")) { engine.showTrack(t.id); onShown() }
-                        SButton(L.t("Drive"), primary = true) { engine.driveTrack(t.id); onShown() }
+                        SButton(L.t("Navigate"), primary = true) { engine.driveTrack(t.id); onShown() }
                         Box(Modifier.size(44.dp).clip(CircleShape).pressClick { filing = if (filing == t.id) null else t.id }, contentAlignment = Alignment.Center) {
                             Icon(Icons.Rounded.Folder, L.t("Group"), tint = if (filing == t.id || t.group.isNotBlank()) c.accent else c.sub, modifier = Modifier.size(22.dp))
                         }
@@ -156,7 +156,7 @@ internal fun TrackCard(engine: NavEngine, t: GpxTrack) {
             val sub = Geo.fmtDist(t.len, engine.imperial) + (if (toStart != null && toStart > 300.0) " · " + L.t("starts {0} away", Geo.fmtDist(toStart, engine.imperial)) else "")
             Text(sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        ImmPill(L.t("Drive this"), { engine.driveTrack(t.id) }, filled = true)
+        ImmPill(L.t("Navigate"), { engine.driveTrack(t.id) }, filled = true)   // (was "Drive this": bijindas)
         Box(Modifier.size(40.dp).clip(CircleShape).pressClick { engine.closeTrack() }, contentAlignment = Alignment.Center) {
             Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(22.dp))
         }

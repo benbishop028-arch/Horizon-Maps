@@ -36,6 +36,13 @@ object GpxStore {
         }.start()
     }
 
+    /** Reads the list again (after a backup brought tracks back). */
+    fun reload(c: Context) {
+        val list = readAll(c)
+        loaded = true
+        android.os.Handler(android.os.Looper.getMainLooper()).post { tracks = list }
+    }
+
     /** The list, read now if it hasn't been yet (for the search, which runs off the main thread). */
     fun tracksNow(c: Context): List<GpxTrack> {
         if (loaded) return tracks

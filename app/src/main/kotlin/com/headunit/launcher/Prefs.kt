@@ -118,6 +118,12 @@ internal object PreferenceKeys {
     const val AVOID_FERRY = "avoid_ferry"
     /** Keep off car trains (the Channel Tunnel shuttle, the Swiss and Austrian Alpine ones): Resul9704, #176 */
     const val AVOID_TRAIN = "avoid_train"
+    /** A clock with the speedometer, for head units whose status bar is covered (bijindas) */
+    const val CLOCK_MAP = "clockmap"
+    /** Automatic backup (bijindas): the folder it goes to ("" = off), one file or a week of them, and when it last ran */
+    const val AUTO_BACKUP_DIR = "autobackupdir"
+    const val AUTO_BACKUP_KEEP = "autobackupkeep"
+    const val AUTO_BACKUP_AT = "autobackupat"
     const val AVOID_MOTORWAY = "avoid_motorway"
     const val AVOID_TOLL = "avoid_toll"
     const val AVOID_UNPAVED = "avoid_unpaved"

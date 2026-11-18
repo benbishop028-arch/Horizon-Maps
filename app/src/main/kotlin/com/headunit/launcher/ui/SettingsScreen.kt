@@ -285,7 +285,12 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
 @Composable
 private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Day and night")) {
-        SChoice(L.t("Day and night"), listOf("auto" to L.t("Auto"), "lights" to L.t("Headlights"), "sun" to L.t("Sun times"), "times" to L.t("My times"), "day" to L.t("Day"), "night" to L.t("Night")), prefs.s(PreferenceKeys.THEME, "auto"),
+        // on a phone: Auto is sunrise and sunset, and "Phone's dark mode" follows the phone's own setting (lukaszsakul, #181);
+        // Headlights is only for head units
+        if (engine.onPhone()) SChoice(L.t("Day and night"), listOf("auto" to L.t("Auto"), "phone" to L.t("Phone's dark mode"), "times" to L.t("My times"), "day" to L.t("Day"), "night" to L.t("Night")),
+            prefs.s(PreferenceKeys.THEME, "auto").let { if (it == "sun" || it == "lights") "auto" else it },
+            L.t("Auto switches at sunrise and sunset, with dawn and dusk light in between. Phone's dark mode follows your phone's own light / dark setting. My times switches at the times you set")) { prefs.put(PreferenceKeys.THEME, it) }
+        else SChoice(L.t("Day and night"), listOf("auto" to L.t("Auto"), "lights" to L.t("Headlights"), "sun" to L.t("Sun times"), "times" to L.t("My times"), "day" to L.t("Day"), "night" to L.t("Night")), prefs.s(PreferenceKeys.THEME, "auto"),
             L.t("Auto follows the head unit's own night mode once it has switched to it, and sunrise and sunset until then. Headlights follows the head unit's night mode when it switches with your lights (turn on its headlight or illumination night-mode option), with sun times until then. Sun times switches at sunrise and sunset. My times switches at the times you set")) { prefs.put(PreferenceKeys.THEME, it) }
         // Headlights: whether this head unit has been seen switching with the lights yet (until then sun times stand in), and what the
         // lights signal says right now, so it's easy to check it works (lights on: it should say on within a couple of seconds)
@@ -1192,6 +1197,7 @@ private fun WhileDrivingSection(prefs: Prefs) {
         SToggle(prefs, L.t("Keep the arrow to the side"), PreferenceKeys.ARROW_SIDE, false, L.t("When the cards fold away, instead of moving to the middle"))
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
+        SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
         SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, true, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
         if (prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.songInfoPossible) {
@@ -1367,30 +1373,61 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
         }
         SItem(L.t("Location services")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_LOCATION_SOURCE_SETTINGS) } }
     }
+    // (with the GPX tracks in it a backup can be a couple of megabytes: written and read off the main thread, so a slow unit
+    // doesn't stall; bijindas)
+    val mainH = remember { android.os.Handler(android.os.Looper.getMainLooper()) }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) {
+        if (uri != null) Thread {
             val ok = try {
-                ctx.contentResolver.openOutputStream(uri)?.use { it.write(prefs.exportJson(prefs.b(PreferenceKeys.BACKUP_KEYS, false)).toByteArray()) }
-                true
-            } catch (e: Exception) { false }
-            android.widget.Toast.makeText(ctx, if (ok) L.t("Backup saved") else L.t("Could not save the backup"), android.widget.Toast.LENGTH_SHORT).show()
-        }
+                val text = com.headunit.launcher.Backup.export(ctx, prefs)
+                ctx.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } != null
+            } catch (e: Throwable) { false }
+            mainH.post { android.widget.Toast.makeText(ctx, if (ok) L.t("Backup saved") else L.t("Could not save the backup"), android.widget.Toast.LENGTH_SHORT).show() }
+        }.start()
     }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
+        if (uri != null) Thread {
             val msg = try {
                 val text = ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
-                L.t("Restored {0} settings", prefs.importJson(text))
-            } catch (e: Exception) { L.t("That file is not a valid backup") }
-            android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show()
+                val (n, t) = com.headunit.launcher.Backup.restore(ctx, prefs, text)
+                L.t("Restored {0} settings", n) + (if (t > 0) " · " + L.t("{0} GPX tracks", t) else "")
+            } catch (e: Throwable) { L.t("That file is not a valid backup") }
+            mainH.post { android.widget.Toast.makeText(ctx, msg, android.widget.Toast.LENGTH_LONG).show() }
+        }.start()
+    }
+    // automatic backup: a folder picked once (its permission kept), then a backup there once a day when the app opens
+    val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) {
+            try { ctx.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } catch (e: Exception) { }
+            prefs.put(PreferenceKeys.AUTO_BACKUP_DIR, uri.toString())
+            com.headunit.launcher.Backup.maybeRun(ctx, prefs, force = true)
         }
     }
-    SGroup(L.t("Backup"), footer = L.t("Includes settings and saved places, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
+    SGroup(L.t("Backup"), footer = L.t("Includes settings, saved places and GPX tracks, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
         SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
-        SItem(L.t("Settings and saved places")) {
+        SItem(L.t("Settings, places and tracks")) {
             SButton(L.t("Back up")) { exporter.launch("horizon-nav-backup.json") }
             SButton(L.t("Restore")) { importer.launch(arrayOf("application/json", "text/plain", "*/*")) }
         }
+        val autoDir = prefs.s(PreferenceKeys.AUTO_BACKUP_DIR, "")
+        val lastAt = prefs.s(PreferenceKeys.AUTO_BACKUP_AT, "0").toLongOrNull() ?: 0L
+        val failAt = prefs.s(PreferenceKeys.AUTO_BACKUP_AT + "fail", "0").toLongOrNull() ?: 0L
+        SItem(L.t("Automatic backup"),
+            if (autoDir.isBlank()) L.t("Once a day, to a folder you choose")
+            else L.t("Once a day, to {0}", com.headunit.launcher.Backup.folderName(autoDir)) +
+                (if (failAt > lastAt) " · " + L.t("the last one couldn't be saved: choose the folder again") else if (lastAt > 0) " · " + L.t("last {0}", com.headunit.launcher.Clock.format("EEE d MMM, ").format(java.util.Date(lastAt))) else "")) {
+            if (autoDir.isBlank()) SButton(L.t("Choose folder")) {
+                try { folderPicker.launch(null) } catch (e: Exception) { android.widget.Toast.makeText(ctx, L.t("This unit can't pick a folder"), android.widget.Toast.LENGTH_LONG).show() }
+            } else {
+                SButton(L.t("Change")) { try { folderPicker.launch(null) } catch (e: Exception) { } }
+                SButton(L.t("Turn off"), danger = true) {
+                    try { ctx.contentResolver.releasePersistableUriPermission(android.net.Uri.parse(autoDir), android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION) } catch (e: Exception) { }
+                    prefs.put(PreferenceKeys.AUTO_BACKUP_DIR, "")
+                }
+            }
+        }
+        if (autoDir.isNotBlank()) SChoice(L.t("Backup files"), listOf("one" to L.t("Replace the last one"), "week" to L.t("Keep the last 7")), prefs.s(PreferenceKeys.AUTO_BACKUP_KEEP, "one"),
+            L.t("Replace the last one keeps a single file, overwritten each day. Keep the last 7 adds one a day and removes the oldest")) { prefs.put(PreferenceKeys.AUTO_BACKUP_KEEP, it) }
     }
     val cf = java.io.File(ctx.filesDir, "lastcrash.txt")
     var rep by remember { mutableStateOf(if (cf.exists()) cf.readText() else "") }

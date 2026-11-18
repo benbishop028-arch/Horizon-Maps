@@ -1049,8 +1049,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!isCar && theme == "day") return "day"
         if (!isCar && theme == "night") return "night"
         if (theme == "times") return if (dark) "night" else "day"
-        // (on a phone, Auto is the phone's own light / dark setting, so the map simply matches it)
-        if (!isCar && theme == "auto" && onPhone()) return if (dark) "night" else "day"
+        // (Phone's dark mode: the map simply matches the phone's own light / dark setting. On a phone, Auto now follows the sun
+        // below, with its dawn and dusk light: lukaszsakul, #181)
+        if (!isCar && theme == "phone") return if (dark) "night" else "day"
         // Headlights (and the car screen following the car): only the lights decide, so a tunnel at midday goes properly dark and
         // coming out goes straight back to day. The sun's dawn and dusk light is left out, as it would tint the map whatever the
         // lights say. (Until the head unit has been seen switching with the lights, sun times stand in, so dark already follows them.)
@@ -2967,7 +2968,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** A phone rather than a head unit: it has a phone line and a phone-sized screen (and isn't drawing the car screen). */
-    private fun onPhone(): Boolean = !isCar && try {
+    fun onPhone(): Boolean = !isCar && try {
         ctx.packageManager.hasSystemFeature(android.content.pm.PackageManager.FEATURE_TELEPHONY) && ctx.resources.configuration.smallestScreenWidthDp < 600
     } catch (e: Exception) { false }
 

@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Automatic backup: Settings › About › Backup can now back up by itself once a day to a folder you choose, either replacing the last file or keeping the last 7 (thanks to bijindas)
+- Clock on the map: a small clock with the speedometer, for head units whose status bar is covered (Settings › While driving › Clock on the map) (thanks to bijindas)
 - Avoid car trains: a new switch next to Avoid ferries keeps your route off trains that carry cars, such as the Channel Tunnel shuttle and the Alpine tunnel trains. If a car train is the only way there, it is still used (thanks to Resul9704)
 - Close Horizon Nav: a button at the bottom of Map options ends any route, stops the GPS and closes the app, so nothing keeps running in the background (thanks to pc4096)
 - Help test Horizon Maps on Google Play: a one-off invitation to join the testers for the coming Google Play version, with a QR code for head units. It never shows while you are driving, and a banner at the top of Settings opens it any time
@@ -40,6 +42,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- GPX tracks in backups: Back up and Restore now include your GPX tracks, with their groups, as well as your settings and saved places (thanks to bijindas)
+- "Navigate" for GPX tracks: the button that drives a track now says Navigate instead of "Drive this" (thanks to bijindas)
 - The moon in its real place: with "Sun in its real place" on (Settings › Light, weather & 3D), the night light and shadows now come from where the moon really is, as bright as it is full, and there are no shadows once it has set. Before, night shadows always came from the same side (thanks to dubrava4ever)
 - Tidier Settings: While driving has its own page (road name, arrow, tunnels, media controls, locking), so Screen & sizes is shorter. Weather now sits with the light (Light, weather & 3D). Everything about the search bar is in one group, Under the search bar, and Map lettering is part of Colours and lettering. Settings search finds everything in its new place
 - Choose which of your places sit next to Home and Work: each place in Settings › Places & trips › Your places has a star. Starred ones show in the row under the search bar, and a switch hides them all. Every place is still in search and the Your places shortcut (thanks to bijindas)
@@ -83,6 +87,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Night map by day on phones: with the phone's dark mode switched on, Auto kept the map dark all day. On a phone, Auto now follows sunrise and sunset, and a new "Phone's dark mode" choice matches the phone's own light / dark setting for anyone who wants that (thanks to lukaszsakul)
 - Average speed checks on Android Auto: the average speed card (your average so far, the limit, how far is left and what keeps you under) now shows under the turn card on the car screen too, not just on the phone. While it shows, it takes the place of the speed camera line, and its colours are deeper on a light card (thanks to magnazan)
 - Stop signs on side roads: the "Stop sign ahead" warning no longer goes off for stop signs on the side streets you pass, only for ones on your own road facing your way (thanks to dubrava4ever)
 - Squashed settings: in languages with long words, a setting's name could be squeezed to one word or even one letter per line when it had buttons beside it. The buttons now move onto their own line underneath when there isn't room (thanks to fjanakovic)

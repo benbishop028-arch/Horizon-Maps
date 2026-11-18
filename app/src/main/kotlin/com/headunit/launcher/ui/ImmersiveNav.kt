@@ -952,6 +952,40 @@ private fun ImmCompass(engine: NavEngine) {
 /** Speed limit sign beside a large readout of your current speed. */
 @Composable
 internal fun ImmSpeed(engine: NavEngine) {
+    // a clock with the speedometer (Settings › While driving › Clock on the map): on the side away from the screen edge it sits against, so
+    // it never pushes the speedometer off the screen. Not on the car screen, which has its own clock (bijindas)
+    if (!engine.isCar && engine.prefs.b(PreferenceKeys.CLOCK_MAP, false)) {
+        val atTop = LocalSpeedAtTop.current
+        val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true)
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign && !atTop) 26.dp else 6.dp)) {
+            if (!atTop) MapClock()
+            ImmSpeedOnly(engine)
+            if (atTop) MapClock()
+        }
+        return
+    }
+    ImmSpeedOnly(engine)
+}
+
+/** The time now, in a small pill (12 or 24-hour as Settings › Units › Clock). Ticks over on the minute. */
+@Composable
+private fun MapClock() {
+    val c = LocalVw.current
+    var now by remember { mutableStateOf(com.headunit.launcher.Clock.hm(System.currentTimeMillis())) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val ms = System.currentTimeMillis()
+            now = com.headunit.launcher.Clock.hm(ms)
+            kotlinx.coroutines.delay(60_000L - ms % 60_000L + 50L)
+        }
+    }
+    Box(Modifier.panel(6.dp, RoundedCornerShape(50), c.surface).padding(horizontal = 14.dp, vertical = 6.dp)) {
+        Text(now, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    }
+}
+
+@Composable
+private fun ImmSpeedOnly(engine: NavEngine) {
     // the size from Settings (100% = the standard size): it's laid out at that size, so it keeps clear of the edges and other cards
     val pct = engine.prefs.i(PreferenceKeys.SPEED_SIZE, 100).coerceIn(50, 200)
     if (pct == 100) { SpeedWithNext(engine); return }
