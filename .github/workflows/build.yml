@@ -12,6 +12,11 @@ on:
         description: "Also publish the app to the download link (so the app's update check finds it)"
         type: boolean
         default: false
+      send_to_play:
+        description: "Send the Play version to Google Play (needs the Play access key in Secrets)"
+        type: choice
+        options: ["closed testing", "internal testing", "not this time"]
+        default: "closed testing"
 
 permissions:
   contents: write
@@ -424,7 +429,7 @@ jobs:
 
       - name: Is Google Play set up?
         id: play
-        if: ${{ steps.playbundle.outcome == 'success' && inputs.publish }}
+        if: ${{ steps.playbundle.outcome == 'success' && inputs.send_to_play != 'not this time' }}
         env:
           PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
@@ -433,7 +438,9 @@ jobs:
 
       # (Play only accepts uploads like this once the app's first version has been uploaded by hand in Play Console. Until then
       # this step fails without failing the build.)
-      - name: Send to Google Play (internal testing)
+      # closed testing is Play's "alpha" track (the one the testers group is on); internal testing is for you alone
+      - name: Send to Google Play
+        id: playsend
         if: ${{ steps.play.outputs.ready == 'true' }}
         continue-on-error: true
         uses: r0adkll/upload-google-play@v1
@@ -441,6 +448,15 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.headunit.nav.play
           releaseFiles: ${{ env.PROJECT_DIR }}/app/build/outputs/bundle/playRelease/HorizonNav-play.aab
-          track: internal
+          track: ${{ inputs.send_to_play == 'internal testing' && 'internal' || 'alpha' }}
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/play-whatsnew
+
+      # The Play steps above never hold up the GitHub release, but a failure there must not pass unnoticed either: the run is
+      # marked failed (after everything else has finished) with a plain note of which part went wrong.
+      - name: Did the Play version work?
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ "${{ steps.playbundle.outcome }}" = "failure" ]; then echo "::error::The Play version didn't build: open the 'Build the Google Play bundle' step above to see why."; exit 1; fi
+          if [ "${{ steps.playsend.outcome }}" = "failure" ]; then echo "::error::The Play version built but couldn't be sent to Google Play: open the 'Send to Google Play' step above to see why."; exit 1; fi
+          echo "Play version: built${{ steps.playsend.outcome == 'success' && ' and sent to Google Play' || '' }}."
