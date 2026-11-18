@@ -278,6 +278,10 @@ object MapboxRest {
         return false
     }
 
+    /** True when the last Mapbox route still takes a car train with Avoid car trains on (Mapbox found no way round it, or its
+     *  leaving-out by position didn't take): TomTom, which can leave car trains out properly, is asked instead when there's a key. */
+    @Volatile var trainKept = false
+
     /** Where a route rides a car train: stretches Mapbox marks as a train, else ones along a known car-train line (#176: Mapbox
      *  gives the Brig–Iselle train as ordinary driving, so the first alone found nothing). */
     private fun onTrain(r: JSONObject): List<LL> = trainPoints(r).ifEmpty { try { CarTrains.pointsOn(r) } catch (e: Exception) { emptyList() } }
@@ -383,6 +387,7 @@ object MapboxRest {
         }
         // car trains (Resul9704, #176): Mapbox has no "exclude" for them (exclude=ferry leaves them in), so when the best route
         // takes one it's asked again with the train's own stretch left out by position; if there's no other way, the train stays
+        trainKept = false
         if (TomTomRest.avoid.contains("carTrains")) {
             val r0 = o.optJSONArray("routes")?.optJSONObject(0)
             val tp = if (r0 != null) onTrain(r0) else emptyList()
@@ -395,12 +400,16 @@ object MapboxRest {
                     if (o3.optString("code") == "Ok" && n0 != null && onTrain(n0).isEmpty()) o = o3
                 } catch (e: Exception) { /* keep the route with the train rather than none */ }
             }
-            // and no other suggested route with a train on it, when there's one without
+            // the suggested routes without a train first (one of the other suggestions may go round it when the best doesn't), and
+            // none with a train on it when there's one without
             val all = o.optJSONArray("routes")
-            if (all != null && all.length() > 1) {
+            if (all != null && all.length() > 0) {
+                val clear = ArrayList<JSONObject>(); val train = ArrayList<JSONObject>()
+                for (i in 0 until all.length()) { val r = all.optJSONObject(i) ?: continue; if (onTrain(r).isEmpty()) clear += r else train += r }
                 val keep = JSONArray()
-                for (i in 0 until all.length()) { val r = all.optJSONObject(i) ?: continue; if (i == 0 || onTrain(r).isEmpty()) keep.put(r) }
+                (if (clear.isNotEmpty()) clear else train).forEach { keep.put(it) }
                 o.put("routes", keep)
+                trainKept = clear.isEmpty() && train.isNotEmpty()
             }
         }
         val arr = o.optJSONArray("routes") ?: JSONArray()

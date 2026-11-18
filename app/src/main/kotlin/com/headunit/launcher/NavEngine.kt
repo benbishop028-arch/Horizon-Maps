@@ -324,7 +324,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             "tomtom" -> if (hasKey) "tomtom" else if (hasMapbox) "mapbox" else ""
             "mapbox" -> if (hasMapbox) "mapbox" else if (hasKey) "tomtom" else ""
             // (eco routes are TomTom's: Mapbox has none, so with Eco routes on and a TomTom key, TomTom plans them)
-            else -> if (prefs.b(PreferenceKeys.ROUTE_ECO, false) && hasKey) "tomtom"
+            // (Avoid car trains: TomTom leaves them out properly; Mapbox's routes can't, Resul9704 #176)
+            else -> if ((prefs.b(PreferenceKeys.ROUTE_ECO, false) || prefs.b(PreferenceKeys.AVOID_TRAIN, false)) && hasKey) "tomtom"
                 else if (prefs.mapSource() == "mapbox" && hasMapbox) "mapbox" else if (hasKey) "tomtom" else if (hasMapbox) "mapbox" else ""
         }
         // the chosen one isn't working right now (its limit reached, the key refused, an outage): the other one meanwhile
@@ -429,7 +430,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
 
     private fun routesFromInner(p: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean): List<Route> =
-        if (p == "mapbox") try { MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored) } catch (e: Exception) { noteMbRefused(e); throw e }
+        if (p == "mapbox") try {
+            val rs = MapboxRest.routes(mbToken, from, to, alternatives, departAtMs, via, headingDeg, quick, !mirrored)
+            // Mapbox couldn't keep off a car train: TomTom's route instead when there's a key (it can), else Mapbox's with the train
+            if (MapboxRest.trainKept && hasKey && prefs.b(PreferenceKeys.AVOID_TRAIN, false)) {
+                try { TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick).ifEmpty { rs } } catch (x: Exception) { rs }
+            } else rs
+        } catch (e: Exception) { noteMbRefused(e); throw e }
         else TomTomRest.routes(apiKey, from, to, alternatives, departAtMs, via, headingDeg, quick)
 
     /**
@@ -478,7 +485,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                              askBoth: Boolean): List<Route> {
         val now = System.currentTimeMillis()
         val both = askBoth && !quick && hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" &&
-            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && now >= ttDownUntil && now >= mbDownUntil
+            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && !prefs.b(PreferenceKeys.AVOID_TRAIN, false) && now >= ttDownUntil && now >= mbDownUntil
         if (!both) return withBackup { p -> lastRouteProvider = p; routesFrom(p, from, to, alternatives, departAtMs, via, headingDeg, quick) }
         val mainP = provider
         val otherP = if (mainP == "mapbox") "tomtom" else "mapbox"
@@ -2502,7 +2509,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (haveOffline && (!hasOnline || !online())) return@withContext OfflineRouter.routes(ctx, from, to, viaPts, hd) to true
         val now = System.currentTimeMillis()
         val race = hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" && !Vehicle.lorry &&
-            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && now >= ttDownUntil && now >= mbDownUntil
+            !prefs.b(PreferenceKeys.ROUTE_ECO, false) && !prefs.b(PreferenceKeys.AVOID_TRAIN, false) && now >= ttDownUntil && now >= mbDownUntil
         if (race) {
             val ch = kotlinx.coroutines.channels.Channel<Pair<String, List<Route>>>(2)
             val jobs = listOf("tomtom", "mapbox").map { p ->
