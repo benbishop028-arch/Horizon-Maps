@@ -3,7 +3,15 @@ name: Build Horizon Nav
 on:
   push:
     branches: [main]
+    # the app's source is now saved straight into the repository; a change to any of it builds the app
+    # (HorizonNav.zip still works as before, as a fallback)
     paths:
+      - "app/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "gradle/**"
+      - "CHANGELOG.md"
       - "HorizonNav.zip"
       - ".github/workflows/build.yml"
   workflow_dispatch:
@@ -21,7 +29,7 @@ on:
 permissions:
   contents: write
 
-# one build at a time: uploading the ZIP and pressing Run workflow at once would otherwise race to save the source
+# one build at a time: an upload and pressing Run workflow at once would otherwise race
 concurrency:
   group: build-horizon-nav
   cancel-in-progress: false
@@ -36,67 +44,42 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Unpack the uploaded ZIP outside the repository
+      # The source is normally saved straight into the repository, and is built from there. If a HorizonNav.zip is uploaded
+      # instead (the old way), it is unpacked, its files are saved into the repository as before, and the ZIP itself is removed,
+      # so the repository doesn't grow by a whole copy of the app with every upload.
+      - name: Find the app's source
         run: |
           set -euo pipefail
           ZIP="$GITHUB_WORKSPACE/HorizonNav.zip"
-          UNPACKED="$RUNNER_TEMP/horizon-unpacked"
-          rm -rf "$UNPACKED"
-          mkdir -p "$UNPACKED"
-          [ -f "$ZIP" ] || { echo "ERROR: HorizonNav.zip not found"; exit 1; }
-          unzip -q "$ZIP" -d "$UNPACKED"
-
-          PROJECT_DIR="$(dirname "$(find "$UNPACKED" -name settings.gradle.kts -print -quit)")"
-          [ -f "$PROJECT_DIR/settings.gradle.kts" ] || {
-            echo "ERROR: Could not find settings.gradle.kts in HorizonNav.zip"
-            exit 1
-          }
-          [ -f "$PROJECT_DIR/app/build.gradle.kts" ] || {
-            echo "ERROR: Could not find the Android app module."
-            exit 1
-          }
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-          echo "Project found at $PROJECT_DIR"
-
-      - name: Sync project source into the repository
-        run: |
-          set -euo pipefail
-          STAGING="$RUNNER_TEMP/horizon-source"
-          rm -rf "$STAGING"
-          mkdir -p "$STAGING"
-          rsync -a "$PROJECT_DIR/" "$STAGING/"
-
-          # Mirror project files into the repository root, preserving workflow files,
-          # README, uploaded ZIP and signing-key file.
-          rsync -a --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            --exclude='README.md' \
-            --exclude='HorizonNav.zip' \
-            --exclude='signing.keystore' \
-            "$STAGING/" "$GITHUB_WORKSPACE/"
-
-          cd "$GITHUB_WORKSPACE"
-          git add -A
-          git reset -q -- HorizonNav.zip README.md signing.keystore .github 2>/dev/null || true
-
-          if ! git diff --cached --quiet; then
+          if [ -f "$ZIP" ]; then
+            UNPACKED="$RUNNER_TEMP/horizon-unpacked"
+            rm -rf "$UNPACKED"; mkdir -p "$UNPACKED"
+            unzip -q "$ZIP" -d "$UNPACKED"
+            SRC="$(dirname "$(find "$UNPACKED" -name settings.gradle.kts -print -quit)")"
+            [ -f "$SRC/settings.gradle.kts" ] && [ -f "$SRC/app/build.gradle.kts" ] || { echo "ERROR: HorizonNav.zip has no Android project in it"; exit 1; }
+            rsync -a --delete \
+              --exclude='.git/' --exclude='.github/' --exclude='/README.md' --exclude='HorizonNav.zip' --exclude='signing.keystore' \
+              "$SRC/" "$GITHUB_WORKSPACE/"
+            cd "$GITHUB_WORKSPACE"
+            git rm -q --cached HorizonNav.zip
+            rm -f HorizonNav.zip
+            git add -A
+            git reset -q -- README.md signing.keystore .github 2>/dev/null || true
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "Sync Horizon Nav source from uploaded ZIP [skip ci]"
-
-            # Incorporate newer remote commits before pushing; never force-push.
-            # (tried up to 3 times, in case something else saved to main in the same moment)
+            git commit -m "Save Horizon Nav source from uploaded ZIP and remove the ZIP [skip ci]"
             for i in 1 2 3; do
               git fetch origin main && git rebase origin/main && git push origin HEAD:main && break
               [ "$i" = 3 ] && { echo "ERROR: could not save the source after 3 tries"; exit 1; }
               sleep 10
             done
-            echo "Source files committed to the repository."
-          else
-            echo "Source files already match the uploaded ZIP."
+            echo "Source from the ZIP saved to the repository."
           fi
+          PROJECT_DIR="$GITHUB_WORKSPACE"
+          [ -f "$PROJECT_DIR/settings.gradle.kts" ] || { echo "ERROR: settings.gradle.kts not found"; exit 1; }
+          [ -f "$PROJECT_DIR/app/build.gradle.kts" ] || { echo "ERROR: Could not find the Android app module."; exit 1; }
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Building from $PROJECT_DIR"
 
       - uses: actions/setup-java@v5
         with:
@@ -137,7 +120,7 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="1.0.${GITHUB_RUN_NUMBER}"
-          # Use the first version section in CHANGELOG.md from the uploaded ZIP.
+          # Use the first version section in CHANGELOG.md.
           CHANGELOG="$PROJECT_DIR/CHANGELOG.md"
           CHANGE_NOTES="$RUNNER_TEMP/horizon-change-notes.md"
           : > "$CHANGE_NOTES"
@@ -319,9 +302,7 @@ jobs:
             if [ -s "$CHANGE_NOTES" ]; then
               cat "$CHANGE_NOTES"
             else
-              echo "This release contains the latest Horizon Nav build."
-              echo
-              echo "No release notes were found in CHANGELOG.md."
+              echo "Small fixes and improvements."
             fi
             echo
             echo "### Downloads"
