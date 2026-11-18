@@ -1666,5 +1666,7 @@ object I18nEl {
         "Back up or restore your settings, saved places and GPX tracks" to "Αντίγραφο ή επαναφορά ρυθμίσεων, μερών και διαδρομών GPX",
         "LPG (Autogas)" to "Υγραέριο (LPG)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Η Ιταλία λειτουργεί επίσης μόνη της, με τις κρατικές τιμές κάθε πρωινού, που ενημερώνονται μία φορά τη μέρα.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Το Mapbox αρνείται δορυφορικές εικόνες για το token σας (πάρα πολλά αιτήματα). Αν συνεχιστεί, ελέγξτε ότι το token είναι δικό σας: ένα αντιγραμμένο το μοιράζονται όλοι όσοι το χρησιμοποιούν. Δωρεάν στο account.mapbox.com",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Ο χάρτης δεν μπόρεσε να φορτώσει το 3D μοντέλο σας, οπότε εμφανίζεται το αυτοκίνητο. Εξάγετέ το ξανά ως απλό .glb (χωρίς συμπίεση Draco ή KTX2)",
     )
 }

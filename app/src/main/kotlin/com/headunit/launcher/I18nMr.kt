@@ -1666,5 +1666,7 @@ object I18nMr {
         "Back up or restore your settings, saved places and GPX tracks" to "सेटिंग्ज, ठिकाणे आणि GPX मार्गांचा बॅकअप घ्या किंवा पुनर्संचयित करा",
         "LPG (Autogas)" to "एलपीजी (ऑटोगॅस)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "इटलीही आपोआप चालते, दररोज सकाळच्या सरकारी किमतींसह, दिवसातून एकदा अद्ययावत.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox तुमच्या टोकनसाठी उपग्रह प्रतिमा नाकारत आहे (खूप विनंत्या). असे होत राहिल्यास टोकन तुमचेच आहे का ते तपासा: कॉपी केलेले टोकन वापरणाऱ्या सर्वांमध्ये सामायिक असते. मोफत टोकन account.mapbox.com वर",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "नकाशा तुमचे 3D मॉडेल लोड करू शकला नाही, म्हणून कार दाखवली आहे. साधी .glb म्हणून पुन्हा एक्सपोर्ट करा (Draco किंवा KTX2 कॉम्प्रेशनशिवाय)",
     )
 }

@@ -1663,5 +1663,7 @@ object I18nD {
         "Back up or restore your settings, saved places and GPX tracks" to listOf("Архивирай или възстанови настройки, места и GPX следи"),
         "LPG (Autogas)" to listOf("Пропан-бутан (LPG)"),
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to listOf("Италия също работи сама, с правителствените цени от всяка сутрин, обновявани веднъж дневно."),
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to listOf("Mapbox отказва сателитни снимки за вашия токен (твърде много заявки). Ако продължава, проверете дали токенът е ваш: копиран токен се споделя от всички, които го ползват. Безплатен има на account.mapbox.com"),
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to listOf("Картата не успя да зареди вашия 3D модел, затова се показва колата. Експортирайте го отново като обикновен .glb (без Draco или KTX2 компресия)"),
     )
 }

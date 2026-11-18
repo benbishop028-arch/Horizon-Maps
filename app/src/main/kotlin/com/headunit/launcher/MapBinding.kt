@@ -181,7 +181,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             else if (modelOn && (e.sourceId ?: "").startsWith("dl-me-m")) main0.post {
                 // your own model: only it is given up (until another file is picked), and the car picture shows; a built-in one: the
                 // picture of the same shape for the rest of this run
-                if (modelShape == "own") { ownFailed = true; ownFailedStamp = ownStamp } else modelBroken = true
+                if (modelShape == "own") { ownFailed = true; ownFailedStamp = ownStamp; ownFailReason = (e.message ?: "").take(120); onOwnModelFailed?.invoke(ownFailReason) } else modelBroken = true
                 modelWanted = false; reinstall()
             }
             // a piece of Mapbox's map itself (not one of the app's extras, like traffic) couldn't be loaded
@@ -384,13 +384,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     val isSatellite: Boolean get() = satellite
     /** For the feedback report: the last piece of Mapbox's map that wouldn't load, and which map is really on screen. */
     @Volatile var lastTileError = ""
+    /** Why the map wouldn't load your own 3D model (Mapbox's words), and a hook to say so on screen. */
+    @Volatile var ownFailReason = ""
+    var onOwnModelFailed: ((String) -> Unit)? = null
     val shownMap: String get() = when (loadedStyle) {
         null -> "none"; Style.STANDARD_SATELLITE -> "satellite"; Style.STANDARD -> "standard"; Style.MAPBOX_STREETS, Style.DARK -> "classic"
         else -> if ((loadedStyle ?: "").startsWith("{")) "own style" else "other"
     }
     /** For the feedback report: what's drawing your arrow. */
     val arrowNote: String get() = when {
-        modelShape == "own" && ownFailed -> "your 3D model wouldn't load (car picture instead)"
+        modelShape == "own" && ownFailed -> "your 3D model wouldn't load (car picture instead)" + (if (ownFailReason.isNotBlank()) ": $ownFailReason" else "")
         modelOn -> "3D model ($modelShape)"
         modelWanted -> "3D model ($modelShape) waiting"
         else -> "picture ($locatorStyle)"
@@ -3638,7 +3641,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             modelColour = parts.getOrNull(1)?.takeIf { it.startsWith("#") } ?: (if (modelShape != "arrow") "#F4F5F7" else "#F2F2F6")
             ownTurn = parts.getOrNull(3)?.toDoubleOrNull() ?: 0.0
             ownStamp = parts.getOrNull(4) ?: ""
-            if (modelShape == "own") ownSide = OwnModel.info(Prefs(ctx))?.third ?: 4.4
+            if (modelShape == "own") ownSide = OwnModel.side(ctx, Prefs(ctx))
         }
         // (your own model that wouldn't load isn't tried again until a different file is picked)
         if (modelShape == "own" && ownStamp != ownFailedStamp) ownFailed = false

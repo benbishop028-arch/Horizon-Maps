@@ -722,7 +722,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (prefs.s(PreferenceKeys.PLACE_PARKED, "").isNotBlank()) places.clearParked()
         map.onError = { msg -> onMapError(msg) }
         // with no signal Mapbox's map keeps showing what it has stored; only when it starts missing pieces does the pack's map take over
+        map.onOwnModelFailed = { why ->
+            scope.launch { toast(L.t("The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)") + (if (why.isNotBlank()) " ($why)" else ""), 10_000) }
+        }
         map.onTileMissing = {
+            // satellite pictures refused by Mapbox for this token (too many requests): said once a run, as the map otherwise
+            // just shows the plain satellite background (Matattack99, #186)
+            val te = map.lastTileError
+            if (!satRefusedSaid && te.contains("satellite", true) && te.contains("429")) {
+                satRefusedSaid = true
+                scope.launch { toast(L.t("Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com"), 12_000) }
+            }
             val now = android.os.SystemClock.uptimeMillis()
             if (!mapboxGaps && !online()) {
                 if (now - gapFirstAt > 20_000L) { gapFirstAt = now; gapCount = 0 }
@@ -959,6 +969,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (why.isNotEmpty()) toast(L.t(why), 12_000)
         }
     }
+
+    private var satRefusedSaid = false
 
     /** The last error the map gave (for the feedback report). */
     @Volatile private var lastMapError = ""

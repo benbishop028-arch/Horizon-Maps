@@ -89,6 +89,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Own 3D models that were invisible: a model whose file scales itself down (common in models from Sketchfab and other sites) came out far too small to see. Models are now measured the way the map draws them, and ones picked before are measured again once (thanks to Matattack99)
+- Says why satellite or your own model didn't show: when Mapbox turns down satellite pictures for your token, or can't load your 3D model, a message now says so and what to try, and the feedback report includes Mapbox's reason (thanks to Matattack99)
 - Satellite at night: with Night chosen (or after dark), satellite photos were dimmed until they hardly showed, so it looked as though satellite wasn't on. They now show in daylight at night (the screen's own night dimming still applies) (thanks to Matattack99)
 - Your own 3D model with satellite: switching satellite on swapped the real 3D model for the built-in car picture. The model now shows on satellite too. Feedback reports also say which map is really on screen and what's drawing your arrow (thanks to Matattack99)
 - Satellite view on Android Auto: the car screen now shows satellite view when it's switched on, instead of always staying on the drawn map, which made it look as though satellite didn't work. Feedback reports now also say whether satellite is on and the last error the map gave

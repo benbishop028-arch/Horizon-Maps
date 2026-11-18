@@ -1666,5 +1666,7 @@ object I18nTr {
         "Back up or restore your settings, saved places and GPX tracks" to "Ayarları, yerleri ve GPX rotalarını yedekle veya geri yükle",
         "LPG (Autogas)" to "LPG (Otogaz)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "İtalya da kendiliğinden çalışır; devletin her sabahki fiyatlarıyla, günde bir kez güncellenir.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox jetonunuz için uydu görüntülerini reddediyor (çok fazla istek). Devam ederse jetonun size ait olduğunu kontrol edin: kopyalanan bir jeton onu kullanan herkesle paylaşılır. Ücretsizi account.mapbox.com’da",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Harita 3D modelinizi yükleyemedi, bu yüzden araba gösteriliyor. Düz bir .glb olarak (Draco veya KTX2 sıkıştırması olmadan) yeniden dışa aktarın",
     )
 }

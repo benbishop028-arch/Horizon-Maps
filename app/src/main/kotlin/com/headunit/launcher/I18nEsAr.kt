@@ -1666,5 +1666,7 @@ object I18nEsAr {
         "Back up or restore your settings, saved places and GPX tracks" to "Hacé copia o restaurá tus ajustes, lugares y recorridos GPX",
         "LPG (Autogas)" to "GLP (autogás)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia también funciona sola, con los precios oficiales de cada mañana, actualizados una vez por día.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox está rechazando las imágenes satelitales para tu token (demasiadas solicitudes). Si sigue pasando, fijate que el token sea tuyo: uno copiado lo comparten todos los que lo usan. Uno gratis en account.mapbox.com",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "El mapa no pudo cargar tu modelo 3D, así que se muestra el auto. Exportalo de nuevo como .glb simple (sin compresión Draco ni KTX2)",
     )
 }

@@ -1666,5 +1666,7 @@ object I18nZhHant {
         "Back up or restore your settings, saved places and GPX tracks" to "備份或還原設定、地點和 GPX 軌跡",
         "LPG (Autogas)" to "液化石油氣 (LPG)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "義大利也能自動使用,採用政府每天早上的價格,每天更新一次。",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox 拒絕為你的權杖提供衛星影像(請求過多)。若持續發生,請確認權杖是你自己的:從別人複製的權杖由所有使用者共用。可在 account.mapbox.com 免費申請",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "地圖無法載入你的 3D 模型,改為顯示汽車。請重新匯出為一般 .glb(不使用 Draco 或 KTX2 壓縮)",
     )
 }

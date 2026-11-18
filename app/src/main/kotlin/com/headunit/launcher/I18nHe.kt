@@ -1666,5 +1666,7 @@ object I18nHe {
         "Back up or restore your settings, saved places and GPX tracks" to "גבה או שחזר הגדרות, מקומות ומסלולי GPX",
         "LPG (Autogas)" to "גפ״מ (LPG)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "גם איטליה עובדת לבד, עם המחירים הממשלתיים של כל בוקר, שמתעדכנים פעם ביום.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox דוחה תמונות לוויין עבור האסימון שלך (יותר מדי בקשות). אם זה נמשך, ודא שהאסימון שלך: אסימון מועתק משותף לכל מי שמשתמש בו. אסימון חינמי ב-account.mapbox.com",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "המפה לא הצליחה לטעון את מודל ה-3D שלך, ולכן מוצגת המכונית. ייצא אותו שוב כ-.glb רגיל (בלי דחיסת Draco או KTX2)",
     )
 }

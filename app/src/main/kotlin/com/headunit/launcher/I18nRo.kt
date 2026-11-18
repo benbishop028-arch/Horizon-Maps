@@ -1666,5 +1666,7 @@ object I18nRo {
         "Back up or restore your settings, saved places and GPX tracks" to "Fă o copie sau restaurează setările, locurile și traseele GPX",
         "LPG (Autogas)" to "GPL (autogaz)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italia funcționează și ea singură, cu prețurile oficiale din fiecare dimineață, actualizate o dată pe zi.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox refuză imaginile satelit pentru tokenul tău (prea multe cereri). Dacă se repetă, verifică dacă tokenul e al tău: unul copiat e folosit de toți cei care îl au. Unul gratuit la account.mapbox.com",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Harta nu a putut încărca modelul tău 3D, așa că apare mașina. Exportă-l din nou ca .glb simplu (fără compresie Draco sau KTX2)",
     )
 }

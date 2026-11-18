@@ -1666,5 +1666,7 @@ object I18nHu {
         "Back up or restore your settings, saved places and GPX tracks" to "Beállítások, helyek és GPX-útvonalak mentése vagy visszaállítása",
         "LPG (Autogas)" to "LPG (autógáz)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Olaszország is magától működik, az állami, minden reggeli árakkal, naponta egyszer frissítve.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "A Mapbox elutasítja a műholdképeket a tokenedhez (túl sok kérés). Ha ismétlődik, ellenőrizd, hogy a token a sajátod-e: a másoltat mindenki használja, aki megkapta. Ingyenes az account.mapbox.com oldalon",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "A térkép nem tudta betölteni a 3D modelledet, ezért az autó látszik. Exportáld újra sima .glb-ként (Draco vagy KTX2 tömörítés nélkül)",
     )
 }

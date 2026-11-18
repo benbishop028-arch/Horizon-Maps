@@ -1666,5 +1666,7 @@ object I18nEu {
         "Back up or restore your settings, saved places and GPX tracks" to "Egin babeskopia edo leheneratu ezarpenak, lekuak eta GPX ibilbideak",
         "LPG (Autogas)" to "GLP (autogasa)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italiak ere berez funtzionatzen du, gobernuaren goizeroko prezioekin, egunean behin eguneratuta.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapboxek satelite-irudiak ukatzen ditu zure tokenarentzat (eskaera gehiegi). Jarraitzen badu, egiaztatu tokena zurea dela: kopiatutakoa erabiltzen duten guztiek partekatzen dute. Doakoa account.mapbox.com-en",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Mapak ezin izan du zure 3D eredua kargatu, beraz autoa erakusten da. Esportatu berriro .glb arrunt gisa (Draco edo KTX2 konpresiorik gabe)",
     )
 }

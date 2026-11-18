@@ -1666,5 +1666,7 @@ object I18nHr {
         "Back up or restore your settings, saved places and GPX tracks" to "Spremi ili vrati postavke, mjesta i GPX staze",
         "LPG (Autogas)" to "Autoplin (LPG)",
         "Italy works by itself too, with the government's prices from each morning, updated once a day." to "Italija također radi sama, s državnim cijenama od svakog jutra, ažuriranima jednom dnevno.",
+        "Mapbox is turning down satellite pictures for your token (too many requests). If it keeps happening, check the token is your own: one copied from someone else is shared by everyone using it. A free one is at account.mapbox.com" to "Mapbox odbija satelitske slike za tvoj token (previše zahtjeva). Ako se nastavi, provjeri je li token tvoj: kopirani dijele svi koji ga koriste. Besplatan na account.mapbox.com",
+        "The map couldn't load your 3D model, so the car shows instead. Try exporting it again as a plain .glb (no Draco or KTX2 compression)" to "Karta nije mogla učitati tvoj 3D model pa se prikazuje auto. Ponovno ga izvezi kao običan .glb (bez Draco ili KTX2 kompresije)",
     )
 }
