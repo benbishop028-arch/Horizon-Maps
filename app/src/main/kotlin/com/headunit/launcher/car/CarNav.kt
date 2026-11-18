@@ -304,7 +304,7 @@ class CarNavSession : Session() {
         map.setCarTint(prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0"), prefs.i(PreferenceKeys.CAR_TINT_STR, 40))
         map.setLightOpts(com.headunit.launcher.lightOptsFrom(prefs))
         // (3D buildings and trees as set on the phone: the car's map used to keep them on whatever the setting, GitHub)
-        map.setView(prefs.b(PreferenceKeys.SATELLITE, false), prefs.b(PreferenceKeys.BUILDINGS_3D, true))
+        map.setView(prefs.b(PreferenceKeys.SATELLITE, false) && !com.headunit.launcher.Plus.free, prefs.b(PreferenceKeys.BUILDINGS_3D, true))
         map.treesEnabled(prefs.b(PreferenceKeys.TREES, true))
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
         map.setExtras(prefs.b(PreferenceKeys.FACADES, true), prefs.b(PreferenceKeys.LANDMARKS3D, true), prefs.b(PreferenceKeys.PATHS, true), prefs.b(PreferenceKeys.TERRAIN, false),

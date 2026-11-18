@@ -79,6 +79,8 @@ android {
             // the GitHub edition updates itself from GitHub
             buildConfigField("Boolean", "SELF_UPDATE", "true")
             buildConfigField("String", "STORE", "\"github\"")
+            // (the GitHub edition has no subscription: people use their own keys)
+            buildConfigField("String", "KEY_SERVER", "\"\"")
         }
         // The Google Play edition: the same app as its own package (com.headunit.nav.play), so it installs beside the GitHub one.
         // Play only allows apps to update through Play, so it has no updater (and no permission to install apps), no PayPal
@@ -96,6 +98,9 @@ android {
             buildConfigField("String", "UPDATE_APK", "\"\"")
             buildConfigField("Boolean", "SELF_UPDATE", "false")
             buildConfigField("String", "STORE", "\"play\"")
+            // The Horizon Maps Plus key server (see server/README.md). Until its address is filled in, the Play edition works as it
+            // does now (your own keys), so the subscription stays switched off while it's being set up.
+            buildConfigField("String", "KEY_SERVER", "\"\"")
         }
     }
     compileOptions {

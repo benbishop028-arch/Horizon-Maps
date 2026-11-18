@@ -452,7 +452,13 @@ class Prefs(ctx: Context) {
  * The map source: whatever was picked in Settings; until something is picked, TomTom once a TomTom key has been entered
  * (otherwise this build's default).
  */
-fun Prefs.mapSource(): String = s(PreferenceKeys.MAP_STYLE, BuildConfig.DEFAULT_MAP).let { if (it == "google") "mapbox" else it }
+fun Prefs.mapSource(): String = when {
+    // Horizon Maps on Play: the free version is OpenStreetMap's map; Plus is Mapbox's (TomTom's map tiles can't go through the key
+    // server, so a TomTom choice shows Mapbox's)
+    Plus.free -> "osm"
+    Plus.offered -> s(PreferenceKeys.MAP_STYLE, BuildConfig.DEFAULT_MAP).let { if (it == "osm") "osm" else "mapbox" }
+    else -> s(PreferenceKeys.MAP_STYLE, BuildConfig.DEFAULT_MAP).let { if (it == "google") "mapbox" else it }
+}
 
 /**
  * Once, on the first start after updating from a Horizon Nav from before the Mapbox map: switch the map to Mapbox (the old

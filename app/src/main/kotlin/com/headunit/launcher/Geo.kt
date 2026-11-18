@@ -214,8 +214,12 @@ object TomTomRest {
         else -> "HTTP $code ${body.take(140)}"
     })
 
-    private fun get(url: String, connectMs: Int = 15000, readMs: Int = 25000): String {
+    private fun get(url0: String, connectMs: Int = 15000, readMs: Int = 25000): String {
+        // Horizon Maps Plus: through the key server, which adds the real key
+        val via = com.headunit.launcher.KeyServer.tomtomVia(url0)
+        val url = via?.first ?: url0
         val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+        if (via != null) c.setRequestProperty("X-Plus-Session", via.second)
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
@@ -341,8 +345,11 @@ object TomTomRest {
     /** True when the last request had to drop the areas to avoid to find a route at all. */
     @Volatile var avoidDropped = false
 
-    private fun post(url: String, body: String, connectMs: Int, readMs: Int): String {
+    private fun post(url0: String, body: String, connectMs: Int, readMs: Int): String {
+        val via = com.headunit.launcher.KeyServer.tomtomVia(url0)
+        val url = via?.first ?: url0
         val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+        if (via != null) c.setRequestProperty("X-Plus-Session", via.second)
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.requestMethod = "POST"
@@ -588,10 +595,12 @@ object TomTomRest {
     }
 
     fun incidents(key: String, minLon: Double, minLat: Double, maxLon: Double, maxLat: Double): List<Incident> {
-        val url = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&bbox=$minLon,$minLat,$maxLon,$maxLat"
-        val c = URL(url).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+        val url0 = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&bbox=$minLon,$minLat,$maxLon,$maxLat"
+        // (Horizon Maps Plus: through the key server, which adds the real key)
+        val via = if (key == com.headunit.launcher.KeyServer.TT) com.headunit.launcher.KeyServer.tomtomVia("$url0&key=$key") else null
+        val c = URL(via?.first ?: url0).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 15000; c.readTimeout = 25000
-        c.setRequestProperty("TomTom-Api-Key", key)
+        if (via != null) c.setRequestProperty("X-Plus-Session", via.second) else c.setRequestProperty("TomTom-Api-Key", key)
         c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,magnitudeOfDelay,delay,from,to,roadNumbers,events(description)))")
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
         val code = c.responseCode

@@ -302,12 +302,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return if (cc.isBlank() || cc in MILES_COUNTRIES) "imperial" else "metric"
     }
 
+    // Horizon Maps Plus (Play edition, once its key server is set up): Plus uses the developer's TomTom key through the key server
+    // and an hour-long Mapbox token from it; the free version has neither (OpenStreetMap, routes from the downloaded pack) and
+    // only a token for the map engine. Otherwise (the GitHub edition, and Play until then) your own keys as before.
     val apiKey: String
-        get() = prefs.s(PreferenceKeys.API_KEY, "").ifBlank { BuildConfig.TOMTOM_API_KEY }.trim()
+        get() = if (Plus.offered) (if (Plus.active && KeyServer.tomtom) KeyServer.TT else "")
+            else prefs.s(PreferenceKeys.API_KEY, "").ifBlank { BuildConfig.TOMTOM_API_KEY }.trim()
     val hasKey: Boolean get() = apiKey.isNotEmpty() && !apiKey.startsWith("YOUR_")
 
     /** Your Mapbox access token (Settings > Keys & accounts), for the Mapbox map, routes, search and traffic. */
-    val mbToken: String get() = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
+    val mbToken: String get() = if (Plus.offered) (if (Plus.active) KeyServer.mapbox else "") else MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
+    /** The token the map engine itself starts with: as [mbToken], except that the free version has one too (from the key server). */
+    val mapToken: String get() = if (Plus.offered) KeyServer.mapbox else mbToken
+    val hasMapToken: Boolean get() = MapboxRest.looksValid(mapToken) && refusedMb != mapToken
     val hasMapbox: Boolean get() = MapboxRest.looksValid(mbToken) && refusedMb != mbToken
     /** A Mapbox token that Mapbox turned away: not used again until it's changed. (Screen state, so the map can say so.) */
     private var refusedMb: String? by mutableStateOf<String?>(null)
@@ -619,6 +626,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         mapboxOffline(Net.offline)
         // 12 or 24-hour clock times: the device's own setting unless Settings picks one
         try { Clock.init(ctx, prefs) } catch (e: Exception) { }
+        // Horizon Maps Plus (Play edition, once the key server is set up; nothing otherwise): what Play says this person has,
+        // and the key server's tokens
+        try { KeyServer.start(ctx, prefs); PlusBilling.start(ctx, prefs) } catch (e: Throwable) { }
         // an older pack on the unit goes into its own area folder (it's the area that was chosen then)
         try { migratePack() } catch (e: Exception) { }
         // speed limits and the wrong-way warning read the roads from a downloaded area when one covers you (no network needed)
@@ -960,6 +970,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var mapCheckedFor = ""
     private var mapCheckNote = ""
     private fun watchMapLoad() {
+        // (with Plus set up the tokens are the key server's and change every hour: nothing for the person to check)
+        if (Plus.offered) return
         if (mapCheckedFor == mbToken) return
         mapWatchJob?.cancel()
         mapWatchJob = scope.launch {
@@ -982,6 +994,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun onMapError(msg: String) {
         lastMapError = msg.take(140)
         val m = msg.lowercase()
+        // with Plus set up, a turned-down token is the key server's hour-long one running out: a new one is fetched
+        if (Plus.offered && (m.contains("401") || m.contains("unauthor") || m.contains("access token"))) { KeyServer.refreshSoon(); return }
         // Mapbox turned the token away: say so (the map can't show without a working token)
         if (m.contains("401") || m.contains("403") || m.contains("unauthor") || m.contains("forbidden") || m.contains("access token")) {
             if (m.contains("403") || m.contains("forbidden"))
@@ -1106,20 +1120,23 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (map.onRestyle == null) map.onRestyle = { restyle() }
         watchNetwork()
         styleJob?.cancel()
-        map.setTraffic(prefs.b(PreferenceKeys.TRAFFIC, true))
+        // (live traffic is Plus's: none on the free OpenStreetMap version)
+        map.setTraffic(prefs.b(PreferenceKeys.TRAFFIC, true) && !Plus.free)
         setLight(lightPreset(dark))
         // the light follows the sun (dawn, day, dusk, night) without waiting for the day / night switch
         if (lightJob == null) lightJob = scope.launch { while (true) { delay(60_000L); try { setLight(lightPreset(lastDark)) } catch (e: Throwable) { } } }
-        if (!hasMapbox) {
+        if (!hasMapToken) {
             map.setToken("")
             val now = System.currentTimeMillis()
+            // (with Plus set up, the token comes from the key server: nothing to add, it's just on its way)
+            if (Plus.offered) { KeyServer.refreshSoon(); return }
             if (refusedMb != mbToken && now - noTokenToldAt > 60_000L) {
                 noTokenToldAt = now
                 toast(L.t("Add your Mapbox access token (it starts pk.) in Settings > Keys & accounts to show the map"), 8000)
             }
             return
         }
-        map.setToken(mbToken)
+        map.setToken(mapToken)
         watchMapLoad()
         map.keepBaseLook = false
         map.recolourBase = false
@@ -2294,6 +2311,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 var usedOffline = false
                 val rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
+                    // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed
+                    if (Plus.free && !haveOffline) throw IllegalStateException(L.t("download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus"))
                     if (haveOffline && (!hasOnline || !online())) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, routeVia()) }
                     else try { netRoutes(from, to.pos, true, departMs, routeVia(), askBoth = true, simple = true) }
                     catch (e: Exception) {
@@ -2303,7 +2322,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
                 shortRoute = usedOffline && OfflineRouter.endsShort
                 if (shortRoute) toast(L.t("Your downloaded map ends before {0}: the route goes to the edge of it for now, and the rest is planned as soon as there's signal", to.name), 8000)
-                else if (usedOffline) toast(L.t("Offline route: no traffic or live data"), 4000)
+                else if (usedOffline && !Plus.free) toast(L.t("Offline route: no traffic or live data"), 4000)
                 if (rs[0].steps.isEmpty()) toast(if (provider == "mapbox") "Mapbox returned no turn instructions for this route" else "This key returned no turn instructions. Check it has TomTom Routing API access", 6000)
                 if (departInMin > 0 && !usedOffline && !departApplied) toast(L.t("Departure time not supported here: showing live traffic"), 4000)
                 departMin = departInMin

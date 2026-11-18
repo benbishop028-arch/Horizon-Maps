@@ -184,7 +184,7 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     val b3d = prefs.b(PreferenceKeys.BUILDINGS_3D, true)
     // satellite as set on the phone (the car's map always stayed on the drawn map, so with Android Auto it looked as though
     // satellite didn't work)
-    val satOn = prefs.b(PreferenceKeys.SATELLITE, false)
+    val satOn = prefs.b(PreferenceKeys.SATELLITE, false) && !com.headunit.launcher.Plus.free
     OnChange(b3d, satOn) { map.setView(satOn, b3d) }
     val treesOn = prefs.b(PreferenceKeys.TREES, true)
     OnChange(treesOn) { map.treesEnabled(treesOn) }
@@ -196,7 +196,9 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     val key = prefs.s(PreferenceKeys.API_KEY, "")
     val mbToken = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")
     val mbLook = prefs.s(PreferenceKeys.MBLOOK, "horizon")
-    OnChange(style, traffic, key, mbToken, mbLook) { engine.applyStyle(dark.value) }
+    val ksToken = com.headunit.launcher.KeyServer.mapbox
+    val plusOn = com.headunit.launcher.Plus.active
+    OnChange(style, traffic, key, mbToken, mbLook, ksToken, plusOn) { engine.applyStyle(dark.value) }
 }
 
 /** What taps on the app's cards do that needs Android Auto's own screens (search, the places list). */

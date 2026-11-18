@@ -140,6 +140,9 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
     androidx.activity.compose.BackHandler(enabled = narrowS && !showList) { showList = true }
     // the Google Play testers invitation, opened from the banner at the top of the list
     var playInvite by remember { mutableStateOf(false) }
+    // Horizon Maps Plus (Play edition, once its key server is set up)
+    var plusOpen by remember { mutableStateOf(false) }
+    if (plusOpen) PlusDialog { plusOpen = false }
     if (playInvite) PlayInviteDialog(c.dark) { how ->
         // (from here "Not now" just closes it; "Don't show again" or opening Play also stops the popup on the map)
         if (how != InviteClose.LATER) prefs.put(PreferenceKeys.PLAY_INVITE, "never")
@@ -202,6 +205,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
             } else {
             // GitHub edition: a small banner about the coming Google Play version; tapping it opens the testers invitation
             if (BuildConfig.STORE != "play") PlayBanner(c) { playInvite = true }
+            if (com.headunit.launcher.Plus.offered) PlusBanner { plusOpen = true }
             sections.forEachIndexed { i, s ->
                 // the small group headings in the list: Map, Driving, You, Device
                 if (s.heading != null) Text(L.t(s.heading), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp,
@@ -1325,6 +1329,14 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
         if (engine.hasKey && engine.hasMapbox) SChoice(L.t("Search with"), listOf("auto" to L.t("TomTom"), "mapbox" to L.t("Mapbox")), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
             L.t("TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers")) { prefs.put(PreferenceKeys.SEARCHWITH, it) }
         else if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
+    }
+    // Horizon Maps on Play: the keys are the app's own (Plus) or not needed (the free OpenStreetMap version), so there's nothing to paste
+    if (com.headunit.launcher.Plus.offered) {
+        SGroup(L.t("Map accounts")) {
+            SNote(if (com.headunit.launcher.Plus.active) L.t("Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add.")
+                else L.t("The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up."))
+        }
+        return
     }
     SGroup(L.t("Map accounts"), footer = L.t("Search also finds places you saved or went to before. With no signal, routes, the map and search come from the offline pack.")) {
         SFieldItem(L.t("TomTom API key"), prefs.s(PreferenceKeys.API_KEY, ""), if (BuildConfig.TOMTOM_API_KEY.isNotBlank() && prefs.s(PreferenceKeys.API_KEY, "").isBlank()) L.t("Using the key built into this app unless you paste another") else L.t("Optional: gives the most accurate address search, and a backup for routes and traffic. Free from developer.tomtom.com"),
