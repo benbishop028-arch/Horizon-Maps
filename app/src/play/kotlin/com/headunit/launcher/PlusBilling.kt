@@ -84,7 +84,9 @@ object PlusBilling {
     /** Opens Play's own payment sheet for [offer]. */
     fun buy(activity: Activity, offer: Plus.Offer) {
         val c = client ?: return
-        @Suppress("UNCHECKED_CAST") val (pd, token) = offer.handle as Pair<ProductDetails, String>
+        val h = offer.handle as? Pair<*, *> ?: return
+        val pd = h.first as? ProductDetails ?: return
+        val token = h.second as? String ?: return
         val params = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(
             BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(pd).setOfferToken(token).build())).build()
         c.launchBillingFlow(activity, params)
