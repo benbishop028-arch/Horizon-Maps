@@ -89,10 +89,15 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     val appCtx = androidx.compose.ui.platform.LocalContext.current.applicationContext
     LaunchedEffect(installedVersion) {
         if (com.headunit.launcher.BuildConfig.UPDATE_REPO.isNotBlank() && prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "") != installedVersion) {
-            whatsNewVisible = true
             val previousVersion = prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "")
-            whatsNewNotes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
-            if (whatsNewNotes.isNotBlank()) prefs.put(PreferenceKeys.WHATS_NEW_LAST_NOTES, whatsNewNotes)
+            val notes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
+            // (only shown when there's something to say: an update with no new notes showed a card saying just that no notes
+            // were found. It counts as seen, so it isn't looked up again on every start)
+            if (notes.isNotBlank()) {
+                whatsNewNotes = notes
+                prefs.put(PreferenceKeys.WHATS_NEW_LAST_NOTES, notes)
+                whatsNewVisible = true
+            } else prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion)
         }
     }
     // Settings › Horizon Nav › Version › What's new: the card again, with the notes it showed last (every version since the one before,

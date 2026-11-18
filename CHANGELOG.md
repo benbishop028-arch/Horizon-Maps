@@ -100,6 +100,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Offline mode: the downloaded country map now shows. With Offline mode on, Mapbox's map engine was kept off the network so strictly that it couldn't load the downloaded map from the unit itself either, leaving a blank map with only street names and traffic lights on it (thanks to Johnm76)
+- Phone held upright: the turn card no longer goes off the right of the screen as a turn comes up (it now grows evenly from the middle), and the map buttons sit lower, between the turn card and the trip card, with or without the Settings button above them
+- What's new: an update with no new notes no longer shows a card saying "No release notes were found"; the card only appears when there's something new to tell you
 - Arriving: a route that went right past your destination and round to come back (to arrive on your side of the road) is now spotted, and the plain way is used unless it's slower. And stopping within about 40 m of your destination now counts as arriving, however much route is left (thanks to Nubber99)
 - Backup: Restore no longer closes the app on a phone or unit where the usual file picker is missing. It tries the older picker, and says so if neither is there. Back up gets the same protection (thanks to franciscoserranoadt)
 - Media bar: the song's name now shows with more music apps; some send it in a different place, which left the bar saying just "Media" (thanks to bijindas)

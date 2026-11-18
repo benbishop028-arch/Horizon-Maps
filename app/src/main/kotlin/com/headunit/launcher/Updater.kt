@@ -202,6 +202,10 @@ object Updater {
                     value.contains("Describe an improvement", ignoreCase = true) ||
                     value.contains("Describe a bug fix", ignoreCase = true) ||
                     value.contains("Add entries here before the next publish", ignoreCase = true) ||
+                    // (what the build writes when a release has no new notes: not a change to show on the What's new card)
+                    value.equals("This release contains the latest Horizon Nav build.", ignoreCase = true) ||
+                    value.equals("No release notes were found in CHANGELOG.md.", ignoreCase = true) ||
+                    value.equals("Small fixes and improvements.", ignoreCase = true) ||
                     value == "DON CL" || value == "JON CLOS"
             }
             .joinToString("\n")

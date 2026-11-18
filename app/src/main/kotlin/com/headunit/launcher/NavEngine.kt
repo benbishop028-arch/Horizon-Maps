@@ -1037,6 +1037,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (styleRetry == 1) toast(L.t("No signal for the map: trying again…") + NetHealth.clockHint(), if (NetHealth.clockHint().isEmpty()) 3000 else 8000)
         // still no signal: the downloaded pack's own map meanwhile
         if (styleRetry == 2 && OfflineMap.installed(ctx) && OfflineMap.hasFonts(ctx) && prefs.s(PreferenceKeys.OFF_MAP, "auto") != "never") {
+            mapboxOffline(false)
             try { map.setStyleUrl(OfflineServer.styleJson(ctx, lastDark)) } catch (e: Exception) { }
         }
         if (styleRetry > 8) return
@@ -1163,8 +1164,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // wins while there's a connection (with "Downloaded" chosen, switching satellite on used to do nothing at all)
         if (useOfflineMap() && !(map.isSatellite && online())) {
             if (map.isSatellite) toast(L.t("Satellite view needs a connection: showing the downloaded map until it's back"), 5000)
+            // (the downloaded map is served from the unit itself, at a local address: Mapbox's engine has to be let load it, even in
+            // Offline mode, where it was kept off the network altogether and so loaded none of it, Johnm76 #208: a blank map with
+            // only the street names and lights on it. Nothing goes online: every piece of this map comes from the unit)
+            mapboxOffline(false)
             try { map.setStyleUrl(OfflineServer.styleJson(ctx, dark)); return } catch (e: Exception) { android.util.Log.w("NavEngine", "offline map", e) }
         }
+        // Mapbox's own map: kept off the network again in Offline mode (it draws what it has stored)
+        mapboxOffline(Net.offline)
         OfflineServer.stop()
         val src = prefs.mapSource()
         when {
