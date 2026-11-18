@@ -2367,6 +2367,8 @@ object L {
         "Traffic, lights, cameras, signs, lamps" to listOf("Verkeer, verkeerslichten, camera’s, borden, lantaarns", "Verkehr, Ampeln, Kameras, Schilder, Laternen", "Trafic, feux, radars, panneaux, lampadaires", "Tráfico, semáforos, cámaras, señales, farolas"),
         "Brightness, sizes, speed, card positions, units" to listOf("Helderheid, formaten, snelheid, kaartposities, eenheden", "Helligkeit, Größen, Tempo, Kartenpositionen, Einheiten", "Luminosité, tailles, vitesse, positions des cartes, unités", "Brillo, tamaños, velocidad, posición de tarjetas, unidades"),
         "Colours and lettering" to listOf("Kleuren en letters", "Farben und Schrift", "Couleurs et lettrage", "Colores y letras"),
+        "Avoid car trains" to listOf("Autotreinen vermijden", "Autozüge meiden", "Éviter les trains autos", "Evitar trenes de coches"),
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Treinen die je auto meenemen, zoals de Kanaaltunnelshuttle of de Alpentunneltreinen", "Züge, die dein Auto mitnehmen, wie der Eurotunnel-Shuttle oder die Alpentunnel-Autozüge", "Trains qui transportent votre voiture, comme la navette du tunnel sous la Manche ou les trains des tunnels alpins", "Trenes que llevan tu coche, como el lanzadera del Eurotúnel o los trenes de los túneles alpinos"),
     )
 
     private fun rowsB0(): List<Pair<String, List<String>>> = listOf(
@@ -4005,5 +4007,7 @@ object L {
         "Traffic, lights, cameras, signs, lamps" to listOf("Traffico, semafori, telecamere, cartelli, lampioni", "Trânsito, semáforos, radares, sinais, candeeiros", "Ruch, światła, kamery, znaki, latarnie"),
         "Brightness, sizes, speed, card positions, units" to listOf("Luminosità, dimensioni, velocità, posizione schede, unità", "Brilho, tamanhos, velocidade, posição dos cartões, unidades", "Jasność, rozmiary, prędkość, położenie kart, jednostki"),
         "Colours and lettering" to listOf("Colori e scritte", "Cores e letras", "Kolory i napisy"),
+        "Avoid car trains" to listOf("Evita treni navetta per auto", "Evitar comboios de automóveis", "Unikaj pociągów samochodowych"),
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Treni che trasportano l’auto, come la navetta del tunnel della Manica o i treni dei tunnel alpini", "Comboios que levam o seu carro, como o shuttle do Eurotúnel ou os comboios dos túneis alpinos", "Pociągi przewożące samochód, jak wahadłowiec pod kanałem La Manche czy pociągi w tunelach alpejskich"),
     )
 }

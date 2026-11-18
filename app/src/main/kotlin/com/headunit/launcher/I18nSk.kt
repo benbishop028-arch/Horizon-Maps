@@ -1640,5 +1640,7 @@ object I18nSk {
         "Traffic, lights, cameras, signs, lamps" to "Premávka, semafory, kamery, značky, lampy",
         "Brightness, sizes, speed, card positions, units" to "Jas, veľkosti, rýchlosť, umiestnenie kariet, jednotky",
         "Colours and lettering" to "Farby a písmo",
+        "Avoid car trains" to "Vyhnúť sa autovlakom",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Vlaky, ktoré vezú vaše auto, ako kyvadlo pod kanálom La Manche alebo vlaky alpskými tunelmi",
     )
 }

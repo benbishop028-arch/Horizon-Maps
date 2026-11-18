@@ -1640,5 +1640,7 @@ object I18nCs {
         "Traffic, lights, cameras, signs, lamps" to "Provoz, semafory, kamery, značky, lampy",
         "Brightness, sizes, speed, card positions, units" to "Jas, velikosti, rychlost, umístění karet, jednotky",
         "Colours and lettering" to "Barvy a písmo",
+        "Avoid car trains" to "Vyhnout se autovlakům",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Vlaky, které vezou vaše auto, jako kyvadlo pod kanálem La Manche nebo vlaky alpskými tunely",
     )
 }

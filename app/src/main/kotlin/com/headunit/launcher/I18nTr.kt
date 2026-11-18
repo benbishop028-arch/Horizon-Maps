@@ -1640,5 +1640,7 @@ object I18nTr {
         "Traffic, lights, cameras, signs, lamps" to "Trafik, ışıklar, kameralar, işaretler, lambalar",
         "Brightness, sizes, speed, card positions, units" to "Parlaklık, boyutlar, hız, kart konumları, birimler",
         "Colours and lettering" to "Renkler ve yazılar",
+        "Avoid car trains" to "Araç trenlerinden kaçın",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Arabanızı taşıyan trenler, örneğin Manş Tüneli servisi veya Alp tünel trenleri",
     )
 }

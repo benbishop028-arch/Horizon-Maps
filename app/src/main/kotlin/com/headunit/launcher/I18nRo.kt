@@ -1640,5 +1640,7 @@ object I18nRo {
         "Traffic, lights, cameras, signs, lamps" to "Trafic, semafoare, camere, indicatoare, felinare",
         "Brightness, sizes, speed, card positions, units" to "Luminozitate, dimensiuni, viteză, poziții carduri, unități",
         "Colours and lettering" to "Culori și litere",
+        "Avoid car trains" to "Evită trenurile pentru mașini",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Trenuri care îți transportă mașina, ca naveta din Tunelul Mânecii sau trenurile din tunelurile alpine",
     )
 }

@@ -722,7 +722,7 @@ private fun SoundPill(engine: NavEngine) {
 private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
     val e = engine.eta ?: return
     val c = LocalVw.current
-    val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
+    val dc = delayTint(e.delayMin, c.surface)
     Column(Modifier.panel(10.dp, RoundedCornerShape(18.dp), c.surface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
         Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
@@ -744,7 +744,7 @@ private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
 private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneLine: Boolean = false, buttonsShown: Boolean = true, docked: Boolean = false, bar: Boolean = false) {
     val e = engine.eta ?: return
     val c = LocalVw.current
-    val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
+    val dc = delayTint(e.delayMin, c.surface)
     // the card is as wide as its figures and buttons (at least 400dp), never the whole screen: the figures used to share a row that
     // was told to fill the space, so on a very wide car screen the card stretched right across and its sound and end buttons ended
     // up under Android Auto's own buttons on the right. The route bar is set to the row's measured width (it can't be asked for

@@ -116,6 +116,8 @@ internal object PreferenceKeys {
     const val ARRIVALFX = "arrivalfx"
     const val AVGZONES = "avgzones"
     const val AVOID_FERRY = "avoid_ferry"
+    /** Keep off car trains (the Channel Tunnel shuttle, the Swiss and Austrian Alpine ones): Resul9704, #176 */
+    const val AVOID_TRAIN = "avoid_train"
     const val AVOID_MOTORWAY = "avoid_motorway"
     const val AVOID_TOLL = "avoid_toll"
     const val AVOID_UNPAVED = "avoid_unpaved"

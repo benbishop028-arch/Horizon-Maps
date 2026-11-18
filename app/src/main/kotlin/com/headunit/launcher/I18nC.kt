@@ -1646,5 +1646,7 @@ object I18nC {
         "Traffic, lights, cameras, signs, lamps" to listOf("การจราจร ไฟจราจร กล้อง ป้าย โคมไฟ", "交通、信号、カメラ、標識、街灯", "Lalu lintas, lampu, kamera, rambu, lampu jalan"),
         "Brightness, sizes, speed, card positions, units" to listOf("ความสว่าง ขนาด ความเร็ว ตำแหน่งการ์ด หน่วย", "明るさ、サイズ、速度、カード位置、単位", "Kecerahan, ukuran, kecepatan, posisi kartu, satuan"),
         "Colours and lettering" to listOf("สีและตัวอักษร", "色と文字", "Warna dan tulisan"),
+        "Avoid car trains" to listOf("หลีกเลี่ยงรถไฟขนรถยนต์", "カートレインを避ける", "Hindari kereta pengangkut mobil"),
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("รถไฟที่ขนรถของคุณ เช่น รถไฟลอดอุโมงค์ช่องแคบอังกฤษ หรือรถไฟอุโมงค์เทือกเขาแอลป์", "車ごと運ぶ列車(英仏海峡トンネルのシャトルやアルプスのトンネル列車など)", "Kereta yang mengangkut mobil Anda, seperti shuttle Terowongan Channel atau kereta terowongan Alpen"),
     )
 }

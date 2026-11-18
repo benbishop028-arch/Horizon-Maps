@@ -858,7 +858,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
             if (cam != null && engine.alert?.kind != "camera") HazardBadge("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
         }
         eta?.let { e ->
-            val dc = if (e.delayMin >= 10) Bad else if (e.delayMin >= 1) Warn else Good
+            val dc = delayTint(e.delayMin, c.surface)
             val shape = RoundedCornerShape(22.dp)
             // landscape: the card is only as wide as its contents (figures, then the buttons close by), and the route bar matches that width.
             // portrait: full width, with the buttons under the figures.

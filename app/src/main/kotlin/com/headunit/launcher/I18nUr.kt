@@ -1640,5 +1640,7 @@ object I18nUr {
         "Traffic, lights, cameras, signs, lamps" to "ٹریفک، سگنل، کیمرے، نشانات، لیمپ",
         "Brightness, sizes, speed, card positions, units" to "چمک، سائز، رفتار، کارڈ کی جگہ، اکائیاں",
         "Colours and lettering" to "رنگ اور تحریر",
+        "Avoid car trains" to "کار ٹرینوں سے بچیں",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "وہ ٹرینیں جو آپ کی گاڑی لے جاتی ہیں، جیسے چینل ٹنل شٹل یا الپس کی سرنگ والی ٹرینیں",
     )
 }

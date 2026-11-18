@@ -1640,5 +1640,7 @@ object I18nEu {
         "Traffic, lights, cameras, signs, lamps" to "Trafikoa, semaforoak, kamerak, seinaleak, farolak",
         "Brightness, sizes, speed, card positions, units" to "Distira, tamainak, abiadura, txartelen kokapena, unitateak",
         "Colours and lettering" to "Koloreak eta letrak",
+        "Avoid car trains" to "Saihestu autoen trenak",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Autoa garraiatzen duten trenak, Mantxako tuneleko anezka edo Alpeetako tuneletako trenak bezala",
     )
 }

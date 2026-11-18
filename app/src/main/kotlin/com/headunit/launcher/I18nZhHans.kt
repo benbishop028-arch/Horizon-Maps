@@ -1640,5 +1640,7 @@ object I18nZhHans {
         "Traffic, lights, cameras, signs, lamps" to "交通、信号灯、测速、标志、路灯",
         "Brightness, sizes, speed, card positions, units" to "亮度、大小、速度、卡片位置、单位",
         "Colours and lettering" to "颜色与文字",
+        "Avoid car trains" to "避开汽车列车",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "载运汽车的列车,例如英法海底隧道穿梭列车或阿尔卑斯山隧道列车",
     )
 }

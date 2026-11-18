@@ -1640,5 +1640,7 @@ object I18nEl {
         "Traffic, lights, cameras, signs, lamps" to "Κίνηση, φανάρια, κάμερες, πινακίδες, φανοστάτες",
         "Brightness, sizes, speed, card positions, units" to "Φωτεινότητα, μεγέθη, ταχύτητα, θέσεις καρτών, μονάδες",
         "Colours and lettering" to "Χρώματα και γράμματα",
+        "Avoid car trains" to "Αποφυγή τρένων αυτοκινήτων",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Τρένα που μεταφέρουν το αυτοκίνητό σας, όπως το shuttle της σήραγγας της Μάγχης ή τα τρένα των αλπικών σηράγγων",
     )
 }

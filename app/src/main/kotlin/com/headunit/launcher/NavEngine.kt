@@ -2121,6 +2121,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "tollRoads" else null,
             if (prefs.b(PreferenceKeys.AVOID_MOTORWAY, false)) "motorways" else null,
             if (prefs.b(PreferenceKeys.AVOID_FERRY, false)) "ferries" else null,
+            if (prefs.b(PreferenceKeys.AVOID_TRAIN, false)) "carTrains" else null,
             if (prefs.b(PreferenceKeys.AVOID_UNPAVED, true)) "unpavedRoads" else null,
         )
         TomTomRest.routeType = if (prefs.b(PreferenceKeys.ROUTE_ECO, false)) "eco" else "fastest"

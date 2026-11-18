@@ -1640,5 +1640,7 @@ object I18nMr {
         "Traffic, lights, cameras, signs, lamps" to "वाहतूक, सिग्नल, कॅमेरे, फलक, दिवे",
         "Brightness, sizes, speed, card positions, units" to "ब्राइटनेस, आकार, वेग, कार्ड स्थान, एकके",
         "Colours and lettering" to "रंग आणि अक्षरे",
+        "Avoid car trains" to "कार रेल्वे टाळा",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "तुमची कार नेणाऱ्या रेल्वे, जसे चॅनेल टनेल शटल किंवा आल्प्समधील बोगदा रेल्वे",
     )
 }

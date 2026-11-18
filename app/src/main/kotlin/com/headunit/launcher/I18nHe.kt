@@ -1640,5 +1640,7 @@ object I18nHe {
         "Traffic, lights, cameras, signs, lamps" to "תנועה, רמזורים, מצלמות, תמרורים, פנסים",
         "Brightness, sizes, speed, card positions, units" to "בהירות, גדלים, מהירות, מיקום כרטיסים, יחידות",
         "Colours and lettering" to "צבעים וכיתוב",
+        "Avoid car trains" to "הימנע מרכבות רכב",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "רכבות שמובילות את הרכב שלך, כמו השאטל של מנהרת התעלה או רכבות המנהרות בהרי האלפים",
     )
 }

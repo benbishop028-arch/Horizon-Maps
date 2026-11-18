@@ -1640,5 +1640,7 @@ object I18nAr {
         "Traffic, lights, cameras, signs, lamps" to "حركة المرور، الإشارات، الكاميرات، اللافتات، المصابيح",
         "Brightness, sizes, speed, card positions, units" to "السطوع، الأحجام، السرعة، مواضع البطاقات، الوحدات",
         "Colours and lettering" to "الألوان والكتابة",
+        "Avoid car trains" to "تجنّب قطارات نقل السيارات",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "قطارات تنقل سيارتك، مثل مكوك نفق المانش أو قطارات أنفاق جبال الألب",
     )
 }

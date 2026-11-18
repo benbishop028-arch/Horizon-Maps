@@ -1640,5 +1640,7 @@ object I18nFi {
         "Traffic, lights, cameras, signs, lamps" to "Liikenne, valot, kamerat, merkit, lamput",
         "Brightness, sizes, speed, card positions, units" to "Kirkkaus, koot, nopeus, korttien paikat, yksiköt",
         "Colours and lettering" to "Värit ja tekstit",
+        "Avoid car trains" to "Vältä autojunia",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Junat, jotka kuljettavat autosi, kuten Kanaalitunnelin sukkulajuna tai Alppien tunnelijunat",
     )
 }

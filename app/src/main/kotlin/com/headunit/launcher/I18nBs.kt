@@ -1640,5 +1640,7 @@ object I18nBs {
         "Traffic, lights, cameras, signs, lamps" to "Saobraćaj, semafori, kamere, znakovi, svjetiljke",
         "Brightness, sizes, speed, card positions, units" to "Svjetlina, veličine, brzina, položaji kartica, jedinice",
         "Colours and lettering" to "Boje i natpisi",
+        "Avoid car trains" to "Izbjegavaj vozove za automobile",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Vozovi koji prevoze tvoj automobil, poput shuttlea kroz tunel ispod La Manchea ili vozova kroz alpske tunele",
     )
 }

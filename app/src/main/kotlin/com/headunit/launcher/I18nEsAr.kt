@@ -1640,5 +1640,7 @@ object I18nEsAr {
         "Traffic, lights, cameras, signs, lamps" to "Tránsito, semáforos, cámaras, señales, faroles",
         "Brightness, sizes, speed, card positions, units" to "Brillo, tamaños, velocidad, posición de tarjetas, unidades",
         "Colours and lettering" to "Colores y letras",
+        "Avoid car trains" to "Evitar trenes de autos",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Trenes que llevan tu auto, como el shuttle del Eurotúnel o los trenes de los túneles alpinos",
     )
 }

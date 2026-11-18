@@ -82,6 +82,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Avoid tolls only in", "Pick countries where toll roads are avoided", "Avoid", 4),
     SettingRef("Avoid motorways", "", "Avoid", 4),
     SettingRef("Avoid ferries", "", "Avoid", 4),
+    SettingRef("Avoid car trains", "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains", "Avoid", 4),
     SettingRef("Avoid unpaved roads", "", "Avoid", 4),
     SettingRef("Avoid Clean Air Zones and ULEZ", "A zone you start or finish in can't be avoided", "Avoid", 4),
     SettingRef("Eco routes", "Fuel-efficient instead of fastest", "Choosing a route", 4),

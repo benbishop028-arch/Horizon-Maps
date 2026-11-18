@@ -1640,5 +1640,7 @@ object I18nNb {
         "Traffic, lights, cameras, signs, lamps" to "Trafikk, lys, kameraer, skilt, lykter",
         "Brightness, sizes, speed, card positions, units" to "Lysstyrke, størrelser, fart, kortplasseringer, enheter",
         "Colours and lettering" to "Farger og skrift",
+        "Avoid car trains" to "Unngå biltog",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Tog som frakter bilen din, som Kanaltunnel-shuttlen eller togene gjennom alpetunnelene",
     )
 }

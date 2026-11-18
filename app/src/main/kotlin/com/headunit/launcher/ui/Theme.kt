@@ -35,6 +35,17 @@ val Good = Color(0xFF34C759)
 val Warn = Color(0xFFFFB020)
 val Bad = Color(0xFFFF4D4D)
 
+/** The time-left colour (on time, a few minutes late, very late). On a light card the bright green and amber are hard to read
+ *  (magnazan, #112), so deeper shades are used there. [surface]: the card's own colour. */
+fun delayTint(delayMin: Int, surface: Color): Color {
+    val light = surface.luminance() > 0.5f
+    return when {
+        delayMin >= 10 -> if (light) Color(0xFFD32F2F) else Bad
+        delayMin >= 1 -> if (light) Color(0xFFB26A00) else Warn
+        else -> if (light) Color(0xFF1B873A) else Good
+    }
+}
+
 @Composable
 fun resolveDark(mode: String, lat: Double?, lon: Double?, nowMs: Long, sysSeen: Boolean = false, system: Boolean = isSystemInDarkTheme(),
                 nightFrom: String = "19:00", dayFrom: String = "07:00"): Boolean {

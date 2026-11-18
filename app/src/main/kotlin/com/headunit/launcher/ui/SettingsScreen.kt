@@ -530,6 +530,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
         }
         SToggle(prefs, L.t("Avoid motorways"), "avoid_motorway", false)
         SToggle(prefs, L.t("Avoid ferries"), "avoid_ferry", false)
+        SToggle(prefs, L.t("Avoid car trains"), PreferenceKeys.AVOID_TRAIN, false, L.t("Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains"))
         SToggle(prefs, L.t("Avoid unpaved roads"), "avoid_unpaved", true)
         SToggle(prefs, L.t("Avoid Clean Air Zones and ULEZ"), "avoidzones", false, L.t("A zone you start or finish in can't be avoided"))
         ZonesItem()

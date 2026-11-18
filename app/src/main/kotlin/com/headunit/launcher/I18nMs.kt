@@ -1640,5 +1640,7 @@ object I18nMs {
         "Traffic, lights, cameras, signs, lamps" to "Trafik, lampu isyarat, kamera, papan tanda, lampu",
         "Brightness, sizes, speed, card positions, units" to "Kecerahan, saiz, kelajuan, kedudukan kad, unit",
         "Colours and lettering" to "Warna dan tulisan",
+        "Avoid car trains" to "Elak kereta api pembawa kereta",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Kereta api yang membawa kereta anda, seperti shuttle Terowong Selat Inggeris atau kereta api terowong Alps",
     )
 }

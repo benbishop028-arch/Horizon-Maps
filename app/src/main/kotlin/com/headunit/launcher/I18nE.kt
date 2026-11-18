@@ -1637,5 +1637,7 @@ object I18nE {
         "Traffic, lights, cameras, signs, lamps" to listOf("Promet, semaforji, kamere, znaki, svetilke"),
         "Brightness, sizes, speed, card positions, units" to listOf("Svetlost, velikosti, hitrost, položaji kartic, enote"),
         "Colours and lettering" to listOf("Barve in napisi"),
+        "Avoid car trains" to listOf("Izogni se avtovlakom"),
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Vlaki, ki prepeljejo vaš avto, kot je vlak pod Rokavskim prelivom ali alpski predorski vlaki"),
     )
 }

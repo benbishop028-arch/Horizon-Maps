@@ -1637,5 +1637,7 @@ object I18nD {
         "Traffic, lights, cameras, signs, lamps" to listOf("Трафик, светофари, камери, знаци, лампи"),
         "Brightness, sizes, speed, card positions, units" to listOf("Яркост, размери, скорост, позиции на картите, единици"),
         "Colours and lettering" to listOf("Цветове и надписи"),
+        "Avoid car trains" to listOf("Избягвай влаковете за коли"),
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to listOf("Влакове, които превозват колата ви, като совалката през Ламанша или алпийските тунелни влакове"),
     )
 }

@@ -1640,5 +1640,7 @@ object I18nHu {
         "Traffic, lights, cameras, signs, lamps" to "Forgalom, lámpák, kamerák, táblák, lámpaoszlopok",
         "Brightness, sizes, speed, card positions, units" to "Fényerő, méretek, sebesség, kártyák helye, mértékegységek",
         "Colours and lettering" to "Színek és feliratok",
+        "Avoid car trains" to "Autószállító vonatok elkerülése",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "Az autót szállító vonatok, mint a La Manche-alagút shuttle vagy az alpesi alagútvonatok",
     )
 }

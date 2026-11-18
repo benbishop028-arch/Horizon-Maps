@@ -1640,5 +1640,7 @@ object I18nKn {
         "Traffic, lights, cameras, signs, lamps" to "ಸಂಚಾರ, ದೀಪಗಳು, ಕ್ಯಾಮೆರಾಗಳು, ಫಲಕಗಳು, ಬೀದಿದೀಪಗಳು",
         "Brightness, sizes, speed, card positions, units" to "ಹೊಳಪು, ಗಾತ್ರಗಳು, ವೇಗ, ಕಾರ್ಡ್ ಸ್ಥಾನಗಳು, ಘಟಕಗಳು",
         "Colours and lettering" to "ಬಣ್ಣಗಳು ಮತ್ತು ಅಕ್ಷರಗಳು",
+        "Avoid car trains" to "ಕಾರು ರೈಲುಗಳನ್ನು ತಪ್ಪಿಸಿ",
+        "Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains" to "ನಿಮ್ಮ ಕಾರನ್ನು ಸಾಗಿಸುವ ರೈಲುಗಳು, ಉದಾ. ಚಾನೆಲ್ ಸುರಂಗ ಶಟಲ್ ಅಥವಾ ಆಲ್ಪ್ಸ್ ಸುರಂಗ ರೈಲುಗಳು",
     )
 }
