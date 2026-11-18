@@ -57,7 +57,7 @@ import com.headunit.launcher.Place
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private val ChainBlue = Color(0xFF4C8DFF)
+internal val ChainBlue = Color(0xFF4C8DFF)
 
 /**
  * A place's logo in a white circle (the shop's own, from its website), or [fallback] when there isn't one. Looked up once per
@@ -117,7 +117,8 @@ private fun roadOf(p: Place): Pair<String, String> {
 internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
     val c = LocalVw.current
     val view = engine.chain
-    Column(modifier.clip(RoundedCornerShape(28.dp)).background(c.surface).padding(16.dp)) {
+    // (solid: the map's labels and pins showed through the list's text)
+    Column(modifier.clip(RoundedCornerShape(28.dp)).background(c.surface.copy(alpha = 1f)).padding(16.dp)) {
         if (view == null) {
             Box(Modifier.fillMaxWidth().height(120.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = ChainBlue) }
             return@Column

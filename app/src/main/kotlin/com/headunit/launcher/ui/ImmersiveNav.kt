@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -498,10 +499,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- "See all locations": the branches in a panel down the driver's side (over the search), the map beside it
         if (engine.chain != null || engine.chainBusy) {
-            ChainPanel(engine, Modifier.align(side(Alignment.TopStart)).zIndex(6f).padding(16.dp)
-                .then(if (narrow) Modifier.fillMaxWidth().heightIn(max = maxHeight * 0.5f) else Modifier.width(420.dp).fillMaxHeight()))
+            // (a phone held upright: along the bottom, under the places it lists, which the map fits into the top part of the screen;
+            // at the top it covered them)
+            ChainPanel(engine, (if (narrow) Modifier.align(Alignment.BottomCenter) else Modifier.align(side(Alignment.TopStart))).zIndex(6f).padding(16.dp)
+                .then(if (narrow) Modifier.fillMaxWidth().heightIn(max = maxHeight * 0.45f) else Modifier.width(420.dp).fillMaxHeight()))
             if (engine.chainMoved || (engine.chainBusy && engine.chain != null))
-                ChainSearchHere(engine, Modifier.align(if (narrow) Alignment.BottomCenter else Alignment.TopCenter).zIndex(6f)
+                ChainSearchHere(engine, Modifier.align(Alignment.TopCenter).zIndex(6f)
                     .padding(top = 18.dp, bottom = 110.dp).then(if (narrow) Modifier else Modifier.sides(start = 440.dp)))
         }
 
@@ -694,8 +697,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // Add a stop: a panel down the side with the map still showing (where "all locations" goes); while the places of a kind
         // along the route are listed, that list takes its place. The phone's Back button goes back a step
         if (engine.stopsEditor && engine.chain == null && !engine.chainBusy)
-            StopsPanel(engine, Modifier.align(side(Alignment.TopStart)).zIndex(6f).padding(16.dp)
-                .then(if (narrow) Modifier.fillMaxWidth().heightIn(max = maxHeight * 0.5f) else Modifier.width(420.dp).heightIn(max = maxHeight - 32.dp)),
+            // (a phone held upright: along the bottom like the list it opens, lifted above the keyboard while you type)
+            StopsPanel(engine, (if (narrow) Modifier.align(Alignment.BottomCenter).imePadding() else Modifier.align(side(Alignment.TopStart))).zIndex(6f).padding(16.dp)
+                .then(if (narrow) Modifier.fillMaxWidth().heightIn(max = maxHeight * 0.6f) else Modifier.width(420.dp).heightIn(max = maxHeight - 32.dp)),
                 onClose = { engine.stopsEditor = false })
         BackHandler(enabled = engine.stopsEditor) { if (engine.chain != null || engine.chainBusy) engine.closeChain(back = true) else engine.stopsEditor = false }
     }

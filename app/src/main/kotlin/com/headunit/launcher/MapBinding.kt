@@ -4918,7 +4918,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** All the branches fitted into the part of the map beside the list (on the driver's side: left, or right when [mirrored]). */
     fun fitChain(points: List<LL>, mirrored: Boolean) {
         val side = if (mapView.width > mapView.height) 0.40 else 0.06
-        fitFrac(points, if (mirrored) 0.06 else side, 0.12, if (mirrored) side else 0.06, if (mapView.width > mapView.height) 0.10 else 0.55)
+        // (upright: the list is along the bottom and the turn card across the top, so the places go in the space between)
+        val wide = mapView.width > mapView.height
+        fitFrac(points, if (mirrored) 0.06 else side, if (wide) 0.12 else 0.2, if (mirrored) side else 0.06, if (wide) 0.10 else 0.52)
     }
 
     /** A tap near a branch's pin (within about 30 dp). */

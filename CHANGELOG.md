@@ -102,6 +102,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Add a stop on a phone held upright: the panel and the list of places along the route now sit along the bottom, with the places shown on the map above them (the list covered them). The first screen now has the same look as the list (the same solid panel, round buttons, tiles and blue), and neither lets the map show through the text
 - Headlight beam with your own 3D model: no more odd dark patch round the car. The beam now starts at the front of your model instead of having a car-shaped box cut out of it that didn't match your model's shape (thanks to liamstears)
 - Offline mode: the downloaded country map now shows. With Offline mode on, Mapbox's map engine was kept off the network so strictly that it couldn't load the downloaded map from the unit itself either, leaving a blank map with only street names and traffic lights on it (thanks to Johnm76)
 - Phone held upright: the turn card no longer goes off the right of the screen as a turn comes up (it now grows evenly from the middle), and the map buttons sit lower, between the turn card and the trip card, with or without the Settings button above them
