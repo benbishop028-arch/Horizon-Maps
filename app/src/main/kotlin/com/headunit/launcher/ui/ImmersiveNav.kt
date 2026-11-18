@@ -1292,8 +1292,8 @@ internal fun ImmTurnCard(
     /** Extra row along the bottom of the card (Android Auto puts the hazards ahead there). */
     footer: (@Composable () -> Unit)? = null,
 ) { TextSides {
-    // (20: a touch less round than before, karthikeyansr)
-    val shape = RoundedCornerShape(20.dp)
+    // (24: rounder again; 20 looked a little square)
+    val shape = RoundedCornerShape(24.dp)
     val frac = ((450.0 - t.dist) / 450.0).coerceIn(0.0, 1.0).toFloat()
     // living card: it grows a touch and starts to glow as the turn comes up, and pulses in the last 80 m
     val alive = engine.prefs.b(PreferenceKeys.LIVECARD, true)
@@ -1321,7 +1321,7 @@ internal fun ImmTurnCard(
                     val sw = (1.5f + 1.5f * pv) * density
                     drawRoundRect(Color.White.copy(alpha = 0.45f * glow * pv), topLeft = Offset(sw / 2, sw / 2),
                         size = androidx.compose.ui.geometry.Size(size.width - sw, size.height - sw),
-                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(24.dp.toPx()), style = androidx.compose.ui.graphics.drawscope.Stroke(sw))
                 }
             }
             .animateContentSize()

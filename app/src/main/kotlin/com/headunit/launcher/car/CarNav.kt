@@ -1,5 +1,7 @@
 package com.headunit.launcher.car
 
+import com.headunit.launcher.ui.drawManeuver
+import androidx.compose.ui.graphics.asImageBitmap
 import com.headunit.launcher.PreferenceKeys
 import com.headunit.launcher.carSpeedSpot
 import com.headunit.launcher.setCarSpeedSpot
@@ -838,6 +840,28 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             else -> R.drawable.ic_man_straight
         }
 
+        /** The last turn arrow picture (sent again with every update on the way to the turn, so it's only drawn once). */
+        private var arrowCache: Pair<String, android.graphics.Bitmap>? = null
+
+        /** The turn card's arrow (ui/Components.kt drawManeuver) drawn into a picture for Android Auto; null if it can't be. */
+        private fun arrowPicture(t: TurnInfo, clockwise: Boolean): android.graphics.Bitmap? = try {
+            val m = t.maneuver.uppercase()
+            val rb = m.startsWith("ROUNDABOUT")
+            val ea = if (rb) com.headunit.launcher.ui.roundaboutTurn(t.rbIn, t.rbOut) else Float.NaN
+            val num = if (rb) t.exit else 0
+            val key = "$m|$num|${if (ea.isNaN()) "-" else Math.round(ea / 5f).toString()}|$clockwise"
+            arrowCache?.takeIf { it.first == key }?.second ?: run {
+                val px = 144
+                val bmp = android.graphics.Bitmap.createBitmap(px, px, android.graphics.Bitmap.Config.ARGB_8888)
+                androidx.compose.ui.graphics.drawscope.CanvasDrawScope().draw(androidx.compose.ui.unit.Density(1f), androidx.compose.ui.unit.LayoutDirection.Ltr,
+                    androidx.compose.ui.graphics.Canvas(bmp.asImageBitmap()), androidx.compose.ui.geometry.Size(px.toFloat(), px.toFloat())) {
+                    drawManeuver(t.maneuver, com.headunit.launcher.Geo.maneuverAngle(t.maneuver), androidx.compose.ui.graphics.Color.White, clockwise, ea, num)
+                }
+                arrowCache = key to bmp
+                bmp
+            }
+        } catch (e: Throwable) { null }
+
         /** The last lanes picture (the same junction is sent many times on the approach). */
         private var lanesCache: Pair<String, android.graphics.Bitmap>? = null
 
@@ -976,7 +1000,10 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
                 m == "STRAIGHT" || m == "FOLLOW" -> Maneuver.TYPE_STRAIGHT
                 else -> Maneuver.TYPE_UNKNOWN
             }
-            val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
+            // the arrow: the same picture as the phone's turn card (with the roundabout's real exit and its number), or the
+            // plain arrow image if that can't be drawn
+            val pic = arrowPicture(t, left)
+            val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(if (pic != null) IconCompat.createWithBitmap(pic) else IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
             val rbExitType = type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW ||
                 type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
             if (rbExitType) mb.setRoundaboutExitNumber(t.exit.coerceAtLeast(1))

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- generated to match the turn card's notched arrows (ui/Components.kt drawManeuver) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="48" android:viewportHeight="48">
-    <path android:pathData="M24,44 L24,24 L14.1,14.1" android:strokeColor="#FFFFFFFF" android:strokeWidth="5" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
-    <path android:pathData="M10.6,10.6 L22.6,12.7 L12.7,22.6 Z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M24,46 L24,3" android:strokeColor="#FFFFFFFF" android:strokeAlpha="0.25" android:strokeWidth="7" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    <path android:pathData="M24,45 L24,34 Q24,30 21.71,26.72 L17.69,20.99" android:strokeColor="#FFFFFFFF" android:strokeWidth="7" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    <path android:pathData="M11.38,11.98 L25.47,15.54 L16.26,18.94 L9.91,26.44 Z" android:fillColor="#FFFFFFFF" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.5" android:strokeLineJoin="round" />
 </vector>

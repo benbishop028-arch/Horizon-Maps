@@ -282,97 +282,156 @@ fun ManeuverArrow(
     /** At a roundabout: the exit's number, written large inside a bigger ring (0 = no number, the plain smaller ring). */
     exitNumber: Int = 0,
 ) {
-    Canvas(modifier) {
-        val s = size.minDimension / 48f
-        val sw = 5f * s
-        val u = maneuver.uppercase()
-        val stroke = Stroke(width = sw, cap = StrokeCap.Round, join = StrokeJoin.Round)
-        fun p(x: Float, y: Float) = Offset(x * s, y * s)
-        if (u.startsWith("ARRIVE")) {
-            val flag = Path().apply { moveTo(14 * s, 42 * s); lineTo(14 * s, 6 * s) }
-            drawPath(flag, color, style = stroke)
-            val f = Path().apply { moveTo(14 * s, 8 * s); lineTo(38 * s, 8 * s); lineTo(32 * s, 16 * s); lineTo(38 * s, 24 * s); lineTo(14 * s, 24 * s); close() }
-            drawPath(f, color)
-            return@Canvas
-        }
-        if (u == "MAKE_UTURN" || u == "ROUNDABOUT_BACK" || u == "LEFT_U_TURN" || u == "RIGHT_U_TURN") {
-            // Direction-specific U-turns: the road stem and return curve mirror for left/right
-            // manoeuvres, while a generic U-turn retains the standard left-return symbol.
-            val rightReturn = u == "RIGHT_U_TURN"
-            val x = if (rightReturn) 16f else 32f
-            val otherX = if (rightReturn) 32f else 16f
-            val startAngle = if (rightReturn) 180f else 0f
-            val sweep = if (rightReturn) 180f else -180f
-            val path = Path().apply {
-                moveTo(x * s, 44 * s); lineTo(x * s, 20 * s)
-                arcTo(Rect(Offset(16 * s, 8 * s), Size(16 * s, 24 * s)), startAngle, sweep, false)
-                lineTo(otherX * s, 30 * s)
-            }
-            drawPath(path, color, style = stroke)
-            val head = Path().apply {
-                if (rightReturn) { moveTo(24 * s, 28 * s); lineTo(40 * s, 28 * s); lineTo(32 * s, 40 * s) }
-                else { moveTo(8 * s, 28 * s); lineTo(24 * s, 28 * s); lineTo(16 * s, 40 * s) }
-                close()
-            }
-            drawPath(head, color)
-            return@Canvas
-        }
-        if (u.startsWith("ROUNDABOUT")) {
-            // The ring with the road you come in on (bottom) and the exit you take, drawn in the direction the real exit
-            // points ([exitAngle] from the route's road bearings when known, otherwise the manoeuvre's left/right/ahead).
-            // The highlighted arc follows the traffic: clockwise where people keep left (UK), anticlockwise elsewhere.
-            // (The exit's number isn't used for the direction: a "2nd exit" can point anywhere, depending on the roundabout.)
-            // (with the exit's number in it the ring is bigger, so the number can be read at a glance, karthikeyansr)
-            val numbered = exitNumber in 1..20
-            val cx = 24f; val cy = if (numbered) 24f else 25f; val rr = if (numbered) 11.5f else 8f
-            val ringRect = Rect(Offset((cx - rr) * s, (cy - rr) * s), Size(rr * 2f * s, rr * 2f * s))
-            val ringStroke = Stroke(width = 3.5f * s, cap = StrokeCap.Round)
-            drawCircle(color.copy(alpha = 0.3f), rr * s, p(cx, cy), style = ringStroke)
-            drawLine(color, p(24f, 46f), p(24f, cy + rr), sw, StrokeCap.Round)
-            val turn = if (exitAngle.isFinite()) exitAngle else angle
-            // screen angle of the exit on the ring (0 = right, 90 = down, where you come in)
-            val exitDeg = turn - 90f
-            fun wrap(d: Float) = ((d % 360f) + 360f) % 360f
-            var sweep = if (roundaboutClockwise) wrap(exitDeg - 90f) else -wrap(90f - exitDeg)
-            if (kotlin.math.abs(sweep) < 25f) sweep = if (roundaboutClockwise) 335f else -335f // all the way round
-            drawArc(color, 90f, sweep, false, ringRect.topLeft, ringRect.size, style = ringStroke)
-            val endDeg = Math.toRadians((90f + sweep).toDouble())
-            val dx = kotlin.math.cos(endDeg).toFloat()
-            val dy = kotlin.math.sin(endDeg).toFloat()
-            val stub = if (numbered) 6.5f else 10f
-            val ex = cx + dx * (rr + stub); val ey = cy + dy * (rr + stub)
-            drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
-            val tip = p(ex + dx * 5f, ey + dy * 5f)
-            val px = -dy; val py = dx
-            val h1 = p(ex - dx * 3f + px * 4.5f, ey - dy * 3f + py * 4.5f)
-            val h2 = p(ex - dx * 3f - px * 4.5f, ey - dy * 3f - py * 4.5f)
-            drawPath(Path().apply { moveTo(tip.x, tip.y); lineTo(h1.x, h1.y); lineTo(h2.x, h2.y); close() }, color)
-            if (numbered) drawContext.canvas.nativeCanvas.apply {
-                val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                    this.color = color.toArgb(); textAlign = android.graphics.Paint.Align.CENTER
-                    textSize = (if (exitNumber >= 10) 12.5f else 15f) * s
-                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                }
-                val fm = tp.fontMetrics
-                drawText(exitNumber.toString(), cx * s, cy * s - (fm.ascent + fm.descent) / 2f, tp)
-            }
-            return@Canvas
-        }
-        val r = Math.toRadians(angle.toDouble())
-        val x1 = 24f; val y1 = 28f; val len = 16f
-        val ux = sin(r).toFloat(); val uy = -cos(r).toFloat()
-        val x2 = x1 + ux * len; val y2 = y1 + uy * len
-        if (u.startsWith("ROUNDABOUT")) drawCircle(color, 6f * s, p(24f, 38f), style = Stroke(width = 3f * s))
-        val shaft = Path().apply { moveTo(24 * s, 44 * s); lineTo(x1 * s, y1 * s); lineTo(x2 * s, y2 * s) }
-        drawPath(shaft, color, style = stroke)
-        val px = -uy; val py = ux
-        val hl = 11f; val hw = 9f
-        val tip = p(x2 + ux * hl * 0.6f, y2 + uy * hl * 0.6f)
-        val b1 = p(x2 - ux * hl * 0.4f + px * hw * 0.55f, y2 - uy * hl * 0.4f + py * hw * 0.55f)
-        val b2 = p(x2 - ux * hl * 0.4f - px * hw * 0.55f, y2 - uy * hl * 0.4f - py * hw * 0.55f)
-        val head = Path().apply { moveTo(tip.x, tip.y); lineTo(b1.x, b1.y); lineTo(b2.x, b2.y); close() }
-        drawPath(head, color)
+    Canvas(modifier) { drawManeuver(maneuver, angle, color, roundaboutClockwise, exitAngle, exitNumber) }
+}
+
+/**
+ * The turn arrow itself, drawn into any canvas: the turn card's (above) and the picture sent to Android Auto (CarNav), so both
+ * look the same.
+ */
+fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: String, angle: Float, color: Color, roundaboutClockwise: Boolean,
+                                                                exitAngle: Float, exitNumber: Int) {
+    val s = size.minDimension / 48f
+    val sw = 7f * s
+    val u = maneuver.uppercase()
+    val stroke = Stroke(width = sw, cap = StrokeCap.Round, join = StrokeJoin.Round)
+    fun p(x: Float, y: Float) = Offset(x * s, y * s)
+    if (u.startsWith("ARRIVE")) {
+        val flag = Path().apply { moveTo(14 * s, 42 * s); lineTo(14 * s, 6 * s) }
+        drawPath(flag, color, style = stroke)
+        val f = Path().apply { moveTo(14 * s, 8 * s); lineTo(38 * s, 8 * s); lineTo(32 * s, 16 * s); lineTo(38 * s, 24 * s); lineTo(14 * s, 24 * s); close() }
+        drawPath(f, color)
+        return
     }
+    if (u == "MAKE_UTURN" || u == "ROUNDABOUT_BACK" || u == "LEFT_U_TURN" || u == "RIGHT_U_TURN") {
+        // Direction-specific U-turns: the road stem and return curve mirror for left/right
+        // manoeuvres, while a generic U-turn retains the standard left-return symbol.
+        val rightReturn = u == "RIGHT_U_TURN"
+        val x = if (rightReturn) 16f else 32f
+        val otherX = if (rightReturn) 32f else 16f
+        val startAngle = if (rightReturn) 180f else 0f
+        val sweep = if (rightReturn) 180f else -180f
+        val path = Path().apply {
+            moveTo(x * s, 44 * s); lineTo(x * s, 20 * s)
+            arcTo(Rect(Offset(16 * s, 8 * s), Size(16 * s, 24 * s)), startAngle, sweep, false)
+            lineTo(otherX * s, 30 * s)
+        }
+        drawPath(path, color, style = stroke)
+        val head = Path().apply {
+            if (rightReturn) { moveTo(24 * s, 28 * s); lineTo(40 * s, 28 * s); lineTo(32 * s, 40 * s) }
+            else { moveTo(8 * s, 28 * s); lineTo(24 * s, 28 * s); lineTo(16 * s, 40 * s) }
+            close()
+        }
+        drawPath(head, color)
+        return
+    }
+    // (the faded parts, the roads you're not taking, are drawn solid into a layer that is then faded as a whole, so where
+    // they cross or meet the ring nothing shows darker or lighter: one even colour)
+    fun faded(alpha: Float, block: () -> Unit) {
+        val pnt = androidx.compose.ui.graphics.Paint().apply { this.alpha = alpha }
+        drawContext.canvas.saveLayer(Rect(Offset.Zero, size), pnt)
+        block()
+        drawContext.canvas.restore()
+    }
+    // the arrowhead: a point with a notch cut into its back, corners slightly rounded
+    fun notched(ex: Float, ey: Float, ux: Float, uy: Float) {
+        val px = -uy; val py = ux
+        val head = Path().apply {
+            moveTo((ex + ux * 11f) * s, (ey + uy * 11f) * s)
+            lineTo((ex + px * 9.5f) * s, (ey + py * 9.5f) * s)
+            lineTo((ex + ux * 2.5f) * s, (ey + uy * 2.5f) * s)
+            lineTo((ex - px * 9.5f) * s, (ey - py * 9.5f) * s)
+            close()
+        }
+        drawPath(head, color)
+        drawPath(head, color, style = Stroke(width = 1.5f * s, join = StrokeJoin.Round))
+    }
+    if (u.startsWith("ROUNDABOUT")) {
+        // The ring with the road you come in on (bottom) and the exit you take, drawn in the direction the real exit
+        // points ([exitAngle] from the route's road bearings when known, otherwise the manoeuvre's left/right/ahead).
+        // The highlighted arc follows the traffic: clockwise where people keep left (UK), anticlockwise elsewhere.
+        // (The exit's number isn't used for the direction: a "2nd exit" can point anywhere, depending on the roundabout.)
+        // The other roads (left, ahead, right) show faded, and the exit's number sits in the middle on a half-faded disc
+        // (karthikeyansr's redesign, #188)
+        val numbered = exitNumber in 1..20
+        val cx = 24f; val cy = 23f; val rr = 11f
+        val ringRect = Rect(Offset((cx - rr) * s, (cy - rr) * s), Size(rr * 2f * s, rr * 2f * s))
+        val turn = if (exitAngle.isFinite()) exitAngle else angle
+        fun wrap(d: Float) = ((d % 360f) + 360f) % 360f
+        // screen angle of the exit on the ring (0 = right, 90 = down, where you come in)
+        val exitDeg = turn - 90f
+        var sweep = if (roundaboutClockwise) wrap(exitDeg - 90f) else -wrap(90f - exitDeg)
+        if (kotlin.math.abs(sweep) < 25f) sweep = if (roundaboutClockwise) 335f else -335f // all the way round
+        val endDeg = Math.toRadians((90f + sweep).toDouble())
+        val dx = kotlin.math.cos(endDeg).toFloat()
+        val dy = kotlin.math.sin(endDeg).toFloat()
+        faded(0.3f) {
+            drawCircle(color, rr * s, p(cx, cy), style = Stroke(width = 5f * s))
+            for (g in listOf(-90f, 0f, 90f)) {
+                // (not where the exit taken already is)
+                val diff = kotlin.math.abs(((g - turn + 540f) % 360f) - 180f)
+                if (diff < 35f) continue
+                val gd = Math.toRadians((g - 90f).toDouble())
+                val gx = kotlin.math.cos(gd).toFloat(); val gy = kotlin.math.sin(gd).toFloat()
+                drawLine(color, p(cx + gx * rr, cy + gy * rr), p(cx + gx * (rr + 11f), cy + gy * (rr + 11f)), 6f * s, StrokeCap.Round)
+            }
+        }
+        val drive = Stroke(width = sw, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        drawLine(color, p(24f, 46f), p(24f, cy + rr), sw, StrokeCap.Round)
+        drawArc(color, 90f, sweep, false, ringRect.topLeft, ringRect.size, style = drive)
+        val ex = cx + dx * (rr + 1.5f); val ey = cy + dy * (rr + 1.5f)
+        drawLine(color, p(cx + dx * rr, cy + dy * rr), p(ex, ey), sw, StrokeCap.Round)
+        notched(ex, ey, dx, dy)
+        if (numbered) {
+            // the number knocked out of the disc, so it shows in the turn card's own colour whatever the theme; centred on the
+            // digits themselves (centring on the font's full height left it sitting high)
+            drawContext.canvas.saveLayer(Rect(Offset.Zero, size), androidx.compose.ui.graphics.Paint())
+            drawCircle(color.copy(alpha = color.alpha * 0.65f), 6.5f * s, p(cx, cy))
+            drawContext.canvas.nativeCanvas.apply {
+                val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    textSize = (if (exitNumber >= 10) 7.5f else 9.5f) * s
+                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+                    xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_OUT)
+                }
+                val t = exitNumber.toString()
+                val b = android.graphics.Rect()
+                tp.getTextBounds(t, 0, t.length, b)
+                drawText(t, cx * s, cy * s - (b.top + b.bottom) / 2f, tp)
+            }
+            drawContext.canvas.restore()
+        }
+        return
+    }
+    // an ordinary turn: the road you leave faded behind it (straight on, or the other branch at a fork), then the arrow,
+    // which bends in a curve rather than a sharp corner, with a notched head
+    val r = Math.toRadians(angle.toDouble())
+    val ux = sin(r).toFloat(); val uy = -cos(r).toFloat()
+    val by = 30f
+    val keep = u.startsWith("KEEP_") || u.contains("FORK")
+    if (keep || kotlin.math.abs(angle) >= 15f) faded(0.25f) {
+        if (keep) {
+            val o = Math.toRadians((if (angle < 0f) 30.0 else -30.0))
+            val ox = sin(o).toFloat(); val oy = -cos(o).toFloat()
+            drawPath(Path().apply {
+                moveTo(24 * s, 46 * s); lineTo(24 * s, (by + 4f) * s)
+                quadraticTo(24 * s, by * s, (24f + ox * 4f) * s, (by + oy * 4f) * s)
+                lineTo((24f + ox * 13f) * s, (by + oy * 13f) * s)
+            }, color, style = stroke)
+        } else drawLine(color, p(24f, 46f), p(24f, 3f), sw, StrokeCap.Round)
+    }
+    val ex = 24f + ux * 11f; val ey = by + uy * 11f
+    val shaft = Path().apply {
+        moveTo(24 * s, 45 * s)
+        if (kotlin.math.abs(angle) < 1f) lineTo(24 * s, ey * s)
+        else {
+            lineTo(24 * s, (by + 4f) * s)
+            quadraticTo(24 * s, by * s, (24f + ux * 4f) * s, (by + uy * 4f) * s)
+            lineTo(ex * s, ey * s)
+        }
+    }
+    drawPath(shaft, color, style = stroke)
+    notched(ex, ey, ux, uy)
 }
 
 /** Returns a function that opens the system speech recogniser and passes back the first result. */

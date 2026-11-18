@@ -47,6 +47,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -290,8 +291,26 @@ fun SpeedLimitSign(engine: NavEngine, size: Dp, modifier: Modifier = Modifier, o
             drawArc(Color.White.copy(alpha = 0.35f), 200f, 140f, false, topLeft = Offset(ctr.x - r * 0.88f, ctr.y - r * 0.88f),
                 size = androidx.compose.ui.geometry.Size(r * 1.76f, r * 1.76f), style = Stroke(width = r * 0.05f, cap = androidx.compose.ui.graphics.StrokeCap.Round))
         }
-        Text("$n", color = if (engine.limitEstimated) Color(0xFF4A4A4A) else Color(0xFF111111), fontSize = (size.value * (if (n >= 100) 0.31f else 0.39f)).sp, fontWeight = FontWeight.Black, maxLines = 1,
-            letterSpacing = (-0.5).sp, style = androidx.compose.ui.text.TextStyle(shadow = androidx.compose.ui.graphics.Shadow(Color(0x33000000), Offset(0f, 1.5f), 2f)))
+        // the number, drawn centred on the digits themselves: as text it sat a little high, as the line's space includes room
+        // below the digits for letters like g and y (karthikeyansr, #188). Sized from the sign, not the text-size setting.
+        val ink = if (engine.limitEstimated) 0xFF4A4A4A.toInt() else 0xFF111111.toInt()
+        Canvas(Modifier.fillMaxSize()) {
+            drawContext.canvas.nativeCanvas.apply {
+                val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                    color = ink
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    textSize = this@Canvas.size.minDimension * (if (n >= 100) 0.31f else 0.39f)
+                    typeface = if (android.os.Build.VERSION.SDK_INT >= 28) android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, 900, false)
+                        else android.graphics.Typeface.DEFAULT_BOLD
+                    letterSpacing = -0.03f
+                    setShadowLayer(2f, 0f, 1.5f, 0x33000000)
+                }
+                val t = n.toString()
+                val b = android.graphics.Rect()
+                tp.getTextBounds(t, 0, t.length, b)
+                drawText(t, center.x, center.y - (b.top + b.bottom) / 2f, tp)
+            }
+        }
     }
 }
 

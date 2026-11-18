@@ -47,6 +47,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- New turn arrows: the arrows on the turn card are bolder, bend in a smooth curve and have a notched head, with the road you're leaving shown faintly behind them. Roundabouts show the other exits faintly too, with the exit number in the middle on a soft disc. The big lane arrows are unchanged. Android Auto's turn card gets the same arrows, including the roundabout with its real exit and number (thanks to karthikeyansr-lgtm)
+- Turn card corners: slightly rounder again
 - Add a stop: the Fuel, Charger, Coffee, Food, Services and Toilets buttons are now the same round coloured icons as under the search bar, in one row
 - Headlight beam: about half as wide, so it lights the road ahead rather than the buildings either side (thanks to liamstears)
 - Add a stop: now a panel down the side with your route still on the map, instead of a box over everything. Tapping Fuel, Charger, Coffee, Food, Services or Toilets lists those places along your route in the same panel, each with the time it adds and shown on the map, rather than adding one you hadn't seen. The arrow goes back. Search sits at the top, clear of the keyboard, and the map only zooms out while places along the route are listed
@@ -104,6 +106,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Numbers off-centre: the exit number in the roundabout icon and the number on the round speed limit sign sat slightly high; both are now exactly in the middle (thanks to karthikeyansr-lgtm)
 - Add a stop on a phone held upright: the panel and the list of places along the route now sit along the bottom, with the places shown on the map above them (the list covered them). The first screen now has the same look as the list (the same solid panel, round buttons, tiles and blue), and neither lets the map show through the text
 - Headlight beam with your own 3D model: no more odd dark patch round the car. The beam now starts at the front of your model instead of having a car-shaped box cut out of it that didn't match your model's shape (thanks to liamstears)
 - Offline mode: the downloaded country map now shows. With Offline mode on, Mapbox's map engine was kept off the network so strictly that it couldn't load the downloaded map from the unit itself either, leaving a blank map with only street names and traffic lights on it (thanks to Johnm76)
