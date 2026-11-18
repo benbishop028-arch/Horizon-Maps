@@ -44,6 +44,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Choosing another route on a phone: with the phone held upright, Other routes now opens as a panel along the bottom instead of in the middle of the map. The turn card goes to one line, the speed signs, speedometer, Re-centre button and trip card step aside, and the map zooms to fit the routes above the panel. Head units and Android Auto are unchanged (thanks to smikkelvriend)
+- UK road signs on the "Then" line: the road numbers in the turn card's "Then" line now show as the same blue, green and white signs, in their place in the sentence (thanks to karthikeyansr)
 - UK road numbers as signs on the turn card: motorways in blue with white, A roads in green with yellow and B roads in white with black, as on the real signs. The turn card's corners are also a little less rounded (thanks to karthikeyansr)
 - GPX tracks in backups: Back up and Restore now include your GPX tracks, with their groups, as well as your settings and saved places (thanks to bijindas)
 - "Navigate" for GPX tracks: the button that drives a track now says Navigate instead of "Drive this" (thanks to bijindas)
@@ -90,6 +92,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- UK road signs: roads like A1(M) now show as one blue motorway sign instead of a green A1 with "(M)" after it, and a road number written with a space ("M 25") now gets its sign too (thanks to karthikeyansr)
 - Own 3D models that were invisible: a model whose file scales itself down (common in models from Sketchfab and other sites) came out far too small to see. Models are now measured the way the map draws them, and ones picked before are measured again once (thanks to Matattack99)
 - Says why satellite or your own model didn't show: when Mapbox's servers turn down satellite pictures (a problem on Mapbox's side since late October), or can't load your 3D model, a message now says so and what to try, and the feedback report includes Mapbox's reason (thanks to Matattack99)
 - Satellite at night: with Night chosen (or after dark), satellite photos were dimmed until they hardly showed, so it looked as though satellite wasn't on. They now show in daylight at night (the screen's own night dimming still applies) (thanks to Matattack99)

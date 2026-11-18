@@ -725,7 +725,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.onReportTap = { p -> reportAt(p)?.let { r -> showReportCard(r) } }
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
-        map.onUserGesture = { if (chain != null) chainMoved = true else { if (following) { following = false }; scheduleRecentre(12_000) } }
+        map.onUserGesture = { if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) } }
         map.onAltTap = { i -> switchToAlt(i) }
         map.onChainTap = { i -> chainTapped(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
@@ -4906,8 +4906,24 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         for (l in lines) pts += l.filterIndexed { n, _ -> n % 8 == 0 }
         pts += r.pts.last()
         following = false
-        map.fit(pts)
+        altFitting = true
+        // a phone held upright: the routes panel is along the bottom (this part of the screen), with the one-line turn card above
+        val cover = altSheetCover
+        if (cover > 0.0) map.fitFrac(pts, 0.07, 0.14, 0.07, (cover + 0.04).coerceAtMost(0.7)) else map.fit(pts)
         scheduleRecentre(15_000)
+    }
+
+    /** How much of the screen's height the routes panel takes along the bottom (a phone held upright; 0 otherwise). */
+    @Volatile var altSheetCover = 0.0
+    // the map is showing the routes zoomed out (not moved by hand since): so it can be fitted again when the panel changes height
+    private var altFitting = false
+
+    /** Fits the routes into the map again (the panel along the bottom has changed height), unless the map has been moved since. */
+    fun refitAlternatives() {
+        if (!altListOpen || following || !altFitting || route == null) return
+        val l = liveAlts
+        if (l.isEmpty()) return
+        try { showAlternatives(l.map { it.line() }) } catch (e: Exception) { }
     }
 
     private var curProgress = 0.0
