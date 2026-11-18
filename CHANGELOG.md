@@ -89,6 +89,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Satellite at night: with Night chosen (or after dark), satellite photos were dimmed until they hardly showed, so it looked as though satellite wasn't on. They now show in daylight at night (the screen's own night dimming still applies) (thanks to Matattack99)
+- Your own 3D model with satellite: switching satellite on swapped the real 3D model for the built-in car picture. The model now shows on satellite too. Feedback reports also say which map is really on screen and what's drawing your arrow (thanks to Matattack99)
 - Satellite view on Android Auto: the car screen now shows satellite view when it's switched on, instead of always staying on the drawn map, which made it look as though satellite didn't work. Feedback reports now also say whether satellite is on and the last error the map gave
 - Night map by day on phones: with the phone's dark mode switched on, Auto kept the map dark all day. On a phone, Auto now follows sunrise and sunset, and a new "Phone's dark mode" choice matches the phone's own light / dark setting for anyone who wants that (thanks to lukaszsakul)
 - Average speed checks on Android Auto: the average speed card (your average so far, the limit, how far is left and what keeps you under) now shows under the turn card on the car screen too, not just on the phone. While it shows, it takes the place of the speed camera line, and its colours are deeper on a light card (thanks to magnazan)

@@ -185,7 +185,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 modelWanted = false; reinstall()
             }
             // a piece of Mapbox's map itself (not one of the app's extras, like traffic) couldn't be loaded
-            else if ((e.type == MapLoadingErrorType.TILE || e.type == MapLoadingErrorType.SOURCE) && !(e.sourceId ?: "").startsWith("dl-")) onTileMissing?.invoke()
+            else if ((e.type == MapLoadingErrorType.TILE || e.type == MapLoadingErrorType.SOURCE) && !(e.sourceId ?: "").startsWith("dl-")) {
+                lastTileError = "${e.sourceId ?: "?"}: ${e.message}".take(140)
+                onTileMissing?.invoke()
+            }
         }
         mapView.gestures.addOnMapLongClickListener { p -> onLongPress?.invoke(LL(p.latitude(), p.longitude())); true }
         mapView.gestures.addOnMapClickListener { p ->
@@ -379,6 +382,19 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Asked to load the map style again (satellite switched): the engine knows which map source is chosen. */
     var onRestyle: (() -> Unit)? = null
     val isSatellite: Boolean get() = satellite
+    /** For the feedback report: the last piece of Mapbox's map that wouldn't load, and which map is really on screen. */
+    @Volatile var lastTileError = ""
+    val shownMap: String get() = when (loadedStyle) {
+        null -> "none"; Style.STANDARD_SATELLITE -> "satellite"; Style.STANDARD -> "standard"; Style.MAPBOX_STREETS, Style.DARK -> "classic"
+        else -> if ((loadedStyle ?: "").startsWith("{")) "own style" else "other"
+    }
+    /** For the feedback report: what's drawing your arrow. */
+    val arrowNote: String get() = when {
+        modelShape == "own" && ownFailed -> "your 3D model wouldn't load (car picture instead)"
+        modelOn -> "3D model ($modelShape)"
+        modelWanted -> "3D model ($modelShape) waiting"
+        else -> "picture ($locatorStyle)"
+    }
 
     private fun isMapboxStyle(u: String?) = u == Style.STANDARD || u == Style.STANDARD_SATELLITE || u == Style.MAPBOX_STREETS || u == Style.DARK || u == NAV_DAY || u == NAV_NIGHT
 
@@ -606,9 +622,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     private fun horizonNightBuildings(): Boolean = hzFamily() && !satellite && (lightPreset == "night" || lightPreset == "dusk")
 
-    /** Satellite at "night" darkens the photos until there's next to nothing to see (it looked as if satellite wasn't working),
-     *  so satellite goes no darker than dusk. */
-    private fun satLight(p: String): String = if (satellite && p == "night") "dusk"
+    /** Satellite at "night" darkens the photos until there's next to nothing to see, and even dusk left them so dark that with
+     *  Night chosen it still looked as if satellite wasn't working (Matattack99, #186): satellite's photos are shown in daylight at
+     *  night (the screen's own night dimming still applies). */
+    private fun satLight(p: String): String = if (satellite && p == "night") "day"
         else if (p == "night" && hzFamily() && hzLight == "dusk") "dusk" else p
 
     /** One of Standard's settings (only once a style is showing; they're also written into the style when it loads). */
@@ -621,7 +638,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun baseConfig(): org.json.JSONObject {
         val sat = (wantedStyle ?: "") == Style.STANDARD_SATELLITE
         val c = org.json.JSONObject()
-        c.put("lightPreset", if (sat && lightPreset == "night") "dusk" else if (!sat && lightPreset == "night" && hzFamily() && hzLight == "dusk") "dusk" else lightPreset)
+        c.put("lightPreset", if (sat && lightPreset == "night") "day" else if (!sat && lightPreset == "night" && hzFamily() && hzLight == "dusk") "dusk" else lightPreset)
         // shop and place labels rest on the light map and (on the full map) while you're on the move: placing them is the costly part
         c.put("showPointOfInterestLabels", !lite && !poiMoving)
         c.put("showTransitLabels", !lite)
@@ -2590,7 +2607,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .visibility(vis(locatorStyle == "flat")))
         // the real 3D model (Full 3D only); otherwise the 3D locator is drawn by locatorView over the map, see pushModel
         modelOn = false; modelAt = null
-        if (modelWanted && !modelBroken && !satellite && MapStylePolicy.supportsFullDetailFeatures(mapDetail)) installModel(st)
+        if (modelWanted && !modelBroken && MapStylePolicy.supportsFullDetailFeatures(mapDetail)) installModel(st)
         // (the road-name pill is roadView, see placeLocator)
         spriteName = null
         placeLocator()

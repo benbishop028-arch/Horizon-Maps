@@ -1405,7 +1405,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Unit: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}, Android ${android.os.Build.VERSION.RELEASE} (API ${android.os.Build.VERSION.SDK_INT}), screen ${dm.widthPixels}x${dm.heightPixels}")
             appendLine("Country: ${detectedCountry.ifBlank { "unknown" }} · map: ${prefs.mapSource()} · TomTom key: ${if (hasKey) "yes" else "no"} · Mapbox token: ${if (hasMapbox) "yes" else "no"} · routes from: ${provider.ifBlank { "offline" }} · online: ${if (online()) "yes" else "no"}")
             appendLine("Offline area: ${installedPackId() ?: "none"}")
-            appendLine("Map view: " + (if (map.isSatellite) "satellite" else "standard") + " · map shown: " + (if (map.styleShown) "yes" else "no") + (if (lastMapError.isNotBlank()) " · last map error: $lastMapError" else ""))
+            appendLine("Map view: " + (if (map.isSatellite) "satellite" else "standard") + " · map on screen: " + (if (map.styleShown) map.shownMap else "not yet (${map.shownMap})") +
+                (if (lastMapError.isNotBlank()) " · last map error: $lastMapError" else "") + (if (map.lastTileError.isNotBlank()) " · last missing piece: ${map.lastTileError}" else ""))
+            appendLine("Arrow: " + map.arrowNote)
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · steering wheel: ${if (mirrored) "left (traffic on the right)" else "right (traffic on the left)"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { appendLine(com.headunit.launcher.ui.NightWatch.line() + " · theme " + prefs.s(PreferenceKeys.THEME, "auto")) } catch (e: Exception) { }
