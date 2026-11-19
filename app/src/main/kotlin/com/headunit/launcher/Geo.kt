@@ -611,7 +611,10 @@ object TomTomRest {
         val c = URL(via?.first ?: url0).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
         c.connectTimeout = 15000; c.readTimeout = 25000
         if (via != null) c.setRequestProperty("X-Plus-Session", via.second) else c.setRequestProperty("TomTom-Api-Key", key)
-        c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,magnitudeOfDelay,delay,from,to,roadNumbers,events(description)))")
+        // (TomTom turns down the whole request for a field it doesn't know: the delay is "delayInSeconds", and asking for "delay"
+        // failed almost every incident check with a 400, bijindas #225)
+        c.setRequestProperty("Attributes", "incidents(geometry(type,coordinates),properties(id,iconCategory,magnitudeOfDelay,delayInSeconds,from,to,roadNumbers,events(description)))")
+        c.setRequestProperty("TomTom-Api-Version", "2")
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
         val code = c.responseCode
         val body = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""

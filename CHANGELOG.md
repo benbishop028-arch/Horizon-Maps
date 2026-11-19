@@ -137,6 +137,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- TomTom incidents: almost every check for accidents, roadworks and closures from TomTom was being turned down, because the app asked for a detail under a name TomTom doesn't use. They now come through, so TomTom incidents show on the map and are announced on your route again (thanks to bijindas, who spotted it in TomTom's usage stats)
 - Crash picking a search result: tapping a result while "See all locations" was showing at the top of the list could close the app on some phones (thanks to DJSatan)
 - Fuel and charging costs in rupees, kroner and more: the cost on the route options is now shown in the currency of the country you're driving in, and outside pound, euro and dollar countries the price box takes the price as normally written (₹107.40 a litre), where it used to read it as paise and show the cost 100 times too small (thanks to bijindas)
 - Still navigating after parking: switching the car off within 400 m of your destination now ends the trip, on Android Auto and on the phone, even if you parked too far from the door for the arrival to be noticed. Starting the app again right by the destination no longer picks the trip back up either (thanks to pc4096)
