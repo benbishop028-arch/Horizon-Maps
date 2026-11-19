@@ -1091,5 +1091,6 @@ internal fun LorryWarnCard(engine: NavEngine, modifier: Modifier = Modifier) {
 
 
 /** A tap on the phone, or through Android Auto's tap list on the car screen (where ordinary clicks don't reach). */
+@Composable
 internal fun Modifier.tapOn(engine: NavEngine, id: String, action: () -> Unit): Modifier =
     if (engine.isCar) carTap(id, action) else clickable(onClick = action)
