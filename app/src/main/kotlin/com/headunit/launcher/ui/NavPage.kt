@@ -698,7 +698,10 @@ internal fun LaneHero(sec: LaneSec, maneuver: String, advice: String?, canvasH: 
             fun xAt(frac: Float, y: Float): Float { val t = y / h; val ins = topInset * (1f - t); return ins + frac * (w - 2 * ins) }
             val road = androidx.compose.ui.graphics.Path().apply { moveTo(xAt(0f, 0f), 0f); lineTo(xAt(1f, 0f), 0f); lineTo(w, h); lineTo(0f, h); close() }
             drawPath(road, Color(0xFF233B42).copy(alpha = a))
-            val stroke = 6.dp.toPx()
+            // (bolder than before, karthikeyansr-lgtm #188: the thin lines were hard to read at a glance)
+            // (thinner again on a road with many lanes, so the arrows in neighbouring lanes don't run into each other)
+            val laneW = w / maxOf(1, n)
+            val stroke = minOf(9.dp.toPx(), laneW * 0.14f).coerceAtLeast(5.dp.toPx())
             val round = androidx.compose.ui.graphics.StrokeCap.Round
             fun o(x: Float, y: Float) = androidx.compose.ui.geometry.Offset(x, y)
             sec.lanes.forEachIndexed { idx, lane ->
@@ -712,28 +715,28 @@ internal fun LaneHero(sec: LaneSec, maneuver: String, advice: String?, canvasH: 
                 if (idx > 0) {
                     var y = 0f
                     val dash = 14.dp.toPx(); val gap = 10.dp.toPx()
-                    while (y < h) { drawLine(Color.White.copy(alpha = 0.75f * a), o(xAt(f0, y), y), o(xAt(f0, minOf(h, y + dash)), minOf(h, y + dash)), 2.5.dp.toPx()); y += dash + gap }
+                    while (y < h) { drawLine(Color.White.copy(alpha = 0.85f * a), o(xAt(f0, y), y), o(xAt(f0, minOf(h, y + dash)), minOf(h, y + dash)), 4.dp.toPx()); y += dash + gap }
                 }
                 val cx = xAt((f0 + f1) / 2f, h * 0.55f)
                 val dirs = lane.dirs.sortedBy { d -> if (if (anyFollow) d == lane.follow else laneMatches(d, maneuver)) 1 else 0 }
                 dirs.forEach { d ->
                     val hit = if (anyFollow) d == lane.follow else laneMatches(d, maneuver)
-                    val col = if (active && hit) Color.White else Color.White.copy(alpha = if (active) 0.45f else 0.28f)
+                    val col = if (active && hit) Color.White else Color.White.copy(alpha = if (active) 0.5f else 0.35f)
                     val baseY = h - 12.dp.toPx(); val midY = h * 0.5f
                     val len = 26.dp.toPx()
                     drawLine(col.copy(alpha = col.alpha * a), o(cx, baseY), o(cx, midY), stroke, round)
                     rotate(laneAngle(d), o(cx, midY)) {
                         val tip = o(cx, midY - len)
                         drawLine(col.copy(alpha = col.alpha * a), o(cx, midY), tip, stroke, round)
-                        val hd = 10.dp.toPx()
+                        val hd = minOf(12.dp.toPx(), laneW * 0.2f).coerceAtLeast(8.dp.toPx())
                         drawLine(col.copy(alpha = col.alpha * a), tip, o(cx - hd, tip.y + hd), stroke, round)
                         drawLine(col.copy(alpha = col.alpha * a), tip, o(cx + hd, tip.y + hd), stroke, round)
                     }
                 }
             }
             // solid road edges
-            drawLine(Color.White.copy(alpha = 0.9f * a), o(xAt(0f, 0f), 0f), o(0f, h), 3.dp.toPx())
-            drawLine(Color.White.copy(alpha = 0.9f * a), o(xAt(1f, 0f), 0f), o(w, h), 3.dp.toPx())
+            drawLine(Color.White.copy(alpha = 0.95f * a), o(xAt(0f, 0f), 0f), o(0f, h), 5.dp.toPx())
+            drawLine(Color.White.copy(alpha = 0.95f * a), o(xAt(1f, 0f), 0f), o(w, h), 5.dp.toPx())
         }
         if (advice != null) Text(advice, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp, start = 16.dp, end = 16.dp))
     }
