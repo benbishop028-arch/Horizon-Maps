@@ -159,7 +159,10 @@ class MainActivity : ComponentActivity() {
      */
     private fun hideBars() {
         val full = try { Prefs(applicationContext).b(PreferenceKeys.FULLSCREEN, true) } catch (e: Throwable) { true }
-        if (!full) { showBars(); return }
+        // (in a floating or split-screen window the bars stay: hiding them also hides the window's own title bar, the part used
+        // to drag, resize and maximise it, so the window was stuck at its size: Grouchy_Promotion with Taskbar)
+        val windowed = Build.VERSION.SDK_INT >= 24 && try { isInMultiWindowMode } catch (e: Throwable) { false }
+        if (!full || windowed) { showBars(); return }
         try {
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -174,6 +177,12 @@ class MainActivity : ComponentActivity() {
                     android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
             }
         } catch (e: Exception) { }
+    }
+
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        // into or out of a floating / split window: the bars (and the window's title bar) back, or full screen again
+        hideBars()
     }
 
     private fun showBars() {
