@@ -62,6 +62,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Problem reports: now include what ended the last few routes (which screen, and whether it was to Home, Work or elsewhere, never the place itself), to track down a route that cancels itself (thanks to carlb051)
 - Always night in daylight: with the map set to Always night, the stars, lit street lamps and headlight beam now only come on once it's actually dark outside, so the map stays dark by day without looking like the middle of the night (thanks to bijindas)
 - Bolder lane view: the big lane picture before a junction has thicker arrows, lane markings and road edges, so it reads at a glance. On roads with many lanes the arrows stay a little slimmer so they don't run into each other (thanks to karthikeyansr-lgtm)
 - Searched places lit up: pick a search result and the map now centres the place in the part of the screen the search bar and its card leave clear, with its building highlighted in blue (lighter at night, and raised with the 3D buildings). Places without a building just show the pin

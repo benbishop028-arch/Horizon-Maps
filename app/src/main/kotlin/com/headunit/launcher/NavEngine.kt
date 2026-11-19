@@ -1566,6 +1566,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
+            try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -2863,6 +2864,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun endRoute() {
+        // (what ended a trip under way, for the problem report: a route that ends by itself, as on carlb051's Home button, #226)
+        if (route != null && !previewing) try { RouteEnds.note(ctx, if (isCar) "car" else "phone", dest?.let { d ->
+            // (which kind of place only: the report never carries places)
+            when { places.slot("home")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "home"; places.slot("work")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "work"; else -> "other" } }.orEmpty()) } catch (e: Throwable) { }
         stopTrackDrive()
         shortRoute = false
         demoNext = false
