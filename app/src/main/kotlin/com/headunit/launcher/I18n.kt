@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文", "zhhk" to "繁體中文（香港・粵語）",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "esar" to "Español (Argentina)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "uk" to "Українська", "esar" to "Español (Argentina)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "esar" -> Locale("es", "AR")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "uk" -> Locale("uk", "UA"); "esar" -> Locale("es", "AR")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -526,6 +526,20 @@ object L {
                 "приблизь|увеличь" to "zoom in", "отдали|уменьши" to "zoom out", "север вверху" to "north up", "который час|сколько времени" to "what time",
                 "^\\s*(поехали в|поехали на|едем в|едем на|отвези меня в|отвези меня на|проложи маршрут до|маршрут до|навигация до|до)\\s" to "go to",
             ),
+            // Ukrainian (GitHub #221)
+            "uk" to r(
+                "\\s(додому|поїхали додому|їдемо додому|відвези мене додому)\\s" to "go home", "\\s(на роботу|в офіс)\\s" to "go to work",
+                "^\\s*(повідомити про|повідомити|повідом)\\s" to "report", "аварія|дтп|зіткнення" to "accident", "поліція|патруль" to "police", "поломка|зламався|зламана машина" to "breakdown", "камера|радар" to "camera",
+                "заправк[аиуі]|бензин|пальне|дизель|азс" to "fuel", "зарядк[аиуі]|зарядна станція|зарядну станцію" to "charging", "туалет" to "toilet", "кава|каву|кафе" to "coffee",
+                "\\sїжа\\s|ресторан|поїсти|перекусити" to "food", "зона відпочинку|придорожній сервіс" to "services", "парковк[аиуі]|стоянк[аиуі]|припаркуватися" to "parking",
+                "\\s(знайди|знайти|найближч[а-яіїєґ]+|де|мені потрібн[аоі]?)\\s" to "find", "найдешевш[а-яіїєґ]*|дешев[а-яіїєґ]*" to "cheap",
+                "без платних доріг|уникати платних( доріг)?|об[’']їжджати платні" to "avoid toll", "без автомагістралей|уникати автомагістралей|без трас" to "avoid motorway",
+                "об[’']їхати цю дорогу|уникати цієї дороги" to "avoid this road", "коли я приїду|коли прибуду|скільки їхати|скільки ще їхати" to "eta", "\\s(надішли|поділись|поділитися) (час|прибуттям|прибуття)" to "share",
+                "увімкни голос|голос увімкнено" to "voice on", "лише попередження|тільки попередження" to "alerts only", "без звуку|вимкни голос|замовкни" to "mute",
+                "(заверши|зупини|скасуй|закінчи) (маршрут|навігацію)" to "end route", "огляд маршруту|весь маршрут|огляд" to "overview",
+                "наблизь|збільш" to "zoom in", "віддали|зменш" to "zoom out", "північ угорі" to "north up", "котра година|скільки часу" to "what time",
+                "^\\s*(поїхали в|поїхали до|поїхали на|їдемо в|їдемо до|їдемо на|відвези мене в|відвези мене до|відвези мене на|прокладь маршрут до|маршрут до|навігація до|до)\\s" to "go to",
+            ),
             "da" to r(
                 "\\s(hjem|kør hjem|tag mig hjem)\\s" to "go home", "\\s(på arbejde|til arbejde|til kontoret)\\s" to "go to work",
                 "^\\s*(rapportér|rapporter|meld)\\s" to "report", "ulykke|uheld" to "accident", "politi|politiet" to "police", "i stykker|motorstop|nedbrud" to "breakdown", "fartkamera|kamera|fotovogn" to "camera",
@@ -611,6 +625,8 @@ object L {
         "ar", "he", "ur" -> "$n"
         // (Russian: "2-й съезд")
         "ru" -> "$n-й"
+        // (Ukrainian: "2-й з’їзд")
+        "uk" -> "$n-й"
         "kn" -> "${n}ನೇ"
         "mr" -> "${n}वा"
         "el" -> "${n}η"
@@ -678,6 +694,8 @@ object L {
         "nb" -> "første|andre|tredje|fjerde|femte|sjette|sjuende|åttende|niende|tiende"
         // (in the form the roundabout phrase needs: "выполните второй съезд")
         "ru" -> "первый|второй|третий|четвёртый|пятый|шестой|седьмой|восьмой|девятый|десятый"
+        // (as the roundabout phrase needs: "виконайте другий з’їзд")
+        "uk" -> "перший|другий|третій|четвертий|п’ятий|шостий|сьомий|восьмий|дев’ятий|десятий"
         "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
         "mr" -> "पहिला|दुसरा|तिसरा|चौथा|पाचवा|सहावा|सातवा|आठवा|नववा|दहावा"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
@@ -704,7 +722,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "esar", "zhhk")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "esar", "zhhk")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -735,6 +753,7 @@ object L {
         addOwn(m, "mr", I18nMr.rows())
         addOwn(m, "nb", I18nNb.rows())
         addOwn(m, "ru", I18nRu.rows())
+        addOwn(m, "uk", I18nUk.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         m
     }
