@@ -265,6 +265,8 @@ class CarNavSession : Session() {
                 pendingNavWait = null
                 // unplugged: the car's engine stops, but a trip the phone is also following carries on there (with its voice back)
                 if (ClusterLink.engine === holder.engine) ClusterLink.engine = null
+                // (switched off close to the destination: you've arrived, so the trip ends here and on the phone too)
+                try { holder.engine?.let { if (it.closeToEnd()) it.endRoute() } } catch (e: Exception) { }
                 try { holder.engine?.shutdown() } catch (e: Exception) { }
                 try { if (!com.headunit.launcher.RouteSync.anyGuiding()) NavService.stop(carContext.applicationContext) } catch (e: Exception) { }
                 CarTicks.tick = null

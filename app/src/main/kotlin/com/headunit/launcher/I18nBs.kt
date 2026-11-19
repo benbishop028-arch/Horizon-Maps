@@ -1702,6 +1702,16 @@ object I18nBs {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "U besplatnoj verziji preuzmi svoju državu u koraku Offline paket: iz njega se planiraju rute.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je uključen: mapa, pretraga, rute i saobraćaj koriste vlastite račune Horizon Mapsa, pa ne trebaš dodavati ključeve.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Besplatna verzija koristi OpenStreetMap, s rutama iz preuzetog paketa države. Horizon Maps Plus dodaje detaljne 3D zgrade i znamenitosti, satelit i saobraćaj uživo, bez ključeva za postavljanje.",
+        "Open now" to "Sada otvoreno",
+        "Closed" to "Zatvoreno",
+        "closes {0}" to "zatvara u {0}",
+        "opens {0}" to "otvara u {0}",
+        "Open 24 hours" to "Otvoreno 24 sata",
+        "Call" to "Pozovi",
+        "Website" to "Web stranica",
+        "Share" to "Podijeli",
+        "Start here" to "Kreni odavde",
+        "Go · {0}" to "Kreni · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "prvo preuzmi svoju državu u Postavke › Offline mape (besplatna verzija iz nje planira rute) ili nabavi Horizon Maps Plus",
     )
 }

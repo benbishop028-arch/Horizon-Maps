@@ -1699,6 +1699,16 @@ object I18nD {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to listOf("С безплатната версия изтеглете държавата си в стъпката Офлайн пакет: от нея се планират маршрутите."),
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to listOf("Plus е включен: картата, търсенето, маршрутите и трафикът използват акаунтите на Horizon Maps, затова няма ключове за добавяне."),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Безплатната версия използва OpenStreetMap, с маршрути от изтегления пакет за държавата. Horizon Maps Plus добавя детайлни 3D сгради и забележителности, сателит и трафик на живо, без ключове за настройване."),
+        "Open now" to listOf("Отворено сега"),
+        "Closed" to listOf("Затворено"),
+        "closes {0}" to listOf("затваря в {0}"),
+        "opens {0}" to listOf("отваря в {0}"),
+        "Open 24 hours" to listOf("Отворено денонощно"),
+        "Call" to listOf("Обаждане"),
+        "Website" to listOf("Уебсайт"),
+        "Share" to listOf("Споделяне"),
+        "Start here" to listOf("Тръгни оттук"),
+        "Go · {0}" to listOf("Тръгни · {0}"),
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to listOf("първо изтеглете държавата си в Настройки › Офлайн карти (безплатната версия планира маршрути от нея) или вземете Horizon Maps Plus"),
     )
 }

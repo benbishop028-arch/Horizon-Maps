@@ -1702,6 +1702,16 @@ object I18nEsAr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Con la versión gratuita, descargá tu país en el paso Paquete sin conexión: es lo que planifica tus rutas.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus está activado: el mapa, la búsqueda, las rutas y el tránsito usan las cuentas de Horizon Maps, así que no hay claves que agregar.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "La versión gratuita usa OpenStreetMap, con rutas de tu paquete de país descargado. Horizon Maps Plus suma edificios y monumentos 3D detallados, el satélite y el tránsito en vivo, sin claves que configurar.",
+        "Open now" to "Abierto ahora",
+        "Closed" to "Cerrado",
+        "closes {0}" to "cierra a las {0}",
+        "opens {0}" to "abre a las {0}",
+        "Open 24 hours" to "Abierto las 24 horas",
+        "Call" to "Llamar",
+        "Website" to "Sitio web",
+        "Share" to "Compartir",
+        "Start here" to "Salir de acá",
+        "Go · {0}" to "Ir · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "descargá primero tu país en Ajustes › Mapas sin conexión (la versión gratuita planifica las rutas con él) o conseguí Horizon Maps Plus",
     )
 }

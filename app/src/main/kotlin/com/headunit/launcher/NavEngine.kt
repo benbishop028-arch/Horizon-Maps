@@ -696,6 +696,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     var n = 0
                     while (fix == null && n < 40) { delay(500); n++ }
                     if (route != null) return@launch
+                    // (started again right by the destination, the head unit switched off and on there: you'd arrived)
+                    if (stops.isEmpty() && fix?.let { Geo.dist(it.pos, d.pos) < 400.0 } == true) { prefs.put(PreferenceKeys.RESUME, "{}"); return@launch }
                     via = stops
                     toast(L.t("Carrying on to {0}", d.name), 3500)
                     startRoute(d, 0, keepVia = true, startNow = true)
@@ -722,7 +724,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(id: String?) {}
                     // (a direction spoken in parts, a street name in another language's voice: the music comes back after the last part)
-                    override fun onDone(id: String?) { if (id?.startsWith("part") != true) unduck() }
+                    // (with more still queued, the check in [duck] hands the music back once all of it is said)
+                    override fun onDone(id: String?) { if (id?.startsWith("part") != true && tts?.isSpeaking != true) unduck() }
                     @Deprecated("Deprecated in Java") override fun onError(id: String?) { if (id?.startsWith("part") != true) unduck() }
                 })
             }
@@ -739,7 +742,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         map.onAlprTap = { who -> toast(L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), 3500) }
         map.onReportTap = { p -> reportAt(p)?.let { r -> showReportCard(r) } }
-        map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
+        // a shop or business tapped on the map: its preview card (it used to only say to hold on it)
+        map.onPoiTap = { name, p ->
+            tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis()
+            if (prefs.b(PreferenceKeys.WHATS_HERE, true) && !isCar) showHere(Place(name, "", p))
+            else toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000)
+        }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
         map.onUserGesture = {
             if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) }
@@ -799,18 +807,41 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var focusReq: android.media.AudioFocusRequest? = null
 
     /** Lowers the music while a spoken instruction plays, so it can be heard. */
+    /**
+     * The music is lowered (or paused, on head units that pause instead) while the voice speaks, and given back afterwards.
+     * One request at a time: a second direction while the first was still being said used to ask again, and the first request
+     * was never handed back, so on some head units the music or radio stopped for good after a direction (adernev). A direction
+     * cut off by the next one reports nothing, so a check every second hands it back once the voice has been quiet for two
+     * seconds, whatever the speech engine reports.
+     */
     private fun duck() {
-        try {
-            val req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                .setAudioAttributes(speechAttrs).build()
-            focusReq = req
-            audioMgr.requestAudioFocus(req)
-        } catch (e: Exception) { }
+        synchronized(this) {
+            if (focusReq == null) try {
+                val req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                    .setAudioAttributes(speechAttrs).build()
+                focusReq = req
+                audioMgr.requestAudioFocus(req)
+            } catch (e: Exception) { }
+        }
+        val t = ++duckToken
+        scope.launch {
+            delay(1500)
+            var quiet = 0
+            repeat(60) {
+                if (t != duckToken || focusReq == null) return@launch
+                if (tts?.isSpeaking != true) { if (++quiet >= 2) { unduck(); return@launch } } else quiet = 0
+                delay(1000)
+            }
+            if (t == duckToken) unduck()
+        }
     }
+    @Volatile private var duckToken = 0
 
     private fun unduck() {
-        try { focusReq?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
-        focusReq = null
+        synchronized(this) {
+            try { focusReq?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+            focusReq = null
+        }
     }
 
     /** Puts an alert on screen as a prominent banner. */
@@ -2803,6 +2834,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    /**
+     * Driving, and within 400 m of the destination with less than 800 m of the route left: switching the car off here means you've
+     * arrived, even parked too far from the door for the arrival to have been noticed (pc4096: back in the car ten minutes later,
+     * it was still navigating to the supermarket).
+     */
+    fun closeToEnd(): Boolean {
+        val r = route ?: return false
+        if (previewing || simMode != 0) return false
+        val f = fix ?: return false
+        val d = dest?.pos ?: r.pts.last()
+        return Geo.dist(f.pos, d) < 400.0 && r.len - curProgress < 800.0
+    }
+
     fun endRoute() {
         stopTrackDrive()
         shortRoute = false
@@ -4702,6 +4746,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     class HereCard(
         val place: Place, val loading: Boolean, val road: String = "", val roadKind: String = "", val roadClass: String = "", val ref: String = "",
         val limitMs: Double = 0.0, val limitEstimated: Boolean = false, val land: String = "", val landClass: String = "", val area: String = "", val distM: Double = -1.0,
+        /** From OpenStreetMap: opening hours, phone, website, address, plugs (null until found, or none there). */
+        val details: PlaceDetails? = null,
+        /** The drive there in seconds, or -1 while it's being worked out (or with no way to work it out). */
+        val etaSecs: Double = -1.0,
+        /** A petrol station's price for your fuel, already formatted ("129.9p"), or "". */
+        val fuelPrice: String = "",
     )
     private var hereState by mutableStateOf<HereCard?>(null)
     /** The What's here card; while it's open, a red pin marks the spot on the map. */
@@ -4709,22 +4759,65 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         get() = hereState
         set(v) { hereState = v; try { map.setTapPin(v?.place?.pos) } catch (e: Exception) { } }
 
-    private fun showHere(place: Place) {
+    /**
+     * The place preview (Dry-Secretary2456: like Google Maps'): what's here, then, as they arrive, the place's details from
+     * OpenStreetMap (hours, phone, website, plugs), the drive there and a petrol station's price. Everything is free: the drive
+     * comes from the downloaded map when there is one, or one route request otherwise.
+     */
+    fun showHere(place: Place) {
         val p = place.pos
         val dist = fix?.pos?.let { Geo.dist(it, p) } ?: -1.0
         here = HereCard(place, true, distM = dist)
         scope.launch {
             val token = mbToken
-            val info = withContext(Dispatchers.IO) { if (token.isNotBlank() && online()) MapboxRest.whatsHere(token, p) else null }
-            val lim = withContext(Dispatchers.IO) { try { Overpass.speedLimit(p) } catch (e: Exception) { null } }
-            if (here?.place !== place) return@launch
-            here = HereCard(
+            val dropped = place.name == "Dropped pin" || place.name == L.t("Dropped pin")
+            val infoJob = async(Dispatchers.IO) { try { if (token.isNotBlank() && online()) MapboxRest.whatsHere(token, p) else null } catch (e: Exception) { null } }
+            val limJob = async(Dispatchers.IO) { try { Overpass.speedLimit(p) } catch (e: Exception) { null } }
+            val detJob = async(Dispatchers.IO) { try { if (online()) PlaceInfo.lookup(p, if (dropped) "" else place.name) else null } catch (e: Exception) { null } }
+            val etaJob = async(Dispatchers.IO) { try { previewEta(p) } catch (e: Exception) { -1.0 } }
+            val info = infoJob.await(); val lim = limJob.await()
+            fun card(det: PlaceDetails?, eta: Double, price: String) = HereCard(
                 place, false,
                 road = info?.road?.ifBlank { null } ?: lim?.road.orEmpty(), roadKind = info?.roadKind.orEmpty(), roadClass = info?.roadClass.orEmpty(), ref = info?.ref.orEmpty(),
                 limitMs = lim?.ms ?: 0.0, limitEstimated = lim?.estimated ?: false,
                 land = info?.land.orEmpty(), landClass = info?.landClass.orEmpty(), area = info?.place.orEmpty(), distM = dist,
+                details = det, etaSecs = eta, fuelPrice = price,
             )
+            if (here?.place !== place) return@launch
+            here = card(null, -1.0, "")
+            val det = detJob.await()
+            if (here?.place !== place) return@launch
+            val price = if (det?.kind == "fuel") withContext(Dispatchers.IO) { try { fuelPriceAt(p) } catch (e: Exception) { "" } } else ""
+            here = card(det, -1.0, price)
+            val eta = etaJob.await()
+            if (here?.place !== place) return@launch
+            here = card(det, eta, price)
         }
+    }
+
+    /** The drive to [to] for the preview: from the downloaded map if there is one, else one quick route request; -1 if neither. */
+    private fun previewEta(to: LL): Double {
+        val from = fix?.pos ?: return -1.0
+        if (Geo.dist(from, to) < 150.0) return -1.0
+        if (OfflineRouter.installed(ctx)) return offlineRoutes(from, to, emptyList()).firstOrNull()?.time ?: -1.0
+        if (!online() || (!hasKey && !hasMapbox)) return -1.0
+        return netRoutes(from, to, false, 0L, emptyList(), -1.0, true).firstOrNull()?.time ?: -1.0
+    }
+
+    /** A petrol station's price for your fuel at [p] (Fuel Finder in the UK), formatted, or "". */
+    private fun fuelPriceAt(p: LL): String {
+        val fuel = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
+        if (fuel == "EV" || !FuelFinder.configured(prefs)) return ""
+        val st = FuelFinder.stations(ctx).filter { Geo.dist(it.pos, p) < 120.0 }.minByOrNull { Geo.dist(it.pos, p) } ?: return ""
+        val pr = FuelFinder.priceOf(ctx, st.id, fuel) ?: return ""
+        return L.t(FuelFinder.fuelName(fuel)) + " " + fmtFuelPrice(pr.pence, "p")
+    }
+
+    /** A place picked from the search results: its preview first (GPX tracks and saving Home / Work as before). */
+    fun openPlace(p: Place) {
+        if (p.web.startsWith("gpx:") || pendingSave != null || !prefs.b(PreferenceKeys.WHATS_HERE, true)) { pickPlace(p); return }
+        results = emptyList()
+        showHere(p)
     }
 
     /** Saves the What's here place as a favourite (or takes it off again). */

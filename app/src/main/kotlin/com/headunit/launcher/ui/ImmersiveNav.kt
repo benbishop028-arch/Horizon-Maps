@@ -514,7 +514,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // ---- What's here (holding on the map): the road, its limit and the area, with Go / Add as a stop
         engine.here?.let { h ->
             // above everything else, so the route options (which reach up this far on a phone) can't cover its buttons
-            Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(bottom = 96.dp)) { HereCardView(engine, h) }
+            Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(bottom = 96.dp)) { HereCardView(engine, h, maxH = (maxHeight - 120.dp).coerceAtLeast(200.dp)) }
         }
 
         // ---- the routes box, folded out beside the buttons by Other routes (as in Google Maps): your route and the other ways, with
@@ -1487,7 +1487,7 @@ private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
     LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp).panel(10.dp, shape, c.surface).padding(vertical = 6.dp)) {
         if (chainN >= 2) item { SeeAllRow(engine, q.trim(), chainN) { } }
         items(engine.results) { p ->
-            Row(Modifier.fillMaxWidth().clickable { onPicked(); engine.pickPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable { onPicked(); engine.openPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                 // a GPX track (GitHub #162): its pink route mark; otherwise the shop's own logo where there is one
                 if (p.web.startsWith("gpx:")) Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFFD4537E).copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Route, null, tint = Color(0xFFD4537E), modifier = Modifier.size(22.dp))

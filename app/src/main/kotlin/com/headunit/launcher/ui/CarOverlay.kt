@@ -919,6 +919,18 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
     }
     val fmt = com.headunit.launcher.Clock.format()
     val baseMs = if (engine.departAtMs > 0) engine.departAtMs else System.currentTimeMillis()
+    // roughly what each route costs in fuel (or charging), from Settings › Fuel, as on the phone (pc4096: it wasn't on Android Auto)
+    val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
+    val mpg = engine.prefs.s(if (ev) "evmpk" else "fuelmpg", "").toDoubleOrNull()?.takeIf { it > 0 }
+    val ppl = pricePence(engine.prefs.s(if (ev) "evppk" else "fuelppl", ""), ev)
+    val cost: @Composable (com.headunit.launcher.Route) -> Unit = { r ->
+        if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+            androidx.compose.material3.Icon(if (ev) androidx.compose.material.icons.Icons.Rounded.EvStation else androidx.compose.material.icons.Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(13.dp))
+            Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
+                if (ev) r.len / 1609.344 / mpg * ppl / 100.0 else r.len / 1609.344 / mpg * 4.54609 * ppl / 100.0),
+                color = c.text.copy(alpha = 0.8f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
+        }
+    }
     val dest: @Composable (Modifier) -> Unit = { m ->
         Column(m) {
             Text(L.t("Destination"), color = c.sub, fontSize = 12.sp)
@@ -937,6 +949,7 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
                 val delayMin = Math.round(r.delay / 60.0).toInt()
                 Text(if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays"),
                     color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                cost(r)
                 LorryBadge(r)
                 if (i == engine.active) LorryCheck(engine, r)
             }
@@ -988,6 +1001,8 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
                     }
                     Text(label + " · " + (if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays")),
                         color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else if (sel) c.accent else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    // (just the chosen route's, so the list doesn't grow past a short screen)
+                    if (sel) cost(r)
                     LorryBadge(r)
                     if (sel) LorryCheck(engine, r)
                 }

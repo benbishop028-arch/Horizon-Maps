@@ -1702,6 +1702,16 @@ object I18nDa {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Med gratisversionen skal du downloade dit land i trinnet Offlinepakke: den planlægger dine ruter.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus er slået til: kort, søgning, ruter og trafik bruger Horizon Maps' egne konti, så der er ingen nøgler at tilføje.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversionen bruger OpenStreetMap med ruter fra din downloadede landepakke. Horizon Maps Plus tilføjer detaljerede 3D-bygninger og vartegn, satellit og trafik live, uden nøgler at sætte op.",
+        "Open now" to "Åben nu",
+        "Closed" to "Lukket",
+        "closes {0}" to "lukker {0}",
+        "opens {0}" to "åbner {0}",
+        "Open 24 hours" to "Døgnåbent",
+        "Call" to "Ring",
+        "Website" to "Websted",
+        "Share" to "Del",
+        "Start here" to "Start herfra",
+        "Go · {0}" to "Kør · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "download først dit land under Indstillinger › Offlinekort (gratisversionen planlægger ruter ud fra det), eller få Horizon Maps Plus",
     )
 }

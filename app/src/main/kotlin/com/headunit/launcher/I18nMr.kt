@@ -1702,6 +1702,16 @@ object I18nMr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "मोफत आवृत्तीत ऑफलाइन पॅक पायरीत तुमचा देश डाउनलोड करा: त्यावरूनच मार्ग ठरतात.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus चालू आहे: नकाशा, शोध, मार्ग आणि वाहतूक Horizon Maps ची स्वतःची खाती वापरतात, त्यामुळे की जोडायची गरज नाही.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "मोफत आवृत्ती OpenStreetMap वापरते, मार्ग डाउनलोड केलेल्या देशाच्या पॅकमधून. Horizon Maps Plus तपशीलवार 3D इमारती आणि महत्त्वाची ठिकाणे, उपग्रह आणि थेट वाहतूक जोडते, की सेट न करता.",
+        "Open now" to "आता उघडे",
+        "Closed" to "बंद",
+        "closes {0}" to "{0} ला बंद होते",
+        "opens {0}" to "{0} ला उघडते",
+        "Open 24 hours" to "24 तास उघडे",
+        "Call" to "कॉल करा",
+        "Website" to "वेबसाइट",
+        "Share" to "शेअर करा",
+        "Start here" to "येथून सुरू करा",
+        "Go · {0}" to "जा · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "आधी सेटिंग्ज › ऑफलाइन नकाशे मध्ये तुमचा देश डाउनलोड करा (मोफत आवृत्ती त्यावरून मार्ग ठरवते), किंवा Horizon Maps Plus मिळवा",
     )
 }

@@ -1702,6 +1702,16 @@ object I18nRo {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Cu versiunea gratuită, descarcă-ți țara la pasul Pachet offline: din el se planifică rutele.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus e activ: harta, căutarea, rutele și traficul folosesc conturile Horizon Maps, deci nu ai chei de adăugat.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versiunea gratuită folosește OpenStreetMap, cu rute din pachetul de țară descărcat. Horizon Maps Plus adaugă clădiri și repere 3D detaliate, satelitul și traficul live, fără chei de setat.",
+        "Open now" to "Deschis acum",
+        "Closed" to "Închis",
+        "closes {0}" to "se închide la {0}",
+        "opens {0}" to "se deschide la {0}",
+        "Open 24 hours" to "Deschis non-stop",
+        "Call" to "Sună",
+        "Website" to "Site web",
+        "Share" to "Distribuie",
+        "Start here" to "Pornește de aici",
+        "Go · {0}" to "Mergi · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "descarcă întâi țara în Setări › Hărți offline (versiunea gratuită planifică rutele din ea) sau ia Horizon Maps Plus",
     )
 }

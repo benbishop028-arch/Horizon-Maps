@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Place preview: tap a shop or business on the map, or a search result, and a card shows what it is, whether it's open now and until when, Go with the drive time, Add stop, and Save, Call, Website, Share and Start here, then the address, opening hours, a petrol station's price or a charger's plugs. The details come from OpenStreetMap; Call and Website hide while you're moving (thanks to Dry-Secretary2456)
 - Learns your regular journeys: the app remembers how long your usual trips (the commute, the school run) really take at different times of day, and once it has seen a trip twice it uses that for the arrival time. Kept only on your phone
 - Arrival times that know the usual traffic: routes planned from your downloaded map (the free version, or anywhere without signal) now allow for the hold-ups that are normal at that time of day, more in the weekday rush hours and in towns than on motorways. Worked out on your phone, with nothing sent anywhere
 - Street names in other alphabets spoken: when a street name is in letters your voice can't read (a Hebrew name with an English voice, say), it's now said in the phone's voice for those letters instead of being skipped. Works for Hebrew, Arabic, Cyrillic, Greek, Thai, Chinese, Japanese, Korean and more, if the phone has that voice (thanks to Dotancom)
@@ -50,6 +51,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Fuel estimate on Android Auto: the route choice on the car screen now shows roughly what each route costs in fuel or charging, as on the phone (thanks to pc4096)
+- Battery now, by 1%: the − and + by the battery on the route screen now go up and down 1% at a time, and keep going while held, instead of jumping in tens (thanks to Dry-Secretary2456)
 - Clearer Plus description: Settings now says Horizon Maps Plus adds detailed 3D buildings and landmarks (the free version already has simpler 3D buildings), satellite and live traffic
 - Free 3D hills: in the free version, hills and 3D terrain now come from free open elevation data (Terrain Tiles on Amazon's open data programme) instead of Mapbox
 - Free search, more reliable: without keys, search looks in your downloaded country pack and saved places first, and only asks OpenStreetMap's free online search when they don't have enough, and not on every letter you type. Those free services ask apps not to search as you type, and could otherwise start turning the app away
@@ -115,6 +118,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Still navigating after parking: switching the car off within 400 m of your destination now ends the trip, on Android Auto and on the phone, even if you parked too far from the door for the arrival to be noticed. Starting the app again right by the destination no longer picks the trip back up either (thanks to pc4096)
+- Music or radio stopping after directions: when a second direction came while the first was still being spoken, the app asked to lower the music again and never gave the first request back, so on some head units the music or radio stopped for good. The music is now always handed back once the voice has finished (thanks to adernev)
 - Satellite view blank for some people: since late October Mapbox has been turning away its satellite pictures for many people ("too many requests"), even well inside their limits. If you have a TomTom key, TomTom's satellite pictures now take their place automatically, with Mapbox's roads and names on top. Without a TomTom key, the app still explains what's happening (thanks to atnr, Matattack99)
 - Android Auto not following you: with no route running and the phone locked, Android could hold back location updates, so the arrow froze or stayed where you started. Location now keeps running the whole time the map is on Android Auto (thanks to timblr1989)
 - Roundabout arrow: the arrowhead now sits clear of the ring on a short stem, so it reads as an arrow again, especially in the small icon on the "Then" line

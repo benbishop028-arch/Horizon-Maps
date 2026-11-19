@@ -1702,6 +1702,16 @@ object I18nNb {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Med gratisversjonen laster du ned landet ditt i trinnet Frakoblet pakke: den planlegger rutene dine.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus er på: kart, søk, ruter og trafikk bruker Horizon Maps' egne kontoer, så det er ingen nøkler å legge til.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversjonen bruker OpenStreetMap, med ruter fra den nedlastede landpakken. Horizon Maps Plus legger til detaljerte 3D-bygninger og landemerker, satellitt og trafikk i sanntid, uten nøkler å sette opp.",
+        "Open now" to "Åpent nå",
+        "Closed" to "Stengt",
+        "closes {0}" to "stenger {0}",
+        "opens {0}" to "åpner {0}",
+        "Open 24 hours" to "Døgnåpent",
+        "Call" to "Ring",
+        "Website" to "Nettsted",
+        "Share" to "Del",
+        "Start here" to "Start herfra",
+        "Go · {0}" to "Kjør · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "last først ned landet ditt i Innstillinger › Frakoblede kart (gratisversjonen planlegger ruter fra det), eller skaff Horizon Maps Plus",
     )
 }

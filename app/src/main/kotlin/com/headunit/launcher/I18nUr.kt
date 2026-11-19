@@ -1702,6 +1702,16 @@ object I18nUr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "مفت ورژن میں آف لائن پیک والے قدم میں اپنا ملک ڈاؤن لوڈ کریں: اسی سے راستے بنتے ہیں۔",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus آن ہے: نقشہ، تلاش، راستے اور ٹریفک Horizon Maps کے اپنے اکاؤنٹس استعمال کرتے ہیں، اس لیے کوئی کلید شامل نہیں کرنی۔",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "مفت ورژن OpenStreetMap استعمال کرتا ہے، راستے ڈاؤن لوڈ کیے گئے ملک کے پیک سے۔ Horizon Maps Plus تفصیلی 3D عمارتیں اور نمایاں مقامات، سیٹلائٹ اور لائیو ٹریفک شامل کرتا ہے، بغیر کلید سیٹ کیے۔",
+        "Open now" to "ابھی کھلا ہے",
+        "Closed" to "بند ہے",
+        "closes {0}" to "{0} بجے بند ہوگا",
+        "opens {0}" to "{0} بجے کھلے گا",
+        "Open 24 hours" to "24 گھنٹے کھلا",
+        "Call" to "کال کریں",
+        "Website" to "ویب سائٹ",
+        "Share" to "شیئر کریں",
+        "Start here" to "یہاں سے شروع کریں",
+        "Go · {0}" to "چلیں · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "پہلے سیٹنگز › آف لائن نقشے میں اپنا ملک ڈاؤن لوڈ کریں (مفت ورژن اسی سے راستے بناتا ہے)، یا Horizon Maps Plus حاصل کریں",
     )
 }

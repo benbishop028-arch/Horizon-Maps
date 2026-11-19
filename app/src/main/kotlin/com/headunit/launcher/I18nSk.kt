@@ -1702,6 +1702,16 @@ object I18nSk {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Pri bezplatnej verzii si v kroku Offline balík stiahnite svoju krajinu: z neho sa plánujú trasy.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je zapnutý: mapa, hľadanie, trasy a doprava používajú účty Horizon Maps, takže netreba pridávať kľúče.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verzia používa OpenStreetMap s trasami zo stiahnutého balíka krajiny. Horizon Maps Plus pridáva podrobné 3D budovy a pamiatky, satelit a živú dopravu, bez nastavovania kľúčov.",
+        "Open now" to "Teraz otvorené",
+        "Closed" to "Zatvorené",
+        "closes {0}" to "zatvára o {0}",
+        "opens {0}" to "otvára o {0}",
+        "Open 24 hours" to "Otvorené nonstop",
+        "Call" to "Volať",
+        "Website" to "Web",
+        "Share" to "Zdieľať",
+        "Start here" to "Začať odtiaľto",
+        "Go · {0}" to "Ísť · {0}",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "najprv si stiahnite krajinu v Nastavenia › Offline mapy (bezplatná verzia z nej plánuje trasy), alebo si zaobstarajte Horizon Maps Plus",
     )
 }

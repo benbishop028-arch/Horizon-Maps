@@ -1,5 +1,9 @@
 package com.headunit.launcher.ui
 
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
 import com.headunit.launcher.L
 
 import androidx.compose.animation.AnimatedVisibility
@@ -247,9 +251,11 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         val pct = engine.prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100)
         val minArr = engine.prefs.i(PreferenceKeys.EV_MIN_ARRIVE, 20)
         Text(L.t("Battery now"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
-        Pill("−", false, { engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (pct - 10).coerceAtLeast(5)); engine.refreshEvPlan() })
+        // (1% a tap, and held down it runs on: it went in tens, so 32% or 35% couldn't be set, Dry-Secretary2456)
+        val setPct = { d: Int -> engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (engine.prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100) + d).coerceIn(5, 100)) }
+        StepPill("−", { setPct(-1) }, { engine.refreshEvPlan() })
         Text("$pct%", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
-        Pill("+", false, { engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (pct + 10).coerceAtMost(100)); engine.refreshEvPlan() })
+        StepPill("+", { setPct(1) }, { engine.refreshEvPlan() })
         Text(L.t("Arrive with at least"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 14.dp, end = 4.dp))
         for (m in listOf(10, 20, 30)) Pill("$m%", minArr == m, { engine.prefs.put(PreferenceKeys.EV_MIN_ARRIVE, m); engine.refreshEvPlan() })
         val eco = engine.prefs.b(PreferenceKeys.ROUTE_ECO, false)
@@ -786,4 +792,33 @@ internal fun DemoChoiceBtn(engine: NavEngine, modifier: Modifier = Modifier, hei
 internal fun pricePence(raw: String, ev: Boolean): Double? {
     val v = raw.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return null
     return if (v < (if (ev) 2.0 else 10.0)) v * 100.0 else v
+}
+
+
+/**
+ * A round − or + button like [Pill]: a tap is one step, and held down it keeps stepping, faster the longer it's held. [done]
+ * runs once, when it's let go (so the charging plan is worked out again once, not at every step).
+ */
+@Composable
+private fun StepPill(text: String, step: () -> Unit, done: () -> Unit) {
+    val c = LocalVw.current
+    val scope = rememberCoroutineScope()
+    Box(
+        Modifier.clip(RoundedCornerShape(50)).background(c.tile)
+            .pointerInput(Unit) {
+                detectTapGestures(onPress = {
+                    step()
+                    val job = scope.launch {
+                        kotlinx.coroutines.delay(450)
+                        var gap = 120L
+                        while (true) { step(); kotlinx.coroutines.delay(gap); gap = (gap - 8).coerceAtLeast(45) }
+                    }
+                    tryAwaitRelease()
+                    job.cancel()
+                    done()
+                })
+            }
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) { Text(text, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.1.sp) }
 }
