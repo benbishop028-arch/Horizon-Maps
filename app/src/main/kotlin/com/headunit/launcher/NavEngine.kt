@@ -713,8 +713,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 tts?.setAudioAttributes(speechAttrs)
                 tts?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
                     override fun onStart(id: String?) {}
-                    override fun onDone(id: String?) { unduck() }
-                    @Deprecated("Deprecated in Java") override fun onError(id: String?) { unduck() }
+                    // (a direction spoken in parts, a street name in another language's voice: the music comes back after the last part)
+                    override fun onDone(id: String?) { if (id?.startsWith("part") != true) unduck() }
+                    @Deprecated("Deprecated in Java") override fun onError(id: String?) { if (id?.startsWith("part") != true) unduck() }
                 })
             }
         }
@@ -732,7 +733,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.onReportTap = { p -> reportAt(p)?.let { r -> showReportCard(r) } }
         map.onPoiTap = { name, p -> tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis(); toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000) }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
-        map.onUserGesture = { if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) } }
+        map.onUserGesture = {
+            if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) }
+            // moving the map with no route: the panel under the search bar tucks away so the map can be seen (TouristCreepy1884)
+            if (route == null && !previewing && chain == null) homeTucked = true
+        }
         map.onAltTap = { i -> tapAlt(i) }
         map.onChainTap = { i -> chainTapped(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
@@ -2788,7 +2793,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * separately for the phone / head unit and Android Auto); pressing re-centre again while already following you puts the zoom
      * back to automatic. On a route the zoom is always automatic.
      */
+    /**
+     * The panel under the search bar (your places, the shortcuts, the cards and recent places) folded away while you look round the
+     * map: it stays away until you tap the search bar or its arrow, or re-centre.
+     */
+    var homeTucked by mutableStateOf(false)
+
     fun recenter(byUser: Boolean = false) {
+        homeTucked = false
         val wasFollowing = following
         following = true
         val resetZoom = route != null || (byUser && wasFollowing)
@@ -6548,7 +6560,92 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         duck()
         // a direction cuts off whatever is being said; an alert waits its turn, so a speed limit or camera call can no longer
         // cut a direction off half way (with limits changing often in town, some directions were never heard)
-        tts?.speak(text, if (alert) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH, null, "nav")
+        val mode = if (alert) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH
+        val parts = try { foreignParts(text) } catch (e: Exception) { null }
+        if (parts == null) { tts?.speak(text, mode, null, "nav"); return }
+        // a street name in letters the voice can't read (Hebrew names with an English voice, say): it used to be skipped. Each such
+        // part is said in the phone's voice for those letters, and the rest in the usual voice (Dotancom). Each part takes the
+        // voice set when it's queued, so the usual voice is put back at the end.
+        val t = tts ?: return
+        try {
+            parts.forEachIndexed { i, (part, loc) ->
+                if (loc != null) t.setLanguage(loc) else setVoiceLanguage()
+                t.speak(part, if (i == 0) mode else TextToSpeech.QUEUE_ADD, null, if (i == parts.lastIndex) "nav" else "part$i")
+            }
+        } finally {
+            try { setVoiceLanguage() } catch (e: Exception) { }
+        }
+    }
+
+    /** The phone voices for letters other than the Latin ones, by script (kept as found, for the next direction). */
+    private val scriptVoice = HashMap<Character.UnicodeScript, Locale?>()
+
+    /**
+     * [text] cut into parts where it has words in letters the voice can't read, each with the voice to say it in (null: the usual
+     * voice), or null when there are none or the phone has no voice for them (then it's said as before).
+     */
+    private fun foreignParts(text: String): List<Pair<String, Locale?>>? {
+        val t = tts ?: return null
+        val own = scriptsOf(L.locale.language)
+        fun scriptAt(cp: Int): Character.UnicodeScript? {
+            if (!Character.isLetter(cp)) return null
+            val sc = Character.UnicodeScript.of(cp)
+            return if (sc == Character.UnicodeScript.LATIN || sc == Character.UnicodeScript.COMMON || sc == Character.UnicodeScript.INHERITED || sc in own) null else sc
+        }
+        if (text.codePoints().noneMatch { scriptAt(it) != null }) return null
+        val out = ArrayList<Pair<String, Locale?>>()
+        val cur = StringBuilder()
+        var curLoc: Locale? = null
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            val sc = scriptAt(cp)
+            // (spaces, digits and marks stay with the part they're in)
+            val loc = if (sc == null) (if (Character.isLetter(cp)) null else curLoc) else scriptVoice.getOrPut(sc) { voiceFor(t, sc) }
+            if (loc != curLoc && cur.isNotBlank()) { out += cur.toString() to curLoc; cur.setLength(0) }
+            curLoc = loc
+            cur.appendCodePoint(cp)
+            i += Character.charCount(cp)
+        }
+        if (cur.isNotBlank()) out += cur.toString() to curLoc
+        return if (out.none { it.second != null } || out.size > 12) null else out
+    }
+
+    /** The scripts a language's voice reads besides Latin ones. */
+    private fun scriptsOf(lang: String): Set<Character.UnicodeScript> = when (lang) {
+        "he", "iw" -> setOf(Character.UnicodeScript.HEBREW)
+        "ar", "ur", "fa" -> setOf(Character.UnicodeScript.ARABIC)
+        "ru", "bg", "uk", "sr", "mk", "be", "kk" -> setOf(Character.UnicodeScript.CYRILLIC)
+        "el" -> setOf(Character.UnicodeScript.GREEK)
+        "th" -> setOf(Character.UnicodeScript.THAI)
+        "ja" -> setOf(Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA)
+        "zh" -> setOf(Character.UnicodeScript.HAN)
+        "ko" -> setOf(Character.UnicodeScript.HANGUL, Character.UnicodeScript.HAN)
+        "hi", "mr", "ne" -> setOf(Character.UnicodeScript.DEVANAGARI)
+        "kn" -> setOf(Character.UnicodeScript.KANNADA)
+        else -> emptySet()
+    }
+
+    /** A phone voice that reads [sc]'s letters, or null if the phone has none. */
+    private fun voiceFor(t: TextToSpeech, sc: Character.UnicodeScript): Locale? {
+        val tries = when (sc) {
+            Character.UnicodeScript.HEBREW -> listOf(Locale("he", "IL"), Locale("iw", "IL"))
+            Character.UnicodeScript.ARABIC -> listOf(Locale("ar"), Locale("ar", "SA"))
+            Character.UnicodeScript.CYRILLIC -> listOf(Locale("ru", "RU"), Locale("uk", "UA"), Locale("bg", "BG"))
+            Character.UnicodeScript.GREEK -> listOf(Locale("el", "GR"))
+            Character.UnicodeScript.THAI -> listOf(Locale("th", "TH"))
+            Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA -> listOf(Locale.JAPAN)
+            Character.UnicodeScript.HAN -> listOf(Locale.CHINA, Locale.JAPAN)
+            Character.UnicodeScript.HANGUL -> listOf(Locale.KOREA)
+            Character.UnicodeScript.DEVANAGARI -> listOf(Locale("hi", "IN"))
+            Character.UnicodeScript.KANNADA -> listOf(Locale("kn", "IN"))
+            Character.UnicodeScript.GEORGIAN -> listOf(Locale("ka", "GE"))
+            Character.UnicodeScript.ARMENIAN -> listOf(Locale("hy", "AM"))
+            Character.UnicodeScript.TAMIL -> listOf(Locale("ta", "IN"))
+            Character.UnicodeScript.BENGALI -> listOf(Locale("bn", "IN"))
+            else -> emptyList()
+        }
+        return tries.firstOrNull { try { t.isLanguageAvailable(it) >= TextToSpeech.LANG_AVAILABLE } catch (e: Exception) { false } }
     }
 
     // ---- demo drive ----

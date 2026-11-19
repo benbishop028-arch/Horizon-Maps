@@ -308,6 +308,8 @@ class CarNavSession : Session() {
         // (3D buildings and trees as set on the phone: the car's map used to keep them on whatever the setting, GitHub)
         map.setView(prefs.b(PreferenceKeys.SATELLITE, false) && !com.headunit.launcher.Plus.free, prefs.b(PreferenceKeys.BUILDINGS_3D, true))
         map.treesEnabled(prefs.b(PreferenceKeys.TREES, true))
+        map.lampsEnabled(prefs.b(PreferenceKeys.LAMPS, true))
+        map.applyLampGap(prefs.s(PreferenceKeys.LAMPGAP, "40").toDoubleOrNull() ?: 40.0)
         map.setLogoCorner(prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"))
         map.setExtras(prefs.b(PreferenceKeys.FACADES, true), prefs.b(PreferenceKeys.LANDMARKS3D, true), prefs.b(PreferenceKeys.PATHS, true), prefs.b(PreferenceKeys.TERRAIN, false),
             false, prefs.b(PreferenceKeys.FURNITURE3D, true), prefs.b(PreferenceKeys.CLEARVIEW, true))
@@ -340,6 +342,10 @@ class CarNavSession : Session() {
         }
         applyTheme()
         try { engine.startLocation() } catch (e: Exception) { }
+        // the location service runs the whole time the map is on Android Auto, not only during a route: without it, driving with
+        // no route and the phone locked, Android could hold back location updates, and the arrow froze or stayed where the drive
+        // began, such as at home (timblr1989, #214)
+        try { NavService.start(carContext.applicationContext, L.t("Android Auto")) } catch (e: Exception) { }
         mapScreen?.start()
         // asked for a destination before the map was up (Android Auto opened the app for it)
         pendingNav?.let { pendingNav = null; takeNav(it) }
@@ -448,10 +454,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
             // drawn straight to its own surface (no extra copy each frame, which a texture view would cost)
             val m = MapBinding(p.context, true, 1f, ratio)
             m.onCar = true; m.placeBranding(null)
-            // Android Auto: keep street-lamp models and their light pools off to reduce visual clutter
-            // and rendering work on the car display. This is scoped to the car map; the phone app's
-            // Street lamps preference remains unchanged.
-            m.lampsEnabled(false)
+            // street lamps as set on the phone (Settings › Street lamps), like the trees and 3D details: they were kept off on the
+            // car before, which left Android Auto without them (ChrisSantosGarage, #211). Set in startEngine with the rest.
             // a touch thicker route line on the car screen, where it looked thin against the buildings
             m.routeBoost = 1.2f
             val root = FrameLayout(p.context)
@@ -661,8 +665,8 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
                     try { NavService.start(holder.carContext.applicationContext, L.t("Navigating to {0}", e.dest?.name ?: L.t("your destination"))) } catch (x: Exception) { }
                 } else {
                     nav?.navigationEnded()
-                    // (the phone may still be guiding a trip of its own: then its background GPS service stays on)
-                    try { if (!com.headunit.launcher.RouteSync.anyGuiding()) NavService.stop(holder.carContext.applicationContext) } catch (x: Exception) { }
+                    // (the location service stays on while the map is on Android Auto, back to its plain wording)
+                    try { NavService.start(holder.carContext.applicationContext, L.t("Android Auto")) } catch (x: Exception) { }
                 }
             } catch (x: Exception) { }
         }

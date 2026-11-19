@@ -127,6 +127,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -316,7 +317,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val searchBusy = q.isNotEmpty() || engine.results.isNotEmpty() || engine.nearbyKind != null || engine.phoneDest != null || engine.shownTrack != null
         val compact = searchBtn && !routing && !previewing && !searchOpen && !searchBusy
         LaunchedEffect(searchOpen, searchBusy) { if (searchOpen && !searchBusy) { delay(20_000); searchOpen = false } }
-        LaunchedEffect(routing) { if (routing) searchOpen = false }
+        LaunchedEffect(routing) { if (routing) { searchOpen = false; engine.homeTucked = false } }
         LaunchedEffect(searchOpen) { if (searchOpen && !typingLocked) { delay(350); try { focus.requestFocus() } catch (_: Exception) {} } }
         // a phone held upright, on a route: the turn card takes the whole width and the map buttons go under it, instead of being
         // squeezed in beside it (the cards that come and go under the turn card still leave room for the buttons)
@@ -336,14 +337,16 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
-                engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
+                // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
+                val tucked = engine.homeTucked
+                if (!tucked) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
                 // a GPX track you're looking at (Settings › Places & trips › GPX tracks › Show)
-                engine.shownTrack?.let { t -> TrackCard(engine, t) }
+                if (!tucked) engine.shownTrack?.let { t -> TrackCard(engine, t) }
                 val showResults = engine.results.isNotEmpty()
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine, q) { q = "" }
                 }
-                AnimatedVisibility(!showResults && q.isEmpty() && engine.nearbyKind == null, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+                AnimatedVisibility(!showResults && q.isEmpty() && engine.nearbyKind == null && !tucked, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         // your places (Home, Work...) always stay under the search bar; while you drive with no route, the suggestion and
                         // resume cards stay too and the rest folds away
@@ -810,7 +813,7 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
                         close()
                         try { if (engine.route != null || engine.previewing) engine.endRoute() } catch (e: Exception) { }
                         try { engine.stopLocation() } catch (e: Exception) { }
-                        try { act?.let { com.headunit.launcher.NavService.stop(it.applicationContext) } } catch (e: Exception) { }
+                        try { if (!com.headunit.launcher.RouteSync.carConnected()) act?.let { com.headunit.launcher.NavService.stop(it.applicationContext) } } catch (e: Exception) { }
                         try { act?.finishAndRemoveTask() } catch (e: Exception) { }
                     }.padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
@@ -1445,8 +1448,12 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                 if (q.isNotEmpty()) Icon(Icons.Rounded.Close, L.t("Clear"), tint = c.sub, modifier = Modifier.padding(end = 8.dp).clickable { onQ(""); engine.results = emptyList() })
                 else Row(verticalAlignment = Alignment.CenterVertically) {
                     // folds Saved & recent up under the bar, and back down again
-                    val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true)
-                    Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.QUICKLIST, !open) }, contentAlignment = Alignment.Center) {
+                    // (tucked away by moving the map: the arrow points down, and brings it all back)
+                    val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true) && !engine.homeTucked
+                    Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable {
+                        if (engine.homeTucked) { engine.homeTucked = false; engine.prefs.put(PreferenceKeys.QUICKLIST, true) }
+                        else engine.prefs.put(PreferenceKeys.QUICKLIST, !open)
+                    }, contentAlignment = Alignment.Center) {
                         Icon(if (open) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, if (open) L.t("Hide saved and recent") else L.t("Show saved and recent"), tint = c.sub, modifier = Modifier.size(26.dp))
                     }
                     Box(Modifier.padding(end = 8.dp).size(44.dp).clip(CircleShape).background(c.accent).pressClick { voice() }, contentAlignment = Alignment.Center) {
@@ -1465,7 +1472,7 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                 focusedPlaceholderColor = c.sub, unfocusedPlaceholderColor = c.sub, disabledPlaceholderColor = c.sub,
                 cursorColor = c.accent,
             ),
-            modifier = Modifier.fillMaxSize().focusRequester(focus),
+            modifier = Modifier.fillMaxSize().focusRequester(focus).onFocusChanged { if (it.isFocused) engine.homeTucked = false },
         )
     }
 } }

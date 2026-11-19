@@ -116,7 +116,8 @@ class MainActivity : ComponentActivity() {
                 .distinctUntilChanged()
                 .collect { to ->
                     if (to != null && hasLocation()) NavService.start(applicationContext, "Navigating to $to")
-                    else if (to == null) {
+                    else if (to == null && !RouteSync.carConnected()) {
+                        // (not while Android Auto is showing the map: its location service is the same one, and stays on)
                         NavService.stop(applicationContext)
                         // the route ended (arrived or cancelled) while another app was in front: GPS can rest too
                         if (!lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) engine.stopLocation()
@@ -242,7 +243,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         if (!::engine.isInitialized) return
-        NavService.stop(applicationContext)
+        if (!RouteSync.carConnected()) NavService.stop(applicationContext)
         engine.shutdown()
     }
 }

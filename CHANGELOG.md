@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Street names in other alphabets spoken: when a street name is in letters your voice can't read (a Hebrew name with an English voice, say), it's now said in the phone's voice for those letters instead of being skipped. Works for Hebrew, Arabic, Cyrillic, Greek, Thai, Chinese, Japanese, Korean and more, if the phone has that voice (thanks to Dotancom)
 - Fuel prices in Add a stop: tap the fuel icon in Add a stop and each petrol station along your route shows the price of your fuel, with the cheapest in green and the detour time under it. A new Cheapest tab sits next to Least detour, and priced stations the map search missed are added to the list. Prices come from the same place as the fuel list (Fuel Finder in the UK, and the price services in France, Austria, Italy, Germany and NSW)
 - Russian: the whole app in Russian (Русский), on the phone, head unit and Android Auto, with spoken directions ("Через 200 м поверните налево", "выполните второй съезд") and Russian voice commands. Phones set to Russian pick it up by themselves; others can choose it in Settings › Sound & voice › Language (thanks to Zerux)
 - Big speed limit sign: a new switch in Settings › Speed display swaps them round, with the speed limit sign big where the speedometer was and your speed small beside it. Your speed still turns amber and red near and over the limit (thanks to ole1993)
@@ -47,6 +48,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Clearer map while you look around: dragging or zooming the map with no route tucks away everything under the search bar, so you can see the map. Tap the search bar or its arrow, or re-centre, to bring it back (thanks to TouristCreepy1884)
+- Street lamps on Android Auto: the car screen now follows your Street lamps setting, like the trees and 3D details (thanks to ChrisSantosGarage)
 - New turn arrows: the arrows on the turn card are bolder, bend in a smooth curve and have a notched head, with the road you're leaving shown faintly behind them. Roundabouts show the other exits faintly too, with the exit number in the middle on a soft disc. The big lane arrows are unchanged. Android Auto's turn card gets the same arrows, including the roundabout with its real exit and number (thanks to karthikeyansr-lgtm)
 - Turn card corners: slightly rounder again
 - Add a stop: the Fuel, Charger, Coffee, Food, Services and Toilets buttons are now the same round coloured icons as under the search bar, in one row
@@ -106,6 +109,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Android Auto not following you: with no route running and the phone locked, Android could hold back location updates, so the arrow froze or stayed where you started. Location now keeps running the whole time the map is on Android Auto (thanks to timblr1989)
 - Roundabout arrow: the arrowhead now sits clear of the ring on a short stem, so it reads as an arrow again, especially in the small icon on the "Then" line
 - Numbers off-centre: the exit number in the roundabout icon and the number on the round speed limit sign sat slightly high; both are now exactly in the middle (thanks to karthikeyansr-lgtm)
 - Add a stop on a phone held upright: the panel and the list of places along the route now sit along the bottom, with the places shown on the map above them (the list covered them). The first screen now has the same look as the list (the same solid panel, round buttons, tiles and blue), and neither lets the map show through the text
