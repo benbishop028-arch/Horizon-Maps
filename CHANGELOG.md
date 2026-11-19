@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Android Auto: Search bar and places on the map: a switch in Settings › Android Auto (and in the car's own settings) to leave the search bar, Home and Work and the shortcut buttons off the map when you're not navigating. For cars with a rotary knob and no touchscreen, which can't reach them: the map gets the whole screen, and Places (★) in Android Auto's own buttons still has Search, Home, Work and your saved places (thanks to wass0035)
 - Español (México): Spanish for Mexico and most of Latin America, with tú ("gira a la derecha", "toma la salida"), glorieta, gasolinera and tráfico, and a Mexican voice. Picked by itself on phones set to Spanish in Mexico, Central and South America (Argentina and Uruguay keep their own) and the US, or in Settings › Sound & voice › Language (thanks to the tester who asked for it)
 - Ukrainian: the whole app in Українська, with spoken directions, roundabout exits and voice commands. Picked by itself on a phone set to Ukrainian, or in Settings › Sound & voice › Language (thanks to Naryma, who has offered to check the wording)
 - Spain: live incidents from the DGT: accidents, roadworks, closures, hazards and the connected V16 beacons of broken-down cars, from the DGT National Access Point (nap.dgt.es), free and with no key. They show on the map round you and are announced on your route like TomTom's, and work even without a TomTom key. Incidents TomTom already has aren't repeated, and the file is only downloaded again when the DGT has changed it. Catalonia and the Basque Country publish theirs separately and aren't included yet (thanks to franciscoserranoadt)
@@ -63,6 +64,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Hazard radar without crossings: switching off Zebra crossings (Settings › On the map) now takes pedestrian crossings off the hazard radar too, so it only lists what matters to you as a driver (thanks to joel941703)
 - Problem reports: now include what ended the last few routes (which screen, and whether it was to Home, Work or elsewhere, never the place itself), to track down a route that cancels itself (thanks to carlb051)
 - Always night in daylight: with the map set to Always night, the stars, lit street lamps and headlight beam now only come on once it's actually dark outside, so the map stays dark by day without looking like the middle of the night (thanks to bijindas)
 - Bolder lane view: the big lane picture before a junction has thicker arrows, lane markings and road edges, so it reads at a glance. On roads with many lanes the arrows stay a little slimmer so they don't run into each other (thanks to karthikeyansr-lgtm)
@@ -137,6 +139,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Words left in English: the hazard radar (Crossing, Speed bump, School, Bend left…, "now" and "in 1.2 km"), the traffic note on the "where you're going" suggestion (light traffic and so on), its Home and Work, the average speed card, the weather "in 20 min", "then" on the turn card and "usual" on a place's speed limit are now translated into every language (thanks to joel941703)
 - TomTom incidents: almost every check for accidents, roadworks and closures from TomTom was being turned down, because the app asked for a detail under a name TomTom doesn't use. They now come through, so TomTom incidents show on the map and are announced on your route again (thanks to bijindas, who spotted it in TomTom's usage stats)
 - Crash picking a search result: tapping a result while "See all locations" was showing at the top of the list could close the app on some phones (thanks to DJSatan)
 - Fuel and charging costs in rupees, kroner and more: the cost on the route options is now shown in the currency of the country you're driving in, and outside pound, euro and dollar countries the price box takes the price as normally written (₹107.40 a litre), where it used to read it as paise and show the cost 100 times too small (thanks to bijindas)

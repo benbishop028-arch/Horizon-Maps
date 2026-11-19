@@ -371,7 +371,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val vW = (a?.width()?.toFloat() ?: wPx).coerceAtLeast(1f); val vH = (a?.height()?.toFloat() ?: hPx).coerceAtLeast(1f)
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) =
             engine.setPanel(i, (r.left - vL) / vW, (r.top - vT) / vH, (r.right - vL) / vW, (r.bottom - vT) / vH)
-        val topShown = !portrait && !arriving && (engine.route == null || (guiding && engine.turn != null))
+        // (Search bar and places on the map switched off: nothing drawn top left with no route, so the map has the whole screen)
+        val mapUi = engine.prefs.b(PreferenceKeys.CAR_MAPUI, true)
+        val topShown = !portrait && !arriving && ((engine.route == null && mapUi) || (guiding && engine.turn != null))
         val colShown = !portrait && !previewing && !arriving
         val stackShown = portrait && !previewing && !arriving
         androidx.compose.runtime.SideEffect {
@@ -470,7 +472,9 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         // as many saved places as fit above the sound pill / speed (0 to 3), so the list never runs into what's below it
         // (worked out here: the screen's height can't be read from inside the column below)
         val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
-        if (engine.route == null && !arriving && !covered) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
+        // (a car with a rotary knob and no touchscreen can't reach any of this: Settings › Android Auto can leave it off, and
+        // Places (★) in Android Auto's own buttons has Search, Home, Work and the rest, wass0035 #222)
+        if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth().height(if (small) 48.dp else 60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
@@ -1208,7 +1212,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             androidx.compose.material3.Icon(when (pr.title) { "Home" -> androidx.compose.material.icons.Icons.Rounded.Home; "Work" -> androidx.compose.material.icons.Icons.Rounded.Work
                 else -> androidx.compose.material.icons.Icons.Rounded.History }, null, tint = Color.White, modifier = Modifier.size(24.dp))
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(listOfNotNull(pr.title, if (pr.mins >= 0) Geo.fmtDur(pr.mins * 60.0) else null, pr.note.ifBlank { null }).joinToString(" · "),
+                Text(listOfNotNull(L.t(pr.title), if (pr.mins >= 0) Geo.fmtDur(pr.mins * 60.0) else null, L.t(pr.note).ifBlank { null }).joinToString(" · "),
                     color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val arrive = if (pr.mins >= 0) L.t("Arrive about ") + com.headunit.launcher.Clock.hm(System.currentTimeMillis() + pr.mins * 60_000L) else pr.place.sub
                 Text(arrive, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

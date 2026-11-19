@@ -160,6 +160,7 @@ internal fun CarSettingsPanel(engine: NavEngine, actions: CarActions, small: Boo
                         item {
                             SetChoice("st-clock", L.t("Clock"), listOf("auto" to L.t("Automatic"), "24" to L.t("24-hour"), "12" to L.t("12-hour")), prefs.s(PreferenceKeys.CLOCK, "auto")) { prefs.put(PreferenceKeys.CLOCK, it) }
                         }
+                        item { SetSwitch("st-mapui", L.t("Search bar and places on the map"), L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"), prefs.b(PreferenceKeys.CAR_MAPUI, true)) { prefs.put(PreferenceKeys.CAR_MAPUI, it) } }
                         item { SetSwitch("st-home", L.t("Home button"), L.t("Under the search bar"), prefs.b(PreferenceKeys.HOME_BTN, true)) { prefs.put(PreferenceKeys.HOME_BTN, it) } }
                         item { SetSwitch("st-work", L.t("Work button"), L.t("Under the search bar"), prefs.b(PreferenceKeys.WORK_BTN, true)) { prefs.put(PreferenceKeys.WORK_BTN, it) } }
                         val cluster = prefs.b(PreferenceKeys.CLUSTER_MAP, true)

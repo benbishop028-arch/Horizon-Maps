@@ -1378,7 +1378,7 @@ internal fun ImmTurnCard(
                 Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(TealDeep), contentAlignment = Alignment.Center) {
                     ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(28.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
                 }
-                Text("then", color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 2.dp))
+                Text(L.t("then"), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 2.dp))
             }
         }
         // Explicit slip-road / motorway-exit cue. Lane guidance alone can be ambiguous on
@@ -1769,7 +1769,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
         ) {
             Icon(when (pr.title) { "Home" -> Icons.Rounded.Home; "Work" -> Icons.Rounded.Work; else -> Icons.Rounded.History }, null, tint = Color.White, modifier = Modifier.size(26.dp))
             Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                Text(listOfNotNull(pr.title, if (pr.mins >= 0) Geo.fmtDur(pr.mins * 60.0) else null, pr.note.ifBlank { null }).joinToString(" · "),
+                Text(listOfNotNull(L.t(pr.title), if (pr.mins >= 0) Geo.fmtDur(pr.mins * 60.0) else null, L.t(pr.note).ifBlank { null }).joinToString(" · "),
                     color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val arrive = if (pr.mins >= 0) L.t("Arrive about ") + com.headunit.launcher.Clock.hm(System.currentTimeMillis() + pr.mins * 60_000L) else pr.place.sub
                 Text(if (pr.delayMin >= 3) L.t("{0} · +{1} min delays", arrive, pr.delayMin) else arrive, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

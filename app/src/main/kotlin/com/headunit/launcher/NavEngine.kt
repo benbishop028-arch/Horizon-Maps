@@ -6015,7 +6015,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         for (h in pl.hz) when (h.poi.kind) {
             "bump" -> if (prefs.b(PreferenceKeys.BUMPS, true)) add("bump", h.off, "Speed bump")
             "school" -> if (prefs.b(PreferenceKeys.SCHOOLS, true)) add("school", h.off, if (school) "School · school run" else "School")
-            "crossing" -> add("crossing", h.off, "Crossing")
+            // (with Zebra crossings switched off in Settings › On the map, they leave the radar too: joel941703)
+            "crossing" -> if (prefs.b("zebras", true)) add("crossing", h.off, "Crossing")
             "rail" -> if (prefs.b(PreferenceKeys.RAILFORD, true)) add("rail", h.off, "Level crossing")
             "ford" -> if (prefs.b(PreferenceKeys.RAILFORD, true)) add("ford", h.off, "Ford")
         }

@@ -1271,6 +1271,9 @@ private fun AndroidAutoSection(prefs: Prefs) {
         } catch (e: Exception) { L.t("Unknown") }
     }
     CarTripButtonsGroup(prefs)
+    SGroup {
+        SToggle(prefs, L.t("Search bar and places on the map"), PreferenceKeys.CAR_MAPUI, true, L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"))
+    }
     // Voice search from the car screen's microphone button listens through the app, which needs the microphone allowed. Android
     // only lets an app ask from its own screen (asking from the car screen is refused on newer Android), so it's asked here
     run {

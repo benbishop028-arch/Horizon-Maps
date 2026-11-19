@@ -195,6 +195,8 @@ internal object PreferenceKeys {
     const val POLICEREP = "policerep"
     const val PREDICT = "predict"
     const val QUICKLIST = "quicklist"
+    /** Android Auto: the search bar, Home / Work and shortcuts drawn on the map (off for rotary-knob cars that can't tap them, #222). */
+    const val CAR_MAPUI = "car_mapui"
     /** The map in 3D (true) or flat 2D: remembered between drives, and shared by the phone / head unit and Android Auto. */
     const val VIEW_3D = "view3d"
     /** The donate card has been shown (it's shown once, a day or more after install). */

@@ -122,7 +122,7 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
                 }
                 if (dropped && h.limitMs > 0) Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(start = 8.dp)) {
                     MiniLimitSign(Math.round(h.limitMs * if (engine.imperial) 2.23694 else 3.6).toInt())
-                    if (h.limitEstimated) Text("usual", color = c.sub, fontSize = 10.sp, modifier = Modifier.padding(top = 2.dp))
+                    if (h.limitEstimated) Text(L.t("usual"), color = c.sub, fontSize = 10.sp, modifier = Modifier.padding(top = 2.dp))
                 }
                 Box(Modifier.size(40.dp).clip(CircleShape).pressClick { engine.here = null }, contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.size(22.dp))

@@ -205,7 +205,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     Icon(wxIcon(w.code), null, tint = wxTint(w.code), modifier = Modifier.size(24.dp))
                     Column(Modifier.padding(start = 6.dp)) {
                         Text((if (fahr) Math.round(w.temp * 9 / 5 + 32) else Math.round(w.temp)).toString() + "°", color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Text("in ${if (w.minutes >= 60) "${w.minutes / 60} h ${w.minutes % 60} min" else "${w.minutes} min"}" + (if (w.rain >= 40) " · ${w.rain}%" else ""), color = if (w.rain >= 60) Warn else c.sub, fontSize = 11.sp)
+                        Text(L.t("in {0}", if (w.minutes >= 60) "${w.minutes / 60} h ${w.minutes % 60} min" else "${w.minutes} min") + (if (w.rain >= 40) " · ${w.rain}%" else ""), color = if (w.rain >= 60) Warn else c.sub, fontSize = 11.sp)
                     }
                 }
             }
