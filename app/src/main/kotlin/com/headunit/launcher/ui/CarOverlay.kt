@@ -922,11 +922,11 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
     // roughly what each route costs in fuel (or charging), from Settings › Fuel, as on the phone (pc4096: it wasn't on Android Auto)
     val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
     val mpg = engine.prefs.s(if (ev) "evmpk" else "fuelmpg", "").toDoubleOrNull()?.takeIf { it > 0 }
-    val ppl = pricePence(engine.prefs.s(if (ev) "evppk" else "fuelppl", ""), ev)
+    val ppl = pricePence(engine.prefs.s(if (ev) "evppk" else "fuelppl", ""), ev, engine.prefs)
     val cost: @Composable (com.headunit.launcher.Route) -> Unit = { r ->
         if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
             androidx.compose.material3.Icon(if (ev) androidx.compose.material.icons.Icons.Rounded.EvStation else androidx.compose.material.icons.Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(13.dp))
-            Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
+            Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + formatMoney(engine.prefs, 
                 if (ev) r.len / 1609.344 / mpg * ppl / 100.0 else r.len / 1609.344 / mpg * 4.54609 * ppl / 100.0),
                 color = c.text.copy(alpha = 0.8f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
         }

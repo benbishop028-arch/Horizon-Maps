@@ -1096,14 +1096,22 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
             prefs.put(PreferenceKeys.EVMPK, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.3f", it / 1.609344) } ?: "")
         }
         SFieldItem(L.t("Usable battery (kWh)"), prefs.s(PreferenceKeys.EV_BATTERY_KWH, ""), L.t("For the battery estimate and charging stops (60 if left blank)"), placeholder = L.t("e.g. 64"), number = true) { s -> prefs.put(PreferenceKeys.EV_BATTERY_KWH, s.filter { it.isDigit() || it == '.' }.take(5)) }
-        SFieldItem(if (mi) L.t("Electricity price (pence per kWh)") else L.t("Electricity price (cents per kWh)"), prefs.s(PreferenceKeys.EVPPK, ""), placeholder = L.t("e.g. 28"), number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
+        // (in currencies where a kWh or a litre costs more than a few of the main unit, rupees or kroner say, the price is asked for
+        // as it's normally written, in that currency: bijindas)
+        val cur = moneyCurrency(prefs)
+        val small = smallUnitPrices(cur)
+        val sym = try { cur.getSymbol(java.util.Locale.getDefault()) } catch (e: Exception) { cur.currencyCode }
+        SFieldItem(if (!small) L.t("Electricity price per kWh ({0})", sym) else if (mi) L.t("Electricity price (pence per kWh)") else L.t("Electricity price (cents per kWh)"), prefs.s(PreferenceKeys.EVPPK, ""), placeholder = if (small) L.t("e.g. 28") else "", number = true) { s -> prefs.put(PreferenceKeys.EVPPK, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
     } else SGroup(L.t("Fuel cost on the route options"), footer = L.t("With both filled in, each route shows roughly what it will cost in fuel.")) {
         if (mi) SFieldItem(L.t("Fuel economy (miles per gallon)"), prefs.s(PreferenceKeys.FUELMPG, ""), placeholder = L.t("e.g. 45"), number = true) { s -> prefs.put(PreferenceKeys.FUELMPG, num(s).take(5)) }
         // litres per 100 km: 282.48 / UK miles per gallon
         else SFieldItem(L.t("Fuel use (litres per 100 km)"), prefs.s(PreferenceKeys.FUELMPG, "").toDoubleOrNull()?.takeIf { it > 0 }?.let { fmt1(282.481 / it) } ?: "", placeholder = L.t("e.g. 6.3"), number = true) { s ->
             prefs.put(PreferenceKeys.FUELMPG, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.2f", 282.481 / it) } ?: "")
         }
-        SFieldItem(if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = L.t("e.g. 139.9"), number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
+        val cur = moneyCurrency(prefs)
+        val small = smallUnitPrices(cur)
+        val sym = try { cur.getSymbol(java.util.Locale.getDefault()) } catch (e: Exception) { cur.currencyCode }
+        SFieldItem(if (!small) L.t("Fuel price per litre ({0})", sym) else if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = if (small) L.t("e.g. 139.9") else "", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
     }
 }
 

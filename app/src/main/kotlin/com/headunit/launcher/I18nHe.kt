@@ -1702,6 +1702,8 @@ object I18nHe {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "בגרסה החינמית, הורד את המדינה שלך בשלב חבילה לא מקוונת: ממנה מתוכננים המסלולים.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus פעיל: המפה, החיפוש, המסלולים והתנועה משתמשים בחשבונות של Horizon Maps, כך שאין מפתחות להוסיף.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "הגרסה החינמית משתמשת ב-OpenStreetMap, עם מסלולים מחבילת המדינה שהורדה. Horizon Maps Plus מוסיף מבנים ואתרים בולטים מפורטים בתלת-ממד, לוויין ותנועה בזמן אמת, בלי מפתחות להגדיר.",
+        "Fuel price per litre ({0})" to "מחיר דלק לליטר ({0})",
+        "Electricity price per kWh ({0})" to "מחיר חשמל לקוט\"ש ({0})",
         "Send arrival time" to "שלח זמן הגעה",
         "On my way to {0}, arriving about {1} ({2})." to "בדרך ל-{0}, מגיע בערך ב-{1} ({2}).",
         "Open now" to "פתוח עכשיו",

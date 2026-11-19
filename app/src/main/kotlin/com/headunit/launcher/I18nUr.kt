@@ -1702,6 +1702,8 @@ object I18nUr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "مفت ورژن میں آف لائن پیک والے قدم میں اپنا ملک ڈاؤن لوڈ کریں: اسی سے راستے بنتے ہیں۔",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus آن ہے: نقشہ، تلاش، راستے اور ٹریفک Horizon Maps کے اپنے اکاؤنٹس استعمال کرتے ہیں، اس لیے کوئی کلید شامل نہیں کرنی۔",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "مفت ورژن OpenStreetMap استعمال کرتا ہے، راستے ڈاؤن لوڈ کیے گئے ملک کے پیک سے۔ Horizon Maps Plus تفصیلی 3D عمارتیں اور نمایاں مقامات، سیٹلائٹ اور لائیو ٹریفک شامل کرتا ہے، بغیر کلید سیٹ کیے۔",
+        "Fuel price per litre ({0})" to "فی لیٹر ایندھن کی قیمت ({0})",
+        "Electricity price per kWh ({0})" to "فی kWh بجلی کی قیمت ({0})",
         "Send arrival time" to "پہنچنے کا وقت بھیجیں",
         "On my way to {0}, arriving about {1} ({2})." to "{0} جا رہا ہوں، تقریباً {1} بجے پہنچوں گا ({2})۔",
         "Open now" to "ابھی کھلا ہے",

@@ -1702,6 +1702,8 @@ object I18nSv {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Med gratisversionen laddar du ner ditt land i steget Offlinepaket: det planerar dina rutter.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus är på: karta, sökning, rutter och trafik använder Horizon Maps egna konton, så det finns inga nycklar att lägga till.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversionen använder OpenStreetMap, med rutter från ditt nedladdade landspaket. Horizon Maps Plus lägger till detaljerade 3D-byggnader och landmärken, satellit och trafik i realtid, utan nycklar att ställa in.",
+        "Fuel price per litre ({0})" to "Bränslepris per liter ({0})",
+        "Electricity price per kWh ({0})" to "Elpris per kWh ({0})",
         "Send arrival time" to "Skicka ankomsttid",
         "On my way to {0}, arriving about {1} ({2})." to "På väg till {0}, framme runt {1} ({2}).",
         "Open now" to "Öppet nu",

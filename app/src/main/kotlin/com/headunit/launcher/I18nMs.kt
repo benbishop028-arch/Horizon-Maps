@@ -1702,6 +1702,8 @@ object I18nMs {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Dengan versi percuma, muat turun negara anda dalam langkah Pek luar talian: ia merancang laluan anda.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus aktif: peta, carian, laluan dan trafik menggunakan akaun Horizon Maps sendiri, jadi tiada kunci untuk ditambah.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah bangunan dan mercu tanda 3D yang terperinci, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
+        "Fuel price per litre ({0})" to "Harga bahan api seliter ({0})",
+        "Electricity price per kWh ({0})" to "Harga elektrik per kWj ({0})",
         "Send arrival time" to "Hantar waktu tiba",
         "On my way to {0}, arriving about {1} ({2})." to "Dalam perjalanan ke {0}, tiba sekitar {1} ({2}).",
         "Open now" to "Dibuka sekarang",

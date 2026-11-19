@@ -188,9 +188,9 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
     // fuel estimate from the economy and pump price set in Settings > Driving (blank = not shown)
     val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
     val mpg = engine.prefs.s(if (ev) "evmpk" else "fuelmpg", "").toDoubleOrNull()?.takeIf { it > 0 }
-    val ppl = pricePence(engine.prefs.s(if (ev) "evppk" else "fuelppl", ""), ev)
+    val ppl = pricePence(engine.prefs.s(if (ev) "evppk" else "fuelppl", ""), ev, engine.prefs)
     val costText = if (mpg != null && ppl != null && selRoute != null)
-        (if (ev) L.t("Charging about ") else L.t("Fuel about ")) + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
+        (if (ev) L.t("Charging about ") else L.t("Fuel about ")) + formatMoney(engine.prefs, 
             if (ev) selRoute.len / 1609.344 / mpg * ppl / 100.0 else selRoute.len / 1609.344 / mpg * 4.54609 * ppl / 100.0) else null
     ZonesRow(engine)
     if (engine.routeWx.isNotEmpty()) {
@@ -311,7 +311,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                 // Stops row, scrolled out of sight)
                 if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                     Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(13.dp))
-                    Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + java.text.NumberFormat.getCurrencyInstance(if (engine.imperial) java.util.Locale.UK else java.util.Locale.getDefault()).format(
+                    Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + formatMoney(engine.prefs, 
                         if (ev) r.len / 1609.344 / mpg * ppl / 100.0 else r.len / 1609.344 / mpg * 4.54609 * ppl / 100.0),
                         color = c.text.copy(alpha = 0.8f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
                 }
@@ -789,9 +789,31 @@ internal fun DemoChoiceBtn(engine: NavEngine, modifier: Modifier = Modifier, hei
  * litre, so anything under 10 is taken as euros or pounds (smikkelvriend: 2.15 gave 3 cents for a 30-minute drive). For
  * electricity, anything under 2 (no one pays 2 cents a kWh).
  */
-internal fun pricePence(raw: String, ev: Boolean): Double? {
+internal fun pricePence(raw: String, ev: Boolean, prefs: com.headunit.launcher.Prefs? = null): Double? {
     val v = raw.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return null
+    // (rupees, kroner, forints, yen...: the price is typed as normally written, in the main unit; bijindas: ₹107.40 came out as paise)
+    if (prefs != null && !smallUnitPrices(moneyCurrency(prefs))) return v * 100.0
     return if (v < (if (ev) 2.0 else 10.0)) v * 100.0 else v
+}
+
+/**
+ * The money fuel and charging costs are shown in: the currency of the country you're driving in (India: rupees), else the phone's.
+ * (It used to be the phone's language alone, so an Indian driver with English (UK) set saw pounds.)
+ */
+internal fun moneyCurrency(prefs: com.headunit.launcher.Prefs): java.util.Currency {
+    val cc = prefs.s(com.headunit.launcher.PreferenceKeys.COUNTRYDETECTED, "").trim().uppercase()
+    if (cc.length == 2) try { return java.util.Currency.getInstance(java.util.Locale("", cc)) } catch (e: Exception) { }
+    return try { java.util.Currency.getInstance(java.util.Locale.getDefault()) } catch (e: Exception) { java.util.Currency.getInstance("GBP") }
+}
+
+/** Currencies where a litre costs under 10 of the main unit, so the price box takes pence or cents (as it always has). */
+internal fun smallUnitPrices(c: java.util.Currency): Boolean = c.currencyCode in setOf("GBP", "EUR", "USD", "CHF", "AUD", "CAD", "NZD", "GIP", "IMP", "JEP")
+
+/** An amount of money in [moneyCurrency], written the phone's way ("£2.10", "₹225.40"). */
+internal fun formatMoney(prefs: com.headunit.launcher.Prefs, amount: Double): String {
+    val cur = moneyCurrency(prefs)
+    val loc = if (cur.currencyCode == "GBP") java.util.Locale.UK else java.util.Locale.getDefault()
+    return java.text.NumberFormat.getCurrencyInstance(loc).apply { currency = cur }.format(amount)
 }
 
 

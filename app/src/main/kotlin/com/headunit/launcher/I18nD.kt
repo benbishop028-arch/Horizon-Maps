@@ -1699,6 +1699,8 @@ object I18nD {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to listOf("С безплатната версия изтеглете държавата си в стъпката Офлайн пакет: от нея се планират маршрутите."),
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to listOf("Plus е включен: картата, търсенето, маршрутите и трафикът използват акаунтите на Horizon Maps, затова няма ключове за добавяне."),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Безплатната версия използва OpenStreetMap, с маршрути от изтегления пакет за държавата. Horizon Maps Plus добавя детайлни 3D сгради и забележителности, сателит и трафик на живо, без ключове за настройване."),
+        "Fuel price per litre ({0})" to listOf("Цена на горивото за литър ({0})"),
+        "Electricity price per kWh ({0})" to listOf("Цена на тока за kWh ({0})"),
         "Send arrival time" to listOf("Изпрати час на пристигане"),
         "On my way to {0}, arriving about {1} ({2})." to listOf("На път съм към {0}, пристигам около {1} ({2})."),
         "Open now" to listOf("Отворено сега"),

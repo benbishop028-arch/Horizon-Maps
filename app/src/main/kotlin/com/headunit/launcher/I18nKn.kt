@@ -1702,6 +1702,8 @@ object I18nKn {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "ಉಚಿತ ಆವೃತ್ತಿಯಲ್ಲಿ ಆಫ್‌ಲೈನ್ ಪ್ಯಾಕ್ ಹಂತದಲ್ಲಿ ನಿಮ್ಮ ದೇಶವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ: ಅದರಿಂದಲೇ ಮಾರ್ಗಗಳು ಯೋಜಿಸಲ್ಪಡುತ್ತವೆ.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus ಆನ್ ಆಗಿದೆ: ನಕ್ಷೆ, ಹುಡುಕಾಟ, ಮಾರ್ಗಗಳು ಮತ್ತು ಸಂಚಾರ Horizon Maps ನ ಸ್ವಂತ ಖಾತೆಗಳನ್ನು ಬಳಸುತ್ತವೆ, ಆದ್ದರಿಂದ ಕೀಗಳನ್ನು ಸೇರಿಸಬೇಕಿಲ್ಲ.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "ಉಚಿತ ಆವೃತ್ತಿ OpenStreetMap ಬಳಸುತ್ತದೆ, ಮಾರ್ಗಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ದೇಶದ ಪ್ಯಾಕ್‌ನಿಂದ. Horizon Maps Plus ವಿವರವಾದ 3D ಕಟ್ಟಡಗಳು ಮತ್ತು ಹೆಗ್ಗುರುತುಗಳು, ಉಪಗ್ರಹ ಮತ್ತು ನೇರ ಸಂಚಾರವನ್ನು ಕೀಗಳಿಲ್ಲದೆ ಸೇರಿಸುತ್ತದೆ.",
+        "Fuel price per litre ({0})" to "ಪ್ರತಿ ಲೀಟರ್ ಇಂಧನ ಬೆಲೆ ({0})",
+        "Electricity price per kWh ({0})" to "ಪ್ರತಿ kWh ವಿದ್ಯುತ್ ಬೆಲೆ ({0})",
         "Send arrival time" to "ಆಗಮನ ಸಮಯ ಕಳುಹಿಸಿ",
         "On my way to {0}, arriving about {1} ({2})." to "{0} ಕಡೆ ಹೋಗುತ್ತಿದ್ದೇನೆ, ಸುಮಾರು {1} ಕ್ಕೆ ತಲುಪುತ್ತೇನೆ ({2}).",
         "Open now" to "ಈಗ ತೆರೆದಿದೆ",

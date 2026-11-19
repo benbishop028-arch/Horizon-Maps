@@ -1702,6 +1702,8 @@ object I18nZhHans {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "使用免费版时,请在“离线数据包”步骤下载你的国家:路线由它规划。",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus 已开启:地图、搜索、路线和路况都使用 Horizon Maps 自己的账户,因此无需添加密钥。",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "免费版使用 OpenStreetMap,路线来自下载的国家数据包。Horizon Maps Plus 增加精细的 3D 建筑和地标、卫星和实时路况,无需设置密钥。",
+        "Fuel price per litre ({0})" to "每升油价（{0}）",
+        "Electricity price per kWh ({0})" to "每度电价（{0}）",
         "Send arrival time" to "发送到达时间",
         "On my way to {0}, arriving about {1} ({2})." to "正在前往 {0}，预计 {1} 左右到达（{2}）。",
         "Open now" to "营业中",
