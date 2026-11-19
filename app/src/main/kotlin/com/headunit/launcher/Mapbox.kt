@@ -344,7 +344,10 @@ object MapboxRest {
         // (Mapbox's directions have no Thai, Bulgarian, Slovenian, Basque or Traditional Chinese: an unknown language would fail the
         // route, so English instructions are asked for there, and for Romanian, Greek, Czech and Finnish too; the app speaks its own translated directions anyway)
         val lang = if (L.lang in setOf("th", "bg", "sl", "ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "zhhk")) "en" else if (L.lang == "esar" || L.lang == "esmx") "es" else L.lang
-        var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true" +
+        // (roundabout_exits: a step of its own where you leave a roundabout, so the exit's real direction is known. Without it the
+        // roundabout's step ran on to the next turn, and the direction taken there drew the turn card's roundabout arrow, which
+        // pointed the wrong way most of the time: mjdshibly #230. The extra "exit roundabout" steps are folded back in below)
+        var base = "$API/directions/v5/mapbox/driving-traffic/$coords?geometries=geojson&overview=full&steps=true&roundabout_exits=true" +
             "&annotations=maxspeed,congestion,duration,distance,freeflow_speed&language=$lang&alternatives=${alternatives && via.isEmpty()}&access_token=${enc(token)}" + Vehicle.mapbox()
         // the way you're facing, so a reroute doesn't send you the wrong way down the road you're on
         if (headingDeg >= 0) base += "&bearings=" + enc((listOf("${headingDeg.toInt() % 360},45") + List(pts.size - 1) { "" }).joinToString(";"))
