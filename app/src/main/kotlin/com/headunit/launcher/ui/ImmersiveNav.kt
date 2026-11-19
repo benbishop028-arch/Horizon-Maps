@@ -516,9 +516,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         engine.here?.let { h ->
             // where Add a stop's list goes: along the bottom on a phone held upright, down the driver's side otherwise, with the
             // map moved so the place shows in the rest of the screen. Above everything else, so nothing covers its buttons
-            if (narrow) Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(16.dp).fillMaxWidth()) {
+            // (its outline goes to the map, which centres the place in what's left clear)
+            val hereRep = Modifier.onGloballyPositioned { val r = it.boundsInParent(); engine.setHereRect(r.left / boxW, r.top / boxH, r.right / boxW, r.bottom / boxH) }
+            if (narrow) Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(16.dp).fillMaxWidth().then(hereRep)) {
                 HereCardView(engine, h, maxH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp * 0.45f, docked = true)
-            } else Box(Modifier.align(side(Alignment.TopStart)).zIndex(8f).padding(16.dp).width(420.dp).fillMaxHeight()) {
+            } else Box(Modifier.align(side(Alignment.TopStart)).zIndex(8f).padding(16.dp).width(420.dp).fillMaxHeight().then(hereRep)) {
                 HereCardView(engine, h, docked = true, tall = true)
             }
         }

@@ -750,6 +750,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)
         map.onUserGesture = {
+            // (moved by hand: a place card settling no longer moves the map back)
+            focusUntil = 0L
             if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) }
             // moving the map with no route: the panel under the search bar tucks away so the map can be seen (TouristCreepy1884)
             if (route == null && !previewing && chain == null) homeTucked = true
@@ -4759,6 +4761,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         get() = hereState
         set(v) {
             val was = hereState; hereState = v; try { map.setTapPin(v?.place?.pos) } catch (e: Exception) { }
+            // a different place (or none): the searched place's building goes back to normal
+            val fp = focusPlace
+            if (fp != null && (v == null || Geo.dist(v.place.pos, fp) > 30.0)) { focusPlace = null; try { map.highlightPlace(null) } catch (e: Exception) { } }
             // the card closed on a route with the map moved away: back to following you shortly
             if (was != null && v == null && !following && route != null) scheduleRecentre(1_500)
         }
@@ -4830,8 +4835,49 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (p.web.startsWith("gpx:") || pendingSave != null || !prefs.b(PreferenceKeys.WHATS_HERE, true)) { pickPlace(p); return }
         results = emptyList()
         showHere(p)
-        // the map goes to the place, clear of the card (as Add a stop's list does), and stays there while the card is open
-        if (!isCar) { following = false; try { map.showPlace(p.pos, layoutMirrored) } catch (e: Exception) { } }
+        // the map goes to the place, in the middle of what the card and the search bar leave clear, with its building lit up,
+        // and stays there while the card is open
+        if (!isCar) { following = false; focusPlace = p.pos; focusUntil = android.os.SystemClock.uptimeMillis() + 4_000L; requestFocus() }
+    }
+
+    // ---- centring a searched place in the clear part of the map ----
+    private var focusPlace: LL? = null
+    private var focusUntil = 0L
+    private var focusToken = 0
+    private val hereRect = FloatArray(4)
+
+    /** The place card's outline (as parts of the screen), reported as it's laid out. */
+    fun setHereRect(l: Float, t: Float, r: Float, b: Float) {
+        val moved = Math.abs(hereRect[0] - l) + Math.abs(hereRect[1] - t) + Math.abs(hereRect[2] - r) + Math.abs(hereRect[3] - b) > 0.03f
+        hereRect[0] = l; hereRect[1] = t; hereRect[2] = r; hereRect[3] = b
+        if (moved) requestFocus()
+    }
+
+    /** (a moment after the last change, so a card or list still settling moves the map once, not several times) */
+    private fun requestFocus() {
+        if (focusPlace == null || android.os.SystemClock.uptimeMillis() > focusUntil) return
+        val t = ++focusToken
+        scope.launch { delay(250); if (t == focusToken) focusNow() }
+    }
+
+    private fun focusNow() {
+        val p = focusPlace ?: return
+        if (here == null) return
+        // what's left clear of the search bar, the map buttons, the trip card and the place card: each takes its side away
+        var l = 0f; var t = 0f; var r = 1f; var b = 1f
+        for (q in panels.toList() + listOf(hereRect)) {
+            if (q[2] - q[0] <= 0.01f || q[3] - q[1] <= 0.01f) continue
+            var nl = l; var nt = t; var nr = r; var nb = b
+            if (q[2] - q[0] > 0.6f) { if ((q[1] + q[3]) / 2 < 0.5f) nt = maxOf(t, q[3]) else nb = minOf(b, q[1]) }
+            else { if ((q[0] + q[2]) / 2 < 0.5f) nl = maxOf(l, q[2]) else nr = minOf(r, q[0]) }
+            // (something covering most of the screen, like a list still closing, is left out rather than leaving no room)
+            if (nr - nl < 0.25f || nb - nt < 0.2f) continue
+            l = nl; t = nt; r = nr; b = nb
+        }
+        try {
+            map.centreIn(p, l.toDouble(), t.toDouble(), (1f - r).toDouble(), (1f - b).toDouble())
+            map.highlightPlace(p)
+        } catch (e: Exception) { }
     }
 
     /** Saves the What's here place as a favourite (or takes it off again). */
