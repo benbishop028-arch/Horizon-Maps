@@ -5,6 +5,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Android Auto: the place card: tap a shop or business on the car's map, or pick a search result, and a simple card shows whether it's open, how far it is and when you'd arrive, a petrol station's price or a charger's plugs, with Go (and Add stop on a route)
+- Android Auto: your saved places under the search bar: Home and Work are joined by your starred places and favourites, as many as fit, with All for the rest. The list below now shows recent places only, so nothing appears twice
+- Android Auto: where you're probably heading: the green suggestion card from the app ("Work · 18 min") now shows under the search bar on the car too, with Go
+- Android Auto: fuel prices in Add a stop: each petrol station in the car's Add a stop list shows the price of your fuel, with a Cheapest button at the top to sort by price
+- Android Auto: clean air zones and weather on the route choice: a warning when a route goes into a clean air or low emission zone, with Avoid zones, and the weather along the way on larger car screens
+- Android Auto: parking and services: car parks near your destination and the next motorway services now show on the car screen, as in the app. Tap a car park to drive there
+- Android Auto: Big speed limit sign: the switch is now in the car's own settings too, and works with the compact speedometer
 - Send your arrival time: a new button on the trip card opens your phone's share menu with a message ready ("On my way to …, arriving about 10:42") and a map link, to send by WhatsApp, text or anything else. It shows while you're stopped, so nobody picks a contact while driving (thanks to Dotancom)
 - Fuel prices in Spain: every petrol station's live prices from the Spanish Ministry for the Ecological Transition (free, no key), in the fuel list, Cheapest in Add a stop and the fuel stop suggestions. Kept on the device and refreshed every few hours, so prices still show if the service is down for a while (thanks to franciscoserranoadt)
 - Place preview: tap a shop or business on the map, or a search result, and a card shows what it is, whether it's open now and until when, Go with the drive time, Add stop, and Save, Call, Website, Share and Start here, then the address, opening hours, a petrol station's price or a charger's plugs. The details come from OpenStreetMap; Call and Website hide while you're moving (thanks to Dry-Secretary2456)

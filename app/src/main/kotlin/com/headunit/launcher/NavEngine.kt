@@ -745,7 +745,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // a shop or business tapped on the map: its preview card (it used to only say to hold on it)
         map.onPoiTap = { name, p ->
             tappedPoi = name to p; tappedAt = android.os.SystemClock.uptimeMillis()
-            if (prefs.b(PreferenceKeys.WHATS_HERE, true) && !isCar) showHere(Place(name, "", p))
+            if (prefs.b(PreferenceKeys.WHATS_HERE, true)) showHere(Place(name, "", p))
             else toast(L.t(if (route != null) "{0}: hold on it to add it as a stop" else "{0}: hold on it to go there", name), 3000)
         }
         // (with "all locations" open the map stays where it's moved, and "Search this area" shows)

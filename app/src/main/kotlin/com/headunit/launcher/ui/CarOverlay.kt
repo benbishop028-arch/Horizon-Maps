@@ -445,7 +445,13 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 LorryWarnCard(engine)
                 // an average speed check: your average so far, the limit, how far is left and what keeps you under, as on the
                 // phone (it only showed there: magnazan, #177). At the car cards' size, under the turn card
-                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { AvgSpeedCard(engine) }
+                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                    AvgSpeedCard(engine)
+                    // the next motorway services (and the fuel price there), and car parks near the end, as on the phone. The
+                    // services card stays off a short screen, where it would sit over the lanes; parking is wanted most then, so it shows
+                    if (!small && !tile) ServicesCard(engine)
+                    if (!tile) ParkingCard(engine)
+                }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
@@ -501,6 +507,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         if (searching) CarSearchPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
 
         if (stopsOpen) CarStopsPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
+        // a place's card (tapped on the map, or picked from the search): Go, or Add stop on a route
+        if (!searching && !arriving && !stopsOpen && !settingsOpen) engine.here?.let { h ->
+            Box(Modifier.align(Alignment.BottomCenter).padding(start = left, end = rightBottom, bottom = bottom)) { CarHereCard(engine, h) }
+        }
         // (in the middle of what's clear of the turn card, which stays up)
         if (choosing) engine.choose?.let { p ->
             Box(Modifier.align(Alignment.BottomCenter).padding(start = left, end = rightBottom, bottom = bottom)) { CarChooseCard(engine, p) }
@@ -974,6 +984,33 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
             Text(L.t("Demo"), color = if (on) Color.White else c.accent, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp))
         }
     }
+    // a clean air or low emission zone on the way (a charge may apply), with Avoid zones, as in the app; then the weather along
+    // the route ([withWeather]: left off on a small screen)
+    val extras: @Composable (Boolean) -> Unit = { withWeather ->
+        val z = engine.routeZones
+        if (z.isNotEmpty()) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Warn.copy(alpha = 0.16f)).padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Eco, null, tint = Warn, modifier = Modifier.size(18.dp))
+            Text(L.t("Goes into ") + z.joinToString(", ") + L.t(". A charge may apply."), color = c.text, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 8.dp))
+            if (!engine.prefs.b(PreferenceKeys.AVOIDZONES, false)) Box(Modifier.clip(RoundedCornerShape(16.dp)).background(c.tile)
+                .carTap("avoid-zones") { engine.prefs.put(PreferenceKeys.AVOIDZONES, true); engine.dest?.let { engine.startRoute(it, engine.departMin, true) } }
+                .padding(horizontal = 12.dp, vertical = 7.dp)) { Text(L.t("Avoid zones"), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
+        }
+        if (withWeather && engine.routeWx.isNotEmpty()) {
+            val fahr = isImperial(engine.prefs)
+            Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text(L.t("Weather on route"), color = c.sub, fontSize = 12.sp, maxLines = 1)
+                engine.routeWx.take(3).forEach { w ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Icon(wxIcon(w.code), null, tint = wxTint(w.code), modifier = Modifier.size(18.dp))
+                        Text((if (fahr) Math.round(w.temp * 9 / 5 + 32) else Math.round(w.temp)).toString() + "°" + (if (w.rain >= 40) " · ${w.rain}%" else ""),
+                            color = if (w.rain >= 60) Warn else c.text, fontSize = 13.sp, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+            }
+        }
+    }
     val cancel: @Composable () -> Unit = {
         Box(Modifier.size(46.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.tile).carTap("cancel") { engine.endRoute() }, contentAlignment = Alignment.Center) {
             androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Close, null, tint = c.text, modifier = Modifier.size(22.dp))
@@ -1007,6 +1044,7 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
                     if (sel) LorryCheck(engine, r)
                 }
             }
+            extras(false)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (demoOn) demo()
                 start(Modifier.weight(1f))
@@ -1017,21 +1055,22 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         // The horizontal arrangement needs room for the destination, three route cards, Start and Close.
         // A 760dp breakpoint left the route cards squeezed on medium displays, so stack until there is real room.
-        if (maxWidth >= 1120.dp) Row(
-            Modifier.fillMaxWidth().floating(28.dp).padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            dest(Modifier.width(170.dp))
-            cards()
-            if (demoOn) demo()
-            start(Modifier.width(220.dp))
-            cancel()
+        if (maxWidth >= 1120.dp) Column(Modifier.fillMaxWidth().floating(28.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                dest(Modifier.width(170.dp))
+                cards()
+                if (demoOn) demo()
+                start(Modifier.width(220.dp))
+                cancel()
+            }
+            extras(true)
         } else Column(
             // narrow: the destination and close button, the routes side by side, then Start across the width
             Modifier.fillMaxWidth().floating(28.dp).padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) { dest(Modifier.weight(1f).padding(start = 6.dp)); cancel() }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) { cards() }
+            extras(true)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (demoOn) demo()
                 start(Modifier.weight(1f))
@@ -1117,11 +1156,37 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // (each can be left off, here and in the app: Settings > Places & trips, or the car's own settings)
+        // Home and Work, then your starred places and favourites in the same row, as many as fit, and All for the rest (as in the
+        // app, where the row scrolls sideways; Android Auto passes on taps only, so there's All instead). The list below is then
+        // recent places only, so nothing is shown twice. (Home and Work can each be left off: Settings > Places & trips)
         val showHome = engine.prefs.b(PreferenceKeys.HOME_BTN, true); val showWork = engine.prefs.b(PreferenceKeys.WORK_BTN, true)
-        if (showHome || showWork) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (showHome) tile("home", androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"], Modifier.weight(1f))
-            if (showWork) tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"], Modifier.weight(1f))
+        val rawC = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, ""); val rawF = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""); val rawR = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
+        val rowPlaces = engine.prefs.b(PreferenceKeys.ROW_PLACES, true)
+        val savedRow: List<Pair<String, com.headunit.launcher.Place>> = remember(rawC, rawF, rowPlaces) {
+            val all = engine.places.customs()
+            val mine = if (rowPlaces) all.filter { it.pinned } else emptyList()
+            val favs = engine.places.favourites().filter { f -> all.none { Geo.dist(it.place.pos, f.pos) < 60 } &&
+                listOfNotNull(home, work).none { Geo.dist(it.pos, f.pos) < 60 } }
+            (mine.map { it.label to it.place } + favs.map { it.name to it }).take(20)
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val fixed = (if (showHome) 1 else 0) + (if (showWork) 1 else 0)
+            val allW = 50.dp
+            // tiles at least 104 dp wide; what's left after Home, Work and the All button goes to saved places
+            val fits = ((maxWidth - allW + 8.dp) / 112.dp).toInt().coerceAtLeast(fixed)
+            val shownSaved = savedRow.take((fits - fixed).coerceAtLeast(0))
+            if (fixed + shownSaved.size > 0 || savedRow.isNotEmpty()) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (showHome) tile("home", androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"], Modifier.weight(1f))
+                if (showWork) tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"], Modifier.weight(1f))
+                for ((i, sp) in shownSaved.withIndex()) tile("row-$i", androidx.compose.material.icons.Icons.Rounded.Star, Warn, sp.first, sp.second, null, Modifier.weight(1f))
+                if (savedRow.size > shownSaved.size) Box(Modifier.width(allW).height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap("row-all") { actions.places() },
+                    contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.MoreHoriz, null, tint = c.accent, modifier = Modifier.size(22.dp))
+                        Text(L.t("All"), color = c.accent, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    }
+                }
+            }
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             // Settings > Android Auto > Button size, kept to what five across the row have room for
@@ -1132,33 +1197,96 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
                 for (sc in chosenShortcuts(engine)) find(sc.kind, sc.icon, sc.color, sz)
             }
         }
-        // your own places first, then favourites, then recent ones (as in the app)
-        val rawC = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, ""); val rawF = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, ""); val rawR = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
-        val saved = remember(rawC, rawF, rawR) {
-            val mine = engine.places.customs()
-            val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
-            val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
-            mine.map { Triple(it.place, true, if (it.group.isNotBlank()) "${it.label} · ${it.group}" else it.label) } + favs.map { Triple(it, true, it.name) } + recents.take(4).map { Triple(it, false, it.name) }
-        }
-        // (folded away with the arrow in the search bar)
-        if (engine.prefs.b(PreferenceKeys.QUICKLIST, true)) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
-            Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(L.t("SAVED & RECENT"), color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
-                Text(if (saved.size > rows) L.t("All {0}", saved.size) else L.t("Open"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        // where you're probably heading now, with the live drive time (as in the app; Settings "Suggest where you're going")
+        LaunchedEffect(engine.fix != null) { while (true) { engine.refreshPrediction(); kotlinx.coroutines.delay(60_000) } }
+        val pr = engine.prediction?.takeIf { engine.prefs.b(PreferenceKeys.PREDICT, true) }
+        if (pr != null && rows >= 1) Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(GmGreen).carTap("predict") { engine.startRoute(pr.place) }.padding(horizontal = 16.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            androidx.compose.material3.Icon(when (pr.title) { "Home" -> androidx.compose.material.icons.Icons.Rounded.Home; "Work" -> androidx.compose.material.icons.Icons.Rounded.Work
+                else -> androidx.compose.material.icons.Icons.Rounded.History }, null, tint = Color.White, modifier = Modifier.size(24.dp))
+            Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                Text(listOfNotNull(pr.title, if (pr.mins >= 0) Geo.fmtDur(pr.mins * 60.0) else null, pr.note.ifBlank { null }).joinToString(" · "),
+                    color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val arrive = if (pr.mins >= 0) L.t("Arrive about ") + com.headunit.launcher.Clock.hm(System.currentTimeMillis() + pr.mins * 60_000L) else pr.place.sub
+                Text(arrive, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            for ((i, tr) in saved.take(rows).withIndex()) {
-                val (p, fav, label) = tr
+            Text(L.t("Go"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        }
+        // recent places only (the saved ones are in the row above)
+        val recents = remember(rawC, rawF, rawR) {
+            val all = engine.places.customs(); val favs = engine.places.favourites()
+            engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && all.none { Geo.dist(it.place.pos, r.pos) < 60 } }
+        }
+        // (a row less when the suggestion is showing, so the map keeps its room)
+        val listRows = (rows - (if (pr != null) 1 else 0)).coerceAtLeast(0)
+        // (folded away with the arrow in the search bar)
+        if (engine.prefs.b(PreferenceKeys.QUICKLIST, true) && recents.isNotEmpty() && listRows > 0) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
+            Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(L.t("Recent").uppercase(), color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
+                Text(L.t("Open"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+            for ((i, p) in recents.take(listRows).withIndex()) {
                 Row(Modifier.fillMaxWidth().carTap("saved-$i") { engine.startRoute(p) }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
-                        androidx.compose.material3.Icon(if (fav) androidx.compose.material.icons.Icons.Rounded.Star else androidx.compose.material.icons.Icons.Rounded.History, null,
-                            tint = if (fav) Warn else c.sub, modifier = Modifier.size(20.dp))
+                        androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.History, null, tint = c.sub, modifier = Modifier.size(20.dp))
                     }
                     Column(Modifier.padding(start = 12.dp).weight(1f)) {
-                        Text(label, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(p.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (p.sub.isNotBlank()) Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (here != null) Text(Geo.fmtDist(Geo.dist(here, p.pos), engine.imperial), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
                 }
+            }
+        }
+    }
+}
+
+
+/**
+ * The place card on the car, kept simple for driving: the name, open or closed, how far and when you'd arrive, a petrol station's
+ * price or a charger's plugs, then Go and (on a route) Add stop.
+ */
+@Composable
+private fun CarHereCard(engine: NavEngine, h: NavEngine.HereCard) {
+    val c = LocalVw.current
+    val dropped = h.place.name == "Dropped pin" || h.place.name == L.t("Dropped pin")
+    val title = if (!dropped) h.place.name else h.road.ifBlank { if (h.loading) L.t("Looking…") else L.t("This spot") }
+    val driving = engine.route != null && engine.dest != null
+    val d = h.details
+    Column(Modifier.widthIn(min = 300.dp, max = 440.dp).panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.Top) {
+            Column(Modifier.weight(1f)) {
+                Text(title, color = c.text, fontSize = 19.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val st = d?.hours?.let { com.headunit.launcher.OpeningHours.state(it) }
+                if (st != null) Row {
+                    Text(if (st.first) L.t("Open now") else L.t("Closed"), color = if (st.first) Good else Bad, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    val more = if (st.first) (if (st.second.isBlank()) L.t("Open 24 hours") else L.t("closes {0}", st.second)) else if (st.second.isNotBlank()) L.t("opens {0}", st.second) else ""
+                    if (more.isNotBlank()) Text(" · $more", color = c.sub, fontSize = 14.sp, maxLines = 1)
+                }
+                if (h.distM >= 0) Text(if (h.etaSecs > 0) L.t("{0} · arrive {1}", Geo.fmtDist(h.distM, engine.imperial),
+                        com.headunit.launcher.Clock.format().format(java.util.Date(System.currentTimeMillis() + (h.etaSecs * 1000).toLong())))
+                    else L.t("{0} away", Geo.fmtDist(h.distM, engine.imperial)), color = c.sub, fontSize = 14.sp, maxLines = 1)
+            }
+            Box(Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).carTap("here-x") { engine.here = null }, contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.Close, null, tint = c.sub, modifier = Modifier.size(22.dp))
+            }
+        }
+        val extra = if (h.fuelPrice.isNotBlank()) h.fuelPrice else d?.plugs?.takeIf { it.isNotEmpty() }?.joinToString(" · ").orEmpty()
+        if (extra.isNotBlank()) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.tile).padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(if (h.fuelPrice.isNotBlank()) androidx.compose.material.icons.Icons.Rounded.LocalGasStation else androidx.compose.material.icons.Icons.Rounded.EvStation, null,
+                tint = if (h.fuelPrice.isNotBlank()) Color(0xFFEA4335) else Color(0xFF34A853), modifier = Modifier.size(18.dp))
+            Text(extra, color = Good, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.weight(1.3f).height(48.dp).clip(RoundedCornerShape(24.dp)).background(c.accent).carTap("here-go") { engine.hereGo(false) }, contentAlignment = Alignment.Center) {
+                Text(if (driving) L.t("Go here instead") else if (h.etaSecs > 0) L.t("Go · {0}", Geo.fmtDur(h.etaSecs)) else L.t("Go"),
+                    color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            if (driving) Box(Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(24.dp)).background(c.tile).carTap("here-stop") { engine.hereGo(true) }, contentAlignment = Alignment.Center) {
+                Text(L.t("Add stop"), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
             }
         }
     }

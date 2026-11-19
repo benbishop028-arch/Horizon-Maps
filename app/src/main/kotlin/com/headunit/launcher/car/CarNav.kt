@@ -1079,12 +1079,21 @@ private class CarChainScreen(ctx: CarContext, private val holder: CarHolder) : S
             return b.setSingleList(ItemList.Builder().setNoItemsMessage(L.t("No other branches found nearby")).build()).build()
         }
         val limit = try { carContext.getCarService(ConstraintManager::class.java).getContentLimit(ConstraintManager.CONTENT_LIMIT_TYPE_LIST) } catch (x: Exception) { 6 }
+        // petrol stations with prices: Cheapest and Least detour, in the list's top bar
+        if (view.forStop && view.spots.any { it.price != null }) {
+            val cheap = e.chainSort == "cheap"
+            b.setActionStrip(androidx.car.app.model.ActionStrip.Builder().addAction(
+                Action.Builder().setTitle(if (cheap) L.t("Least detour") else L.t("Cheapest"))
+                    .setOnClickListener { e.sortChainBy(if (cheap) "route" else "cheap"); invalidate() }.build()).build())
+        }
         val list = ItemList.Builder()
         for (s in e.chainSorted().take(limit.coerceIn(1, 25))) {
             // adding a stop: the name, the time it adds, and how far ahead; tapping adds it
             if (view.forStop) {
+                // (petrol stations: the price of your fuel there too, as on the phone)
+                val pr = s.price?.let { " · " + com.headunit.launcher.fmtFuelPrice(it, s.unit) }.orEmpty()
                 val r = Row.Builder().setTitle(s.place.name)
-                    .addText(L.t("+{0} min", Math.max(1, Math.round(s.detour / 60.0).toInt())) + " · " + L.t("{0} ahead", Geo.fmtDist(s.ahead, e.imperial)))
+                    .addText(L.t("+{0} min", Math.max(1, Math.round(s.detour / 60.0).toInt())) + " · " + L.t("{0} ahead", Geo.fmtDist(s.ahead, e.imperial)) + pr)
                     .setImage(logoIcon(s.place) ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
                 r.setOnClickListener { e.chainAddStop(s); screenManager.popToRoot() }
                 list.addItem(r.build())

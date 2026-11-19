@@ -1130,10 +1130,12 @@ private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
         Modifier.height(60.dp).widthIn(min = 60.dp).panel(6.dp, RoundedCornerShape(30.dp), Color(0xFF101114)).padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
     ) {
-        if (lim != null) SpeedLimitSign(engine, 48.dp)
+        // (Big speed limit sign: the sign fills the pill's height and your speed is smaller beside it)
+        val swap = lim != null && show && engine.prefs.b(PreferenceKeys.SPEED_SWAP, false)
+        if (lim != null) SpeedLimitSign(engine, if (swap) 54.dp else 48.dp)
         // (the same width with or without the sign, so the pill doesn't change size as the figures do)
-        if (show) Column(Modifier.widthIn(min = 48.dp).padding(horizontal = if (lim != null) 6.dp else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+        if (show) Column(Modifier.widthIn(min = if (swap) 38.dp else 48.dp).padding(horizontal = if (lim != null) 6.dp else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: Color.White, fontSize = if (swap) 16.sp else 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
             Text(if (engine.imperial) "mph" else "km/h", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
         }
         // the next limit on the route, in the same pill after a thin line: a smaller sign with how far it is under it

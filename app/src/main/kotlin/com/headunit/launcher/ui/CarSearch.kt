@@ -129,7 +129,10 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
     val pick: (Place) -> Unit = { p ->
         val stop = CarSearch.forStop
         actions.closeSearch()
-        if (stop && engine.driving()) engine.addStop(p) else engine.goOrAsk(p)
+        // (no route yet: the place's card first, with Go, as on the phone)
+        if (stop && engine.driving()) engine.addStop(p)
+        else if (!engine.driving() && engine.route == null && engine.prefs.b(com.headunit.launcher.PreferenceKeys.WHATS_HERE, true) && !p.web.startsWith("gpx:")) engine.showHere(p)
+        else engine.goOrAsk(p)
     }
     // what was said is searched for, and the list shows it's searching until the answer comes (or 8 s pass)
     val query = CarSearch.query
