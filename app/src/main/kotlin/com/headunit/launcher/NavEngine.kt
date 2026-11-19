@@ -754,7 +754,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val te = map.lastTileError
             if (!satRefusedSaid && te.contains("satellite", true) && te.contains("429")) {
                 satRefusedSaid = true
-                scope.launch { toast(L.t("Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later"), 12_000) }
+                // with a TomTom key, TomTom's satellite pictures stand in, without a word; without one, it's said why satellite is blank
+                if (hasKey && refusedKey != apiKey) map.setSatFallback("https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=" + java.net.URLEncoder.encode(apiKey, "UTF-8"))
+                else scope.launch { toast(L.t("Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later"), 12_000) }
             }
             val now = android.os.SystemClock.uptimeMillis()
             if (!mapboxGaps && !online()) {

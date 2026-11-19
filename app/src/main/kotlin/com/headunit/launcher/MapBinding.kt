@@ -2872,7 +2872,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     )
 
     private fun pushAll() {
-        pushLive(); pushRadar(); pushTurn()
+        pushLive(); pushRadar(); pushSatFallback(); pushTurn()
         pushRoute(); pushDest(); pushFlags(); pushMe(); pushHazards(); pushCams(); pushSignals()
     }
 
@@ -3505,6 +3505,35 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val u = radarUrl ?: return
             addS(st, RasterSource.Builder("dl-radar").tiles(listOf(u)).tileSize(256).minzoom(0).maxzoom(7).build())
             addL(st, RasterLayer("dl-radar", "dl-radar").inSlot(MID).rasterOpacity(0.55).rasterFadeDuration(0.0).rasterEmissiveStrength(1.0), "dl-alts-line")
+        } catch (e: Exception) { }
+    }
+
+    // ---- satellite from TomTom, when Mapbox turns its own away ----
+    private var satFallbackUrl: String? = null
+    /** True once TomTom's satellite pictures are standing in for Mapbox's (for the rest of this run). */
+    val satFallbackOn: Boolean get() = satFallbackUrl != null
+
+    /**
+     * Mapbox has been refusing its satellite pictures for many people since late October 2026 ("429 Too Many Requests", even well
+     * inside their limits), which left the satellite view a plain background. With a TomTom key, TomTom's satellite pictures
+     * ([url] with {z}/{x}/{y}) are laid in under Mapbox's roads and names instead. TomTom's free allowance is 50,000 map
+     * pictures a day.
+     */
+    fun setSatFallback(url: String?) {
+        satFallbackUrl = url
+        main0.post { pushSatFallback() }
+    }
+
+    private fun pushSatFallback() {
+        val st = style ?: return
+        try {
+            if (st.styleLayerExists("dl-ttsat")) st.removeStyleLayer("dl-ttsat")
+            if (st.styleSourceExists("dl-ttsat")) st.removeStyleSource("dl-ttsat")
+            val u = satFallbackUrl ?: return
+            // (only on the satellite view, and only where Standard's slots keep it under the roads, names and the app's own layers)
+            if (!satellite || !slotsOn) return
+            addS(st, RasterSource.Builder("dl-ttsat").tiles(listOf(u)).tileSize(256).minzoom(0).maxzoom(19).attribution("© TomTom").build())
+            addL(st, RasterLayer("dl-ttsat", "dl-ttsat").inSlot("bottom").rasterFadeDuration(0.0).rasterEmissiveStrength(1.0), "dl-roadq")
         } catch (e: Exception) { }
     }
 

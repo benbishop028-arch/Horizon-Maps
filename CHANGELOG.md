@@ -109,6 +109,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Satellite view blank for some people: since late October Mapbox has been turning away its satellite pictures for many people ("too many requests"), even well inside their limits. If you have a TomTom key, TomTom's satellite pictures now take their place automatically, with Mapbox's roads and names on top. Without a TomTom key, the app still explains what's happening (thanks to atnr, Matattack99)
 - Android Auto not following you: with no route running and the phone locked, Android could hold back location updates, so the arrow froze or stayed where you started. Location now keeps running the whole time the map is on Android Auto (thanks to timblr1989)
 - Roundabout arrow: the arrowhead now sits clear of the ring on a short stem, so it reads as an arrow again, especially in the small icon on the "Then" line
 - Numbers off-centre: the exit number in the roundabout icon and the number on the round speed limit sign sat slightly high; both are now exactly in the middle (thanks to karthikeyansr-lgtm)
