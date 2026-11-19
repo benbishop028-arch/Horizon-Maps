@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文", "zhhk" to "繁體中文（香港・粵語）",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "uk" to "Українська", "esar" to "Español (Argentina)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "uk" to "Українська", "esar" to "Español (Argentina)", "esmx" to "Español (México)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "uk" -> Locale("uk", "UA"); "esar" -> Locale("es", "AR")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "uk" -> Locale("uk", "UA"); "esar" -> Locale("es", "AR"); "esmx" -> Locale("es", "MX")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -52,6 +52,8 @@ object L {
         // (Chinese: Traditional for Taiwan, Hong Kong and Macau phones or a Traditional script, Simplified otherwise)
         // (Spanish from Argentina or Uruguay: the River Plate Spanish, with "vos", GitHub #145)
         if (auto && want == "es" && Locale.getDefault().country in setOf("AR", "UY")) return "esar"
+        // the rest of the Americas (and Spanish in the US): Mexican Spanish, with tú rather than Spain's vosotros or Argentina's vos
+        if (auto && want == "es" && Locale.getDefault().country in setOf("MX", "US", "GT", "HN", "SV", "NI", "CR", "PA", "CU", "DO", "PR", "CO", "VE", "EC", "PE", "BO", "CL", "PY")) return "esmx"
         if (auto && want == "zh") {
             val d = Locale.getDefault()
             // (Hong Kong and Macau: the Traditional text spoken in Cantonese, GitHub #83)
@@ -77,7 +79,7 @@ object L {
      */
     val voiceLocales: List<Locale> get() = if (lang == "zhhk") listOf(Locale("yue", "HK"), Locale.forLanguageTag("yue-Hant-HK"), Locale("zh", "HK")) else listOf(locale)
 
-    val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar" -> "es"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar", "esmx" -> "es"; else -> lang }
 
     /** The Google Play edition is called Horizon Maps, so it can be told apart from the GitHub one (Horizon Nav). */
     private val playName = BuildConfig.STORE == "play"
@@ -104,7 +106,7 @@ object L {
      */
     fun voiceToEnglish(text: String): String {
         // (Bosnian voice commands are close enough to Croatian to share its words)
-        val rules = voiceRules[when (lang) { "bs" -> "hr"; "esar" -> "es"; "zhhk" -> "zh"; else -> lang }] ?: return text
+        val rules = voiceRules[when (lang) { "bs" -> "hr"; "esar", "esmx" -> "es"; "zhhk" -> "zh"; else -> lang }] ?: return text
         // (a capital İ made lower-case the English way leaves a stray dot mark, so "İşe" wouldn't match "işe")
         var t = " " + text.lowercase(locale).replace("\u0307", "").trim() + " "
         // Japanese puts the place first ("渋谷駅に行って"): the place is what comes before "…に行って" / "…までナビ"
@@ -612,7 +614,7 @@ object L {
     fun ordShort(n: Int): String = when (lang) {
         "nl", "fr" -> "${n}e"
         "de", "pl", "sl" -> "$n."
-        "es", "esar", "pt" -> "$n.ª"
+        "es", "esar", "esmx", "pt" -> "$n.ª"
         "it" -> "${n}ª"
         "th" -> "ที่ $n"
         "ja" -> "${n}番目"
@@ -668,7 +670,7 @@ object L {
         "nl" -> "eerste|tweede|derde|vierde|vijfde|zesde|zevende|achtste|negende|tiende"
         "de" -> "erste|zweite|dritte|vierte|fünfte|sechste|siebte|achte|neunte|zehnte"
         "fr" -> "première|deuxième|troisième|quatrième|cinquième|sixième|septième|huitième|neuvième|dixième"
-        "es", "esar" -> "primera|segunda|tercera|cuarta|quinta|sexta|séptima|octava|novena|décima"
+        "es", "esar", "esmx" -> "primera|segunda|tercera|cuarta|quinta|sexta|séptima|octava|novena|décima"
         "it" -> "prima|seconda|terza|quarta|quinta|sesta|settima|ottava|nona|decima"
         "pt" -> "primeira|segunda|terceira|quarta|quinta|sexta|sétima|oitava|nona|décima"
         "pl" -> "pierwszy|drugi|trzeci|czwarty|piąty|szósty|siódmy|ósmy|dziewiąty|dziesiąty"
@@ -722,7 +724,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "esar", "zhhk")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "esar", "esmx", "zhhk")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -755,6 +757,7 @@ object L {
         addOwn(m, "ru", I18nRu.rows())
         addOwn(m, "uk", I18nUk.rows())
         addOwn(m, "esar", I18nEsAr.rows())
+        addOwn(m, "esmx", I18nEsMx.rows())
         m
     }
 
