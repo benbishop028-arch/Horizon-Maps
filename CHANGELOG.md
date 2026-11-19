@@ -51,6 +51,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Settings back button stays put: on phones held upright, the back arrow and the page name now sit in a bar at the top of each settings page instead of scrolling away, and the settings fade softly at the top and bottom edges (thanks to yurividal)
 - Fuel estimate on Android Auto: the route choice on the car screen now shows roughly what each route costs in fuel or charging, as on the phone (thanks to pc4096)
 - Battery now, by 1%: the − and + by the battery on the route screen now go up and down 1% at a time, and keep going while held, instead of jumping in tens (thanks to Dry-Secretary2456)
 - Clearer Plus description: Settings now says Horizon Maps Plus adds detailed 3D buildings and landmarks (the free version already has simpler 3D buildings), satellite and live traffic
