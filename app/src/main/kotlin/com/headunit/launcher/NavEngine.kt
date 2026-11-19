@@ -311,6 +311,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val hasKey: Boolean get() = apiKey.isNotEmpty() && !apiKey.startsWith("YOUR_")
 
     /** Your Mapbox access token (Settings > Keys & accounts), for the Mapbox map, routes, search and traffic. */
+    /**
+     * Horizon Maps with Plus: the map, routes and traffic come through the app's own shared keys (not your own), so it asks for
+     * them less often: traffic every 6 minutes rather than 3, faster routes every 8 rather than 2, one route service at a time
+     * rather than both, and the incidents round you and the "where are you heading" card less often. Routes still change for
+     * traffic, just checked less often; the plain app with your own keys is unchanged.
+     */
+    private val frugal: Boolean get() = Plus.offered
+
     val mbToken: String get() = if (Plus.offered) (if (Plus.active) KeyServer.mapbox else "") else MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
     /** The token the map engine itself starts with: as [mbToken], except that the free version has one too (from the key server). */
     val mapToken: String get() = if (Plus.offered) KeyServer.mapbox else mbToken
@@ -491,7 +499,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun netRoutesRaw(from: LL, to: LL, alternatives: Boolean, departAtMs: Long, via: List<LL>, headingDeg: Double, quick: Boolean,
                              askBoth: Boolean): List<Route> {
         val now = System.currentTimeMillis()
-        val both = askBoth && !quick && hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" &&
+        val both = askBoth && !quick && !frugal && hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" &&
             !prefs.b(PreferenceKeys.ROUTE_ECO, false) && !prefs.b(PreferenceKeys.AVOID_TRAIN, false) && now >= ttDownUntil && now >= mbDownUntil
         if (!both) return withBackup { p -> lastRouteProvider = p; routesFrom(p, from, to, alternatives, departAtMs, via, headingDeg, quick) }
         val mainP = provider
@@ -755,7 +763,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (!satRefusedSaid && te.contains("satellite", true) && te.contains("429")) {
                 satRefusedSaid = true
                 // with a TomTom key, TomTom's satellite pictures stand in, without a word; without one, it's said why satellite is blank
-                if (hasKey && refusedKey != apiKey) map.setSatFallback("https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=" + java.net.URLEncoder.encode(apiKey, "UTF-8"))
+                // (not with Plus's shared keys: its key only works through the key server, and the shared daily picture allowance would
+                // soon run out)
+                if (!frugal && hasKey && refusedKey != apiKey) map.setSatFallback("https://api.tomtom.com/map/1/tile/sat/main/{z}/{x}/{y}.jpg?key=" + java.net.URLEncoder.encode(apiKey, "UTF-8"))
                 else scope.launch { toast(L.t("Mapbox's servers are turning down satellite pictures right now (too many requests). It's on Mapbox's side, not your token or the app: satellite should come back by itself, so try again later"), 12_000) }
             }
             val now = android.os.SystemClock.uptimeMillis()
@@ -4775,7 +4785,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         val now = System.currentTimeMillis()
         val moved = nearIncPos?.let { Geo.dist(it, pos) } ?: Double.MAX_VALUE
-        if (now - nearIncAt < 5 * 60_000L && moved < 4000.0) return
+        if (now - nearIncAt < (if (frugal) 15 else 5) * 60_000L && moved < (if (frugal) 8000.0 else 4000.0)) return
         if (now - nearIncAt < 60_000L) return
         nearIncAt = now; nearIncPos = pos
         val dLat = 0.065; val dLon = 0.065 / kotlin.math.cos(Math.toRadians(pos.lat)).coerceAtLeast(0.2)
@@ -5009,7 +5019,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val live = force || prefs.b(PreferenceKeys.LIVE_ALTERNATIVES, true)
         if (!force) {
             if (previewing || simMode != 0 || faster != null || !prefs.b(PreferenceKeys.FASTER_ROUTE, true) || shadow() || altBusy) return
-            if (remainingSecs < (if (live) 300 else 900) || now - lastFasterCheck < (if (live) 120_000L else 240_000L)) return
+            if (remainingSecs < (if (live) 300 else 900) || now - lastFasterCheck < (if (frugal) 480_000L else if (live) 120_000L else 240_000L)) return
         }
         // (driving a GPX track: a "faster" way would leave the track, so none is offered)
         if (trackVia.isNotEmpty()) return
@@ -5144,7 +5154,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (previewing || simMode != 0 || trafficBusy || !hasOnline || shadow()) return
         if (lastTrafficAt == 0L) { lastTrafficAt = now - 120_000L }   // first refresh about a minute after setting off
         // every 3 minutes, every 2 when you're crawling along (in a queue the time left goes stale fastest)
-        if (now - lastTrafficAt < (if (f.speed < 4.0) 120_000L else 180_000L)) return
+        if (now - lastTrafficAt < (if (frugal) (if (f.speed < 4.0) 240_000L else 360_000L) else if (f.speed < 4.0) 120_000L else 180_000L)) return
         lastTrafficAt = now
         trafficBusy = true
         val viaPts = routeVia()
@@ -5156,8 +5166,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { emptyList() }
                 if (route !== cur) return@launch
                 rs.firstOrNull()?.let { fresh -> refreshTraffic(cur, fresh, at) }
-                // and TomTom's view of the same road, on a Mapbox route
-                tomtomOverlay(cur, at)
+                // and TomTom's view of the same road, on a Mapbox route (not with Plus's shared keys: it doubled each refresh)
+                if (!frugal) tomtomOverlay(cur, at)
             } catch (e: Exception) { }
             finally { trafficBusy = false }
         }
@@ -5587,7 +5597,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!prefs.b(PreferenceKeys.PREDICT, true)) { prediction = null; return }
         if (route != null || previewing) return
         val now = System.currentTimeMillis()
-        if (!force && now - predictionAt < 300_000L) return
+        if (!force && now - predictionAt < (if (frugal) 900_000L else 300_000L)) return
         val here = fix?.pos ?: return
         predictionAt = now
         val cal = java.util.Calendar.getInstance()

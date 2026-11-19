@@ -48,6 +48,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Horizon Maps Plus uses its data more sparingly: with Plus, traffic on your route is checked every 6 minutes (4 in queues) and faster routes every 8, one route service is asked at a time, and nearby incidents and the suggested-destination card refresh less often. Routes still follow the traffic. The app with your own keys is unchanged
 - Clearer map while you look around: dragging or zooming the map with no route tucks away everything under the search bar, so you can see the map. Tap the search bar or its arrow, or re-centre, to bring it back (thanks to TouristCreepy1884)
 - Street lamps on Android Auto: the car screen now follows your Street lamps setting, like the trees and 3D details (thanks to ChrisSantosGarage)
 - New turn arrows: the arrows on the turn card are bolder, bend in a smooth curve and have a notched head, with the road you're leaving shown faintly behind them. Roundabouts show the other exits faintly too, with the exit number in the middle on a soft disc. The big lane arrows are unchanged. Android Auto's turn card gets the same arrows, including the roundabout with its real exit and number (thanks to karthikeyansr-lgtm)
