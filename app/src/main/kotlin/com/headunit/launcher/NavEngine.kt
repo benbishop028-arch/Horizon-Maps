@@ -1154,7 +1154,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (dim != mapLooksDark) mapLooksDark = dim
     }
 
+    /** The night look was picked (Always night) while the sun is up: the stars, street lamps and headlight beam stay off (#225). */
+    var daylightOutside by mutableStateOf(false)
+        private set
+
+    private fun updateDaylightOutside() {
+        val forced = if (isCar) prefs.s(PreferenceKeys.CARTHEME, "car") == "night" else prefs.s(PreferenceKeys.THEME, "auto") == "night"
+        val pos = fix?.pos ?: prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull()?.let { la -> prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull()?.let { lo -> LL(la, lo) } }
+        val v = forced && pos != null && Sun.isDay(pos.lat, pos.lon, System.currentTimeMillis())
+        if (v != daylightOutside) daylightOutside = v
+        map.daylightOutside = v
+    }
+
     private fun lightPreset(dark: Boolean): String {
+        try { updateDaylightOutside() } catch (e: Throwable) { }
         // the car screen goes by its own choice (Always day / Always night on the car), not the phone's: with the phone set to Night,
         // picking Always day on the car still left the car's map dark, and the other way round
         if (isCar) when (prefs.s(PreferenceKeys.CARTHEME, "car")) { "day" -> return "day"; "night" -> return "night" }

@@ -930,6 +930,21 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             main0.post { reinstall() }
         }
 
+    /**
+     * Set by the engine: true when the night look has been picked (Always night) but the sun is actually up. The map stays dark,
+     * but the street lamps aren't lit and the headlight beam is off, as they would be outside (bijindas, #225).
+     */
+    var daylightOutside = false
+        set(v) {
+            if (field == v) return
+            field = v
+            // (the lamps' lit pools are only added at night, so they're put back as on a day / night switch: twice a day at most)
+            main0.post { reinstall(); try { placeBeam() } catch (e: Throwable) { } }
+        }
+
+    /** Night as far as the lights go: dark, and really after dark. */
+    private val litNight get() = nightStyle && !daylightOutside
+
 
     // ---- extra 3D features (Settings > Map), see MapExtras.kt ----
     private var facadesOn = true
@@ -1248,7 +1263,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun placeBeam() {
         val bv = beamView
         val p = me
-        val night = lightPreset == "night" || lightPreset == "dusk"
+        val night = (lightPreset == "night" || lightPreset == "dusk") && !daylightOutside
         if (p == null || !beamOn || !night || satellite || bv.parent == null) { bv.clear(); return }
         try {
             val g = beamGeom(p) ?: run { bv.clear(); return }
@@ -1703,7 +1718,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         lampsCentre = null
         if (!lampsOn) { lampStage = "off"; return }
         Furniture.addModels(st)
-        val night = nightStyle
+        val night = litNight
         addS(st, GeoJsonSource.Builder("dl-lamps").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-lamp-pools").featureCollection(empty()).build())
         // at night, a soft warm pool of light on the road under each lamp (about 9 m across, growing with the map as you zoom)
@@ -1732,7 +1747,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val again = force || lampRoadsNew || last == null || Geo.dist(last, c) > 120.0
         if (!again || now - lampsAt < 1200L) return
         lampsBusy = true; lampsAt = now; lampsCentre = c; lampRoadsNew = false
-        val roads = lampRoads; val gap = lampGap; val night = nightStyle
+        val roads = lampRoads; val gap = lampGap; val night = litNight
         try {
             lampExec.execute {
                 try {

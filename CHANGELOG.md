@@ -62,6 +62,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Always night in daylight: with the map set to Always night, the stars, lit street lamps and headlight beam now only come on once it's actually dark outside, so the map stays dark by day without looking like the middle of the night (thanks to bijindas)
 - Bolder lane view: the big lane picture before a junction has thicker arrows, lane markings and road edges, so it reads at a glance. On roads with many lanes the arrows stay a little slimmer so they don't run into each other (thanks to karthikeyansr-lgtm)
 - Searched places lit up: pick a search result and the map now centres the place in the part of the screen the search bar and its card leave clear, with its building highlighted in blue (lighter at night, and raised with the 3D buildings). Places without a building just show the pin
 - Place card docked like Add a stop: tapping a search result now closes the keyboard, moves the map to the place and opens its card along the bottom of the screen (or down the driver's side on a head unit or a phone held sideways), instead of in the middle over the map. Works in day and night colours
@@ -134,6 +135,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Crash picking a search result: tapping a result while "See all locations" was showing at the top of the list could close the app on some phones (thanks to DJSatan)
 - Fuel and charging costs in rupees, kroner and more: the cost on the route options is now shown in the currency of the country you're driving in, and outside pound, euro and dollar countries the price box takes the price as normally written (₹107.40 a litre), where it used to read it as paise and show the cost 100 times too small (thanks to bijindas)
 - Still navigating after parking: switching the car off within 400 m of your destination now ends the trip, on Android Auto and on the phone, even if you parked too far from the door for the arrival to be noticed. Starting the app again right by the destination no longer picks the trip back up either (thanks to pc4096)
 - Music or radio stopping after directions: when a second direction came while the first was still being spoken, the app asked to lower the music again and never gave the first request back, so on some head units the music or radio stopped for good. The music is now always handed back once the voice has finished (thanks to adernev)

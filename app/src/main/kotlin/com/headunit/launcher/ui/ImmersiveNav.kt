@@ -1508,7 +1508,7 @@ private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
     // several branches of what was searched nearby (Lidl, Sainsbury's…): "See all N locations" at the top
     val chainN = remember(engine.results, q) { if (q.trim().length >= 2) engine.chainCount(q.trim()) else 0 }
     LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp).panel(10.dp, shape, c.surface).padding(vertical = 6.dp)) {
-        if (chainN >= 2) item { SeeAllRow(engine, q.trim(), chainN) { } }
+        if (chainN >= 2 && engine.results.isNotEmpty()) item { SeeAllRow(engine, q.trim(), chainN) { } }
         items(engine.results) { p ->
             Row(Modifier.fillMaxWidth().clickable { kb?.hide(); focus.clearFocus(); onPicked(); engine.openPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                 // a GPX track (GitHub #162): its pink route mark; otherwise the shop's own logo where there is one

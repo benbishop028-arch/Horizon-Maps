@@ -81,7 +81,9 @@ internal fun PlaceLogo(p: Place, size: Dp, fallback: @Composable () -> Unit) {
 @Composable
 internal fun SeeAllRow(engine: NavEngine, q: String, count: Int, onOpen: () -> Unit) {
     val c = LocalVw.current
-    val first = engine.results.firstOrNull { Logos.norm(it.name).startsWith(Logos.norm(q)) } ?: engine.results.first()
+    // (the results can empty while this row is still being drawn, as a result is tapped: nothing to show then, rather than a
+    // crash, GitHub #223)
+    val first = engine.results.firstOrNull { Logos.norm(it.name).startsWith(Logos.norm(q)) } ?: engine.results.firstOrNull() ?: return
     val here = engine.fix?.pos
     val nearest = if (here != null) engine.results.filter { Logos.norm(it.name).startsWith(Logos.norm(q)) }.minOfOrNull { Geo.dist(here, it.pos) } else null
     Row(
