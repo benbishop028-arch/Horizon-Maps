@@ -64,6 +64,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Turn card at motorway exits: the blue "EXIT 4" strip is gone. The exit number badge beside the road name already shows it, and the strip's arrows always pointed right, even for an exit on the left (thanks to mjdshibly)
 - Hazard radar without crossings: switching off Zebra crossings (Settings › On the map) now takes pedestrian crossings off the hazard radar too, so it only lists what matters to you as a driver (thanks to joel941703)
 - Problem reports: now include what ended the last few routes (which screen, and whether it was to Home, Work or elsewhere, never the place itself), to track down a route that cancels itself (thanks to carlb051)
 - Always night in daylight: with the map set to Always night, the stars, lit street lamps and headlight beam now only come on once it's actually dark outside, so the map stays dark by day without looking like the middle of the night (thanks to bijindas)
@@ -139,6 +140,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Faded lane arrows: in the big lane picture the faded arrows (lanes not to use) had brighter patches where their lines joined and where two arrows share a stem. Each lane's arrows are now drawn as one shape, so the faded ones are evenly faded (thanks to mjdshibly)
 - Roundabout arrows pointing the wrong way: on Mapbox routes the turn card's roundabout arrow often pointed somewhere other than the exit you take. It was drawn from the road's direction at the next turn after the roundabout rather than at the exit itself; the app now asks Mapbox for the exit's own position, so the arrow shows the exit you really take (thanks to mjdshibly)
 - Floating windows: in a freeform or split-screen window (Taskbar and similar), the app no longer hides the bars, which also hid the window's own title bar, so the window couldn't be dragged, resized or made full screen. Full screen still applies when the app has the whole screen (thanks to Grouchy_Promotion)
 - Words left in English: the hazard radar (Crossing, Speed bump, School, Bend left…, "now" and "in 1.2 km"), the traffic note on the "where you're going" suggestion (light traffic and so on), its Home and Work, the average speed card, the weather "in 20 min", "then" on the turn card and "usual" on a place's speed limit are now translated into every language (thanks to joel941703)

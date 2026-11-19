@@ -719,20 +719,30 @@ internal fun LaneHero(sec: LaneSec, maneuver: String, advice: String?, canvasH: 
                 }
                 val cx = xAt((f0 + f1) / 2f, h * 0.55f)
                 val dirs = lane.dirs.sortedBy { d -> if (if (anyFollow) d == lane.follow else laneMatches(d, maneuver)) 1 else 0 }
+                // Each colour's arrows go into one outline, stroked once: drawn as separate see-through lines, the faded arrows were
+                // brighter where the lines overlapped, at the joints and where two arrows share a stem (mjdshibly #231)
+                val outlines = LinkedHashMap<Float, androidx.compose.ui.graphics.Path>()
                 dirs.forEach { d ->
                     val hit = if (anyFollow) d == lane.follow else laneMatches(d, maneuver)
-                    val col = if (active && hit) Color.White else Color.White.copy(alpha = if (active) 0.5f else 0.35f)
+                    val alphaOf = if (active && hit) 1f else if (active) 0.5f else 0.35f
+                    val path = outlines.getOrPut(alphaOf) { androidx.compose.ui.graphics.Path() }
                     val baseY = h - 12.dp.toPx(); val midY = h * 0.5f
                     val len = 26.dp.toPx()
-                    drawLine(col.copy(alpha = col.alpha * a), o(cx, baseY), o(cx, midY), stroke, round)
-                    rotate(laneAngle(d), o(cx, midY)) {
-                        val tip = o(cx, midY - len)
-                        drawLine(col.copy(alpha = col.alpha * a), o(cx, midY), tip, stroke, round)
-                        val hd = minOf(12.dp.toPx(), laneW * 0.2f).coerceAtLeast(8.dp.toPx())
-                        drawLine(col.copy(alpha = col.alpha * a), tip, o(cx - hd, tip.y + hd), stroke, round)
-                        drawLine(col.copy(alpha = col.alpha * a), tip, o(cx + hd, tip.y + hd), stroke, round)
+                    val hd = minOf(12.dp.toPx(), laneW * 0.2f).coerceAtLeast(8.dp.toPx())
+                    // (the head turned by the lane's angle round the middle of the stem, as the canvas rotation did before)
+                    val rad = Math.toRadians(laneAngle(d).toDouble())
+                    val cs = kotlin.math.cos(rad).toFloat(); val sn = kotlin.math.sin(rad).toFloat()
+                    fun rot(x: Float, y: Float): androidx.compose.ui.geometry.Offset {
+                        val dx = x - cx; val dy = y - midY
+                        return o(cx + dx * cs - dy * sn, midY + dx * sn + dy * cs)
                     }
+                    val tip = rot(cx, midY - len); val l = rot(cx - hd, midY - len + hd); val r = rot(cx + hd, midY - len + hd)
+                    path.moveTo(cx, baseY); path.lineTo(cx, midY); path.lineTo(tip.x, tip.y)
+                    path.moveTo(l.x, l.y); path.lineTo(tip.x, tip.y); path.lineTo(r.x, r.y)
                 }
+                // (the faded ones first, the lit one on top)
+                for ((al, path) in outlines.entries.sortedBy { it.key }) drawPath(path, Color.White.copy(alpha = al * a),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = stroke, cap = round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
             }
             // solid road edges
             drawLine(Color.White.copy(alpha = 0.95f * a), o(xAt(0f, 0f), 0f), o(0f, h), 5.dp.toPx())

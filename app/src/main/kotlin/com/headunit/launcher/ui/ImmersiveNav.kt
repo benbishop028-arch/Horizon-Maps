@@ -1381,43 +1381,8 @@ internal fun ImmTurnCard(
                 Text(L.t("then"), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 2.dp))
             }
         }
-        // Explicit slip-road / motorway-exit cue. Lane guidance alone can be ambiguous on
-        // fast roads, so make the exit manoeuvre visible in the turn card as well.
-        val maneuverUpper = t.maneuver.uppercase()
-        val exitLike = t.exitNo.isNotBlank() ||
-            t.tag.startsWith("Exit", ignoreCase = true) ||
-            maneuverUpper.contains("EXIT") ||
-            maneuverUpper.contains("OFF_RAMP") ||
-            maneuverUpper == "TAKE_EXIT" ||
-            maneuverUpper.startsWith("MOTORWAY_EXIT")
-        // Only when the UK road sign below isn't shown: it already carries the exit, and the same thing twice on the card is clutter.
-        val signShown = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit"))
-        if (exitLike && !signShown && !maneuverUpper.startsWith("ROUNDABOUT")) {
-            val exitLabel = t.exitNo.ifBlank {
-                t.tag.replaceFirst(Regex("^Exit\\s*", RegexOption.IGNORE_CASE), "").trim().takeIf { it.isNotBlank() }.orEmpty()
-            }
-            Row(
-                Modifier.fillMaxWidth()
-                    .padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = 6.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF1554A8))
-                    .padding(horizontal = 10.dp, vertical = if (compact) 5.dp else 7.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("↗", color = Color.White, fontSize = if (compact) 19.sp else 22.sp, fontWeight = FontWeight.ExtraBold)
-                Text(
-                    if (exitLabel.isNotBlank()) L.t("EXIT  {0}", exitLabel) else L.t("EXIT / SLIP ROAD"),
-                    color = Color.White,
-                    fontSize = if (compact) 13.sp else 15.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(start = 7.dp)
-                )
-                Spacer(Modifier.weight(1f))
-                Text("↗", color = Color.White.copy(alpha = 0.9f), fontSize = if (compact) 18.sp else 20.sp, fontWeight = FontWeight.Bold)
-            }
-        }
+        // (the blue "EXIT" strip that used to sit here is gone: the exit's number badge beside the road name already says it, and its
+        // arrows always pointed right, even for an exit on the left: mjdshibly #232)
         // A proper UK direction sign: blue for motorways, green for primary roads, white for local roads.
         if (engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit")))
             UkSign(t.sign, t.tag.removePrefix("Exit ").takeIf { t.tag.startsWith("Exit") }.orEmpty(), t.street, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp))
