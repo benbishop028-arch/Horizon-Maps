@@ -2912,7 +2912,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun scheduleRecentre(ms: Long) {
         if (route == null || previewing) return
         val t = ++recentreToken
-        scope.launch { delay(ms); if (t == recentreToken && !following && route != null && !previewing && chain == null) recenter() }
+        scope.launch { delay(ms); if (t == recentreToken && !following && route != null && !previewing && chain == null && hereState == null) recenter() }
     }
 
     /** Shows the rest of the route on screen, then goes back to following the car after a few seconds. */
@@ -4757,7 +4757,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The What's here card; while it's open, a red pin marks the spot on the map. */
     var here: HereCard?
         get() = hereState
-        set(v) { hereState = v; try { map.setTapPin(v?.place?.pos) } catch (e: Exception) { } }
+        set(v) {
+            val was = hereState; hereState = v; try { map.setTapPin(v?.place?.pos) } catch (e: Exception) { }
+            // the card closed on a route with the map moved away: back to following you shortly
+            if (was != null && v == null && !following && route != null) scheduleRecentre(1_500)
+        }
 
     /**
      * The place preview (Dry-Secretary2456: like Google Maps'): what's here, then, as they arrive, the place's details from
@@ -4826,6 +4830,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (p.web.startsWith("gpx:") || pendingSave != null || !prefs.b(PreferenceKeys.WHATS_HERE, true)) { pickPlace(p); return }
         results = emptyList()
         showHere(p)
+        // the map goes to the place, clear of the card (as Add a stop's list does), and stays there while the card is open
+        if (!isCar) { following = false; try { map.showPlace(p.pos, layoutMirrored) } catch (e: Exception) { } }
     }
 
     /** Saves the What's here place as a favourite (or takes it off again). */

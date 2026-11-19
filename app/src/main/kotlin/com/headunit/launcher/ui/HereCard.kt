@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -73,7 +74,8 @@ import com.headunit.launcher.NavEngine
  * Call and Website aren't offered while the car is moving.
  */
 @Composable
-internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified) {
+internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androidx.compose.ui.unit.Dp = androidx.compose.ui.unit.Dp.Unspecified,
+                          docked: Boolean = false, tall: Boolean = false) {
     val c = LocalVw.current
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val dropped = h.place.name == "Dropped pin" || h.place.name == L.t("Dropped pin")
@@ -87,8 +89,11 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
     val moving = (engine.fix?.speed ?: 0.0) > 3.0
     val driving = engine.route != null && engine.dest != null
     Column(
-        Modifier.widthIn(max = 480.dp).fillMaxWidth().padding(horizontal = 16.dp)
-            .then(if (maxH != androidx.compose.ui.unit.Dp.Unspecified) Modifier.heightIn(max = maxH) else Modifier).panel(12.dp, RoundedCornerShape(24.dp), c.surface),
+        // (docked where Add a stop's list goes: the full width given, solid like that list, and full height down the side)
+        (if (docked) Modifier.fillMaxWidth() else Modifier.widthIn(max = 480.dp).fillMaxWidth().padding(horizontal = 16.dp))
+            .then(if (tall) Modifier.fillMaxHeight() else Modifier)
+            .then(if (maxH != androidx.compose.ui.unit.Dp.Unspecified) Modifier.heightIn(max = maxH) else Modifier)
+            .panel(12.dp, RoundedCornerShape(if (docked) 28.dp else 24.dp), if (docked) c.surface.copy(alpha = 1f) else c.surface),
     ) {
         Box(Modifier.fillMaxWidth().height(5.dp).background(Brush.horizontalGradient(listOf(accent, accent.copy(alpha = 0.25f)))))
         // (scrolls when the screen is too short for all of it, so nothing is cut off)

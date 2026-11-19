@@ -514,8 +514,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- What's here (holding on the map): the road, its limit and the area, with Go / Add as a stop
         engine.here?.let { h ->
-            // above everything else, so the route options (which reach up this far on a phone) can't cover its buttons
-            Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(bottom = 96.dp)) { HereCardView(engine, h, maxH = (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp - 140.dp).coerceAtLeast(200.dp)) }
+            // where Add a stop's list goes: along the bottom on a phone held upright, down the driver's side otherwise, with the
+            // map moved so the place shows in the rest of the screen. Above everything else, so nothing covers its buttons
+            if (narrow) Box(Modifier.align(Alignment.BottomCenter).zIndex(8f).padding(16.dp).fillMaxWidth()) {
+                HereCardView(engine, h, maxH = maxHeight * 0.45f, docked = true)
+            } else Box(Modifier.align(side(Alignment.TopStart)).zIndex(8f).padding(16.dp).width(420.dp).fillMaxHeight()) {
+                HereCardView(engine, h, docked = true, tall = true)
+            }
         }
 
         // ---- the routes box, folded out beside the buttons by Other routes (as in Google Maps): your route and the other ways, with
@@ -984,7 +989,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     val nButtons = (if (evPct != null) 3 else 2) + (if (canShare) 1 else 0)
                     val oneLine = maxWidth >= (nStats * 74 + nButtons * 42 + 30).dp
                     val figures: @Composable (Modifier) -> Unit = { m ->
-                        Row(m, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        // (grouped together on the left: spread across the card they looked stretched out)
+                        Row(m, horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                             ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) L.t("+{0} min", e.delayMin) else L.t("time left"), dc, compact = true)
                             ImmStat(e.arrive, "arrival", c.text, compact = true)
                             ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text, compact = true)
@@ -1491,6 +1497,9 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
 
 @Composable
 private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
+    // (a place picked: the keyboard goes, so the place's card and the map have the screen)
+    val kb = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+    val focus = androidx.compose.ui.platform.LocalFocusManager.current
     val c = LocalVw.current
     val shape = RoundedCornerShape(26.dp)
     val here = engine.fix?.pos
@@ -1499,7 +1508,7 @@ private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
     LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp).panel(10.dp, shape, c.surface).padding(vertical = 6.dp)) {
         if (chainN >= 2) item { SeeAllRow(engine, q.trim(), chainN) { } }
         items(engine.results) { p ->
-            Row(Modifier.fillMaxWidth().clickable { onPicked(); engine.openPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().clickable { kb?.hide(); focus.clearFocus(); onPicked(); engine.openPlace(p) }.padding(horizontal = 16.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
                 // a GPX track (GitHub #162): its pink route mark; otherwise the shop's own logo where there is one
                 if (p.web.startsWith("gpx:")) Box(Modifier.size(42.dp).clip(CircleShape).background(Color(0xFFD4537E).copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
                     Icon(Icons.Rounded.Route, null, tint = Color(0xFFD4537E), modifier = Modifier.size(22.dp))

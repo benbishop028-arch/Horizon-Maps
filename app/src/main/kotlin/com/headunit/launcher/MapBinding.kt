@@ -4945,6 +4945,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** All the branches fitted into the part of the map beside the list (on the driver's side: left, or right when [mirrored]). */
+    /** One place, about a street's width around it, in the part of the screen the place card (docked like Add a stop's list) leaves. */
+    fun showPlace(pos: LL, mirrored: Boolean) {
+        val dLat = 0.0018; val dLon = dLat / Math.max(0.2, Math.cos(Math.toRadians(pos.lat)))
+        fitChain(listOf(LL(pos.lat - dLat, pos.lon - dLon), LL(pos.lat + dLat, pos.lon + dLon)), mirrored)
+    }
+
     fun fitChain(points: List<LL>, mirrored: Boolean) {
         val side = if (mapView.width > mapView.height) 0.40 else 0.06
         // (upright: the list is along the bottom and the turn card across the top, so the places go in the space between)

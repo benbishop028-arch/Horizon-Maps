@@ -60,6 +60,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Place card docked like Add a stop: tapping a search result now closes the keyboard, moves the map to the place and opens its card along the bottom of the screen (or down the driver's side on a head unit or a phone held sideways), instead of in the middle over the map. Works in day and night colours
+- Arrival card figures grouped: time left, arrival and distance to go now sit together on the left of the card instead of spread across it
 - Settings back button stays put: on phones held upright, the back arrow and the page name now sit in a bar at the top of each settings page instead of scrolling away, and the settings fade softly at the top and bottom edges (thanks to yurividal)
 - Fuel estimate on Android Auto: the route choice on the car screen now shows roughly what each route costs in fuel or charging, as on the phone (thanks to pc4096)
 - Battery now, by 1%: the − and + by the battery on the route screen now go up and down 1% at a time, and keep going while held, instead of jumping in tens (thanks to Dry-Secretary2456)
