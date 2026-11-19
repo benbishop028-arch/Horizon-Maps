@@ -4312,7 +4312,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     private fun incidentLabel(i: Incident): String = when (i.cat) {
-        "roadWorks" -> "Roadworks"; "roadClosed" -> "Road closed"; "accident" -> "Accident"
+        "roadWorks" -> "Roadworks"; "roadClosed" -> "Road closed"; "accident" -> "Accident"; "breakdown" -> "Broken-down vehicle"
         "jam" -> "Traffic jam"; "laneClosed" -> "Lane closed"; "danger" -> "Hazard"
         else -> i.text.ifBlank { "Incident" }
     }
@@ -4972,7 +4972,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Looks them up for about 7 km round you, every 5 minutes, or sooner once you've gone 4 km. */
     private fun areaIncidents(pos: LL) {
-        if (!hasKey || !prefs.b(PreferenceKeys.INCIDENTS, true) || !prefs.b(PreferenceKeys.HAZARD_ICONS, true) || simMode != 0) {
+        val dgt = dgtOn(pos)
+        if ((!hasKey && !dgt) || !prefs.b(PreferenceKeys.INCIDENTS, true) || !prefs.b(PreferenceKeys.HAZARD_ICONS, true) || simMode != 0) {
             if (nearIncidents.isNotEmpty()) { nearIncidents = emptyList(); pushHazards(hzProgress) }
             return
         }
@@ -4984,9 +4985,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val dLat = 0.065; val dLon = 0.065 / kotlin.math.cos(Math.toRadians(pos.lat)).coerceAtLeast(0.2)
         scope.launch {
             val got = withContext(Dispatchers.IO) {
-                try { TomTomRest.incidents(apiKey, pos.lon - dLon, pos.lat - dLat, pos.lon + dLon, pos.lat + dLat) } catch (e: Exception) { null }
+                val tt = if (hasKey) try { TomTomRest.incidents(apiKey, pos.lon - dLon, pos.lat - dLat, pos.lon + dLon, pos.lat + dLat) } catch (e: Exception) { null } else emptyList()
+                // Spain: the DGT's own incidents too, with the V16 beacons of broken-down cars (free, no key needed)
+                val dg = if (dgt) try { DgtIncidents.near(pos.lon - dLon, pos.lat - dLat, pos.lon + dLon, pos.lat + dLat) } catch (e: Exception) { emptyList() } else emptyList()
+                if (tt == null && dg.isEmpty()) null else (tt ?: emptyList()) to dg
             } ?: return@launch
-            nearIncidents = got.filter { it.cat.lowercase() in setOf("roadclosed", "roadworks", "laneclosed") }.take(80)
+            val tt = got.first.filter { it.cat.lowercase() in setOf("roadclosed", "roadworks", "laneclosed") }
+            nearIncidents = (tt + withoutDuplicates(got.second.filter { hazardKind(it) >= 0 }, got.first)).take(80)
             pushHazards(hzProgress)
         }
     }
@@ -5000,13 +5005,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val shown = HashSet<String>()
             for ((inc, off, _) in incMatches) {
                 if (off <= progress - 20) continue
-                val k = when (inc.cat.lowercase()) { "roadclosed" -> 2; "roadworks", "laneclosed" -> 1; else -> -1 }
+                val k = hazardKind(inc)
                 if (k >= 0) { list += inc.pts.first() to k; shown += inc.id }
             }
             // roadworks and closures round about, on the route or not (as Google Maps and Waze show them)
             for (inc in nearIncidents) {
                 if (inc.id in shown || inc.pts.isEmpty()) continue
-                val k = when (inc.cat.lowercase()) { "roadclosed" -> 2; "roadworks", "laneclosed" -> 1; else -> -1 }
+                val k = hazardKind(inc)
                 if (k >= 0) list += inc.pts.first() to k
             }
         }
@@ -5017,12 +5022,28 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.setHazards(list)
     }
 
+    /** Spain's DGT incidents are used here: in Spain (or, before the country is known, inside its borders). */
+    private fun dgtOn(p: LL): Boolean = prefs.b(PreferenceKeys.INCIDENTS, true) &&
+        (detectedCountry.equals("ES", true) || (detectedCountry.isBlank() && DgtIncidents.inSpain(p)))
+
+    /** The map icon for an incident: roadworks and closures from anyone; accidents, hazards and broken-down cars from the DGT. */
+    private fun hazardKind(inc: Incident): Int = when (inc.cat.lowercase()) {
+        "roadclosed" -> 2; "roadworks", "laneclosed" -> 1
+        else -> if (!inc.id.startsWith("dgt-")) -1 else when (inc.cat) { "breakdown" -> reportIcon("breakdown"); "accident" -> reportIcon("accident"); "danger" -> reportIcon("hazard"); else -> -1 }
+    }
+
+    /** The DGT incidents that TomTom (or the route) doesn't already have within 100 m, so nothing is announced twice. */
+    private fun withoutDuplicates(dgt: List<Incident>, others: List<Incident>): List<Incident> =
+        dgt.filter { d -> others.none { o -> o.pts.isNotEmpty() && Geo.dist(o.pts.first(), d.pts.first()) < 100.0 } }
+
     private fun checkIncidents(r: Route, progress: Double) {
         try { if (camerasOn()) updateRouteCams(r, progress); pushHazards(progress) } catch (e: Exception) { }
         try { pushJams(progress) } catch (e: Exception) { }
         // TomTom's incident data when there's a key; otherwise the incidents that came with a Mapbox route
         val fromRoute = (!hasKey || ttDown()) && r.incidents.isNotEmpty()
-        if ((!hasKey && !fromRoute) || simMode != 0 || !prefs.b(PreferenceKeys.INCIDENTS, true)) { incidentAhead = null; return }
+        val here = r.pts.getOrNull(r.cum.indexOfFirst { it >= progress }.coerceAtLeast(0)) ?: r.pts.firstOrNull()
+        val dgt = here != null && dgtOn(here)
+        if ((!hasKey && !fromRoute && !dgt) || simMode != 0 || !prefs.b(PreferenceKeys.INCIDENTS, true)) { incidentAhead = null; return }
         val now = System.currentTimeMillis()
         if (now - incAt > 180_000) {
             incAt = now
@@ -5037,7 +5058,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             minLat = min(minLat, q.lat); maxLat = max(maxLat, q.lat); minLon = min(minLon, q.lon); maxLon = max(maxLon, q.lon)
                         }
                         if (!any) emptyList() else {
-                            val list = if (fromRoute) r.incidents else TomTomRest.incidents(apiKey, minLon - 0.01, minLat - 0.01, maxLon + 0.01, maxLat + 0.01)
+                            val dg = if (dgt) try { DgtIncidents.near(minLon - 0.01, minLat - 0.01, maxLon + 0.01, maxLat + 0.01) } catch (e: Exception) { emptyList() } else emptyList()
+                            val base = when {
+                                fromRoute -> r.incidents
+                                hasKey -> try { TomTomRest.incidents(apiKey, minLon - 0.01, minLat - 0.01, maxLon + 0.01, maxLat + 0.01) } catch (e: Exception) { if (dg.isEmpty()) throw e else emptyList() }
+                                else -> emptyList()
+                            }
+                            val list = base + withoutDuplicates(dg, base)
                             val out = ArrayList<Triple<Incident, Double, String>>()
                             for (inc in list) {
                                 var bestOff = -1.0; var bestD = 70.0

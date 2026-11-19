@@ -22,6 +22,7 @@ To work, the app sends requests to these services. A request contains only what 
 
 - **Mapbox:** map images, search and routes. The map engine may also send Mapbox anonymous usage information; you can turn this off from the (i) button in the corner of the map. [Mapbox privacy policy](https://www.mapbox.com/legal/privacy)
 - **TomTom:** routes, traffic and search. [TomTom privacy notice](https://www.tomtom.com/privacy/)
+- **DGT (Spain):** when you are in Spain, the app downloads the DGT's public file of live traffic incidents (nap.dgt.es). It is the same file for everyone: no position or other information about you is sent.
 - **OpenStreetMap services (Nominatim, Photon, Overpass):** place search, addresses, speed limits and road details near you.
 - **Open-Meteo and RainViewer:** the weather and rain radar for your area.
 - **Postcodes.io:** looking up UK postcodes you search for.

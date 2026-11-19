@@ -6,6 +6,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### New
 - Ukrainian: the whole app in Українська, with spoken directions, roundabout exits and voice commands. Picked by itself on a phone set to Ukrainian, or in Settings › Sound & voice › Language (thanks to Naryma, who has offered to check the wording)
+- Spain: live incidents from the DGT: accidents, roadworks, closures, hazards and the connected V16 beacons of broken-down cars, from the DGT National Access Point (nap.dgt.es), free and with no key. They show on the map round you and are announced on your route like TomTom's, and work even without a TomTom key. Incidents TomTom already has aren't repeated, and the file is only downloaded again when the DGT has changed it. Catalonia and the Basque Country publish theirs separately and aren't included yet (thanks to franciscoserranoadt)
 - Android Auto: the place card: tap a shop or business on the car's map, or pick a search result, and a simple card shows whether it's open, how far it is and when you'd arrive, a petrol station's price or a charger's plugs, with Go (and Add stop on a route)
 - Android Auto: your saved places under the search bar: Home and Work are joined by your starred places and favourites, as many as fit, with All for the rest. The list below now shows recent places only, so nothing appears twice
 - Android Auto: where you're probably heading: the green suggestion card from the app ("Work · 18 min") now shows under the search bar on the car too, with Go
