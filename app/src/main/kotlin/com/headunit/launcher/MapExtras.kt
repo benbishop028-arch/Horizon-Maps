@@ -113,11 +113,22 @@ internal object Sky {
         true
     } catch (e: Throwable) { android.util.Log.w("MapExtras", "weather: ${e.message}"); false }
 
-    /** 3D hills and valleys from Mapbox's elevation data (on), or flat (off). */
+    /**
+     * The hills' heights: Mapbox's own elevation data, or, in the free version (no Plus), the free open elevation tiles on Amazon's
+     * open data programme (Terrain Tiles, from Mapzen's Joerd), which need no account, so the free version's hills don't count
+     * towards the app's Mapbox use. Up to zoom 13 there: plenty for hills, and fewer pictures to fetch.
+     */
+    fun demSource(): RasterDemSource =
+        if (Plus.free) RasterDemSource.Builder("dl-dem").tiles(listOf("https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"))
+            .encoding(com.mapbox.maps.extension.style.sources.generated.Encoding.TERRARIUM).tileSize(256L).maxzoom(13L)
+            .attribution("Terrain Tiles: Mapzen, AWS Open Data").build()
+        else RasterDemSource.Builder("dl-dem").url("mapbox://mapbox.mapbox-terrain-dem-v1").tileSize(514L).maxzoom(14L).build()
+
+    /** 3D hills and valleys from elevation data (on), or flat (off). */
     fun terrain(st: Style, on: Boolean) {
         try {
             if (on) {
-                if (!st.styleSourceExists("dl-dem")) st.addSource(RasterDemSource.Builder("dl-dem").url("mapbox://mapbox.mapbox-terrain-dem-v1").tileSize(514L).maxzoom(14L).build())
+                if (!st.styleSourceExists("dl-dem")) st.addSource(demSource())
                 st.setTerrain(Terrain("dl-dem").exaggeration(1.0))
             } else {
                 try { st.removeTerrain() } catch (e: Throwable) { }

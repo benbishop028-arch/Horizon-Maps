@@ -557,7 +557,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * you as you type), topped up with Mapbox's when TomTom finds little; Settings > Keys & accounts > Search with can pick Mapbox
      * instead. Without a key it's Mapbox's (with OpenStreetMap's alongside), or OpenStreetMap's alone with neither.
      */
-    private fun netGeocode(country: String, q: String, near: LL?): List<Place> {
+    private fun netGeocode(country: String, q: String, near: LL?, typed: Boolean = false): List<Place> {
         val with = prefs.s(PreferenceKeys.SEARCHWITH, "auto")
         val tomtomOk = hasKey && refusedKey != apiKey && System.currentTimeMillis() >= ttDownUntil
         if (tomtomOk && (with == "tomtom" || (with == "auto") || !hasMapbox)) {
@@ -585,7 +585,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             return r
         }
         // no key or token: OpenStreetMap's free search
-        return OsmSearch.geocode(country, q, near)
+        return OsmSearch.geocode(country, q, near, typed)
     }
 
     private var ttSearchWarned = false
@@ -1884,7 +1884,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return (top + rest).map { it.first }.take(15)
     }
 
-    fun search(q: String) {
+    /**
+     * No key or token (the free version of Horizon Maps, or Horizon Nav without keys): searching uses OpenStreetMap's free public
+     * services, which ask apps not to search as you type. So the downloaded country pack and saved places answer first; as you
+     * type, the online search is only asked when they have fewer than 3 matches, and on a full search (the search key, voice, the
+     * car) when they have fewer than 5.
+     */
+    private val osmOnly: Boolean get() = !hasKey && !hasMapbox
+
+    fun search(q: String, typed: Boolean = false) {
         if (q.length < 2) { results = emptyList(); return }
         val near = fix?.pos ?: map.center()
         searchJob?.cancel()
@@ -1896,6 +1904,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (local.isEmpty()) toast(if (OfflinePlaces.installed(ctx) || OfflineRouter.hasPlaces(ctx) || OfflineRouter.hasAddresses(ctx)) "No signal, and nothing saved or downloaded matches" else "No signal. Download the offline pack or place names in Settings > Offline maps to search with no signal", 4500)
                 if (NetHealth.clockLooksWrong()) toast(L.t("The head unit's date and time look wrong. Set them right in its settings: until then, maps, search and routes can't connect even with signal."), 8000)
                 else toast(L.t("No signal: showing saved places and offline towns"), 3000)
+                return@launch
+            }
+            if (osmOnly) {
+                val local = offlineMatches(q, near)
+                if (local.size >= (if (typed) 3 else 5)) { results = postcodeFirst(postcodeJob(q), rankResults(q, near, emptyList(), local)); return@launch }
+                if (local.isNotEmpty()) results = rankResults(q, near, emptyList(), local)
+                val pcJob = postcodeJob(q)
+                val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+                val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
+                results = merged
+                if (merged.isEmpty() && !typed) toast(if (net == null) "Search failed: weak or no signal" else "No matches. Try adding a town or postcode.", 3500)
                 return@launch
             }
             // the online search and the saved / downloaded places run at the same time, and their results are merged
@@ -1942,6 +1961,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     suspend fun findPlaces(q: String): List<Place> {
         val near = fix?.pos ?: map.center()
         if (!online()) return offlineMatches(q, near)
+        // (free search: the downloaded lists first, as in the main search)
+        if (osmOnly) {
+            val local = offlineMatches(q, near)
+            if (local.size >= 5) return rankResults(q, near, emptyList(), local)
+            val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+            return rankResults(q, near, net ?: emptyList(), local)
+        }
         // both at once, as in the main search
         return kotlinx.coroutines.coroutineScope {
             val localJob = async { offlineMatches(q, near) }
@@ -2441,10 +2467,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val haveOffline = OfflineRouter.installed(ctx)
                     // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed
                     if (Plus.free && !haveOffline) throw IllegalStateException(L.t("download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus"))
-                    if (haveOffline && (!hasOnline || !online())) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, routeVia()) }
+                    if (haveOffline && (!hasOnline || !online())) { usedOffline = true; offlineRoutes(from, to.pos, routeVia()) }
                     else try { netRoutes(from, to.pos, true, departMs, routeVia(), askBoth = true, simple = true) }
                     catch (e: Exception) {
-                        if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; OfflineRouter.routes(ctx, from, to.pos, routeVia()) } else throw e
+                        if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; offlineRoutes(from, to.pos, routeVia()) } else throw e
                     }
                 }
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
@@ -2516,12 +2542,26 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return "$from → $to"
     }
 
+    /**
+     * Routes from the downloaded pack, with arrival times that allow for the usual traffic at this hour, or for how long the same
+     * trip really took you before ([JourneyTimes]): there's no live traffic for them, and the roads' own speeds alone ran early.
+     */
+    private fun offlineRoutes(from: LL, to: LL, via: List<LL>, hd: Double = -1.0): List<Route> {
+        val rs = OfflineRouter.routes(ctx, from, to, via, hd)
+        val at = if (departAtMs > System.currentTimeMillis()) departAtMs else System.currentTimeMillis()
+        return rs.map { r -> try { JourneyTimes.adjust(ctx, r, to, at) } catch (e: Exception) { r } }
+    }
+
+    /** The route's own time when this trip set off (offline routes), so the real time can be learnt on arrival; 0: not learnt. */
+    private var tripBase = 0.0
+
     fun beginNavigation() {
         if (!previewing) return
         map.stopFly()
         previewing = false
         // where this trip started, for "Route back" when you arrive
         tripFrom = fix?.pos
+        tripBase = route?.baseTime ?: 0.0
         // the other screen (phone or car) follows onto the same trip
         dest?.let { d -> try { RouteSync.started(this, d, via) } catch (e: Exception) { } }
         said.clear(); lastIdx = 0; zoomOffset = 0.0
@@ -2669,7 +2709,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      */
     private suspend fun fetchReroute(from: LL, to: LL, viaPts: List<LL>, hd: Double): Pair<List<Route>, Boolean> = withContext(Dispatchers.IO) {
         val haveOffline = OfflineRouter.installed(ctx)
-        if (haveOffline && (!hasOnline || !online())) return@withContext OfflineRouter.routes(ctx, from, to, viaPts, hd) to true
+        if (haveOffline && (!hasOnline || !online())) return@withContext offlineRoutes(from, to, viaPts, hd) to true
         val now = System.currentTimeMillis()
         val race = hasKey && hasMapbox && refusedKey != apiKey && prefs.s(PreferenceKeys.DATAPROV, "auto") == "auto" && !Vehicle.lorry &&
             !prefs.b(PreferenceKeys.ROUTE_ECO, false) && !prefs.b(PreferenceKeys.AVOID_TRAIN, false) && now >= ttDownUntil && now >= mbDownUntil
@@ -2689,7 +2729,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         try { netRoutes(from, to, false, 0L, viaPts, hd, true) to false }
         catch (e: Exception) {
-            if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) OfflineRouter.routes(ctx, from, to, viaPts, hd) to true else throw e
+            if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) offlineRoutes(from, to, viaPts, hd) to true else throw e
         }
     }
 
@@ -5539,6 +5579,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val dd = max(0.0, tripDist - navStartDist)
                 val sideA = try { arrivalSide(r, r.steps.lastOrNull()?.maneuver ?: "") } catch (e: Exception) { "" }
                 val a = ArrivalInfo(dest, dest?.name ?: "Destination", dd, secsT, if (secsT > 0) dd / secsT else 0.0, sideA)
+                // how long it really took, for next time ([JourneyTimes]; offline routes, real drives only)
+                val tf = tripFrom; val td = dest?.pos
+                if (tripBase > 0 && tf != null && td != null && simMode == 0 && (isCar || !RouteSync.carConnected())) {
+                    val b = tripBase; val st = navStartMs
+                    scope.launch(Dispatchers.IO) { try { JourneyTimes.record(ctx, tf, td, st, b, secsT) } catch (e: Exception) { } }
+                }
+                tripBase = 0.0
                 arrival = a
                 navStartMs = 0L
                 arrivalMoment(a)

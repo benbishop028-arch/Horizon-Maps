@@ -1701,7 +1701,7 @@ object I18nTr {
         "Plus is on: everything's ready, with no keys to set up." to "Plus açık: her şey hazır, ayarlanacak anahtar yok.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Ücretsiz sürümde Çevrimdışı paket adımında ülkenizi indirin: rotalarınız ondan planlanır.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus açık: harita, arama, rotalar ve trafik Horizon Maps’in kendi hesaplarını kullanır, bu yüzden eklenecek anahtar yok.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Ücretsiz sürüm OpenStreetMap kullanır, rotalar indirilen ülke paketinden gelir. Horizon Maps Plus 3D harita, uydu ve canlı trafik ekler, anahtar ayarlamadan.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ücretsiz sürüm OpenStreetMap kullanır, rotalar indirilen ülke paketinden gelir. Horizon Maps Plus ayrıntılı 3D binalar ve simge yapılar, uydu ve canlı trafik ekler, anahtar ayarlamadan.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "önce Ayarlar › Çevrimdışı haritalar’dan ülkenizi indirin (ücretsiz sürüm rotaları ondan planlar) ya da Horizon Maps Plus edinin",
     )
 }

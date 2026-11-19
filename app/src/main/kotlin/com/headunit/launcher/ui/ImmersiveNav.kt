@@ -228,7 +228,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val typingLocked by remember { derivedStateOf { (engine.fix?.speed ?: 0.0) > 3.0 && engine.prefs.b(PreferenceKeys.DRIVELOCK, true) } }
     val focus = remember { FocusRequester() }
     LaunchedEffect(q) {
-        if (q.length >= 3) { delay(500); engine.search(q) } else if (q.isEmpty()) engine.results = emptyList()
+        if (q.length >= 3) { delay(500); engine.search(q, typed = true) } else if (q.isEmpty()) engine.results = emptyList()
     }
     // text shared from another app goes into the search box
     LaunchedEffect(engine.externalQuery) { engine.externalQuery?.let { q = it; engine.externalQuery = null } }

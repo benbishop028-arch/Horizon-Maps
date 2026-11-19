@@ -873,7 +873,8 @@ object MapboxRest {
         }
         val pc = if (ukish && (UK_FULL.containsMatchIn(q.trim()) || UK_OUT.matches(q.trim()))) SearchJob(9000L) { ukPostcode(q) } else null
         // Photon (OpenStreetMap, free): good with half-typed addresses and house numbers near you
-        val osm = SearchJob(9000L) { OsmSearch.geocode(country, q, near) }
+        // (Photon only: Nominatim's rules don't allow it as an extra on every search)
+        val osm = SearchJob(9000L) { OsmSearch.geocode(country, q, near, typed = true) }
         val boxArr = box.join(); val geoArr = geo.join(); val pcPlace = pc?.join(); val osmList = osm.join()
         lastError = (box.error ?: geo.error)?.message?.takeIf { boxArr == null && geoArr == null }
         val out = ArrayList<Place>()

@@ -53,6 +53,16 @@ class Route(
     @Volatile var from: String = ""
     /** Picked first for having far fewer turns than the quickest (Prefer simpler routes): labelled "Simplest" on the route choice. */
     @Volatile var simpler: Boolean = false
+    /** An offline route's own time before the usual-traffic estimate ([JourneyTimes]) was added; 0 for other routes. */
+    @Volatile var baseTime: Double = 0.0
+
+    /** The same route taking [secs] (no live traffic), with everything else kept. */
+    fun withTime(secs: Double): Route {
+        val n = Route(pts, cum, steps, len, secs, 0.0, lanes, sev)
+        n.delays = delays; n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
+        n.baseTime = if (baseTime > 0) baseTime else time
+        return n
+    }
 }
 
 /** The posted limit [ms] (m/s) from [off] to [end] metres along a route. */
@@ -850,7 +860,17 @@ object OsmSearch {
         return body
     }
 
-    fun geocode(country: String, q: String, near: LL?): List<Place> {
+    /** Either service turned us away (too many requests, or blocked): both are left alone for a while. */
+    @Volatile private var restUntil = 0L
+    @Volatile private var lastNominatim = 0L
+
+    /**
+     * Both are free services run on donations, with fair-use rules: Nominatim allows at most one search a second and none as you
+     * type, so it's only asked on a full search ([typed] false) and never more than once a second; and a refusal from either
+     * rests both for 10 minutes (the app's own downloaded lists still answer meanwhile).
+     */
+    fun geocode(country: String, q: String, near: LL?, typed: Boolean = false): List<Place> {
+        if (System.currentTimeMillis() < restUntil) throw IOException("busy")
         val enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20")
         val cc = country.trim().uppercase()
         val out = ArrayList<Place>()
@@ -874,8 +894,13 @@ object OsmSearch {
                 val p = Place(name, sub, LL(co.getDouble(1), co.getDouble(0)))
                 if (out.none { it.name == p.name && Geo.dist(it.pos, p.pos) < 60 }) out += p
             }
-        } catch (e: Exception) { }
-        if (out.size < 5) try {
+        } catch (e: Exception) { refused(e) }
+        if (out.size < 5 && !typed) try {
+            synchronized(this) {
+                val wait = lastNominatim + 1100L - System.currentTimeMillis()
+                if (wait > 0) Thread.sleep(wait)
+                lastNominatim = System.currentTimeMillis()
+            }
             var url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=$enc"
             if (near != null) url += "&viewbox=${near.lon - 0.5},${near.lat + 0.35},${near.lon + 0.5},${near.lat - 0.35}"
             if (cc.isNotEmpty()) url += "&countrycodes=${cc.lowercase()}"
@@ -887,9 +912,14 @@ object OsmSearch {
                 val p = Place(x.optString("name").ifBlank { disp.substringBefore(',') }, disp.substringAfter(", ", ""), LL(x.getDouble("lat"), x.getDouble("lon")))
                 if (out.none { Geo.dist(it.pos, p.pos) < 60 }) out += p
             }
-        } catch (e: Exception) { }
+        } catch (e: Exception) { refused(e) }
         // neither could be reached: say so (the caller shows the saved and downloaded places instead)
         if (!anyOk) throw IOException("no signal")
         return out
+    }
+
+    private fun refused(e: Exception) {
+        val m = e.message ?: return
+        if (m.startsWith("HTTP 429") || m.startsWith("HTTP 403") || m.startsWith("HTTP 509")) restUntil = System.currentTimeMillis() + 10 * 60_000L
     }
 }

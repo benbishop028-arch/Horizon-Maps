@@ -1698,7 +1698,7 @@ object I18nE {
         "Plus is on: everything's ready, with no keys to set up." to listOf("Plus je vklopljen: vse je pripravljeno, brez ključev za nastavitev."),
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to listOf("Pri brezplačni različici v koraku Paket brez povezave prenesite svojo državo: iz nje se načrtujejo poti."),
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to listOf("Plus je vklopljen: zemljevid, iskanje, poti in promet uporabljajo račune Horizon Maps, zato ključev ni treba dodajati."),
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to listOf("Brezplačna različica uporablja OpenStreetMap, s potmi iz prenesenega paketa države. Horizon Maps Plus doda 3D zemljevid, satelit in promet v živo, brez ključev za nastavitev."),
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Brezplačna različica uporablja OpenStreetMap, s potmi iz prenesenega paketa države. Horizon Maps Plus doda podrobne 3D stavbe in znamenitosti, satelit in promet v živo, brez ključev za nastavitev."),
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to listOf("najprej prenesite svojo državo v Nastavitve › Zemljevidi brez povezave (brezplačna različica iz nje načrtuje poti) ali pridobite Horizon Maps Plus"),
     )
 }

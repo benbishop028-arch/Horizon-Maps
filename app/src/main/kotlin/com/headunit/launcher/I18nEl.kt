@@ -1701,7 +1701,7 @@ object I18nEl {
         "Plus is on: everything's ready, with no keys to set up." to "Το Plus είναι ενεργό: όλα είναι έτοιμα, χωρίς κλειδιά.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Με τη δωρεάν έκδοση, κατεβάστε τη χώρα σας στο βήμα Πακέτο εκτός σύνδεσης: από αυτό σχεδιάζονται οι διαδρομές.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Το Plus είναι ενεργό: χάρτης, αναζήτηση, διαδρομές και κίνηση χρησιμοποιούν τους λογαριασμούς του Horizon Maps, οπότε δεν χρειάζονται κλειδιά.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Η δωρεάν έκδοση χρησιμοποιεί το OpenStreetMap, με διαδρομές από το ληφθέν πακέτο χώρας. Το Horizon Maps Plus προσθέτει χάρτη 3D, δορυφόρο και ζωντανή κίνηση, χωρίς κλειδιά.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Η δωρεάν έκδοση χρησιμοποιεί το OpenStreetMap, με διαδρομές από το ληφθέν πακέτο χώρας. Το Horizon Maps Plus προσθέτει λεπτομερή κτίρια και αξιοθέατα 3D, δορυφόρο και ζωντανή κίνηση, χωρίς κλειδιά.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "κατεβάστε πρώτα τη χώρα σας στις Ρυθμίσεις › Χάρτες εκτός σύνδεσης (η δωρεάν έκδοση σχεδιάζει διαδρομές από αυτήν) ή αποκτήστε το Horizon Maps Plus",
     )
 }

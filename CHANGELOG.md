@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Learns your regular journeys: the app remembers how long your usual trips (the commute, the school run) really take at different times of day, and once it has seen a trip twice it uses that for the arrival time. Kept only on your phone
+- Arrival times that know the usual traffic: routes planned from your downloaded map (the free version, or anywhere without signal) now allow for the hold-ups that are normal at that time of day, more in the weekday rush hours and in towns than on motorways. Worked out on your phone, with nothing sent anywhere
 - Street names in other alphabets spoken: when a street name is in letters your voice can't read (a Hebrew name with an English voice, say), it's now said in the phone's voice for those letters instead of being skipped. Works for Hebrew, Arabic, Cyrillic, Greek, Thai, Chinese, Japanese, Korean and more, if the phone has that voice (thanks to Dotancom)
 - Fuel prices in Add a stop: tap the fuel icon in Add a stop and each petrol station along your route shows the price of your fuel, with the cheapest in green and the detour time under it. A new Cheapest tab sits next to Least detour, and priced stations the map search missed are added to the list. Prices come from the same place as the fuel list (Fuel Finder in the UK, and the price services in France, Austria, Italy, Germany and NSW)
 - Russian: the whole app in Russian (Русский), on the phone, head unit and Android Auto, with spoken directions ("Через 200 м поверните налево", "выполните второй съезд") and Russian voice commands. Phones set to Russian pick it up by themselves; others can choose it in Settings › Sound & voice › Language (thanks to Zerux)
@@ -48,6 +50,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Clearer Plus description: Settings now says Horizon Maps Plus adds detailed 3D buildings and landmarks (the free version already has simpler 3D buildings), satellite and live traffic
+- Free 3D hills: in the free version, hills and 3D terrain now come from free open elevation data (Terrain Tiles on Amazon's open data programme) instead of Mapbox
+- Free search, more reliable: without keys, search looks in your downloaded country pack and saved places first, and only asks OpenStreetMap's free online search when they don't have enough, and not on every letter you type. Those free services ask apps not to search as you type, and could otherwise start turning the app away
 - Horizon Maps Plus uses its data more sparingly: with Plus, traffic on your route is checked every 6 minutes (4 in queues) and faster routes every 8, one route service is asked at a time, and nearby incidents and the suggested-destination card refresh less often. Routes still follow the traffic. The app with your own keys is unchanged
 - Clearer map while you look around: dragging or zooming the map with no route tucks away everything under the search bar, so you can see the map. Tap the search bar or its arrow, or re-centre, to bring it back (thanks to TouristCreepy1884)
 - Street lamps on Android Auto: the car screen now follows your Street lamps setting, like the trees and 3D details (thanks to ChrisSantosGarage)

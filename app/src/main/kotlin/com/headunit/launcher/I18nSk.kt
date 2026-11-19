@@ -1701,7 +1701,7 @@ object I18nSk {
         "Plus is on: everything's ready, with no keys to set up." to "Plus je zapnutý: všetko je pripravené, bez nastavovania kľúčov.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Pri bezplatnej verzii si v kroku Offline balík stiahnite svoju krajinu: z neho sa plánujú trasy.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je zapnutý: mapa, hľadanie, trasy a doprava používajú účty Horizon Maps, takže netreba pridávať kľúče.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Bezplatná verzia používa OpenStreetMap s trasami zo stiahnutého balíka krajiny. Horizon Maps Plus pridáva 3D mapu, satelit a živú dopravu, bez nastavovania kľúčov.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verzia používa OpenStreetMap s trasami zo stiahnutého balíka krajiny. Horizon Maps Plus pridáva podrobné 3D budovy a pamiatky, satelit a živú dopravu, bez nastavovania kľúčov.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "najprv si stiahnite krajinu v Nastavenia › Offline mapy (bezplatná verzia z nej plánuje trasy), alebo si zaobstarajte Horizon Maps Plus",
     )
 }

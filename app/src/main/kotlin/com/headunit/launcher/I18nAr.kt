@@ -1701,7 +1701,7 @@ object I18nAr {
         "Plus is on: everything's ready, with no keys to set up." to "Plus مفعّل: كل شيء جاهز دون إعداد مفاتيح.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "مع النسخة المجانية، نزّل دولتك في خطوة الحزمة دون اتصال: منها تُخطط طرقك.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus مفعّل: الخريطة والبحث والطرق وحركة المرور تستخدم حسابات Horizon Maps الخاصة، فلا حاجة لإضافة مفاتيح.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "تستخدم النسخة المجانية OpenStreetMap، مع طرق من حزمة الدولة المُنزّلة. يضيف Horizon Maps Plus الخريطة ثلاثية الأبعاد والقمر الصناعي وحركة المرور المباشرة دون إعداد مفاتيح.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "تستخدم النسخة المجانية OpenStreetMap، مع طرق من حزمة الدولة المُنزّلة. يضيف Horizon Maps Plus مباني ومعالم ثلاثية الأبعاد مفصّلة والقمر الصناعي وحركة المرور المباشرة دون إعداد مفاتيح.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "نزّل دولتك أولًا من الإعدادات › الخرائط دون اتصال (النسخة المجانية تخطط الطرق منها)، أو احصل على Horizon Maps Plus",
     )
 }

@@ -206,7 +206,7 @@ private fun HomeWorkStep(engine: NavEngine) {
     var which by remember { mutableStateOf<String?>(null) }
     var q by remember { mutableStateOf("") }
     var rev by remember { mutableIntStateOf(0) }
-    LaunchedEffect(q) { if (q.length >= 3) { delay(450); engine.search(q) } else engine.results = emptyList() }
+    LaunchedEffect(q) { if (q.length >= 3) { delay(450); engine.search(q, typed = true) } else engine.results = emptyList() }
     @Suppress("UNUSED_VARIABLE") val r = rev
     // where to look: the country you're in (worked out from the GPS) or anywhere
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

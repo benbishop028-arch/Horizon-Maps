@@ -1701,7 +1701,7 @@ object I18nEu {
         "Plus is on: everything's ready, with no keys to set up." to "Plus aktibo dago: dena prest, gakorik konfiguratu gabe.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Doako bertsioarekin, deskargatu zure herrialdea Lineaz kanpoko paketea urratsean: hortik planifikatzen dira ibilbideak.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus aktibo dago: mapak, bilaketak, ibilbideek eta trafikoak Horizon Maps-en kontuak erabiltzen dituzte, beraz ez dago gakorik gehitzeko.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Doako bertsioak OpenStreetMap erabiltzen du, deskargatutako herrialde-paketeko ibilbideekin. Horizon Maps Plus-ek 3D mapa, satelitea eta zuzeneko trafikoa gehitzen ditu, gakorik konfiguratu gabe.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Doako bertsioak OpenStreetMap erabiltzen du, deskargatutako herrialde-paketeko ibilbideekin. Horizon Maps Plus-ek 3D eraikin eta leku ezagun xehatuak, satelitea eta zuzeneko trafikoa gehitzen ditu, gakorik konfiguratu gabe.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "deskargatu lehenik zure herrialdea Ezarpenak › Lineaz kanpoko mapak atalean (doako bertsioak hortik planifikatzen ditu ibilbideak) edo lortu Horizon Maps Plus",
     )
 }

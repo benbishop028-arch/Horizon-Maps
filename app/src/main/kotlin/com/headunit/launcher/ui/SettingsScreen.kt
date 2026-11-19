@@ -1338,7 +1338,7 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     if (com.headunit.launcher.Plus.offered) {
         SGroup(L.t("Map accounts")) {
             SNote(if (com.headunit.launcher.Plus.active) L.t("Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add.")
-                else L.t("The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up."))
+                else L.t("The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up."))
         }
         return
     }

@@ -1701,7 +1701,7 @@ object I18nHu {
         "Plus is on: everything's ready, with no keys to set up." to "A Plus be van kapcsolva: minden kész, kulcsok beállítása nélkül.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Az ingyenes verzióban töltsd le az országodat az Offline csomag lépésben: abból tervezi az útvonalakat.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "A Plus be van kapcsolva: a térkép, a keresés, az útvonalak és a forgalom a Horizon Maps saját fiókjait használják, így nem kell kulcsokat megadni.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Az ingyenes verzió az OpenStreetMapet használja, az útvonalak a letöltött országcsomagból jönnek. A Horizon Maps Plus 3D térképet, műholdat és élő forgalmat ad, kulcsok beállítása nélkül.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Az ingyenes verzió az OpenStreetMapet használja, az útvonalak a letöltött országcsomagból jönnek. A Horizon Maps Plus részletes 3D épületeket és nevezetességeket, műholdat és élő forgalmat ad, kulcsok beállítása nélkül.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "előbb töltsd le az országodat a Beállítások › Offline térképek alatt (az ingyenes verzió abból tervez útvonalat), vagy szerezd be a Horizon Maps Plust",
     )
 }

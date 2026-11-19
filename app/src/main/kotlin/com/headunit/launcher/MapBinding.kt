@@ -4513,7 +4513,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun installHills(st: Style) {
         try {
             if (!hillsOn || satellite || !slotsOn || mapDetail == "lightest") { if (st.styleLayerExists("dl-hills")) st.removeStyleLayer("dl-hills"); return }
-            if (!st.styleSourceExists("dl-dem")) st.addSource(RasterDemSource.Builder("dl-dem").url("mapbox://mapbox.mapbox-terrain-dem-v1").tileSize(514L).maxzoom(14L).build())
+            if (!st.styleSourceExists("dl-dem")) st.addSource(Sky.demSource())
             if (st.styleLayerExists("dl-hills")) st.removeStyleLayer("dl-hills")
             val night = lightPreset == "night" || lightPreset == "dusk"
             addL(st, HillshadeLayer("dl-hills", "dl-dem").inSlot("bottom").maxZoom(17.0)

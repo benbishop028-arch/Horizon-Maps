@@ -1701,7 +1701,7 @@ object I18nRu {
         "Plus is on: everything's ready, with no keys to set up." to "Plus включён: всё готово, ключи настраивать не нужно.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "В бесплатной версии скачайте свою страну на шаге «Офлайн-пакет»: по нему строятся маршруты.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus включён: карта, поиск, маршруты и пробки используют аккаунты Horizon Maps, поэтому ключи добавлять не нужно.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Бесплатная версия использует OpenStreetMap и маршруты из скачанного пакета страны. Horizon Maps Plus добавляет 3D-карту, спутник и пробки в реальном времени без настройки ключей.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Бесплатная версия использует OpenStreetMap и маршруты из скачанного пакета страны. Horizon Maps Plus добавляет детализированные 3D-здания и достопримечательности, спутник и пробки в реальном времени без настройки ключей.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "сначала скачайте свою страну в Настройки › Офлайн-карты (бесплатная версия строит маршруты по нему) или оформите Horizon Maps Plus",
     )
 }

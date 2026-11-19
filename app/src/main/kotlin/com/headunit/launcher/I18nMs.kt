@@ -1701,7 +1701,7 @@ object I18nMs {
         "Plus is on: everything's ready, with no keys to set up." to "Plus aktif: semuanya sedia, tiada kunci untuk ditetapkan.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Dengan versi percuma, muat turun negara anda dalam langkah Pek luar talian: ia merancang laluan anda.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus aktif: peta, carian, laluan dan trafik menggunakan akaun Horizon Maps sendiri, jadi tiada kunci untuk ditambah.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah peta 3D, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah bangunan dan mercu tanda 3D yang terperinci, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "muat turun negara anda dahulu dalam Tetapan › Peta luar talian (versi percuma merancang laluan daripadanya), atau dapatkan Horizon Maps Plus",
     )
 }

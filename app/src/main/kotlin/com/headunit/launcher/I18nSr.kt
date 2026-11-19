@@ -1701,7 +1701,7 @@ object I18nSr {
         "Plus is on: everything's ready, with no keys to set up." to "Plus је укључен: све је спремно, без кључева за подешавање.",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "У бесплатној верзији преузми своју државу у кораку Офлајн пакет: из њега се планирају руте.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus је укључен: мапа, претрага, руте и саобраћај користе налоге Horizon Maps-а, па не мораш да додајеш кључеве.",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "Бесплатна верзија користи OpenStreetMap, са рутама из преузетог пакета државе. Horizon Maps Plus додаје 3D мапу, сателит и саобраћај уживо, без кључева за подешавање.",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Бесплатна верзија користи OpenStreetMap, са рутама из преузетог пакета државе. Horizon Maps Plus додаје детаљне 3D зграде и знаменитости, сателит и саобраћај уживо, без кључева за подешавање.",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "прво преузми своју државу у Подешавања › Офлајн мапе (бесплатна верзија из ње планира руте) или набави Horizon Maps Plus",
     )
 }

@@ -1701,7 +1701,7 @@ object I18nZhHans {
         "Plus is on: everything's ready, with no keys to set up." to "Plus 已开启:一切就绪,无需设置密钥。",
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "使用免费版时,请在“离线数据包”步骤下载你的国家:路线由它规划。",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus 已开启:地图、搜索、路线和路况都使用 Horizon Maps 自己的账户,因此无需添加密钥。",
-        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds the 3D map, satellite and live traffic, with no keys to set up." to "免费版使用 OpenStreetMap,路线来自下载的国家数据包。Horizon Maps Plus 增加 3D 地图、卫星和实时路况,无需设置密钥。",
+        "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "免费版使用 OpenStreetMap,路线来自下载的国家数据包。Horizon Maps Plus 增加精细的 3D 建筑和地标、卫星和实时路况,无需设置密钥。",
         "download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus" to "请先在“设置 › 离线地图”下载你的国家(免费版由它规划路线),或获取 Horizon Maps Plus",
     )
 }
