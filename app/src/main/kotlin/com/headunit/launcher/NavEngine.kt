@@ -4813,6 +4813,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return L.t(FuelFinder.fuelName(fuel)) + " " + fmtFuelPrice(pr.pence, "p")
     }
 
+    /** "On my way to …, arriving about 10:42 (24 min)" with a map link to the destination, to send from the trip card (#213). */
+    fun etaShareText(): String? {
+        val e = eta ?: return null
+        val d = dest ?: return null
+        val link = String.format(java.util.Locale.US, "https://www.openstreetmap.org/?mlat=%.6f&mlon=%.6f#map=17/%.6f/%.6f", d.pos.lat, d.pos.lon, d.pos.lat, d.pos.lon)
+        return L.t("On my way to {0}, arriving about {1} ({2}).", d.name, e.arrive, Geo.fmtDur(e.secs)) + "\n" + link
+    }
+
     /** A place picked from the search results: its preview first (GPX tracks and saving Home / Work as before). */
     fun openPlace(p: Place) {
         if (p.web.startsWith("gpx:") || pendingSave != null || !prefs.b(PreferenceKeys.WHATS_HERE, true)) { pickPlace(p); return }

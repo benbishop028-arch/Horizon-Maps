@@ -1702,6 +1702,8 @@ object I18nEsAr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Con la versión gratuita, descargá tu país en el paso Paquete sin conexión: es lo que planifica tus rutas.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus está activado: el mapa, la búsqueda, las rutas y el tránsito usan las cuentas de Horizon Maps, así que no hay claves que agregar.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "La versión gratuita usa OpenStreetMap, con rutas de tu paquete de país descargado. Horizon Maps Plus suma edificios y monumentos 3D detallados, el satélite y el tránsito en vivo, sin claves que configurar.",
+        "Send arrival time" to "Enviar hora de llegada",
+        "On my way to {0}, arriving about {1} ({2})." to "Voy camino a {0}, llego tipo {1} ({2}).",
         "Open now" to "Abierto ahora",
         "Closed" to "Cerrado",
         "closes {0}" to "cierra a las {0}",

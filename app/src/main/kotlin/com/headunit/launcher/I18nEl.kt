@@ -1702,6 +1702,8 @@ object I18nEl {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Με τη δωρεάν έκδοση, κατεβάστε τη χώρα σας στο βήμα Πακέτο εκτός σύνδεσης: από αυτό σχεδιάζονται οι διαδρομές.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Το Plus είναι ενεργό: χάρτης, αναζήτηση, διαδρομές και κίνηση χρησιμοποιούν τους λογαριασμούς του Horizon Maps, οπότε δεν χρειάζονται κλειδιά.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Η δωρεάν έκδοση χρησιμοποιεί το OpenStreetMap, με διαδρομές από το ληφθέν πακέτο χώρας. Το Horizon Maps Plus προσθέτει λεπτομερή κτίρια και αξιοθέατα 3D, δορυφόρο και ζωντανή κίνηση, χωρίς κλειδιά.",
+        "Send arrival time" to "Αποστολή ώρας άφιξης",
+        "On my way to {0}, arriving about {1} ({2})." to "Πηγαίνω προς {0}, φτάνω γύρω στις {1} ({2}).",
         "Open now" to "Ανοιχτό τώρα",
         "Closed" to "Κλειστό",
         "closes {0}" to "κλείνει στις {0}",

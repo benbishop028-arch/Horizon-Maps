@@ -1702,6 +1702,8 @@ object I18nDa {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Med gratisversionen skal du downloade dit land i trinnet Offlinepakke: den planlægger dine ruter.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus er slået til: kort, søgning, ruter og trafik bruger Horizon Maps' egne konti, så der er ingen nøgler at tilføje.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversionen bruger OpenStreetMap med ruter fra din downloadede landepakke. Horizon Maps Plus tilføjer detaljerede 3D-bygninger og vartegn, satellit og trafik live, uden nøgler at sætte op.",
+        "Send arrival time" to "Send ankomsttid",
+        "On my way to {0}, arriving about {1} ({2})." to "På vej til {0}, er der omkring {1} ({2}).",
         "Open now" to "Åben nu",
         "Closed" to "Lukket",
         "closes {0}" to "lukker {0}",

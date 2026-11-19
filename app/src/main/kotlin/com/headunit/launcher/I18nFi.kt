@@ -1702,6 +1702,8 @@ object I18nFi {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Ilmaisessa versiossa lataa maasi Offline-paketti-vaiheessa: siitä reitit suunnitellaan.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus on päällä: kartta, haku, reitit ja liikenne käyttävät Horizon Mapsin omia tilejä, joten avaimia ei tarvitse lisätä.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ilmainen versio käyttää OpenStreetMapia, ja reitit tulevat ladatusta maapaketista. Horizon Maps Plus tuo yksityiskohtaiset 3D-rakennukset ja maamerkit, satelliitin ja reaaliaikaisen liikenteen ilman avaimia.",
+        "Send arrival time" to "Lähetä saapumisaika",
+        "On my way to {0}, arriving about {1} ({2})." to "Matkalla kohteeseen {0}, perillä noin {1} ({2}).",
         "Open now" to "Avoinna nyt",
         "Closed" to "Suljettu",
         "closes {0}" to "sulkeutuu {0}",

@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Send your arrival time: a new button on the trip card opens your phone's share menu with a message ready ("On my way to …, arriving about 10:42") and a map link, to send by WhatsApp, text or anything else. It shows while you're stopped, so nobody picks a contact while driving (thanks to Dotancom)
 - Fuel prices in Spain: every petrol station's live prices from the Spanish Ministry for the Ecological Transition (free, no key), in the fuel list, Cheapest in Add a stop and the fuel stop suggestions. Kept on the device and refreshed every few hours, so prices still show if the service is down for a while (thanks to franciscoserranoadt)
 - Place preview: tap a shop or business on the map, or a search result, and a card shows what it is, whether it's open now and until when, Go with the drive time, Add stop, and Save, Call, Website, Share and Start here, then the address, opening hours, a petrol station's price or a charger's plugs. The details come from OpenStreetMap; Call and Website hide while you're moving (thanks to Dry-Secretary2456)
 - Learns your regular journeys: the app remembers how long your usual trips (the commute, the school run) really take at different times of day, and once it has seen a trip twice it uses that for the arrival time. Kept only on your phone

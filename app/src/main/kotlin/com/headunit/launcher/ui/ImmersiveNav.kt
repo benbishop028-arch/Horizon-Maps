@@ -51,6 +51,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.material.icons.rounded.Stop
@@ -951,7 +952,15 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text)
                     if (evStat) ImmStat("$evPct%", L.t("battery at arrival"), evCol)
                 }
+                // send your arrival time (WhatsApp, a text...): only while stopped, so nobody picks a contact while driving (#213)
+                val shareCtx = androidx.compose.ui.platform.LocalContext.current
+                val canShare = (engine.fix?.speed ?: 0.0) < 2.0
+                val share = { engine.etaShareText()?.let { t ->
+                    val i = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain").putExtra(android.content.Intent.EXTRA_TEXT, t)
+                    try { shareCtx.startActivity(android.content.Intent.createChooser(i, L.t("Send arrival time")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (x: Exception) { }
+                } }
                 val buttons: @Composable () -> Unit = {
+                    if (canShare) ImmCircle({ share() }, 44.dp) { Icon(Icons.Rounded.Send, L.t("Send arrival time"), tint = c.accent, modifier = Modifier.size(21.dp)) }
                     // electric: chargers along the route from here
                     // (voice and sound moved off the card: sound is a big button at the top right, voice is in Map options > This trip)
                     // add a stop (or see the stops) on the way
@@ -972,7 +981,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     // all fit (an electric car adds a fourth figure and a fifth button), the buttons go on a line under the figures:
                     // squeezed onto one line the figures ran into each other ("21 min14:1216 km75")
                     val nStats = if (evStat) 4 else 3
-                    val nButtons = if (evPct != null) 3 else 2
+                    val nButtons = (if (evPct != null) 3 else 2) + (if (canShare) 1 else 0)
                     val oneLine = maxWidth >= (nStats * 74 + nButtons * 42 + 30).dp
                     val figures: @Composable (Modifier) -> Unit = { m ->
                         Row(m, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -984,6 +993,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     }
                     val smallButtons: @Composable (Modifier) -> Unit = { m ->
                         Row(m, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            if (canShare) ImmCircle({ share() }, 40.dp) { Icon(Icons.Rounded.Send, L.t("Send arrival time"), tint = c.accent, modifier = Modifier.size(19.dp)) }
                             ImmCircle({ engine.stopsEditor = true }, 40.dp) { Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(20.dp)) }
                             if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(20.dp)) }
                             Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {

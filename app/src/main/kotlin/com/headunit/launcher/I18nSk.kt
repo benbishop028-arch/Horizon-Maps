@@ -1702,6 +1702,8 @@ object I18nSk {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Pri bezplatnej verzii si v kroku Offline balík stiahnite svoju krajinu: z neho sa plánujú trasy.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je zapnutý: mapa, hľadanie, trasy a doprava používajú účty Horizon Maps, takže netreba pridávať kľúče.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verzia používa OpenStreetMap s trasami zo stiahnutého balíka krajiny. Horizon Maps Plus pridáva podrobné 3D budovy a pamiatky, satelit a živú dopravu, bez nastavovania kľúčov.",
+        "Send arrival time" to "Poslať čas príchodu",
+        "On my way to {0}, arriving about {1} ({2})." to "Idem do {0}, budem tam okolo {1} ({2}).",
         "Open now" to "Teraz otvorené",
         "Closed" to "Zatvorené",
         "closes {0}" to "zatvára o {0}",
