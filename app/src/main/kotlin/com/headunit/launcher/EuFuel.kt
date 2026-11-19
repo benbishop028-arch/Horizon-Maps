@@ -22,7 +22,7 @@ object EuFuel {
 
     /** Countries with a price service here (Germany only once a Tankerkönig key is in). */
     fun supported(country: String, prefs: Prefs): Boolean = when (country.uppercase()) {
-        "FR", "AT", "IT" -> true
+        "FR", "AT", "IT", "ES" -> true
         "DE" -> prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").isNotBlank()
         "AU" -> prefs.s(PreferenceKeys.NSW_FUEL_KEY, "").isNotBlank() && prefs.s(PreferenceKeys.NSW_FUEL_SECRET, "").isNotBlank()
         else -> false
@@ -38,6 +38,7 @@ object EuFuel {
         "AU" -> fuel in setOf("E10", "E5", "B7", "E85", "LPG")
         // (Italy's petrol is all one "Benzina", so Unleaded and Super both get it)
         "IT" -> fuel in setOf("E10", "E5", "B7", "LPG")
+        "ES" -> fuel in setOf("E10", "E5", "B7", "LPG")
         else -> false
     }
 
@@ -49,6 +50,7 @@ object EuFuel {
             "DE" -> germany(prefs.s(PreferenceKeys.TANKERKOENIG_KEY, "").trim(), c, radiusKm.coerceIn(1, 25), fuel)
             "AU" -> nsw(prefs, c, radiusKm.coerceIn(1, 25), fuel)
             "IT" -> italy(c, radiusKm.coerceIn(1, 25), fuel)
+            "ES" -> spain(c, radiusKm.coerceIn(1, 25), fuel)
             else -> emptyList()
         }
     } catch (e: Exception) { emptyList() }
@@ -235,6 +237,107 @@ object EuFuel {
     }
 
     /** The list for the whole of Italy: from memory, else from the device, fetched fresh when it's over a day old. */
+    // ---- Spain: the Ministry for the Ecological Transition's list of every station's prices (free, no key; franciscoserranoadt, #217).
+    // One JSON file for the whole country, updated several times a day: fetched every 3 hours at most, read as it arrives (it's
+    // several megabytes), and kept on the device as a small file, so a moment when the service is down still has prices.
+    private class EsSt(val pos: LL, val name: String, val town: String, val e10: Double, val e5: Double, val diesel: Double, val lpg: Double)
+    @Volatile private var esList: List<EsSt>? = null
+    @Volatile private var esListAt = 0L
+    @Volatile private var esFailAt = 0L
+    private val esLock = Any()
+
+    private fun spain(c: LL, km: Int, fuel: String): List<Station> {
+        val list = spainList() ?: return emptyList()
+        val r = km * 1000.0
+        val dLat = r / 111_000.0
+        val dLon = r / (111_000.0 * Math.cos(Math.toRadians(c.lat)).coerceAtLeast(0.2))
+        val out = ArrayList<Station>()
+        for (s in list) {
+            if (Math.abs(s.pos.lat - c.lat) > dLat || Math.abs(s.pos.lon - c.lon) > dLon) continue
+            // Unleaded: 95 E10 where it's sold, else 95 E5; Super: 98 E5, else 95 E5
+            val p = when (fuel) { "B7" -> s.diesel; "LPG" -> s.lpg; "E5" -> s.e5; else -> s.e10 }
+            if (p.isNaN()) continue
+            if (Geo.dist(c, s.pos) <= r) out += Station(s.name, s.town, s.pos, p)
+        }
+        return out.sortedBy { it.cents }.take(60)
+    }
+
+    private fun spainList(): List<EsSt>? = synchronized(esLock) {
+        val dir = filesDir ?: return null
+        val f = java.io.File(dir, "es_fuel.tsv")
+        val now = System.currentTimeMillis()
+        if ((!f.exists() || now - f.lastModified() > 3 * 3600_000L) && now - esFailAt > 30 * 60_000L) {
+            try { spainFetch(f) } catch (e: Exception) { esFailAt = now }
+        }
+        if (!f.exists()) return null
+        if (esList != null && esListAt == f.lastModified()) return esList
+        val out = ArrayList<EsSt>(12_000)
+        try {
+            f.bufferedReader().useLines { lines ->
+                for (ln in lines) {
+                    val p = ln.split('\t')
+                    if (p.size < 8) continue
+                    val lat = p[0].toDoubleOrNull() ?: continue; val lon = p[1].toDoubleOrNull() ?: continue
+                    fun d(i: Int) = p[i].toDoubleOrNull() ?: Double.NaN
+                    out += EsSt(LL(lat, lon), p[2], p[3], d(4), d(5), d(6), d(7))
+                }
+            }
+        } catch (e: Exception) { return null }
+        esList = out; esListAt = f.lastModified()
+        return out
+    }
+
+    /** Reads the ministry's JSON a station at a time (decimal commas; an empty price means not sold) into a new file, swapped in whole. */
+    private fun spainFetch(out: java.io.File) {
+        val c = URL("https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/")
+            .also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+        c.connectTimeout = 10_000; c.readTimeout = 45_000
+        c.setRequestProperty("User-Agent", "HorizonNav/${BuildConfig.VERSION_NAME}")
+        c.setRequestProperty("Accept", "application/json")
+        val tmp = java.io.File(out.parentFile, "es_fuel.tmp")
+        var n = 0
+        try {
+            if (c.responseCode !in 200..299) throw java.io.IOException("HTTP ${c.responseCode}")
+            fun num(v: String?): Double = v?.trim()?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it in 0.3..4.0 }?.let { it * 100.0 } ?: Double.NaN
+            tmp.bufferedWriter().use { w ->
+                android.util.JsonReader(java.io.InputStreamReader(c.inputStream, Charsets.UTF_8)).use { jr ->
+                    jr.beginObject()
+                    while (jr.hasNext()) {
+                        if (jr.nextName() != "ListaEESSPrecio") { jr.skipValue(); continue }
+                        jr.beginArray()
+                        while (jr.hasNext()) {
+                            val m = HashMap<String, String>(48)
+                            jr.beginObject()
+                            while (jr.hasNext()) {
+                                val k = jr.nextName()
+                                if (jr.peek() == android.util.JsonToken.STRING) m[k] = jr.nextString() else jr.skipValue()
+                            }
+                            jr.endObject()
+                            val lat = m["Latitud"]?.replace(',', '.')?.toDoubleOrNull() ?: continue
+                            val lon = m["Longitud (WGS84)"]?.replace(',', '.')?.toDoubleOrNull() ?: continue
+                            if (lat !in 27.0..44.5 || lon !in -18.5..4.6) continue
+                            val e95 = num(m["Precio Gasolina 95 E5"])
+                            val e10 = num(m["Precio Gasolina 95 E10"]).let { if (it.isNaN()) e95 else it }
+                            val e98 = num(m["Precio Gasolina 98 E5"]).let { if (it.isNaN()) e95 else it }
+                            val dsl = num(m["Precio Gasoleo A"])
+                            val lpg = num(m["Precio Gases licuados del petróleo"])
+                            if (e10.isNaN() && e98.isNaN() && dsl.isNaN() && lpg.isNaN()) continue
+                            val brand = m["Rótulo"].orEmpty().trim().ifBlank { "Gasolinera" }.replace('\t', ' ')
+                            val town = m["Municipio"].orEmpty().trim().lowercase().split(' ').joinToString(" ") { w2 -> w2.replaceFirstChar { it.uppercase() } }.replace('\t', ' ')
+                            fun f(x: Double) = if (x.isNaN()) "" else String.format(java.util.Locale.US, "%.1f", x)
+                            w.write("$lat\t$lon\t$brand\t$town\t${f(e10)}\t${f(e98)}\t${f(dsl)}\t${f(lpg)}\n")
+                            n++
+                        }
+                        jr.endArray()
+                    }
+                    jr.endObject()
+                }
+            }
+        } finally { c.disconnect() }
+        if (n < 1000) { tmp.delete(); throw java.io.IOException("Station list too short") }
+        if (!tmp.renameTo(out)) { out.delete(); tmp.renameTo(out) }
+    }
+
     private fun italyList(): List<ItSt>? = synchronized(itLock) {
         val dir = filesDir ?: return null
         val f = java.io.File(dir, "it_fuel.tsv")
