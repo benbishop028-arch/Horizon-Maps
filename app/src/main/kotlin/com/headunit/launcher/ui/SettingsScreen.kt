@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.headunit.launcher.BuildConfig
@@ -245,20 +246,29 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
            // (in portrait too the preview now stays at the top while the settings scroll under it, as in landscape, so a change
            // can be seen as it's made, GitHub #124. Only a really short screen still scrolls it away, to leave room for the settings)
            val pinPreview = !narrowS || androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= 600
+           val scroll = rememberScrollState()
            Column(Modifier.fillMaxSize()) {
+            // portrait: the back arrow and the page name sit in a bar that stays put above everything, so going back never
+            // means scrolling up first (the whole bar is the tap target)
+            if (narrowS) Row(
+                Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.size(44.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.ArrowBack, L.t("All settings"), tint = c.text, modifier = Modifier.size(22.dp))
+                }
+                Text(sections[cat].title, color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 12.dp))
+            }
             if (withPreview && pinPreview) SettingsMapPreview(engine, if (narrowS) 170 else 210)
             // (the on-screen keyboard takes the bottom of the screen: the settings scroll in the space above it, so the box being
             // typed in can be seen, smikkelvriend #200)
-            Column(Modifier.fillMaxSize().imePadding().verticalScroll(rememberScrollState()).padding(horizontal = 4.dp, vertical = 4.dp)) {
+            Box(Modifier.fillMaxSize().imePadding()) {
+             Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(horizontal = 4.dp, vertical = 4.dp)) {
                 if (withPreview && !pinPreview) SettingsMapPreview(engine, 170)
-                if (narrowS) Row(Modifier.padding(bottom = 6.dp).clip(RoundedCornerShape(50)).clickable { showList = true }.padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.ArrowBack, L.t("All settings"), tint = c.text, modifier = Modifier.size(22.dp))
-                    }
-                    Text(L.t("Settings"), color = c.sub, fontSize = 15.sp, modifier = Modifier.padding(start = 10.dp))
-                }
-                Text(sections[cat].title, color = c.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp, top = 6.dp))
-                Text(sections[cat].sub, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp, bottom = 16.dp))
+                // (in portrait the page name is already in the bar above, so only its short description starts the page)
+                if (!narrowS) Text(sections[cat].title, color = c.text, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 6.dp, top = 6.dp))
+                Text(sections[cat].sub, color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 6.dp, top = if (narrowS) 2.dp else 0.dp, bottom = 16.dp))
                 Column(Modifier.widthIn(max = 820.dp)) {
                     when (cat) {
                         0 -> MapStyleSection(prefs, engine)
@@ -280,6 +290,15 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         else -> AboutSection(prefs, engine)
                     }
                 }
+             }
+             // soft edges: the settings fade out under whatever is pinned above them (and into the bottom of the screen) instead
+             // of being cut off by a hard line. Each edge only shows while there is more to scroll that way
+             val topFade by androidx.compose.animation.core.animateFloatAsState(if (scroll.value > 0) 1f else 0f, label = "topFade")
+             val bottomFade by androidx.compose.animation.core.animateFloatAsState(if (scroll.value < scroll.maxValue) 1f else 0f, label = "bottomFade")
+             Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().height(28.dp).graphicsLayer { alpha = topFade }
+                 .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(c.bg, c.bg.copy(alpha = 0.7f), Color.Transparent))))
+             Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(28.dp).graphicsLayer { alpha = bottomFade }
+                 .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, c.bg.copy(alpha = 0.7f), c.bg))))
             }
            }
           }
