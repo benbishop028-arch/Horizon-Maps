@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Android Auto alternative routes: fix the missing Compose layout import so the release build compiles (thanks to the tester who asked for it)
+
 ### Improved
 - Android Auto alternative routes: keep the route text at a readable size on short screens, scrolling the list when space is limited instead of shrinking the whole panel (thanks to the tester who asked for it)
 
