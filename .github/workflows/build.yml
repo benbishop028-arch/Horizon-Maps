@@ -2,7 +2,7 @@ name: Build Horizon Nav
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
     # the app's source is now saved straight into the repository; a change to any of it builds the app
     # (HorizonNav.zip still works as before, as a fallback)
     paths:
@@ -69,7 +69,7 @@ jobs:
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "Save Horizon Nav source from uploaded ZIP and remove the ZIP [skip ci]"
             for i in 1 2 3; do
-              git fetch origin main && git rebase origin/main && git push origin HEAD:main && break
+              git fetch origin "$GITHUB_REF_NAME" && git rebase "origin/$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && break
               [ "$i" = 3 ] && { echo "ERROR: could not save the source after 3 tries"; exit 1; }
               sleep 10
             done
@@ -274,7 +274,8 @@ jobs:
           if-no-files-found: error
 
       - name: Publish the app
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        # publishing is only ever allowed from main: a build of the development branch is a test and can never reach users
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -357,7 +358,8 @@ jobs:
       # (PLAY_SERVICE_ACCOUNT_JSON), it's also sent to Play's internal testing track by itself.
       - name: Build the Google Play bundle
         id: playbundle
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        # the Play version is only built from main, so a development build can never be sent to Google Play
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
         continue-on-error: true
         working-directory: ${{ env.PROJECT_DIR }}
         env:
@@ -436,7 +438,7 @@ jobs:
       # The Play steps above never hold up the GitHub release, but a failure there must not pass unnoticed either: the run is
       # marked failed (after everything else has finished) with a plain note of which part went wrong.
       - name: Did the Play version work?
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
         run: |
           if [ "${{ steps.playbundle.outcome }}" = "failure" ]; then echo "::error::The Play version didn't build: open the 'Build the Google Play bundle' step above to see why."; exit 1; fi
           if [ "${{ steps.playsend.outcome }}" = "failure" ]; then echo "::error::The Play version built but couldn't be sent to Google Play: open the 'Send to Google Play' step above to see why."; exit 1; fi
