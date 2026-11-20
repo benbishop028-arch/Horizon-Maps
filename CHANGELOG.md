@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Malayalam Light & 3D settings: refine the Moonlight at night and 3D hills and valleys labels using the reviewer's suggested wording (thanks to the tester who asked for it).
+
 ### Improved
 - TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).
 
