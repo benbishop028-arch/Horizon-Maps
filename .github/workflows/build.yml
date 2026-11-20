@@ -443,9 +443,26 @@ jobs:
               sys.exit("The Play access key in Secrets (PLAY_SERVICE_ACCOUNT_JSON) isn't a whole JSON key file: " + type(e).__name__)
           for f in ("type", "client_email", "private_key"):
               if not k.get(f): sys.exit("The Play access key in Secrets is missing its " + f + ": paste the whole downloaded file")
+          # the private key itself: rebuilt from just its letters, in the standard 64-character lines, since a copy that was
+          # wrapped, re-spaced or had its \n turned into "\\n" can't be read ("DECODER routines::unsupported")
+          import re
+          pk = k["private_key"].replace("\\n", "\n")
+          m = re.search(r"-----BEGIN ([A-Z ]+)-----(.*?)-----END \1-----", pk, re.S)
+          if not m: sys.exit("The Play access key's private_key has no BEGIN/END lines: paste the whole downloaded file")
+          body = re.sub(r"[^A-Za-z0-9+/=]", "", m.group(2))
+          k["private_key"] = "-----BEGIN %s-----\n%s\n-----END %s-----\n" % (m.group(1), "\n".join(body[i:i + 64] for i in range(0, len(body), 64)), m.group(1))
           open(sys.argv[1], "w").write(json.dumps(k))
+          open(sys.argv[1] + ".pem", "w").write(k["private_key"])
           print("Play access key read: " + k["client_email"])
           PY
+          # check the private key really opens, so a damaged copy says so plainly instead of failing inside the upload
+          if ! openssl pkey -in "$RUNNER_TEMP/play-key.json.pem" -noout 2>/dev/null; then
+            rm -f "$RUNNER_TEMP/play-key.json.pem"
+            echo "::error::The private key inside the Play access key in Secrets is damaged (some of it was lost when it was copied). Make a new JSON key for the same service account in Google Cloud and paste the whole file into PLAY_SERVICE_ACCOUNT_JSON."
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/play-key.json.pem"
+          echo "The private key opens correctly."
 
       - name: Send to Google Play
         id: playsend
