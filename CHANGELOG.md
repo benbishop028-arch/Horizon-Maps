@@ -4,6 +4,15 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Improved
+- TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).
+
+### Added
+- Map settings: add an optional HD lane data diagnostic message, off by default and only shown in Demo mode; lane guidance itself is unaffected (thanks to the tester who asked for it).
+
+### Fixed
+- Malayalam map settings: add the suggested Malayalam labels for font names and map providers, and refine the translations for The map and HD roads (thanks to the tester who asked for it).
+
 ### New
 - Google Maps favourites import: import individual saved places from a Google Takeout Saved Places.json file, preserving names and coordinates and skipping duplicates; favourites are no longer limited to 20 (thanks to the tester who asked for it)
 

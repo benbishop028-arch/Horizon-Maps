@@ -6,7 +6,14 @@ object I18nMl {
         "Import Google Maps" to "Google Maps-ൽ നിന്ന് ഇറക്കുമതി ചെയ്യുക",
         "Choose a Saved Places.json file from Google Takeout" to "Google Takeout-ൽ നിന്നുള്ള Saved Places.json ഫയൽ തിരഞ്ഞെടുക്കുക",
         "Imported {0} · already saved {1}" to "{0} ഇറക്കുമതി ചെയ്തു · {1} ഇതിനകം സംരക്ഷിച്ചു",
-        "No saved places found in that file" to "ഈ ഫയലിൽ സംരക്ഷിച്ച സ്ഥലങ്ങളൊന്നും കണ്ടെത്തിയില്ല"
+        "No saved places found in that file" to "ഈ ഫയലിൽ സംരക്ഷിച്ച സ്ഥലങ്ങളൊന്നും കണ്ടെത്തിയില്ല",
+        "Roboto" to "റോബോട്ടോ",
+        "Open Sans" to "ഓപ്പൺ സാൻസ്",
+        "Inter" to "ഇന്റർ",
+        "Lato" to "ലാറ്റോ",
+        "Mapbox" to "മാപ് ബോക്സ്",
+        "TomTom" to "ടോം ടോം",
+        "OpenStreetMap" to "ഓപ്പൺസ്ട്രീറ്റ്മാപ്"
     )
 
     private fun p0(): List<Pair<String, String>> = listOf(
@@ -599,7 +606,7 @@ object I18nMl {
         "The map, mostly at night, takes a hint of it" to "മാപ്പിന്, കൂടുതലും രാത്രിയിൽ, അതിന്റെ ഒരു ഛായ ലഭിക്കുന്നു",
         "How strong" to "എത്ര ശക്തമായി",
         "How much of the colour the map takes" to "മാപ്പ് എത്രത്തോളം നിറം എടുക്കുന്നു",
-        "The map" to "മാപ്പ്",
+        "The map" to "മാപ്",
         "Map source" to "മാപ്പ് ഉറവിടം",
         "Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them" to "Mapbox: 3D മാപ്പ്. TomTom: Horizon നിറങ്ങളിൽ TomTom-ന്റെ മാപ്പ് (TomTom കീ ആവശ്യമാണ്). Mapbox-ന്റെ എഞ്ചിനാണ് അവ വരയ്ക്കുന്നത്, അതിനാൽ എല്ലാത്തിനും Mapbox ടോക്കൺ ആവശ്യമാണ്",
         "Map detail" to "മാപ്പ് വിശദാംശം",
@@ -1480,7 +1487,7 @@ object I18nMl {
         "On arrival the building glows, its entrance is marked and a dotted line shows the walk from the parking" to "എത്തുമ്പോൾ കെട്ടിടം തിളങ്ങുന്നു, അതിന്റെ പ്രവേശന കവാടം അടയാളപ്പെടുത്തുന്നു, പാർക്കിംഗിൽ നിന്നുള്ള നടത്തം ഒരു കുത്തുവര കാണിക്കുന്നു",
         "TomTom search didn't work: {0}" to "TomTom തിരയൽ പ്രവർത്തിച്ചില്ല: {0}",
         "On" to "ഓൺ",
-        "HD roads" to "HD റോഡുകൾ",
+        "HD roads" to "എച് ഡി റോഡുകൾ",
         "Lane markings, turn arrows and 3D overpasses where Mapbox has them (Full 3D). Automatic: on in the UK only, as in some countries they hide the ordinary streets" to "Mapbox-ൽ ഉള്ളിടത്ത് ലെയ്ൻ അടയാളങ്ങൾ, ടേൺ ആരോകൾ, 3D മേൽപ്പാലങ്ങൾ (പൂർണ്ണ 3D). ഓട്ടോമാറ്റിക്: UK-ൽ മാത്രം ഓൺ, ചില രാജ്യങ്ങളിൽ അവ സാധാരണ തെരുവുകളെ മറയ്ക്കുന്നതിനാൽ",
         "Card positions" to "കാർഡുകളുടെ സ്ഥാനങ്ങൾ",
         "Where the turn card, trip card and speedometer sit on a wide screen (portrait screens keep the cards across the top and bottom)" to "വീതിയുള്ള സ്ക്രീനിൽ ടേൺ കാർഡും യാത്രാ കാർഡും സ്പീഡോമീറ്ററും എവിടെ (പോർട്രെയിറ്റ് സ്ക്രീനുകളിൽ കാർഡുകൾ മുകളിലും താഴെയും തുടരും)",

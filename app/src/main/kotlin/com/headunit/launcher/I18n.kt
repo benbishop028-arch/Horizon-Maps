@@ -765,6 +765,7 @@ object L {
         addOwn(m, "ml", I18nMl.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         addOwn(m, "esmx", I18nEsMx.rows())
+        for (code in m.keys) addOwn(m, code, I18nMapDiagnostics.rows(code))
         m
     }
 

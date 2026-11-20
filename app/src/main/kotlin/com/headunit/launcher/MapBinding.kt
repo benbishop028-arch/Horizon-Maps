@@ -3,6 +3,7 @@ package com.headunit.launcher
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import java.util.Locale
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -37,6 +38,7 @@ import com.mapbox.maps.applyDefaultParams
 import com.mapbox.maps.toCameraOptions
 import com.mapbox.maps.toMapboxImage
 import com.mapbox.maps.extension.style.expressions.generated.Expression
+import com.mapbox.maps.extension.localization.localizeLabels
 import com.mapbox.maps.extension.style.layers.Layer
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.addLayerBelow
@@ -314,6 +316,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         MapboxOptions.accessToken = want
         // the token changed: load the style again with it
         if (t.isNotEmpty()) { loadedStyle = null; wantedStyle?.let { loadStyle(it) } }
+    }
+
+    /** Applies the app's selected language to the loaded TomTom vector style's translated labels. */
+    fun setTomTomLabelLanguage(locale: Locale) {
+        if (wantedStyle?.contains("/assets/styles/") != true) return
+        try { style?.localizeLabels(locale) } catch (e: Throwable) { android.util.Log.w("MapBinding", "TomTom label language", e) }
     }
 
     /** Asks for a map style (a Mapbox style address such as [Style.STANDARD]). Loading the same one again does nothing. */
@@ -700,6 +708,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             mbMap.loadStyle(if (standard) wrapperJson(url) else url) { st ->
                 if (token != styleToken) return@loadStyle
                 style = st
+                if (url.contains("/assets/styles/")) try { st.localizeLabels(L.locale) } catch (e: Throwable) { android.util.Log.w("MapBinding", "TomTom label language", e) }
                 try { install(st) } catch (e: Throwable) { android.util.Log.w("MapBinding", "install failed", e) }
                 onStyleLoaded?.invoke()
             }

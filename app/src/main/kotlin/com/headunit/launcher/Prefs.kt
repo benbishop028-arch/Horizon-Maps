@@ -241,6 +241,8 @@ internal object PreferenceKeys {
     const val CAR_SPEED_SIDE = "carspeedside"
     /** Mapbox's HD roads: "auto" (on in the UK only), "on" or "off". */
     const val HD_ROADS = "hdroads"
+    /** Whether the technical HD lane matching toast is shown during Demo mode (off by default). */
+    const val HD_LANE_DIAGNOSTICS = "hdlanediag"
     /** Sharp bends: the yellow chevron stretch on the route and the warning before each. */
     const val BEND_WARN = "bendwarn"
     /** The headlight beam ahead of the arrow at night. */

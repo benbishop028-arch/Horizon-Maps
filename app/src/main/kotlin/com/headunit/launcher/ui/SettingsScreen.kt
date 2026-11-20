@@ -390,6 +390,8 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Footpaths and trails"), "paths", true, L.t("Turn off for a cleaner driving map"))
         SChoice(L.t("HD roads"), listOf("auto" to L.t("Automatic"), "on" to L.t("On"), "off" to L.t("Off")), prefs.s(PreferenceKeys.HD_ROADS, "auto"),
             sub = L.t("Lane markings, turn arrows and 3D overpasses where Mapbox has them (Full 3D). Automatic: on in the UK only, as in some countries they hide the ordinary streets")) { prefs.put(PreferenceKeys.HD_ROADS, it) }
+        SToggle(prefs, L.t("Show lane data diagnostics"), PreferenceKeys.HD_LANE_DIAGNOSTICS, false,
+            L.t("Only shown in Demo mode; does not affect lane guidance."))
     }
 }
 
