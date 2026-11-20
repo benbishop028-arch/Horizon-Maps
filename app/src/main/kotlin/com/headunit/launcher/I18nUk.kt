@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** uk: looked up by the English wording (as in [L]); Ukrainian, GitHub #221 (Naryma offered to check the wording). */
 object I18nUk {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Імпорт із Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Виберіть файл Saved Places.json із Google Takeout",
+        "Imported {0} · already saved {1}" to "Імпортовано {0} · уже збережено {1}",
+        "No saved places found in that file" to "У цьому файлі не знайдено збережених місць"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "прибуття, пункт призначення ліворуч",

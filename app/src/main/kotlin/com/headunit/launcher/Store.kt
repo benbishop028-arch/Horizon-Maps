@@ -96,8 +96,25 @@ class PlaceStore(private val prefs: Prefs) {
         return if (cur.any { same(it, p) }) {
             writeList("places_fav", cur.filterNot { same(it, p) }); false
         } else {
-            writeList("places_fav", (listOf(p) + cur).take(20)); true
+            writeList("places_fav", listOf(p) + cur); true
         }
+    }
+
+    /** Imports saved places without replacing existing favourites; locations within 60 m count as duplicates. */
+    fun importFavourites(imported: List<Place>): Pair<Int, Int> {
+        val current = favourites().toMutableList()
+        var added = 0
+        var skipped = 0
+        for (place in imported) {
+            if (current.any { same(it, place) }) {
+                skipped++
+            } else {
+                current += place
+                added++
+            }
+        }
+        if (added > 0) writeList("places_fav", current)
+        return added to skipped
     }
 
     /** Gives a favourite a name of your own (it stays in the same place in the list). */

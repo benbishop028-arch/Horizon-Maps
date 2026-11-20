@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** vi: looked up by the English wording (as in [L]); Vietnamese, GitHub #239 (hi3utr offered to check the wording). */
 object I18nVi {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Nhập từ Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Chọn tệp Saved Places.json từ Google Takeout",
+        "Imported {0} · already saved {1}" to "Đã nhập {0} · đã lưu {1}",
+        "No saved places found in that file" to "Không tìm thấy địa điểm đã lưu trong tệp này"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "đến nơi, điểm đến ở bên trái",

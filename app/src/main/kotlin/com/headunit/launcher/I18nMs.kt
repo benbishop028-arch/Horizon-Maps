@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** ms: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ms.tsv. */
 object I18nMs {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Import daripada Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Pilih fail Saved Places.json daripada Google Takeout",
+        "Imported {0} · already saved {1}" to "{0} diimport · {1} sudah disimpan",
+        "No saved places found in that file" to "Tiada tempat tersimpan ditemui dalam fail ini"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "sebaik tiba, destinasi di sebelah kiri",

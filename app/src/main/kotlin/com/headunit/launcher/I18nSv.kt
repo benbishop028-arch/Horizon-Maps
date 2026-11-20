@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** sv: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/sv.tsv. */
 object I18nSv {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Importera från Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Välj filen Saved Places.json från Google Takeout",
+        "Imported {0} · already saved {1}" to "{0} importerade · {1} redan sparade",
+        "No saved places found in that file" to "Inga sparade platser hittades i den här filen"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "du är framme, destinationen ligger till vänster",

@@ -771,10 +771,20 @@ object L {
     // English, then Dutch, German, French, Spanish. (German directions use the infinitive, as German sat navs do:
     // "In 200 Metern links abbiegen"; distances after "In" take the dative, "Metern".) Split into parts of 200, as one
     // list this long is too big for a single method once compiled.
-    private val rows: List<Pair<String, List<String>>> get() = rowsA0() + rowsA1() + rowsA2() + rowsA3() + rowsA4() + rowsA5() + rowsA6()
+    private val rows: List<Pair<String, List<String>>> get() = rowsA0() + rowsA1() + rowsA2() + rowsA3() + rowsA4() + rowsA5() + rowsA6() + listOf(
+        "Import Google Maps" to listOf("Google Maps importeren", "Google Maps importieren", "Importer depuis Google Maps", "Importar desde Google Maps"),
+        "Choose a Saved Places.json file from Google Takeout" to listOf("Kies het bestand Saved Places.json uit Google Takeout", "Wähle die Datei Saved Places.json aus Google Takeout", "Choisissez le fichier Saved Places.json de Google Takeout", "Elige el archivo Saved Places.json de Google Takeout"),
+        "Imported {0} · already saved {1}" to listOf("{0} geïmporteerd · {1} al opgeslagen", "{0} importiert · {1} bereits gespeichert", "{0} importés · {1} déjà enregistrés", "{0} importados · {1} ya guardados"),
+        "No saved places found in that file" to listOf("Geen opgeslagen plaatsen gevonden in dit bestand", "Keine gespeicherten Orte in dieser Datei gefunden", "Aucun lieu enregistré trouvé dans ce fichier", "No se encontraron lugares guardados en este archivo")
+    )
 
     // English, then Italian, Portuguese, Polish
-    private val rows2: List<Pair<String, List<String>>> get() = rowsB0() + rowsB1() + rowsB2() + rowsB3() + rowsB4() + rowsB5() + rowsB6()
+    private val rows2: List<Pair<String, List<String>>> get() = rowsB0() + rowsB1() + rowsB2() + rowsB3() + rowsB4() + rowsB5() + rowsB6() + listOf(
+        "Import Google Maps" to listOf("Importa da Google Maps", "Importar do Google Maps", "Importuj z Google Maps"),
+        "Choose a Saved Places.json file from Google Takeout" to listOf("Scegli il file Saved Places.json di Google Takeout", "Escolha o ficheiro Saved Places.json do Google Takeout", "Wybierz plik Saved Places.json z Google Takeout"),
+        "Imported {0} · already saved {1}" to listOf("{0} importati · {1} già salvati", "{0} importados · {1} já guardados", "Zaimportowano {0} · {1} już zapisanych"),
+        "No saved places found in that file" to listOf("Nessun luogo salvato trovato in questo file", "Não foram encontrados locais guardados neste ficheiro", "W tym pliku nie znaleziono zapisanych miejsc")
+    )
 
     // English, then Thai, Japanese, Indonesian (in their own file, I18nC.kt)
     private val rows3: List<Pair<String, List<String>>> get() = I18nC.rows()

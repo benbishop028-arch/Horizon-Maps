@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** tr: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/tr.tsv. */
 object I18nTr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Google Haritalar'dan içe aktar",
+        "Choose a Saved Places.json file from Google Takeout" to "Google Takeout Saved Places.json dosyasını seçin",
+        "Imported {0} · already saved {1}" to "{0} içe aktarıldı · {1} zaten kayıtlı",
+        "No saved places found in that file" to "Bu dosyada kayıtlı yer bulunamadı"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "varış, hedef solda",

@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** el: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/el.tsv. */
 object I18nEl {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Εισαγωγή από το Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Επιλέξτε το αρχείο Saved Places.json από το Google Takeout",
+        "Imported {0} · already saved {1}" to "Εισήχθησαν {0} · {1} ήταν ήδη αποθηκευμένα",
+        "No saved places found in that file" to "Δεν βρέθηκαν αποθηκευμένα μέρη σε αυτό το αρχείο"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "κατά την άφιξη, ο προορισμός είναι στα αριστερά",

@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** zh: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/zh.tsv. */
 object I18nZhHant {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "從 Google 地圖匯入",
+        "Choose a Saved Places.json file from Google Takeout" to "選擇 Google Takeout 匯出的 Saved Places.json 檔案",
+        "Imported {0} · already saved {1}" to "已匯入 {0} 個 · {1} 個已儲存",
+        "No saved places found in that file" to "此檔案中找不到已儲存的地點"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "抵達，目的地在左側",

@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** eu: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/eu.tsv. */
 object I18nEu {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Inportatu Google Maps-etik",
+        "Choose a Saved Places.json file from Google Takeout" to "Aukeratu Google Takeout-eko Saved Places.json fitxategia",
+        "Imported {0} · already saved {1}" to "{0} inportatuta · {1} lehendik gordeta",
+        "No saved places found in that file" to "Ez da gordetako lekurik aurkitu fitxategi honetan"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "helmuga ezkerrean dago",

@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** ar: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/ar.tsv. */
 object I18nAr {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "استيراد من خرائط Google",
+        "Choose a Saved Places.json file from Google Takeout" to "اختر ملف Saved Places.json من Google Takeout",
+        "Imported {0} · already saved {1}" to "تم استيراد {0} · {1} محفوظة مسبقًا",
+        "No saved places found in that file" to "لم يتم العثور على أماكن محفوظة في هذا الملف"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "الوصول، الوجهة على اليسار",

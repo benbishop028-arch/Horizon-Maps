@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** fi: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/fi.tsv. */
 object I18nFi {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Tuo Google Mapsista",
+        "Choose a Saved Places.json file from Google Takeout" to "Valitse Google Takeoutin Saved Places.json -tiedosto",
+        "Imported {0} · already saved {1}" to "Tuotu {0} · {1} jo tallennettu",
+        "No saved places found in that file" to "Tästä tiedostosta ei löytynyt tallennettuja paikkoja"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "perillä määränpää on vasemmalla",

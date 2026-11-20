@@ -873,6 +873,7 @@ private fun PlaceItem(label: String, p: Place?, onChange: () -> Unit, onClear: (
 @Composable
 private fun PlacesSection(engine: NavEngine) {
     val pl = engine.places
+    val importContext = LocalContext.current
     var settingSlot by remember { mutableStateOf<String?>(null) }
     // (read again whenever the saved places change, so a change shows straight away)
     val slotsRaw = engine.prefs.s(PreferenceKeys.PLACE_HOME, "") + engine.prefs.s("place_work", "")
@@ -955,7 +956,36 @@ private fun PlacesSection(engine: NavEngine) {
     val favs = remember(favRaw) { pl.favourites() }
     var renamingFav by remember { mutableStateOf<Place?>(null) }
     var slotFor by remember { mutableStateOf<Place?>(null) }
+    var importingGoogle by remember { mutableStateOf(false) }
+    val googleMapsPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) {
+            importingGoogle = false
+        } else {
+            Thread {
+                val outcome = try {
+                    val json = importContext.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
+                    val places = com.headunit.launcher.GoogleMapsImport.parse(json)
+                    if (places.isEmpty()) null else pl.importFavourites(places)
+                } catch (_: Throwable) { null }
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    importingGoogle = false
+                    if (outcome == null) engine.toast(L.t("No saved places found in that file"), 3500)
+                    else engine.toast(L.t("Imported {0} · already saved {1}", outcome.first, outcome.second), 4500)
+                }
+            }.start()
+        }
+    }
     SGroup(L.t("Favourites")) {
+        SItem(L.t("Import Google Maps"), L.t("Choose a Saved Places.json file from Google Takeout")) {
+            SButton(if (importingGoogle) L.t("Importing…") else L.t("Choose"), primary = true) {
+                if (!importingGoogle) {
+                    importingGoogle = true
+                    try { googleMapsPicker.launch(arrayOf("application/json", "text/plain", "*/*")) }
+                    catch (_: Exception) { importingGoogle = false; engine.toast(L.t("No saved places found in that file"), 3500) }
+                }
+            }
+        }
+
         if (favs.isEmpty()) SNote(L.t("No favourites yet. Tap the star on a destination to add one."))
         favs.forEach { f ->
             when {

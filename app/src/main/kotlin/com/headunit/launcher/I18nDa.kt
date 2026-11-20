@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** da: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/da.tsv. */
 object I18nDa {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Importér fra Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Vælg filen Saved Places.json fra Google Takeout",
+        "Imported {0} · already saved {1}" to "Importeret {0} · {1} allerede gemt",
+        "No saved places found in that file" to "Der blev ikke fundet gemte steder i denne fil"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "ved ankomst er destinationen til venstre",

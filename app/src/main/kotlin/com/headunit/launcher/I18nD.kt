@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** Bulgarian, looked up by the English wording (as in [L]). Split into parts, as one list this long is too big for one method. */
 object I18nD {
-    fun rows(): List<Pair<String, List<String>>> = rowsD0() + rowsD1() + rowsD2() + rowsD3() + rowsD4() + rowsD5()
+    fun rows(): List<Pair<String, List<String>>> = rowsD0() + rowsD1() + rowsD2() + rowsD3() + rowsD4() + rowsD5() + listOf(
+        "Import Google Maps" to listOf("Импортиране от Google Maps"),
+        "Choose a Saved Places.json file from Google Takeout" to listOf("Изберете файла Saved Places.json от Google Takeout"),
+        "Imported {0} · already saved {1}" to listOf("Импортирани {0} · вече запазени {1}"),
+        "No saved places found in that file" to listOf("В този файл не са намерени запазени места")
+    )
 
     private fun rowsD0(): List<Pair<String, List<String>>> = listOf(
         "arrive, destination on the left" to listOf("пристигате, целта е отляво"),

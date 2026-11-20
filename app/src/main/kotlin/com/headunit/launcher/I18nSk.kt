@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** sk: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/sk.tsv. */
 object I18nSk {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Importovať z Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Vyberte súbor Saved Places.json z Google Takeout",
+        "Imported {0} · already saved {1}" to "Importované {0} · {1} už uložených",
+        "No saved places found in that file" to "V tomto súbore sa nenašli žiadne uložené miesta"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "po príjazde je cieľ vľavo",

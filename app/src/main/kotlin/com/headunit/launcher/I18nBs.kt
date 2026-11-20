@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** bs: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/bs.tsv. */
 object I18nBs {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Uvezi iz Google Mapsa",
+        "Choose a Saved Places.json file from Google Takeout" to "Izaberite datoteku Saved Places.json iz Google Takeouta",
+        "Imported {0} · already saved {1}" to "Uvezeno {0} · {1} već sačuvano",
+        "No saved places found in that file" to "U ovoj datoteci nisu pronađena sačuvana mjesta"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "po dolasku je odredište s lijeve strane",

@@ -5,7 +5,12 @@ package com.headunit.launcher
  * long is too big for a single method once compiled.
  */
 object I18nC {
-    fun rows(): List<Pair<String, List<String>>> = rowsC0() + rowsC1() + rowsC2() + rowsC3() + rowsC4() + rowsC5() + rowsC6() + rowsC7()
+    fun rows(): List<Pair<String, List<String>>> = rowsC0() + rowsC1() + rowsC2() + rowsC3() + rowsC4() + rowsC5() + rowsC6() + rowsC7() + listOf(
+        "Import Google Maps" to listOf("นำเข้าจาก Google Maps", "Google マップからインポート", "Impor dari Google Maps"),
+        "Choose a Saved Places.json file from Google Takeout" to listOf("เลือกไฟล์ Saved Places.json ที่ส่งออกจาก Google Takeout", "Google Takeout の Saved Places.json ファイルを選択", "Pilih file Saved Places.json dari Google Takeout"),
+        "Imported {0} · already saved {1}" to listOf("นำเข้า {0} แห่ง · บันทึกไว้แล้ว {1} แห่ง", "{0} 件をインポート · {1} 件は保存済み", "{0} diimpor · {1} sudah tersimpan"),
+        "No saved places found in that file" to listOf("ไม่พบสถานที่ที่บันทึกไว้ในไฟล์นี้", "このファイルに保存済みの場所が見つかりません", "Tidak ada tempat tersimpan yang ditemukan dalam file ini")
+    )
 
     private fun rowsC0(): List<Pair<String, List<String>>> = listOf(
         "arrive, destination on the left" to listOf("ถึงแล้ว จุดหมายอยู่ทางซ้าย", "目的地に到着です。左側です", "tiba, tujuan di sebelah kiri"),

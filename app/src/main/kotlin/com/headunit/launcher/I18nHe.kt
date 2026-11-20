@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** he: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/he.tsv. */
 object I18nHe {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "ייבוא מ-Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "בחרו את קובץ Saved Places.json מ-Google Takeout",
+        "Imported {0} · already saved {1}" to "יובאו {0} · {1} כבר שמורים",
+        "No saved places found in that file" to "לא נמצאו מקומות שמורים בקובץ הזה"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "הגעה, היעד משמאל",

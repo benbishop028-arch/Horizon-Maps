@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** ru: looked up by the English wording (as in [L]); Russian, GitHub #207 (Zerux offered to check the wording). */
 object I18nRu {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Импорт из Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Выберите файл Saved Places.json из Google Takeout",
+        "Imported {0} · already saved {1}" to "Импортировано: {0} · уже сохранено: {1}",
+        "No saved places found in that file" to "В этом файле не найдено сохранённых мест"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "прибытие, пункт назначения слева",

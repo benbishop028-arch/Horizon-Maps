@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Google Maps favourites import: import individual saved places from a Google Takeout Saved Places.json file, preserving names and coordinates and skipping duplicates; favourites are no longer limited to 20 (thanks to the tester who asked for it)
+
 ### Fixed
 - Android Auto alternative routes: fix the missing Compose layout import so the release build compiles (thanks to the tester who asked for it)
 

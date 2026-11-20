@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** Slovenian, looked up by the English wording (as in [L]). Split into parts, as one list this long is too big for one method. */
 object I18nE {
-    fun rows(): List<Pair<String, List<String>>> = rowsE0() + rowsE1() + rowsE2() + rowsE3() + rowsE4() + rowsE5()
+    fun rows(): List<Pair<String, List<String>>> = rowsE0() + rowsE1() + rowsE2() + rowsE3() + rowsE4() + rowsE5() + listOf(
+        "Import Google Maps" to listOf("Uvozi iz Google Zemljevidov"),
+        "Choose a Saved Places.json file from Google Takeout" to listOf("Izberite datoteko Saved Places.json iz Google Takeout"),
+        "Imported {0} · already saved {1}" to listOf("Uvoženih {0} · že shranjenih {1}"),
+        "No saved places found in that file" to listOf("V tej datoteki ni shranjenih mest")
+    )
 
     private fun rowsE0(): List<Pair<String, List<String>>> = listOf(
         "arrive, destination on the left" to listOf("ob prihodu je cilj na levi"),

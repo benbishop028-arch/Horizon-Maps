@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** esmx: looked up by the English wording (as in [L]); Spanish for Mexico and most of Latin America (tú, "gira", "glorieta"), made from the Argentine one. */
 object I18nEsMx {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Importar desde Google Maps",
+        "Choose a Saved Places.json file from Google Takeout" to "Elige el archivo Saved Places.json de Google Takeout",
+        "Imported {0} · already saved {1}" to "Se importaron {0} · {1} ya estaban guardados",
+        "No saved places found in that file" to "No se encontraron lugares guardados en este archivo"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "llegada, destino a la izquierda",

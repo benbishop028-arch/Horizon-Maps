@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** ml: looked up by the English wording (as in [L]); Malayalam, GitHub #244 (bijindas offered to check the wording). */
 object I18nMl {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Google Maps-ൽ നിന്ന് ഇറക്കുമതി ചെയ്യുക",
+        "Choose a Saved Places.json file from Google Takeout" to "Google Takeout-ൽ നിന്നുള്ള Saved Places.json ഫയൽ തിരഞ്ഞെടുക്കുക",
+        "Imported {0} · already saved {1}" to "{0} ഇറക്കുമതി ചെയ്തു · {1} ഇതിനകം സംരക്ഷിച്ചു",
+        "No saved places found in that file" to "ഈ ഫയലിൽ സംരക്ഷിച്ച സ്ഥലങ്ങളൊന്നും കണ്ടെത്തിയില്ല"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "എത്തി, ലക്ഷ്യസ്ഥാനം ഇടതുവശത്ത്",

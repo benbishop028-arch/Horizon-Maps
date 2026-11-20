@@ -2,7 +2,12 @@ package com.headunit.launcher
 
 /** kn: looked up by the English wording (as in [L]); made by tr/genlang.py from tr/lang/kn.tsv. */
 object I18nKn {
-    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6()
+    fun rows(): List<Pair<String, String>> = p0() + p1() + p2() + p3() + p4() + p5() + p6() + listOf(
+        "Import Google Maps" to "Google Maps ನಿಂದ ಆಮದುಮಾಡಿ",
+        "Choose a Saved Places.json file from Google Takeout" to "Google Takeout ನ Saved Places.json ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
+        "Imported {0} · already saved {1}" to "{0} ಆಮದು ಮಾಡಲಾಗಿದೆ · {1} ಈಗಾಗಲೇ ಉಳಿಸಲಾಗಿದೆ",
+        "No saved places found in that file" to "ಈ ಫೈಲ್‌ನಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳಗಳು ಕಂಡುಬಂದಿಲ್ಲ"
+    )
 
     private fun p0(): List<Pair<String, String>> = listOf(
         "arrive, destination on the left" to "ತಲುಪಿದ್ದೀರಿ, ಗಮ್ಯಸ್ಥಾನ ಎಡಭಾಗದಲ್ಲಿದೆ",
