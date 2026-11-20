@@ -37,6 +37,10 @@ internal object PreferenceKeys {
     const val PATHS = "paths"
     const val RAIN_RADAR = "radar"
     const val RAIN_EFFECTS = "rainfx"
+    /** Settings > Weather: which kinds of weather are shown on the map (with live weather on). */
+    const val WX_RAIN = "wxrain"
+    const val WX_SNOW = "wxsnow"
+    const val WX_FOG = "wxfog"
     const val MAP_FPS = "mapfps"
     const val UI_SCALE = "uiscale"
     const val UI_AUTO_SCALE = "uiauto"
@@ -554,4 +558,19 @@ fun hdRoadsWanted(prefs: Prefs, country: String): Boolean = when (prefs.s(Prefer
     "on" -> true
     "off" -> false
     else -> country.isBlank() || country.equals("GB", true)
+}
+
+/**
+ * The weather code as the map shows it (rain or snow falling, the fog wash, the haze to the horizon): a kind switched off in
+ * Settings > Weather is shown as plain overcast instead. (The light and weather advice still follow the real weather.)
+ */
+fun Prefs.mapWeather(code: Int?): Int? {
+    val c = code ?: return null
+    val off = when (c) {
+        45, 48 -> !b(PreferenceKeys.WX_FOG, true)
+        in 71..77, 85, 86 -> !b(PreferenceKeys.WX_SNOW, true)
+        in 51..67, in 80..82, in 95..99 -> !b(PreferenceKeys.WX_RAIN, true)
+        else -> false
+    }
+    return if (off) 3 else c
 }

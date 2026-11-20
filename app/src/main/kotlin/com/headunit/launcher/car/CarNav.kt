@@ -4,6 +4,7 @@ import com.headunit.launcher.ui.drawManeuver
 import androidx.compose.ui.graphics.asImageBitmap
 import com.headunit.launcher.PreferenceKeys
 import com.headunit.launcher.carSpeedSpot
+import com.headunit.launcher.mapWeather
 import com.headunit.launcher.setCarSpeedSpot
 import com.headunit.launcher.L
 import com.headunit.launcher.Logos
@@ -338,8 +339,9 @@ class CarNavSession : Session() {
                 val code = holder.engine?.weather?.code
                 val p = Prefs(carContext.applicationContext)
                 holder.map?.setWeatherCode(code)
-                holder.map?.setWeather(if (p.b(PreferenceKeys.RAIN_EFFECTS, false)) code else null)
-                holder.map?.setSky(if (p.b(PreferenceKeys.SKYWEATHER, true)) code else null)
+                val shown = p.mapWeather(code)
+                holder.map?.setWeather(if (p.b(PreferenceKeys.RAIN_EFFECTS, false)) shown else null)
+                holder.map?.setSky(if (p.b(PreferenceKeys.SKYWEATHER, true)) shown else null)
             } catch (e: Exception) { }
         }
         applyTheme()
