@@ -5029,6 +5029,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Saves the What's here place as a favourite (or takes it off again). */
+    /**
+     * Where you are now, as a place to save as Home or Work (GitHub #263): the road and town from Mapbox when there's signal, or
+     * just the spot ("Your location") without. Null with no GPS fix yet.
+     */
+    suspend fun placeHereNow(): Place? {
+        val p = fix?.pos ?: return null
+        val tok = mbToken
+        val info = withContext(Dispatchers.IO) { try { if (tok.isNotBlank() && online()) MapboxRest.whatsHere(tok, p) else null } catch (e: Exception) { null } }
+        val road = info?.road.orEmpty(); val area = info?.place.orEmpty()
+        return Place(road.ifBlank { area.ifBlank { L.t("Your location") } }, if (road.isNotBlank()) area else "", p)
+    }
+
     fun hereSave(): Boolean {
         val h = here ?: return false
         val name = h.place.name.takeIf { it != "Dropped pin" && it != L.t("Dropped pin") } ?: h.road.ifBlank { L.t("Saved place") }
@@ -6758,7 +6770,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val allowed = (cur.end - avgEnterProg) / lim - secs
                     if (allowed > 1.0) left / allowed else 0.0
                 } else null
-                avgInfo = AvgInfo(avg, lim, left, over, false, 0.0, safe)
+                avgInfo = AvgInfo(avg, lim, left, over, false, 0.0, safe, lenM = cur.end - cur.start)
             } else {
                 if (avgIn != null) { avgIn = null; toast(L.t("End of average speed check"), 2500) }
                 val next = pl.avg.filter { it.start > progress && it.start - progress < 1200.0 }.minByOrNull { it.start }

@@ -6,6 +6,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### New
 - Speed cameras beep again just before you pass: after the warning about 500 m ahead, a short second beep comes about 4 seconds before the camera (thanks to joel941703-hash)
+- Home and Work from where you are: Set Home and Set Work have a Use where I am now button, showing the address it found, so you can save it while parked outside without typing the address (thanks to jvricardo1)
+- Average speed checks show how far through you are: a bar under the distance left fills as you go, green, amber when you need to ease off for the rest, and red over the limit (thanks to joel941703-hash)
 - Move favourites to Your places: each favourite has Move to Your places, and Move all puts every one in a Favourites group there, so the row next to Home and Work stays short (thanks to Dixet)
 
 ### Improved

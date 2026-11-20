@@ -4,6 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.fadeIn
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.MyLocation
 import androidx.compose.material.icons.rounded.Wc
 import androidx.compose.material.icons.rounded.LocalConvenienceStore
 import androidx.compose.material.icons.rounded.Restaurant
@@ -236,6 +237,24 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
             if (a.ahead) Text(L.t("Starts in {0} · {1} long", Geo.fmtDist(a.toStartM, engine.imperial), Geo.fmtDist(a.leftM, engine.imperial)), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             else {
                 Text("${Geo.fmtDist(a.leftM, engine.imperial)} left", color = c.sub, fontSize = 13.sp)
+                // how far through the check you are, as a bar (GitHub #268): green, amber once you need to ease off for the rest,
+                // red over the limit, like the card's border
+                if (a.lenM > 50.0) {
+                    val done = (1.0 - a.leftM / a.lenM).coerceIn(0.0, 1.0).toFloat()
+                    val lmB = a.limitMs; val sfB = a.safeMs
+                    val barCol = when {
+                        a.over -> red
+                        lmB != null && sfB != null && Math.floor(sfB * k) < Math.round(lmB * k) -> amber
+                        else -> green
+                    }
+                    Box(Modifier.padding(top = 6.dp).fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).background(c.line)) {
+                        Box(Modifier.fillMaxHeight().fillMaxWidth(done).clip(RoundedCornerShape(5.dp)).background(barCol))
+                    }
+                    Row(Modifier.fillMaxWidth().padding(top = 3.dp)) {
+                        Text(L.t("Start"), color = c.sub, fontSize = 11.sp, modifier = Modifier.weight(1f))
+                        Text(L.t("End camera"), color = c.sub, fontSize = 11.sp)
+                    }
+                }
                 // what you can do from here and still come out under the limit (only worth saying once it differs from the limit)
                 val safe = a.safeMs
                 val lm = a.limitMs
@@ -917,6 +936,33 @@ fun AddPlaceDialog(engine: NavEngine, preset: Place?, slot: String? = null, onCl
                 }
                 if (preset == null) Text(L.t("Change"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { picked = null; q = "" })
             } else {
+                // Home or Work: one tap to use where you are now (GitHub #263), looked up as the dialog opens so the address shows
+                if (slot != null && preset == null) {
+                    val fixNow = engine.fix
+                    var hereNow by remember { mutableStateOf<Place?>(null) }
+                    LaunchedEffect(fixNow != null) { if (fixNow != null && hereNow == null) hereNow = try { engine.placeHereNow() } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null } }
+                    val acc = fixNow?.acc ?: 0.0
+                    val subLine = when {
+                        fixNow == null -> L.t("Waiting for your location")
+                        else -> listOfNotNull(hereNow?.let { h -> listOf(h.name, h.sub).filter { it.isNotBlank() }.joinToString(", ") }?.ifBlank { null },
+                            if (acc > 0.0) "±" + Geo.fmtDist(acc, engine.imperial) else null).joinToString(" · ")
+                    }
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(c.accent.copy(alpha = 0.14f))
+                        .border(1.5.dp, c.accent, RoundedCornerShape(16.dp))
+                        .clickable(enabled = fixNow != null) {
+                            val f = engine.fix ?: return@clickable
+                            picked = hereNow?.takeIf { Geo.dist(it.pos, f.pos) < 100.0 } ?: Place(L.t("Your location"), "", f.pos)
+                        }.padding(horizontal = 13.dp, vertical = 11.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.25f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.MyLocation, null, tint = c.accent, modifier = Modifier.size(20.dp))
+                        }
+                        Column(Modifier.padding(start = 12.dp).weight(1f)) {
+                            Text(L.t("Use where I am now"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            if (subLine.isNotBlank()) Text(subLine, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    Text(L.t("or"), color = c.sub, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                }
                 SField(q, { q = it }, placeholder = L.t("Search for the address or postcode"), width = 476.dp, fill = true)
                 LazyColumn(Modifier.heightIn(max = 240.dp)) {
                     itemsIndexed(found.take(6)) { _, p ->

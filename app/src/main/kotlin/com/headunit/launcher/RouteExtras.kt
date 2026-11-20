@@ -68,7 +68,8 @@ class AvgOnRoute(val def: AvgDef, val start: Double, val end: Double)
 
 /** Live state of the average speed check you are in. */
 /** [safeMs]: the most you can do for the rest of the zone and still average under the limit (0 = can't any more; null = not known yet). */
-class AvgInfo(val avgMs: Double, val limitMs: Double?, val leftM: Double, val over: Boolean, val ahead: Boolean, val toStartM: Double, val safeMs: Double? = null)
+/** [lenM]: the whole check's length (for the progress bar on its card, GitHub #268; 0 = not known). */
+class AvgInfo(val avgMs: Double, val limitMs: Double?, val leftM: Double, val over: Boolean, val ahead: Boolean, val toStartM: Double, val safeMs: Double? = null, val lenM: Double = 0.0)
 
 /** Next motorway services ahead. */
 class ServiceAhead(val name: String, val dist: Double, val fuel: String)
