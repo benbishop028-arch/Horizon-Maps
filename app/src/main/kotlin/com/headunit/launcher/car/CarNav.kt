@@ -1006,10 +1006,10 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
                 m == "STRAIGHT" || m == "FOLLOW" -> Maneuver.TYPE_STRAIGHT
                 else -> Maneuver.TYPE_UNKNOWN
             }
-            // the arrow: the same picture as the phone's turn card (with the roundabout's real exit and its number), or the
-            // plain arrow image if that can't be drawn
-            val pic = arrowPicture(t, left)
-            val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(if (pic != null) IconCompat.createWithBitmap(pic) else IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
+            // the arrow: the plain arrow image for each kind of turn. This only goes to the car's own displays (the dashboard and a
+            // head-up display), which draw the kind of turn and the roundabout's exit from the rest of the step; the picture of the
+            // phone's turn card that was sent here for a few versions made the VW's display drop the turn altogether (desko1973, #240)
+            val mb = Maneuver.Builder(type).setIcon(CarIcon.Builder(IconCompat.createWithResource(ctx, maneuverIcon(type))).build())
             val rbExitType = type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW ||
                 type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE || type == Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE
             if (rbExitType) mb.setRoundaboutExitNumber(t.exit.coerceAtLeast(1))

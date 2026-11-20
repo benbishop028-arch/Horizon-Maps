@@ -638,6 +638,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         CarTrains.filesDir = ctx.filesDir   // (the car-train lines, for Avoid car trains)   // (Italy's fuel price list is kept on the device)
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
         try { L.set(prefs.s(PreferenceKeys.APP_LANG, "auto")) } catch (e: Exception) { }
+        // (and the map's place names in it too)
+        applyMapLanguage()
         // offline mode (Settings > Offline maps): set before anything goes online
         Net.offline = prefs.b(PreferenceKeys.OFFLINE_MODE, false)
         mapboxOffline(Net.offline)
@@ -821,10 +823,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun duck() {
         synchronized(this) {
             if (focusReq == null) try {
-                val req = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
-                    .setAudioAttributes(speechAttrs).build()
-                focusReq = req
-                audioMgr.requestAudioFocus(req)
+                focusReq = takeFocus("voice")
             } catch (e: Exception) { }
         }
         val t = ++duckToken
@@ -843,8 +842,61 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private fun unduck() {
         synchronized(this) {
-            try { focusReq?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+            if (focusReq != null) giveFocus("voice")
             focusReq = null
+        }
+    }
+
+    /*
+     * One hold on the music for the voice and the beeps together (#224, ajg0001: on a Ford through Android Auto the music stayed
+     * quiet after a speed limit alert). The beep and the spoken alert each used to ask Android to lower the music, at the same time,
+     * and each gave it back on its own; Android counts them as one request from the app, but some cars (through Android Auto) count
+     * two, and the second "give back" never came, so the car kept the music down. Now the first one to start asks, the last one to
+     * finish gives it back, once, and anything held for over 90 seconds is given back whatever happens.
+     */
+    private val focusLock = Any()
+    private var focusHolds = 0
+    private var focusHeld: android.media.AudioFocusRequest? = null
+    private var focusSince = 0L
+    private val focusOne = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+        .setAudioAttributes(android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build())
+        .setOnAudioFocusChangeListener { }.build()
+
+    /** Lowers the music (if this is the first thing to want it lowered). Returns a token for [giveFocus]'s bookkeeping. */
+    private fun takeFocus(why: String): android.media.AudioFocusRequest {
+        synchronized(focusLock) {
+            val now = System.currentTimeMillis()
+            // held far too long (a "give back" was lost): start again from nothing
+            if (focusHolds > 0 && now - focusSince > 90_000) { forceGiveBack("held over 90 s"); }
+            if (focusHolds++ == 0) {
+                val req = if (voiceChan == "media") android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                    .setAudioAttributes(speechAttrs).setOnAudioFocusChangeListener { }.build() else focusOne
+                focusHeld = req; focusSince = now
+                val r = try { audioMgr.requestAudioFocus(req) } catch (e: Exception) { -1 }
+                SoundLog.note(ctx, "music lowered for the $why" + if (r != android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED) " (Android said $r)" else "")
+            }
+            return focusHeld ?: focusOne
+        }
+    }
+
+    /** Gives the music back once nothing else still wants it lowered. */
+    private fun giveFocus(why: String) {
+        synchronized(focusLock) {
+            if (focusHolds <= 0) return
+            if (--focusHolds == 0) {
+                val req = focusHeld; focusHeld = null
+                try { req?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+                SoundLog.note(ctx, "music given back after the $why (${(System.currentTimeMillis() - focusSince) / 100 / 10.0} s)")
+            }
+        }
+    }
+
+    private fun forceGiveBack(why: String) {
+        synchronized(focusLock) {
+            val req = focusHeld; focusHeld = null; focusHolds = 0
+            try { req?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+            SoundLog.note(ctx, "music given back: $why")
         }
     }
 
@@ -1160,8 +1212,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var daylightOutside by mutableStateOf(false)
         private set
 
-    private fun updateDaylightOutside() {
-        val forced = if (isCar) prefs.s(PreferenceKeys.CARTHEME, "car") == "night" else prefs.s(PreferenceKeys.THEME, "auto") == "night"
+    private fun updateDaylightOutside(dark: Boolean) {
+        // on the car screen, also when the car itself (or the phone) says night while the sun is up: many cars and Android Auto's own
+        // "always dark" setting keep the screen dark all day, and the lamps, beam and stars came on at midday there (bijindas, #225)
+        val forced = if (isCar) prefs.s(PreferenceKeys.CARTHEME, "car").let { it == "night" || (dark && (it == "car" || it == "phone")) }
+            else prefs.s(PreferenceKeys.THEME, "auto") == "night"
         val pos = fix?.pos ?: prefs.s(PreferenceKeys.LASTLAT, "").toDoubleOrNull()?.let { la -> prefs.s(PreferenceKeys.LASTLON, "").toDoubleOrNull()?.let { lo -> LL(la, lo) } }
         val v = forced && pos != null && Sun.isDay(pos.lat, pos.lon, System.currentTimeMillis())
         if (v != daylightOutside) daylightOutside = v
@@ -1169,7 +1224,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     private fun lightPreset(dark: Boolean): String {
-        try { updateDaylightOutside() } catch (e: Throwable) { }
+        try { updateDaylightOutside(dark) } catch (e: Throwable) { }
         // the car screen goes by its own choice (Always day / Always night on the car), not the phone's: with the phone set to Night,
         // picking Always day on the car still left the car's map dark, and the other way round
         if (isCar) when (prefs.s(PreferenceKeys.CARTHEME, "car")) { "day" -> return "day"; "night" -> return "night" }
@@ -1427,8 +1482,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val attrs = android.media.AudioAttributes.Builder()
                     .setUsage(if (voiceChan == "media") android.media.AudioAttributes.USAGE_MEDIA else android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-                fr = android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK).setAudioAttributes(attrs).build()
-                audioMgr.requestAudioFocus(fr)
+                fr = takeFocus("beep")
                 val t = android.media.AudioTrack.Builder().setAudioAttributes(attrs)
                     .setAudioFormat(android.media.AudioFormat.Builder().setEncoding(android.media.AudioFormat.ENCODING_PCM_16BIT)
                         .setSampleRate(22050).setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO).build())
@@ -1443,7 +1497,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             } finally {
                 try { tr?.stop() } catch (e: Exception) { }
                 try { tr?.release() } catch (e: Exception) { }
-                try { fr?.let { audioMgr.abandonAudioFocusRequest(it) } } catch (e: Exception) { }
+                if (fr != null) giveFocus("beep")
                 beepBusy = false
             }
         }
@@ -1569,6 +1623,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
+            try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -4334,7 +4389,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun incidentLabel(i: Incident): String = when (i.cat) {
         "roadWorks" -> "Roadworks"; "roadClosed" -> "Road closed"; "accident" -> "Accident"; "breakdown" -> "Broken-down vehicle"
         "jam" -> "Traffic jam"; "laneClosed" -> "Lane closed"; "danger" -> "Hazard"
-        else -> i.text.ifBlank { "Incident" }
+        // Mapbox only writes its incidents in English ("Police directing traffic"): in another language a known kind is named in
+        // that language and anything else is called an incident, rather than showing English (desko1973, #240)
+        else -> if (i.id.startsWith("mb-") && L.lang != "en" && i.text.isNotBlank())
+                (if (i.text.contains("police", true)) "Police" else "Incident")
+            else i.text.ifBlank { "Incident" }
     }
 
     /** Speed cameras within [radius] m from a downloaded area that covers [p] (null when none does, so they're looked up online). */
@@ -6806,9 +6865,22 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun setLanguage(setting: String) {
         if (!L.set(setting)) return
         said.clear()
+        applyMapLanguage()
         val r = try { setVoiceLanguage() } catch (e: Exception) { null }
         if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED)
             toast(L.t("The phone's voice has no {0} installed: add it in Settings > Sound & voice > Voice and language", L.locale.getDisplayLanguage(L.locale)), 8000)
+    }
+
+    /**
+     * The map's place and road names in the app's language where Mapbox has them. Without this Mapbox goes by the phone's own
+     * language, so in the UAE the names came up in Arabic with the app set to English (zaheerhakim, #243). Asked once when the
+     * engine starts and again when the language is changed; Mapbox keeps it and the map picks it up.
+     */
+    private fun applyMapLanguage() {
+        try {
+            com.mapbox.common.SettingsServiceFactory.getInstance(com.mapbox.common.SettingsServiceStorageType.PERSISTENT)
+                .set(com.mapbox.common.MapboxCommonSettings.LANGUAGE, com.mapbox.bindgen.Value.valueOf(L.mapboxLang))
+        } catch (e: Throwable) { }
     }
 
     fun speak(text: String, alert: Boolean = false) {
@@ -6883,6 +6955,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         "ko" -> setOf(Character.UnicodeScript.HANGUL, Character.UnicodeScript.HAN)
         "hi", "mr", "ne" -> setOf(Character.UnicodeScript.DEVANAGARI)
         "kn" -> setOf(Character.UnicodeScript.KANNADA)
+        "ml" -> setOf(Character.UnicodeScript.MALAYALAM)
         else -> emptySet()
     }
 
@@ -6899,6 +6972,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             Character.UnicodeScript.HANGUL -> listOf(Locale.KOREA)
             Character.UnicodeScript.DEVANAGARI -> listOf(Locale("hi", "IN"))
             Character.UnicodeScript.KANNADA -> listOf(Locale("kn", "IN"))
+            Character.UnicodeScript.MALAYALAM -> listOf(Locale("ml", "IN"))
             Character.UnicodeScript.GEORGIAN -> listOf(Locale("ka", "GE"))
             Character.UnicodeScript.ARMENIAN -> listOf(Locale("hy", "AM"))
             Character.UnicodeScript.TAMIL -> listOf(Locale("ta", "IN"))

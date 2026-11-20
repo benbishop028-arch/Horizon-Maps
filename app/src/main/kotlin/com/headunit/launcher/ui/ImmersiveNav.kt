@@ -1412,7 +1412,9 @@ internal fun ImmTurnCard(
                 val rbShort = t.thenExit > 0 && t.thenStreet.isNotBlank() && t.thenManeuver.uppercase().contains("ROUNDABOUT")
                 if (rbShort) ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(38.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored, exitNumber = t.thenExit)
                 else ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
-                BadgedLine(if (rbShort) L.t("Then {0}", t.thenStreet) else t.thenText, engine.ukRoadBadges, 14.sp, Color.White.copy(alpha = 0.92f), Modifier.padding(start = 10.dp))
+                BadgedLine(if (rbShort) L.t("Then {0}", t.thenStreet) else t.thenText, engine.ukRoadBadges, 14.sp, Color.White.copy(alpha = 0.92f), Modifier.padding(start = 10.dp),
+                    // on the car screen a long street name wraps onto a second line before it's cut short (fjunakovic, #248)
+                    maxLines = if (car) 2 else 1)
             }
         }
         } // (end of the full card)
@@ -2024,19 +2026,19 @@ private fun RoadRefChip(r: String, size: androidx.compose.ui.unit.TextUnit) {
  * turn card's "Then" line (karthikeyansr). The words shorten with "…" when space is short; the badges always show in full.
  */
 @Composable
-internal fun BadgedLine(text: String, badges: Boolean, size: androidx.compose.ui.unit.TextUnit, color: Color, modifier: Modifier = Modifier) {
+internal fun BadgedLine(text: String, badges: Boolean, size: androidx.compose.ui.unit.TextUnit, color: Color, modifier: Modifier = Modifier, maxLines: Int = 1) {
     val refs = if (badges) roadRefRx.findAll(text).toList().take(2) else emptyList()
-    if (refs.isEmpty()) { Text(text, color = color, fontSize = size, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier); return }
+    if (refs.isEmpty()) { Text(text, color = color, fontSize = size, maxLines = maxLines, overflow = TextOverflow.Ellipsis, modifier = modifier); return }
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         var at = 0
         for (m in refs) {
             val before = text.substring(at, m.range.first).trim()
-            if (before.isNotEmpty()) Text(before, color = color, fontSize = size, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+            if (before.isNotEmpty()) Text(before, color = color, fontSize = size, maxLines = maxLines, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
             RoadRefChip(roadRefOf(m), size)
             at = m.range.last + 1
         }
         val after = text.substring(at).trim()
-        if (after.isNotEmpty()) Text(after, color = color, fontSize = size, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        if (after.isNotEmpty()) Text(after, color = color, fontSize = size, maxLines = maxLines, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
     }
 }
 

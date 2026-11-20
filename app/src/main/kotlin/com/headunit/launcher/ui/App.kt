@@ -266,6 +266,18 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
         val la = ps.getOrNull(0)?.toDoubleOrNull(); val lo = ps.getOrNull(1)?.toDoubleOrNull(); val at = ps.getOrNull(2)?.toLongOrNull() ?: 0L
         map.setParked(if (la != null && lo != null && System.currentTimeMillis() - at < 48 * 3600_000L) com.headunit.launcher.LL(la, lo) else null)
     }
+    // your favourites as stars on the map (Settings > On the map; Xundey, #249): smaller and without names while navigating,
+    // and a tap on one opens its place card, with Go
+    val favsOn = prefs.b(PreferenceKeys.FAVS_ON_MAP, true)
+    val favsRaw = prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+    val favsSmall = engine.route != null && !engine.previewing
+    LaunchedEffect(favsOn, favsRaw, favsSmall) {
+        map.setFavourites(if (favsOn) engine.places.favourites().map { it.pos to it.name } else emptyList(), favsSmall)
+    }
+    androidx.compose.runtime.DisposableEffect(map) {
+        map.onFavTap = { i -> engine.places.favourites().getOrNull(i)?.let { engine.showHere(it) } }
+        onDispose { map.onFavTap = null }
+    }
     // the extra 3D features (Settings > On the map)
     val xFacades = prefs.b(PreferenceKeys.FACADES, true); val xLand = prefs.b(PreferenceKeys.LANDMARKS3D, true); val xPaths = prefs.b(PreferenceKeys.PATHS, true)
     val xTerrain = prefs.b(PreferenceKeys.TERRAIN, false); val xTap = prefs.b(PreferenceKeys.TAPSELECT, true); val xFurn = prefs.b(PreferenceKeys.FURNITURE3D, true); val xClear = prefs.b(PreferenceKeys.CLEARVIEW, true)

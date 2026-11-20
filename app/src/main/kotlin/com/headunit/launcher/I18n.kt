@@ -15,7 +15,7 @@ object L {
         "ro" to "Română", "eu" to "Euskara", "zh" to "繁體中文", "zhhk" to "繁體中文（香港・粵語）",
         "el" to "Ελληνικά", "cs" to "Čeština", "fi" to "Suomi",
         "zhs" to "简体中文", "sk" to "Slovenčina", "da" to "Dansk", "hr" to "Hrvatski", "ms" to "Bahasa Melayu", "hu" to "Magyar",
-        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "uk" to "Українська", "esar" to "Español (Argentina)", "esmx" to "Español (México)")
+        "tr" to "Türkçe", "sr" to "Srpski", "ar" to "العربية", "he" to "עברית", "ur" to "اردو", "sv" to "Svenska", "bs" to "Bosanski", "kn" to "ಕನ್ನಡ", "mr" to "मराठी", "nb" to "Norsk bokmål", "ru" to "Русский", "uk" to "Українська", "vi" to "Tiếng Việt", "ml" to "മലയാളം", "esar" to "Español (Argentina)", "esmx" to "Español (México)")
 
     /** Arabic, Hebrew and Urdu read right to left: the cards and settings are laid out that way round. */
     val rtl: Boolean get() = lang == "ar" || lang == "he" || lang == "ur"
@@ -32,7 +32,7 @@ object L {
         "bg" -> Locale("bg", "BG"); "sl" -> Locale("sl", "SI"); "ro" -> Locale("ro", "RO"); "eu" -> Locale("eu", "ES")
         "el" -> Locale("el", "GR"); "cs" -> Locale("cs", "CZ"); "fi" -> Locale("fi", "FI")
         "zhs" -> Locale("zh", "CN"); "sk" -> Locale("sk", "SK"); "da" -> Locale("da", "DK"); "hr" -> Locale("hr", "HR"); "ms" -> Locale("ms", "MY"); "hu" -> Locale("hu", "HU")
-        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "uk" -> Locale("uk", "UA"); "esar" -> Locale("es", "AR"); "esmx" -> Locale("es", "MX")
+        "tr" -> Locale("tr", "TR"); "sr" -> Locale("sr", "RS"); "sv" -> Locale("sv", "SE"); "bs" -> Locale("bs", "BA"); "kn" -> Locale("kn", "IN"); "mr" -> Locale("mr", "IN"); "nb" -> Locale("nb", "NO"); "ru" -> Locale("ru", "RU"); "uk" -> Locale("uk", "UA"); "vi" -> Locale("vi", "VN"); "ml" -> Locale("ml", "IN"); "esar" -> Locale("es", "AR"); "esmx" -> Locale("es", "MX")
         "he" -> Locale("he", "IL"); "ur" -> Locale("ur", "PK")
         // (Arabic: the phone's own country when it's set to Arabic, Saudi Arabia otherwise)
         "ar" -> Locale.getDefault().takeIf { it.language == "ar" } ?: Locale("ar", "SA")
@@ -79,7 +79,7 @@ object L {
      */
     val voiceLocales: List<Locale> get() = if (lang == "zhhk") listOf(Locale("yue", "HK"), Locale.forLanguageTag("yue-Hant-HK"), Locale("zh", "HK")) else listOf(locale)
 
-    val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr" -> "en"; "esar", "esmx" -> "es"; else -> lang }
+    val mapboxLang: String get() = when (lang) { "zh", "zhhk" -> "zh-Hant"; "zhs" -> "zh-Hans"; "ur", "kn", "mr", "ml" -> "en"; "esar", "esmx" -> "es"; else -> lang }
 
     /** The Google Play edition is called Horizon Maps, so it can be told apart from the GitHub one (Horizon Nav). */
     private val playName = BuildConfig.STORE == "play"
@@ -630,6 +630,9 @@ object L {
         // (Ukrainian: "2-й з’їзд")
         "uk" -> "$n-й"
         "kn" -> "${n}ನೇ"
+        // (Vietnamese: "lối ra thứ 2"; Malayalam: "2-ാമത്തെ എക്സിറ്റ്")
+        "vi" -> "thứ $n"
+        "ml" -> "${n}-ാമത്തെ"
         "mr" -> "${n}वा"
         "el" -> "${n}η"
         "ro" -> if (n == 1) "prima" else "a $n-a"
@@ -699,6 +702,8 @@ object L {
         // (as the roundabout phrase needs: "виконайте другий з’їзд")
         "uk" -> "перший|другий|третій|четвертий|п’ятий|шостий|сьомий|восьмий|дев’ятий|десятий"
         "kn" -> "ಮೊದಲ|ಎರಡನೇ|ಮೂರನೇ|ನಾಲ್ಕನೇ|ಐದನೇ|ಆರನೇ|ಏಳನೇ|ಎಂಟನೇ|ಒಂಬತ್ತನೇ|ಹತ್ತನೇ"
+        "vi" -> "thứ nhất|thứ hai|thứ ba|thứ tư|thứ năm|thứ sáu|thứ bảy|thứ tám|thứ chín|thứ mười"
+        "ml" -> "ഒന്നാമത്തെ|രണ്ടാമത്തെ|മൂന്നാമത്തെ|നാലാമത്തെ|അഞ്ചാമത്തെ|ആറാമത്തെ|ഏഴാമത്തെ|എട്ടാമത്തെ|ഒമ്പതാമത്തെ|പത്താമത്തെ"
         "mr" -> "पहिला|दुसरा|तिसरा|चौथा|पाचवा|सहावा|सातवा|आठवा|नववा|दहावा"
         "sv" -> "första|andra|tredje|fjärde|femte|sjätte|sjunde|åttonde|nionde|tionde"
         "id" -> "pertama|kedua|ketiga|keempat|kelima|keenam|ketujuh|kedelapan|kesembilan|kesepuluh"
@@ -724,7 +729,7 @@ object L {
         val keys3 = listOf("th", "ja", "id")
         val keys4 = listOf("bg")
         val keys5 = listOf("sl")
-        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "esar", "esmx", "zhhk")).associateWith { HashMap<String, String>() }
+        val m = (keys + keys2 + keys3 + keys4 + keys5 + listOf("ro", "eu", "zh", "el", "cs", "fi", "zhs", "sk", "da", "hr", "ms", "hu", "tr", "sr", "ar", "he", "ur", "sv", "bs", "kn", "mr", "nb", "ru", "uk", "vi", "ml", "esar", "esmx", "zhhk")).associateWith { HashMap<String, String>() }
         for ((en, tr) in rows) for ((i, k) in keys.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows2) for ((i, k) in keys2.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
         for ((en, tr) in rows3) for ((i, k) in keys3.withIndex()) tr.getOrNull(i)?.let { if (it.isNotEmpty()) m[k]!![en] = it }
@@ -756,6 +761,8 @@ object L {
         addOwn(m, "nb", I18nNb.rows())
         addOwn(m, "ru", I18nRu.rows())
         addOwn(m, "uk", I18nUk.rows())
+        addOwn(m, "vi", I18nVi.rows())
+        addOwn(m, "ml", I18nMl.rows())
         addOwn(m, "esar", I18nEsAr.rows())
         addOwn(m, "esmx", I18nEsMx.rows())
         m

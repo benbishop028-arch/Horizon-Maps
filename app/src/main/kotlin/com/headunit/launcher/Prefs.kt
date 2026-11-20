@@ -88,6 +88,8 @@ internal object PreferenceKeys {
     const val TRIPS = "trips"
     const val PLACES_CUSTOM = "places_custom"
     const val PLACES_FAVOURITES = "places_fav"
+    /** Settings > On the map: your favourites as stars on the map (#249). */
+    const val FAVS_ON_MAP = "favsonmap"
     const val PLACES_ROUTES = "places_routes"
     const val CAR_TRIP_BTNS = "car_trip_btns"
     const val CAR_TRIP_BTN_SIZE = "car_trip_btn_size"

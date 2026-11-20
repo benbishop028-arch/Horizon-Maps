@@ -270,16 +270,14 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
         // the screen in the units it would have at 100%
         val rawW = maxWidth.value * user; val rawH = maxHeight.value * user
-        var cap = Float.MAX_VALUE
-        // (each layout switch below is worked out from the size: keep on the roomier side of every one the screen is on at 100%)
-        if (rawW >= 900f) cap = minOf(cap, rawW / 900f)
-        if (rawH >= 460f) cap = minOf(cap, rawH / 460f)
-        if (rawH >= 330f) cap = minOf(cap, rawH / 330f)
-        if (rawW >= 600f) cap = minOf(cap, rawW / 600f)
-        if (rawW >= 1050f) cap = minOf(cap, rawW / 1050f)
+        // The layout (side by side or stacked, short or roomy) is now picked from the screen at 100% (in CarScreenBody), so the size
+        // no longer has to stay on the roomy side of every layout switch: that held 240% down to about 112-134% on most cars, as the
+        // switches that only change the spacing bound first (magnazan, #242). The only limit left is that the cards still have room:
+        // the screen, in the enlarged units, stays at least 560 wide and 300 high.
+        val cap = minOf(rawW / 560f, rawH / 300f).coerceAtLeast(1f)
         val eff = if (user <= 1f) user else minOf(user, cap).coerceAtLeast(1f)
         // (the most this screen fits, for the setting to say)
-        val most = (Math.floor((if (cap == Float.MAX_VALUE) 3f else cap.coerceAtMost(3f)) * 20.0) * 5).toInt().coerceAtLeast(100)
+        val most = (Math.floor(cap.coerceAtMost(3f) * 20.0) * 5).toInt().coerceAtLeast(100)
         androidx.compose.runtime.SideEffect { if (engine.prefs.i(PreferenceKeys.CARSCALE_MAX, 0) != most) engine.prefs.put(PreferenceKeys.CARSCALE_MAX, most) }
         val d = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(d.density * eff / user, d.fontScale)) {
@@ -310,14 +308,18 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // Infer constrained/split-screen surfaces from the actual available Compose area rather than device model.
         // Android Auto reports its usable surface here, so a split-screen map naturally trips these thresholds.
         val aspect = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
+        // the screen's size at 100% (or as made smaller): which layout to use is picked from this, not from the enlarged units, so a
+        // bigger Overall size makes everything bigger in the same layout instead of switching to the cramped small-screen one (#242)
+        val layoutW = maxWidth * sizeScale.coerceAtLeast(1f)
+        val layoutH = maxHeight * sizeScale.coerceAtLeast(1f)
         // Include shorter usable areas common in split-screen Android Auto and ultra-wide dashboards.
         // Use the available content bounds, not physical display dimensions, so insets are respected.
-        val lowVertical = maxHeight < 460.dp
-        val narrow = maxWidth < 900.dp
+        val lowVertical = layoutH < 460.dp
+        val narrow = layoutW < 900.dp
         val wideLandscape = aspect > 2.0f
         val compact = lowVertical || narrow || wideLandscape
         // only a really short screen leaves the junction close-up and advice off (a 7-inch 800 x 480 unit counts as compact, but has room)
-        val tiny = maxHeight < 330.dp
+        val tiny = layoutH < 330.dp
         // short, wide screens (a 7-inch 800 x 480 unit) are laid out side by side, not stacked: stacked, the cards took the whole
         // width and ran into each other and the speed (#67)
         val shortWide = lowVertical && aspect >= 1.4f
@@ -325,7 +327,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // the layout for the space Android Auto actually leaves (the same car gets the roomy layout full-screen and a small one in
         // a split-screen tile): "short" keeps the essentials and one row of shortcuts; "tile" (split screen) only the turn, a
         // one-line trip strip and the speed. Text stays its normal size: the layout gets simpler instead of smaller
-        val tile = tiny || (maxWidth < 600.dp && lowVertical)
+        val tile = tiny || (layoutW < 600.dp && lowVertical)
         val short = !tile && lowVertical
         val small = tile || short
         // Android Auto's split screen: the surface stays full size and only the tile's part of it is visible
@@ -346,12 +348,9 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val insT = with(dens) { (a?.top ?: 0).toDp() }
         val insR = with(dens) { (wPx - (a?.right ?: wPx.toInt())).coerceAtLeast(0f).toDp() }
         val insB = with(dens) { (hPx - (a?.bottom ?: hPx.toInt())).coerceAtLeast(0f).toDp() }
-        val edge = when {
-            maxWidth < 600.dp -> 8.dp
-            portrait -> 10.dp
-            maxWidth < 1050.dp -> 16.dp
-            else -> 24.dp
-        }
+        // the space round the edge: from 8 on a small screen to 24 on a wide one, smoothly (it used to jump at set widths, and those
+        // jumps were among the limits that held the Overall size back)
+        val edge = if (portrait && layoutW >= 600.dp) 10.dp else (8f + 16f * ((layoutW.value - 600f) / 450f).coerceIn(0f, 1f)).dp
         val left = insL + edge
         // Wide screens: level with Android Auto's buttons (top right); narrow/tall screens: below them.
         val topTarget = if (portrait) insT + edge else insT.coerceAtMost(12.dp) + edge
@@ -388,7 +387,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val topW = if (portrait) {
             (maxWidth - left - rightTop).coerceAtLeast(0.dp).coerceAtMost(600.dp)
         } else {
-            minOf(if (maxWidth < 1050.dp) 380.dp else 440.dp, maxWidth * 0.38f)
+            minOf((380f + 60f * ((layoutW.value - 1000f) / 100f).coerceIn(0f, 1f)).dp, maxWidth * 0.38f)
         }
         // (the turn card's width, which the trip card under it on the same side takes too, so the two line up)
         val turnCardW = if (portrait) topW else if (small) minOf(340.dp, maxWidth * 0.42f) else minOf(420.dp, maxWidth * 0.36f)

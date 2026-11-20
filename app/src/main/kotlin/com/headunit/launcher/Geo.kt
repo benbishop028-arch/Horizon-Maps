@@ -439,7 +439,7 @@ object TomTomRest {
         val dep = if (iso.isNotEmpty()) "&departAt=$iso" else ""
         // (TomTom's routing has no Japanese: an unknown language would fail the route, so British English is asked for there)
         // (and Traditional Chinese guidance is Taiwan's, whatever the phone's region)
-        val lang = "&language=" + URLEncoder.encode(when (L.lang) { "ja", "ur", "kn", "mr", "uk" -> "en-GB"; "bs" -> "hr-HR"; "nb" -> "no-NO"; "esar", "esmx" -> "es-MX"; "zh" -> "zh-TW"; "zhhk" -> "zh-HK"; "zhs" -> "zh-CN"; else -> L.locale.toLanguageTag() }, "UTF-8")
+        val lang = "&language=" + URLEncoder.encode(when (L.lang) { "ja", "ur", "kn", "mr", "uk", "vi", "ml" -> "en-GB"; "bs" -> "hr-HR"; "nb" -> "no-NO"; "esar", "esmx" -> "es-MX"; "zh" -> "zh-TW"; "zhhk" -> "zh-HK"; "zhs" -> "zh-CN"; else -> L.locale.toLanguageTag() }, "UTF-8")
         // The classic routing API is tried first: it returns turn-by-turn instructions, roundabout exits and lane data.
         // The newer Orbis routing API does not return any guidance, so it is only a fallback for the line itself.
         val prefs = avoid.joinToString("") { "&avoid=$it" } + (if (routeType != "fastest") "&routeType=$routeType" else "")
@@ -608,7 +608,14 @@ object TomTomRest {
     }
 
     fun incidents(key: String, minLon: Double, minLat: Double, maxLon: Double, maxLat: Double): List<Incident> {
-        val url0 = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&bbox=$minLon,$minLat,$maxLon,$maxLat"
+        // the incident's words ("Police directing traffic") in the app's language where TomTom has it, English otherwise (desko1973,
+        // #240: they came in English in Polish). Only languages TomTom's traffic service lists, as an unknown one could fail the request
+        val ttLang = when (com.headunit.launcher.L.lang) {
+            "ar" -> "ar"; "cs" -> "cs-CZ"; "da" -> "da-DK"; "de" -> "de-DE"; "el" -> "el-GR"; "es", "esar", "esmx" -> "es-ES"; "fi" -> "fi-FI"
+            "fr" -> "fr-FR"; "he" -> "he-IL"; "hu" -> "hu-HU"; "id" -> "id-ID"; "it" -> "it-IT"; "nb" -> "nb-NO"; "nl" -> "nl-NL"; "pl" -> "pl-PL"
+            "pt" -> "pt-PT"; "ro" -> "ro-RO"; "ru" -> "ru-RU"; "sk" -> "sk-SK"; "sv" -> "sv-SE"; "tr" -> "tr-TR"; else -> "en-GB"
+        }
+        val url0 = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&language=$ttLang&bbox=$minLon,$minLat,$maxLon,$maxLat"
         // (Horizon Maps Plus: through the key server, which adds the real key)
         val via = if (key == com.headunit.launcher.KeyServer.TT) com.headunit.launcher.KeyServer.tomtomVia("$url0&key=$key") else null
         val c = URL(via?.first ?: url0).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection

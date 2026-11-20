@@ -150,8 +150,15 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
             }
             // the round buttons
             var saved by remember(h.place) { mutableStateOf(engine.places.favourites().any { Geo.dist(it.pos, h.place.pos) < 15.0 }) }
+            // the name box shown after tapping the star (Xundey, #249): filled in with the place's name; Done keeps what's typed,
+            // and ignoring it keeps the place's own name, as before
+            var naming by remember(h.place) { mutableStateOf<String?>(null) }
             Row(Modifier.fillMaxWidth().padding(top = 12.dp, end = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-                RoundAction(if (saved) Icons.Rounded.Star else Icons.Rounded.StarBorder, L.t("Save"), if (saved) Color(0xFFFFC83D) else c.text) { saved = engine.hereSave() }
+                RoundAction(if (saved) Icons.Rounded.Star else Icons.Rounded.StarBorder, L.t("Save"), if (saved) Color(0xFFFFC83D) else c.text) {
+                    saved = engine.hereSave()
+                    // just saved: a box to name it straight away (not while moving: no typing while driving)
+                    naming = if (saved && !moving && !engine.isCar) engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 15.0 }?.name else null
+                }
                 if (!moving && !d?.phone.isNullOrBlank()) RoundAction(Icons.Rounded.Phone, L.t("Call"), c.text) {
                     try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + d!!.phone.replace(" ", ""))).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e: Exception) { }
                 }
@@ -165,6 +172,30 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
                     try { ctx.startActivity(android.content.Intent.createChooser(i, L.t("Share")).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e: Exception) { }
                 }
                 if (!driving) RoundAction(Icons.Rounded.MyLocation, L.t("Start here"), c.text) { engine.hereStartFrom() }
+            }
+            naming?.let { cur ->
+                fun keep() {
+                    engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 15.0 }?.let { engine.places.renameFavourite(it, cur) }
+                    naming = null
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 10.dp, end = 6.dp).clip(RoundedCornerShape(12.dp)).background(c.tile).padding(horizontal = 10.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(L.t("Saved as"), color = c.sub, fontSize = 13.sp, maxLines = 1)
+                    Spacer(Modifier.width(8.dp))
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = cur, onValueChange = { naming = it.take(40) }, singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = c.text, fontSize = 15.sp),
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(c.accent),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+                            capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Sentences),
+                        keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { keep() }),
+                        modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp)).background(c.bg).border(1.dp, c.accent, RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(L.t("Done"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(c.accent).pressClick { keep() }.padding(horizontal = 12.dp, vertical = 7.dp))
+                }
             }
             // the details
             Column(Modifier.padding(top = 10.dp, end = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
