@@ -5,7 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
-- Favourites sorting: show saved favourites alphabetically by default, with an A–Z / Nearest choice in Places & trips; Android Auto favourites are alphabetised too (thanks to the tester who asked for it).
+- Speed-limit changes on the map: show a road-sign marker at the exact route position of the next posted speed-limit change, alongside the existing distance countdown (thanks to the tester who asked for it).
 
 ### Improved
 - TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).

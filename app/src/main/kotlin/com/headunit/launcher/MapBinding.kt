@@ -3055,6 +3055,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     /** A lorry's limits on the map: where, the sign's text ("4.1m", "7.5t"), and whether the lorry is over it (red). */
     @Volatile private var limits: List<Triple<LL, String, Boolean>> = emptyList()
+    @Volatile private var speedChange: Pair<LL, String>? = null
     /** The sign pictures already added to the current map style (they go when the style changes). */
     private val limImgs = HashSet<String>()
 
@@ -3062,12 +3063,20 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         main0.post { if (list != limits) { limits = list; pushLimits() } }
     }
 
+    /** The next posted speed-limit change, pinned to its position along the route. */
+    fun setSpeedChange(pos: LL?, text: String?) {
+        val next = if (pos != null && !text.isNullOrBlank()) pos to text else null
+        main0.post { if (next != speedChange) { speedChange = next; pushLimits() } }
+    }
+
     private fun pushLimits() {
         val st = style ?: return
         val s = src("dl-lim") ?: return
         try {
             val feats = ArrayList<Feature>()
-            for ((p, text, over) in limits.take(60)) {
+            val all = limits.take(60).toMutableList()
+            speedChange?.let { (p, text) -> all.add(0, Triple(p, text, false)) }
+            for ((p, text, over) in all) {
                 val id = "dl-lim-" + (if (over) "r-" else "w-") + text
                 if (limImgs.add(id)) addImg(st, id, limitBitmap(text, over))
                 feats += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", id) }
