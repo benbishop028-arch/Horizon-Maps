@@ -16,6 +16,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Media controls are off on a new install (Settings › While driving › Media controls to turn them on). Anyone who already has the app keeps them as they were
 
 ### Fixed
+- The demo drive at 2x and faster: the view now turns as fast as the demo takes the bends, instead of falling behind and showing the fields beside the route (thanks to jhahvhi)
 - TomTom's map now shows names in the app's language where TomTom has them (it stayed in the local language, Arabic in the UAE, as the label translation only worked on Mapbox's map) (thanks to zaheerhakim)
 - The arrow stays in the middle when the recents panel folds away: with just the search bar left at the top, the arrow was pushed further to the side than with the whole panel down. Anything that ends above the arrow now leaves it centred
 - The map no longer zooms in and out on the way to a motorway exit: the lanes on the turn card kept vanishing and coming back between about 1.9 and 1 km before the junction (the road under you was sometimes not read in time), and the closer lane view's zoom came and went with them. Once a junction is known to be on a motorway, it stays that way (thanks to jhahvhi)

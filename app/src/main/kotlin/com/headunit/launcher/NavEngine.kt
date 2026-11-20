@@ -3989,7 +3989,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // fades in smoothly as the difference grows
         if (tBMode == 1) { val f = (abs(d) / 9.0).coerceIn(0.0, 1.0); d *= f * f * (3 - 2 * f) }
         val step = d * (1.0 - Math.exp(-dt / 1.05))
-        val maxStep = (if (camCatchUp) 140.0 else 32.0) * dt
+        // (the demo drive at 2x or more takes corners twice as fast, so the view may turn twice as fast too: at the normal rate it
+        // fell behind on every bend and showed fields off to the side of the route, GitHub #271)
+        val maxStep = (if (camCatchUp) 140.0 else 32.0 * max(1, simMode)) * dt
         camB = ((camB + step.coerceIn(-maxStep, maxStep)) % 360.0 + 360.0) % 360.0
         // nothing has moved (parked, or waiting at lights): don't ask the map to draw the same picture again,
         // which lets it sit idle instead of redrawing every frame (a big saving in heat and battery)
