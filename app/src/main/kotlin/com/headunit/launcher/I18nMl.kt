@@ -569,7 +569,7 @@ object I18nMl {
         "Maps, routes and town names with no signal" to "സിഗ്നൽ ഇല്ലാതെ മാപ്പുകളും റൂട്ടുകളും പട്ടണങ്ങളുടെ പേരുകളും",
         "Screen & sizes" to "സ്ക്രീനും വലുപ്പങ്ങളും",
         "Brightness, sizes, glass, units, while driving" to "തെളിച്ചം, വലുപ്പങ്ങൾ, ഗ്ലാസ്, യൂണിറ്റുകൾ, ഡ്രൈവ് ചെയ്യുമ്പോൾ",
-        "Android Auto" to "Android Auto",
+        "Android Auto" to "അൻഡ്രോയിഡ് ഓട്ടോ",
         "Car-screen sizes and setting it up" to "കാർ സ്ക്രീൻ വലുപ്പങ്ങളും സജ്ജീകരണവും",
         "Performance" to "പ്രകടനം",
         "Smoothness on slower head units, demo" to "വേഗം കുറഞ്ഞ ഹെഡ് യൂണിറ്റുകളിൽ സുഗമത, ഡെമോ",

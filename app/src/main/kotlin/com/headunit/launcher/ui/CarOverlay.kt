@@ -712,16 +712,11 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // just zoomed the map out to the grey routes. On the right, under Android Auto's buttons and beside its zoom buttons;
         // drawn smaller when it's taller than the room there (as the arrival card is)
         if (altsOpen) {
-            // (its full-size height is worked back from the size it's drawn at, which comes out a pixel or so different at each
-            // scale: only a real change counts, or the scale kept chasing its own rounding and the box wiggled)
-            var boxH by remember { mutableStateOf(0f) }
+            // Keep the route text at its normal size on short car screens; the list scrolls within the room available.
             val boxTop = if (portrait) top + below else insT + 6.dp
             val room = (maxHeight - boxTop - bottom).coerceAtLeast(1.dp)
-            val fit = if (boxH > 0f) (room.value / boxH).coerceIn(0.5f, 1f) else 1f
             Box(Modifier.align(Alignment.TopEnd).padding(end = insR + 8.dp, top = boxTop, bottom = bottom)) {
-                CompositionLocalProvider(LocalDensity provides Density(dens.density * fit, dens.fontScale)) {
-                    RoutesBox(engine, Modifier.wrapContentHeight(unbounded = true, align = Alignment.Top).onSizeChanged { val h = it.height / dens.density / fit; if (kotlin.math.abs(h - boxH) > boxH * 0.02f) boxH = h })
-                }
+                RoutesBox(engine, Modifier.heightIn(max = room), maxH = room)
             }
         }
 

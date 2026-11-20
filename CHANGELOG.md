@@ -4,6 +4,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Improved
+- Android Auto alternative routes: keep the route text at a readable size on short screens, scrolling the list when space is limited instead of shrinking the whole panel (thanks to the tester who asked for it)
+
+### Fixed
+- Malayalam: translate the Android Auto setting label as “അൻഡ്രോയിഡ് ഓട്ടോ” (thanks to the tester who asked for it)
+
 ### New
 - Favourites on the map: your saved places show as yellow stars with their names (smaller, without names, while navigating). Tap one for its card, with Go. Switch it off in Settings › On the map › Favourites on the map (thanks to Xundey)
 - Name a favourite as you save it: after tapping the star on a place's card, a box filled in with its name lets you call it something of your own straight away (thanks to Xundey)
