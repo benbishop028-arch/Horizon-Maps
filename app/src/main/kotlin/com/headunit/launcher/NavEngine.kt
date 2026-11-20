@@ -3787,6 +3787,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         ch.postFrameCallback(object : android.view.Choreographer.FrameCallback {
             private var lastFrame = 0L
             override fun doFrame(frameTimeNanos: Long) {
+                // another app in front and no route to follow: nothing to move, so the loop stops instead of waking the phone at
+                // every screen refresh while you use other apps (battery). The next GPS fix starts it again
+                if (!appVisible && !isCar && route == null && simMode == 0) { glideRunning = false; return }
                 val before = PerfStats.ticks
                 val t0 = System.nanoTime()
                 try { glideTick(frameTimeNanos) } catch (e: Exception) { android.util.Log.w("NavEngine", "glide failed", e) }
@@ -4043,9 +4046,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // it's ended, which also stops the GPS and the notification, so nothing runs on in the background for hours (pc4096)
         if (newFix) {
             val nowI = android.os.SystemClock.elapsedRealtime()
-            if (route == null || previewing || appVisible || !(isStill || p.speed < 1.0) || simMode != 0) idleSince = 0L
+            // (after Android Auto was unplugged with the car parked, walking pace counts too, and 10 minutes is enough: the trip
+            // the phone took over kept GPS and guidance running in your pocket as you walked off, never "still", draining the
+            // battery. Nothing ends while a car is connected)
+            val walkedOff = !isCar && RouteSync.carLeftParkedAt > 0L && p.speed < 3.0
+            if (route == null || previewing || appVisible || !(isStill || p.speed < 1.0 || walkedOff) || simMode != 0 || (!isCar && RouteSync.carConnected())) idleSince = 0L
             else if (idleSince == 0L) idleSince = nowI
-            else if (nowI - idleSince > 30 * 60_000L) { idleSince = 0L; scope.launch { try { endRoute() } catch (e: Exception) { } } }
+            else if (nowI - idleSince > (if (walkedOff) 10 else 30) * 60_000L) { idleSince = 0L; scope.launch { try { endRoute() } catch (e: Exception) { } } }
         }
         // on Android Auto: the map moved by hand and then the car drives off (over about 10 mph, 5 seconds after the last touch):
         // back to following the car, so it doesn't drive off the screen and need a tap on Re-centre while driving (GitHub #273).

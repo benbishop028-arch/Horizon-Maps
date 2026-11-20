@@ -4,6 +4,11 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Improved
+- Battery: on a phone, the screen now goes off as usual while you're only looking at the map, and stays on just while you're following a route (it stayed on the whole time the app was open). Head units keep it on as before
+- Battery: with another app in front and no route, the map's per-frame work stops completely, instead of waking the phone at every screen refresh
+- Battery: a trip the phone carried on with after Android Auto was unplugged with the car parked now ends after 10 minutes of not driving, so GPS and guidance don't keep running in your pocket as you walk away
+
 ### New
 - Upcoming speed limits you can read: the sign on the route where the limit changes is now the same sign as your main one (the red ring, or the white board in the US and Canada), about twice the size, on a white halo, and road names move out of its way instead of covering it. The small sign by your limit with how far it is now looks like the main one too. Both are under Settings › Alerts › Upcoming speed limits
 - Home, Work and starred places on the map: as well as your favourites, Home (a house on blue), Work (a briefcase on amber) and the starred places in Your places now show on the map, and a tap opens the place with Go. Settings › On the map › Saved places has one "Saved places icons" slider for the size of them all

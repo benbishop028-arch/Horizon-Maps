@@ -26,7 +26,14 @@ object RouteSync {
         android.os.Handler(android.os.Looper.getMainLooper()).post { carOn = on }
     }
 
+    /**
+     * When Android Auto was last unplugged with the car stopped (ms, 0 = not since it was last connected): a trip the phone
+     * carries on with after that is ended once you're plainly not driving any more (battery).
+     */
+    @Volatile var carLeftParkedAt = 0L
+
     fun register(e: NavEngine) {
+        if (e.isCar) carLeftParkedAt = 0L
         synchronized(engines) { engines.add(e) }
         noteCar()
         val cur = current
@@ -36,6 +43,7 @@ object RouteSync {
     fun unregister(e: NavEngine) {
         // Android Auto has disconnected: where the car was is kept as "Your car" on the phone (cleared next time you connect)
         // (only when the car is stopped: switching to another app on the car screen mid-drive also closes it)
+        if (e.isCar && e.fix?.let { it.speed < 2.5 } == true) carLeftParkedAt = System.currentTimeMillis()
         if (e.isCar) e.fix?.takeIf { it.speed < 2.5 }?.pos?.let { p ->
             try { e.prefs.put(PreferenceKeys.PARKED_SPOT, String.format(java.util.Locale.US, "%.6f,%.6f,%d", p.lat, p.lon, System.currentTimeMillis())) } catch (x: Exception) { }
         }

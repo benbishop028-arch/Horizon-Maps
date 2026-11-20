@@ -163,7 +163,11 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     // screen brightness (per window, no permission needed) incl. dimming at night, and keeping the screen on
     val bright = prefs.i(PreferenceKeys.BRIGHT, 100)
     val dimNight = prefs.b(PreferenceKeys.DIMNIGHT, false)
-    val keepOn = prefs.b(PreferenceKeys.KEEPON, true)
+    // On a phone the screen stays on only while a route is being followed, as in other navigation apps; browsing the map it
+    // goes off as usual (it was kept on whenever the app was open, a big battery drain on a phone left with the app open).
+    // A head unit keeps it on all the time
+    val onPhone = remember { engine.onPhone() }
+    val keepOn = prefs.b(PreferenceKeys.KEEPON, true) && (!onPhone || (engine.route != null && !engine.previewing))
     LaunchedEffect(bright, dimNight, dark, keepOn) {
         val win = findActivity(hostCtx)?.window ?: return@LaunchedEffect
         val dim = dimNight && dark
