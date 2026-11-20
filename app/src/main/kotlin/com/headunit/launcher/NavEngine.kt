@@ -1340,7 +1340,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         lm = null
     }
 
-    override fun onLocationChanged(l: Location) = handleLocation(l, false)
+    /** Location supplied by the Android Auto host's vehicle GPS (Car App API 3). */
+    @Volatile private var carLocationAt = 0L
+    fun onCarLocation(location: Location) {
+        if (!isCar) return
+        carLocationAt = System.currentTimeMillis()
+        val copy = Location(location).apply { provider = LocationManager.GPS_PROVIDER }
+        handleLocation(copy, false)
+    }
+
+    override fun onLocationChanged(l: Location) {
+        // Keep phone GPS registered as a fallback, but don't let it overwrite a newer car-hardware fix.
+        if (isCar && System.currentTimeMillis() - carLocationAt < 5000L) return
+        handleLocation(l, false)
+    }
     // Android 10 and older have no built-in versions of these: without them the app crashed as soon as GPS was switched off or on
     override fun onProviderDisabled(provider: String) {}
     override fun onProviderEnabled(provider: String) {}
@@ -4584,9 +4597,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                     // a camera that checks the other carriageway (it's known which way it points): not on your route
                     val cd = Overpass.camDir[Overpass.camKey(c)]
-                    // Directionless camera records are ambiguous on divided roads: require a tighter route-line match.
-                    // Where OSM supplies a direction, keep the normal tolerance and reject cameras facing away.
-                    if (cd == null && bestD > 17.0) off = -1.0
                     if (off >= 0 && cd != null && bi >= 0 && bi + 1 < pts.size && abs(angDiff(cd, Geo.bearing(pts[bi], pts[bi + 1]))) > 75.0) off = -1.0
                     // (the same camera mapped twice, on the road and beside it, is one camera: one alert)
                     if (off >= 0 && out.none { abs(it.second - off) < 40.0 && Geo.dist(it.first, c) < 60.0 }) out += c to off
@@ -5161,31 +5171,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             val list = base + withoutDuplicates(dg, base)
                             val out = ArrayList<Triple<Incident, Double, String>>()
                             for (inc in list) {
-                                var bestOff = -1.0
-                                // A single-point incident has no direction metadata: require it to be very close to the
-                                // route, so a report on the opposite carriageway is not treated as being on this one.
-                                // A line incident must also follow the route's direction; parallel roads nearby are not enough.
-                                val line = inc.pts
-                                val threshold = if (line.size >= 2) 32.0 else 20.0
-                                var bestD = threshold
-                                for (j in line.indices) {
-                                    val q = line[j]
-                                    val incHeading = when {
-                                        line.size < 2 -> null
-                                        j < line.lastIndex -> Geo.bearing(q, line[j + 1])
-                                        else -> Geo.bearing(line[j - 1], q)
-                                    }
-                                    for (k in 0 until r.pts.lastIndex) {
-                                        if (r.cum[k + 1] < progress - 200 || r.cum[k] > progress + 40_000) continue
-                                        val d = Geo.dist(r.pts[k], q)
-                                        if (d >= bestD) continue
-                                        if (incHeading != null) {
-                                            val routeHeading = Geo.bearing(r.pts[k], r.pts[k + 1])
-                                            if (abs(angDiff(incHeading, routeHeading)) > 65.0) continue
-                                        }
-                                        bestD = d
-                                        bestOff = r.cum[k]
-                                    }
+                                var bestOff = -1.0; var bestD = 70.0
+                                val q = inc.pts.first()
+                                for (n in r.pts.indices) {
+                                    if (r.cum[n] < progress - 200 || r.cum[n] > progress + 40_000) continue
+                                    val d = Geo.dist(r.pts[n], q)
+                                    if (d < bestD) { bestD = d; bestOff = r.cum[n] }
                                 }
                                 if (bestOff >= 0) out += Triple(inc, bestOff, incidentLabel(inc))
                             }

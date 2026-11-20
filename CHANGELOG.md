@@ -4,8 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### Fixed
-- Opposite-direction hazards and cameras: tighten route matching for directionless point alerts and require line incidents to follow the route's direction, reducing false warnings from nearby carriageways (thanks to the tester who asked for it).
+### Improved
+- Android Auto built-in GPS: use the car's Car App API 3 location feed when the head unit provides it, while keeping phone GPS as an automatic fallback (thanks to the tester who asked for it).
 
 ### Improved
 - TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).

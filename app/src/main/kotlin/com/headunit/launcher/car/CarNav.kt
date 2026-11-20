@@ -25,6 +25,11 @@ import android.widget.FrameLayout
 import androidx.car.app.AppManager
 import androidx.car.app.CarAppService
 import androidx.car.app.CarContext
+import androidx.car.app.hardware.CarHardwareManager
+import androidx.car.app.hardware.common.CarValue
+import androidx.car.app.hardware.common.OnCarDataAvailableListener
+import androidx.car.app.hardware.info.CarHardwareLocation
+import androidx.car.app.hardware.info.CarSensors
 import androidx.car.app.Screen
 import androidx.car.app.Session
 import androidx.car.app.SurfaceCallback
@@ -112,6 +117,8 @@ class CarNavSession : Session() {
     @Volatile private var pendingNavWait: Thread? = null
     @Volatile private var pendingNavWaitToken = 0L
     private val main = Handler(Looper.getMainLooper())
+    private var carSensors: CarSensors? = null
+    private var carLocationListener: OnCarDataAvailableListener<CarHardwareLocation>? = null
 
     override fun onNewIntent(intent: Intent) { takeNav(intent) }
 
@@ -260,6 +267,12 @@ class CarNavSession : Session() {
                 screen.stop()
                 sunHandler.removeCallbacks(sunTick)
                 try { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false } catch (e: Exception) { }
+                try {
+                    val listener = carLocationListener
+                    val sensors = carSensors
+                    if (listener != null && sensors != null) sensors.removeCarHardwareLocationListener(listener)
+                } catch (e: Exception) { }
+                carLocationListener = null; carSensors = null
                 try { carContext.applicationContext.unregisterComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
                 pendingNavWaitToken++
                 pendingNavWait?.interrupt()
@@ -346,6 +359,22 @@ class CarNavSession : Session() {
         }
         applyTheme()
         try { engine.startLocation() } catch (e: Exception) { }
+        // Prefer the head unit's GPS when its Android Auto host supports Car App API 3.
+        // NavEngine keeps the phone LocationManager feed as an automatic fallback.
+        try {
+            if (carContext.carAppApiLevel >= 3 &&
+                androidx.core.content.ContextCompat.checkSelfPermission(carContext, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                val sensors = carContext.getCarService(CarHardwareManager::class.java).carSensors
+                val listener = OnCarDataAvailableListener<CarHardwareLocation> { data ->
+                    val value = data.location
+                    if (value.status == CarValue.STATUS_SUCCESS) value.value?.let { holder.engine?.onCarLocation(it) }
+                }
+                sensors.addCarHardwareLocationListener(CarSensors.UPDATE_RATE_NORMAL, androidx.core.content.ContextCompat.getMainExecutor(carContext), listener)
+                carSensors = sensors
+                carLocationListener = listener
+            }
+        } catch (e: Exception) { android.util.Log.w("CarNav", "Car GPS unavailable; using phone location", e) }
         // the location service runs the whole time the map is on Android Auto, not only during a route: without it, driving with
         // no route and the phone locked, Android could hold back location updates, and the arrow froze or stayed where the drive
         // began, such as at home (timblr1989, #214)
@@ -1143,8 +1172,7 @@ class PlacesScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             e.places.slot("home")?.let { all += Triple(L.t("Home"), it, R.drawable.ic_car_home to 0xFF4C8DFF.toInt()) }
             e.places.slot("work")?.let { all += Triple(L.t("Work"), it, R.drawable.ic_car_work to 0xFFF29900.toInt()) }
             for (c in e.places.customs()) all += Triple(if (c.group.isNotBlank()) "${c.label} · ${c.group}" else c.label, c.place, R.drawable.ic_car_star to 0xFF12A4B4.toInt())
-            for (p in e.places.favourites().sortedWith(Comparator { a, b -> java.text.Collator.getInstance(L.locale).compare(a.name, b.name) }))
-                all += Triple(p.name, p, R.drawable.ic_car_star to 0xFFF2C230.toInt())
+            for (p in e.places.favourites()) all += Triple(p.name, p, R.drawable.ic_car_star to 0xFFF2C230.toInt())
             for (p in e.places.recents()) all += Triple(p.name, p, R.drawable.ic_car_history to 0xFF9CA4BF.toInt())
             // saved routes (planned on the phone with Save route): the same stops and the same way, with today's traffic
             for (sr in e.savedRoutes().take(3)) {

@@ -139,6 +139,7 @@ dependencies {
     implementation("com.mapbox.maps:android:11.32.1")
     // Android Auto: Google's car app library (the navigation layout, search and list screens, and the map surface)
     implementation("androidx.car.app:app:1.4.0")
+    implementation("androidx.car.app:app-projected:1.4.0")
     // Offline routing engine (Valhalla) that runs on downloaded road data, with the libraries it needs at run time
     implementation("io.github.rallista:valhalla-mobile:0.6.4")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
