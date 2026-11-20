@@ -7,6 +7,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 - Android Auto follows the car again by itself: if the map was moved by hand and the car then drives off, it goes back to following the car after a few seconds, so the arrow doesn't drive off the screen (thanks to fjunakovic)
 
+### Improved
+- Media controls are off on a new install (Settings › While driving › Media controls to turn them on). Anyone who already has the app keeps them as they were
+
 ### Fixed
 - The map no longer zooms in and out on the way to a motorway exit: the lanes on the turn card kept vanishing and coming back between about 1.9 and 1 km before the junction (the road under you was sometimes not read in time), and the closer lane view's zoom came and went with them. Once a junction is known to be on a motorway, it stays that way (thanks to jhahvhi)
 - Fuel cost on the route cards: "≈ £2.10" in place of "Fuel about £2.10", as the pump icon already says what it is, so the amount isn't cut off with two or three routes side by side (thanks to clayts450)

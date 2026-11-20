@@ -90,6 +90,12 @@ class MainActivity : ComponentActivity() {
         // the Mapbox token from Settings, before the map is made
         val tok = MapboxRest.clean(prefs.s(PreferenceKeys.MAPBOX_TOKEN, ""))
         try { prefs.migrateToMapbox() } catch (e: Throwable) { }
+        // the media controls are off on a new install, but stay as they were for anyone who already had the app (it used to
+        // be on unless switched off): set once, the first time this version starts
+        try {
+            if (prefs.s(PreferenceKeys.MEDIA_BAR, "").isBlank())
+                prefs.put(PreferenceKeys.MEDIA_BAR, prefs.b(PreferenceKeys.SETUP_DONE, false) || prefs.s(PreferenceKeys.PLACE_HOME, "").isNotBlank() || prefs.s(PreferenceKeys.HABITS, "").isNotBlank())
+        } catch (e: Throwable) { }
         if (tok.isNotEmpty()) try { com.mapbox.common.MapboxOptions.accessToken = tok } catch (e: Throwable) { }
         map = MapBinding(this, prefs.b(PreferenceKeys.MAPFAST, true), (prefs.s(PreferenceKeys.MAP_RESOLUTION, "80").toIntOrNull() ?: 80) / 100f).also { it.setArrowScale((prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f) }
         lifecycle.addObserver(map)

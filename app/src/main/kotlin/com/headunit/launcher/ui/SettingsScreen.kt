@@ -1334,8 +1334,8 @@ private fun WhileDrivingSection(prefs: Prefs) {
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
-        SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, true, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
-        if (prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.songInfoPossible) {
+        SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, false, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
+        if (prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.songInfoPossible) {
             val ctx = androidx.compose.ui.platform.LocalContext.current
             // (checked again every couple of seconds while this shows, so it changes when you come back from Android's page)
             var granted by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(com.headunit.launcher.MediaNow.accessGranted(ctx)) }

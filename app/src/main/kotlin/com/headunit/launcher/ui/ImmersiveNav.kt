@@ -581,7 +581,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // when notification access is given. Only while something plays (or for a few minutes after a pause). It goes in the free
         // space at the bottom between the trip card and the speedometer; where that's too narrow (or on a portrait screen, or with
         // the trip card in the middle) it sits just above the trip card instead
-        val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, true)
+        val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, false)
         FollowMedia(mediaOn)
         val mediaShow = mediaOn && com.headunit.launcher.MediaNow.showing() && !previewing && engine.arrival == null && engine.here == null &&
             engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus
