@@ -269,14 +269,31 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     }
     // your favourites as stars on the map (Settings > On the map; Xundey, #249): smaller and without names while navigating,
     // and a tap on one opens its place card, with Go
+    // ...and Home, Work and the starred places in Your places too, with their own icons, all one size from Settings › On the map ›
+    // Saved places icons (starred places in Your places never showed, so a list moved there looked lost)
     val favsOn = prefs.b(PreferenceKeys.FAVS_ON_MAP, true)
     val favsRaw = prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
+    val customsRaw = prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
+    val homeRaw = prefs.s(PreferenceKeys.PLACE_HOME, ""); val workRaw = prefs.s("place_work", "")
+    val savedScale = prefs.i(PreferenceKeys.SAVED_ICON_SIZE, 100).coerceIn(50, 250) / 100f
     val favsSmall = engine.route != null && !engine.previewing
-    LaunchedEffect(favsOn, favsRaw, favsSmall) {
-        map.setFavourites(if (favsOn) engine.places.favourites().map { it.pos to it.name } else emptyList(), favsSmall)
+    val savedOnMap = remember(favsOn, favsRaw, customsRaw, homeRaw, workRaw) {
+        if (!favsOn) emptyList() else {
+            val out = ArrayList<Triple<com.headunit.launcher.Place, String, String>>()
+            fun near(p: com.headunit.launcher.Place) = out.any { com.headunit.launcher.Geo.dist(it.first.pos, p.pos) < 30.0 }
+            engine.places.slot("home")?.let { out += Triple(it, com.headunit.launcher.L.t("Home"), "home") }
+            engine.places.slot("work")?.let { if (!near(it)) out += Triple(it, com.headunit.launcher.L.t("Work"), "work") }
+            for (f in engine.places.favourites()) if (!near(f)) out += Triple(f, f.name, "fav")
+            for (c in engine.places.customs()) if (c.pinned && !near(c.place)) out += Triple(c.place, c.label, "fav")
+            out
+        }
     }
+    LaunchedEffect(savedOnMap, favsSmall, savedScale) {
+        map.setFavourites(savedOnMap.map { it.first.pos to it.second }, favsSmall, savedOnMap.map { it.third }, savedScale)
+    }
+    val savedNow = androidx.compose.runtime.rememberUpdatedState(savedOnMap)
     androidx.compose.runtime.DisposableEffect(map) {
-        map.onFavTap = { i -> engine.places.favourites().getOrNull(i)?.let { engine.showHere(it) } }
+        map.onFavTap = { i -> savedNow.value.getOrNull(i)?.let { engine.showHere(it.first) } }
         onDispose { map.onFavTap = null }
     }
     // the extra 3D features (Settings > On the map)

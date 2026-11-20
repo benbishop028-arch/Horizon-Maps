@@ -475,8 +475,10 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Holding on the map")) {
         SToggle(prefs, L.t("What's here"), PreferenceKeys.WHATS_HERE, true, L.t("Holding on the map shows the road, its speed limit and the area first, with Go and Add as a stop. Off goes straight there, as before"))
     }
-    SGroup(L.t("Favourites")) {
-        SToggle(prefs, L.t("Favourites on the map"), PreferenceKeys.FAVS_ON_MAP, true, L.t("Your saved places as stars. Tap one to go there"))
+    SGroup(L.t("Saved places")) {
+        SToggle(prefs, L.t("Saved places on the map"), PreferenceKeys.FAVS_ON_MAP, true, L.t("Home, Work, favourites and starred places. Tap one to go there"))
+        if (prefs.b(PreferenceKeys.FAVS_ON_MAP, true))
+            SSlider(L.t("Saved places icons"), prefs.i(PreferenceKeys.SAVED_ICON_SIZE, 100).coerceIn(50, 250).toFloat(), 50f..250f, "%", steps = 39, reset = 100f) { prefs.put(PreferenceKeys.SAVED_ICON_SIZE, it) }
     }
     SGroup(L.t("Traffic")) {
         SToggle(prefs, L.t("Live traffic"), "traffic", true)

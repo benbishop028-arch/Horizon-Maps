@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Home, Work and starred places on the map: as well as your favourites, Home (a house on blue), Work (a briefcase on amber) and the starred places in Your places now show on the map, and a tap opens the place with Go. Settings › On the map › Saved places has one "Saved places icons" slider for the size of them all
+- The faded roads on the turn arrow sit at tidy angles: the arrow is drawn at a set angle for each kind of turn, but the other roads came at their real angles, so one could stick out at an odd angle beside it. They're now set to the nearest 45 degrees, on the side they really are
+
+### New
 - Android Auto follows the car again by itself: if the map was moved by hand and the car then drives off, it goes back to following the car after a few seconds, so the arrow doesn't drive off the screen (thanks to fjunakovic)
 
 ### Improved

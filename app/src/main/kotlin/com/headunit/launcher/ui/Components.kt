@@ -415,10 +415,16 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
     val keep = u.startsWith("KEEP_") || u.contains("FORK")
     // The faint roads: at a fork, the branch not taken; at any other turn, only the roads that really meet the junction (from the
     // route data), so a T-junction has no road straight on (mjdshibly #237). Not known: none, rather than a guess.
-    val realSides = if (keep) emptyList() else sides.orEmpty().filter { d ->
-        // (not the way you're going, nor back the way you came)
-        kotlin.math.abs(((d - angle + 540.0) % 360.0) - 180.0) > 25.0 && kotlin.math.abs(d) < 160.0
-    }
+    // The arrow itself is drawn at a set angle for its kind of turn (a right turn straight across, 90 degrees), but the roads come
+    // at their real angles, so a road at 70 degrees sat oddly against it. They're set to the nearest tidy angle (every 45 degrees),
+    // kept on the side they really are (left or right of straight on), and dropped where they'd sit on the arrow or behind you
+    val realSides = if (keep) emptyList() else sides.orEmpty().mapNotNull { d ->
+        if (kotlin.math.abs(d) >= 160.0) return@mapNotNull null
+        var q = Math.round(d / 45.0) * 45.0
+        if (q == 0.0 && kotlin.math.abs(d) > 15.0) q = if (d < 0) -45.0 else 45.0
+        q = q.coerceIn(-135.0, 135.0)
+        if (kotlin.math.abs(((q - angle + 540.0) % 360.0) - 180.0) < 40.0) null else q
+    }.distinct()
     if (keep || realSides.isNotEmpty()) faded(0.25f) {
         for (d in realSides) {
             val a = Math.toRadians(d)

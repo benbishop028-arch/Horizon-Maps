@@ -789,11 +789,17 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * Shows [list] (each place and its name) as stars, with the name under each; [small] (while navigating) shows smaller stars
      * with no names, so they don't crowd the route. An empty list hides them. Only sent again when something changed.
      */
-    fun setFavourites(list: List<Pair<LL, String>>, small: Boolean) {
-        if (list == favs && small == favsSmall) return
-        favs = list; favsSmall = small
+    /**
+     * Your saved places on the map: [list] is each place, its name and its kind ("home", "work" or "fav", a star), [scale] the
+     * size set in Settings › On the map › Saved places icons (1 = normal). Smaller and without names while navigating ([small]).
+     */
+    fun setFavourites(list: List<Pair<LL, String>>, small: Boolean, kinds: List<String> = emptyList(), scale: Float = 1f) {
+        if (list == favs && small == favsSmall && kinds == favKinds && scale == favScale) return
+        favs = list; favsSmall = small; favKinds = kinds; favScale = scale
         main0.post { pushFavs() }
     }
+    private var favKinds: List<String> = emptyList()
+    private var favScale = 1f
 
     private fun pushFavs() {
         val st = style ?: return
@@ -801,8 +807,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val fs = ArrayList<Feature>()
             for ((i, f) in favs.withIndex()) {
                 val (pos, name) = f
-                val id = "dl-fav-" + (if (favsSmall) "s" else name.hashCode().toString()) + "-" + (if (nightStyle) "n" else "d")
-                if (favImgs.add(id)) addImg(st, id, favBitmap(if (favsSmall) "" else name))
+                val kind = favKinds.getOrNull(i) ?: "fav"
+                val id = "dl-fav-" + kind + "-" + (if (favsSmall) "s" else name.hashCode().toString()) + "-" + (if (nightStyle) "n" else "d") + "-" + Math.round(favScale * 100)
+                if (favImgs.add(id)) addImg(st, id, favBitmap(if (favsSmall) "" else name, kind))
                 fs += Feature.fromGeometry(Point.fromLngLat(pos.lon, pos.lat)).also { it.addStringProperty("img", id); it.addNumberProperty("i", i) }
             }
             src("dl-favs")?.featureCollection(FeatureCollection.fromFeatures(fs))
@@ -810,9 +817,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** A yellow star in a white-edged circle, with [name] in a small tag under it (none when blank). The star is the middle. */
-    private fun favBitmap(name: String): Bitmap {
+    private fun favBitmap(name: String, kind: String = "fav"): Bitmap {
         val dm = mapView.resources.displayMetrics
-        val d = dm.density
+        // (Settings › On the map › Saved places icons: everything in the picture grows or shrinks together)
+        val d = dm.density * favScale.coerceIn(0.5f, 2.5f)
         val r = (if (name.isEmpty()) 9f else 12f) * d
         val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 12f * d; typeface = android.graphics.Typeface.DEFAULT_BOLD; color = 0xFF3B2A00.toInt() }
         val label = if (name.length > 22) name.take(21) + "…" else name
@@ -827,6 +835,31 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint.color = 0x55000000; cv.drawCircle(cx, cy + 1.5f * d, r + 1.5f * d, paint)
         paint.color = 0xFFFFFFFF.toInt(); cv.drawCircle(cx, cy, r + 1.5f * d, paint)
+        // Home and Work: a house on blue and a briefcase on amber, like their tiles under the search bar, with a white name tag
+        if (kind == "home" || kind == "work") {
+            val home = kind == "home"
+            paint.color = if (home) 0xFF3D7BF0.toInt() else 0xFFE39B1B.toInt(); cv.drawCircle(cx, cy, r, paint)
+            paint.color = 0xFFFFFFFF.toInt()
+            val k = r * 0.5f
+            if (home) {
+                cv.drawPath(Path().apply { moveTo(cx, cy - k * 1.05f); lineTo(cx + k * 1.05f, cy - k * 0.05f); lineTo(cx - k * 1.05f, cy - k * 0.05f); close() }, paint)
+                cv.drawRect(cx - k * 0.72f, cy - k * 0.1f, cx + k * 0.72f, cy + k * 0.85f, paint)
+                paint.color = if (home) 0xFF3D7BF0.toInt() else 0xFFE39B1B.toInt()
+                cv.drawRect(cx - k * 0.2f, cy + k * 0.25f, cx + k * 0.2f, cy + k * 0.85f, paint)
+            } else {
+                cv.drawRoundRect(RectF(cx - k * 0.95f, cy - k * 0.45f, cx + k * 0.95f, cy + k * 0.8f), k * 0.18f, k * 0.18f, paint)
+                val hp = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt(); style = Paint.Style.STROKE; strokeWidth = k * 0.2f }
+                cv.drawRoundRect(RectF(cx - k * 0.4f, cy - k * 0.85f, cx + k * 0.4f, cy - k * 0.35f), k * 0.12f, k * 0.12f, hp)
+            }
+            if (label.isNotEmpty()) {
+                val top = cy + r + 3 * d
+                val rect = RectF(cx - tw / 2 - 7 * d, top, cx + tw / 2 + 7 * d, top + tagH)
+                paint.color = 0xF2FFFFFF.toInt(); cv.drawRoundRect(rect, 6 * d, 6 * d, paint)
+                text.color = if (home) 0xFF0B2A63.toInt() else 0xFF5A3A00.toInt()
+                cv.drawText(label, cx - tw / 2, top + tagH / 2 - (text.ascent() + text.descent()) / 2, text)
+            }
+            return b
+        }
         paint.color = 0xFFFFC83D.toInt(); cv.drawCircle(cx, cy, r, paint)
         // the five-pointed star
         val star = Path()
@@ -853,7 +886,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (list.isEmpty()) return null
         // (the stars only show from zoom 10)
         if ((try { mbMap.cameraState.zoom } catch (e: Throwable) { 15.0 }) < 10.0) return null
-        val reach = 26f * mapView.resources.displayMetrics.density
+        val reach = 26f * mapView.resources.displayMetrics.density * favScale.coerceIn(0.8f, 2.5f)
         var best: Int? = null
         var bd = reach * reach
         for ((i, f) in list.withIndex()) {

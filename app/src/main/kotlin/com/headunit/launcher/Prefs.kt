@@ -96,6 +96,8 @@ internal object PreferenceKeys {
     const val PLACES_FAVOURITES = "places_fav"
     /** Settings > On the map: your favourites as stars on the map (#249). */
     const val FAVS_ON_MAP = "favsonmap"
+    /** Size of the saved places on the map (Home, Work, favourites, starred places), in percent. */
+    const val SAVED_ICON_SIZE = "savediconsize"
     const val PLACES_ROUTES = "places_routes"
     const val CAR_TRIP_BTNS = "car_trip_btns"
     const val CAR_TRIP_BTN_SIZE = "car_trip_btn_size"
