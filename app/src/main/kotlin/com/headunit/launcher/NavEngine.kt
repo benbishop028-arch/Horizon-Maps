@@ -5851,8 +5851,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val street = if (arriving) (dest?.name ?: L.t("Destination")) + (if (side.isNotEmpty()) L.t(" · on the $side") else "") else cur.street.ifBlank { Geo.maneuverText(cur.maneuver, cur.roundExit).replaceFirstChar { it.uppercase() } }
             // several lane sections can touch one junction (the road often widens on the approach): use the one with the most lanes, then the nearest to the junction
             // on motorways and dual carriageways the lanes are looked at (and shown, and spoken) much earlier, as there's further to move over
-            val fastRoad = cur.exitNo.isNotBlank() || (fix?.let { f -> try { map.roadAt(f.pos, f.heading)?.cls } catch (e: Throwable) { null } }?.let { it.startsWith("motorway") || it.startsWith("trunk") } == true)
-            laneFast = fastRoad
+            // Kept once seen for this junction: the road under you is read off the map each time, and when that read came back
+            // empty (often, on a slower phone or at speed) the lanes on the turn card vanished between 1.9 and 1 km, and the lane
+            // view's closer zoom came and went with them, so the map kept zooming in and out (GitHub #271, video)
+            val seenFast = cur.exitNo.isNotBlank() || (fix?.let { f -> try { map.roadAt(f.pos, f.heading)?.cls } catch (e: Throwable) { null } }?.let { it.startsWith("motorway") || it.startsWith("trunk") } == true)
+            val fastRoad = seenFast || (laneFastFor == cur.off && laneFast)
+            laneFast = fastRoad; laneFastFor = cur.off
             val realSec = if (d < (if (fastRoad) 1900 else 1000) && !arriving) r.lanes.filter {
                 // a section has to run up to this junction: one ending well before it belongs to a junction on the way (an
                 // earlier slip road), and lit its exit lane as if that were the turn to take
@@ -7224,6 +7228,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Paints the lane arrows on the road ahead of the junction (approximate: placed across the route line). */
     /** Set when you're on a motorway or dual carriageway: lane guidance then starts further out. */
     private var laneFast = false
+    /** The junction (its distance along the route) [laneFast] was worked out for. */
+    private var laneFastFor = -1.0
     private var earlyLaneFor = -1.0
 
     private fun updateLaneMarks(r: Route, cur: Step, sec: LaneSec?, d: Double) {
