@@ -2969,7 +2969,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         turnArrowKey = -1; map.setTurnArrow(emptyList())
         clearLiveAlts(); liveSaid.clear(); radar = emptyList(); radarSig = 0; bendsFor = null; bends = emptyList()
         flushRoads()
-        sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; nextLimit = null; routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
+        sessionAvoid.clear(); closuresAvoided.clear(); altListOpen = false; nextLimit = null; map.setSpeedChange(null, null); routeZones = emptyList(); avgInfo = null; avgIn = null; servicesAhead = emptyList(); barEvents = emptyList()
         rawServices = emptyList(); servicesFor = null; rawHz = emptyList(); rawAvg = emptyList(); hzWinRoute = null; hzWinEnd = -1.0; avgWinRoute = null; avgWinEnd = -1.0; avgCacheFor = null
         placed = null; placedSig = 0; avgAlerted.clear(); hzAlerted.clear(); zoneAlerted.clear(); stopsEditor = false
         jamSig = 0; map.showJams(emptyList())
@@ -3160,7 +3160,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val sc = secs[m]
             if (at < sc.off) hi = m - 1 else if (at >= sc.end) lo = m + 1 else { hit = sc; break }
         }
-        if (hit == null) { nextLimit = null; return }      // no posted limit known for this stretch: the map data takes over
+        if (hit == null) { nextLimit = null; map.setSpeedChange(null, null); return }      // no posted limit known for this stretch: the map data takes over
         // the next change ahead, within about half a mile (shown small above the limit sign)
         var nx: Pair<Double, Double>? = null
         for (sc in secs) {
@@ -3170,13 +3170,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (kotlin.math.abs(sc.ms - hit.ms) > 0.5) { nx = sc.ms to (sc.off - at); break }
         }
         val shown = nextLimit
-        if (nx == null) { if (shown != null) nextLimit = null }
-        else if (shown == null || kotlin.math.abs(shown.first - nx.first) > 0.1 || kotlin.math.abs(shown.second - nx.second) > 15.0) nextLimit = nx
+        if (nx == null) {
+            if (shown != null) nextLimit = null
+            map.setSpeedChange(null, null)
+        } else {
+            if (shown == null || kotlin.math.abs(shown.first - nx.first) > 0.1 || kotlin.math.abs(shown.second - nx.second) > 15.0) nextLimit = nx
+            val targetOff = (at + nx.second).coerceIn(0.0, r.len)
+            val point = routePointAt(r, targetOff)
+            val value = kotlin.math.round(nx.first * (if (imperial) 2.23694 else 3.6)).toInt().toString()
+            map.setSpeedChange(point, value)
+        }
         routeLimitAt = System.currentTimeMillis()
         pendHits = 0; pendLimit = -2.0
         if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false }
         checkLimitChange(hit.ms, false)
         limitOkAt = routeLimitAt; limitOkPos = p.pos
+    }
+
+    /** Finds the exact map coordinate at a distance along the route. */
+    private fun routePointAt(r: Route, off: Double): LL? {
+        if (r.pts.size < 2 || r.cum.size != r.pts.size) return r.pts.firstOrNull()
+        var lo = 0; var hi = r.cum.lastIndex
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (r.cum[mid] < off) lo = mid + 1 else hi = mid
+        }
+        val i = (lo - 1).coerceIn(0, r.pts.lastIndex - 1)
+        val span = r.cum[i + 1] - r.cum[i]
+        val t = if (span > 0.0) ((off - r.cum[i]) / span).coerceIn(0.0, 1.0) else 0.0
+        val a = r.pts[i]; val b = r.pts[i + 1]
+        return LL(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t)
     }
 
     private fun updateRoadInfo(p: Fix) {
@@ -4139,7 +4162,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         onRouteNow = onR
         if (onR) curProg = guideProg
         if (onR && newFix) try { applyRouteLimit(r, guideProg, p) } catch (e: Exception) { }
-        else if (!onR && nextLimit != null) nextLimit = null
+        else if (!onR && nextLimit != null) { nextLimit = null; map.setSpeedChange(null, null) }
         updateGuidance(guideProg, onR && android.os.SystemClock.elapsedRealtime() - gFullAt < 1500L)
         syncPulse()
     }
@@ -4597,6 +4620,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                     // a camera that checks the other carriageway (it's known which way it points): not on your route
                     val cd = Overpass.camDir[Overpass.camKey(c)]
+                    // Directionless camera records are ambiguous on divided roads: require a tighter route-line match.
+                    if (cd == null && bestD > 17.0) off = -1.0
                     if (off >= 0 && cd != null && bi >= 0 && bi + 1 < pts.size && abs(angDiff(cd, Geo.bearing(pts[bi], pts[bi + 1]))) > 75.0) off = -1.0
                     // (the same camera mapped twice, on the road and beside it, is one camera: one alert)
                     if (off >= 0 && out.none { abs(it.second - off) < 40.0 && Geo.dist(it.first, c) < 60.0 }) out += c to off
@@ -5171,12 +5196,30 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             val list = base + withoutDuplicates(dg, base)
                             val out = ArrayList<Triple<Incident, Double, String>>()
                             for (inc in list) {
-                                var bestOff = -1.0; var bestD = 70.0
-                                val q = inc.pts.first()
-                                for (n in r.pts.indices) {
-                                    if (r.cum[n] < progress - 200 || r.cum[n] > progress + 40_000) continue
-                                    val d = Geo.dist(r.pts[n], q)
-                                    if (d < bestD) { bestD = d; bestOff = r.cum[n] }
+                                var bestOff = -1.0
+                                // A point incident has no direction metadata: require it to be very close to this route.
+                                // A line incident must also follow the route's direction; nearby parallel roads are not enough.
+                                val line = inc.pts
+                                val threshold = if (line.size >= 2) 32.0 else 20.0
+                                var bestD = threshold
+                                for (j in line.indices) {
+                                    val q = line[j]
+                                    val incHeading = when {
+                                        line.size < 2 -> null
+                                        j < line.lastIndex -> Geo.bearing(q, line[j + 1])
+                                        else -> Geo.bearing(line[j - 1], q)
+                                    }
+                                    for (k in 0 until r.pts.lastIndex) {
+                                        if (r.cum[k + 1] < progress - 200 || r.cum[k] > progress + 40_000) continue
+                                        val d = Geo.dist(r.pts[k], q)
+                                        if (d >= bestD) continue
+                                        if (incHeading != null) {
+                                            val routeHeading = Geo.bearing(r.pts[k], r.pts[k + 1])
+                                            if (abs(angDiff(incHeading, routeHeading)) > 65.0) continue
+                                        }
+                                        bestD = d
+                                        bestOff = r.cum[k]
+                                    }
                                 }
                                 if (bestOff >= 0) out += Triple(inc, bestOff, incidentLabel(inc))
                             }

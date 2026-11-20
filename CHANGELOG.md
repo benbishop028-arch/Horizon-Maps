@@ -4,6 +4,21 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Malayalam Light & 3D settings: refine the Moonlight at night and 3D hills and valleys labels using the reviewer's suggested wording (thanks to the tester who asked for it).
+
+### Fixed
+- Opposite-direction hazards and cameras: tighten route matching for directionless point alerts and require line incidents to follow the route's direction, reducing false warnings from nearby carriageways (thanks to the tester who asked for it).
+
+### Improved
+- Speed-limit changes on the map: show a road-sign marker at the route position of the next posted speed-limit change, alongside the existing distance countdown (thanks to the tester who asked for it).
+
+### Improved
+- Favourites sorting: show saved favourites alphabetically by default, with an A–Z / Nearest choice in Places & trips; Android Auto favourites are alphabetised too (thanks to the tester who asked for it).
+
+### New
+- Tamil language: add Tamil to the language selector and automatic phone-language detection, with core navigation and interface translations and English fallback for untranslated text (thanks to the tester who asked for it).
+
 ### Improved
 - Android Auto built-in GPS: use the car's Car App API 3 location feed when the head unit provides it, while keeping phone GPS as an automatic fallback (thanks to the tester who asked for it).
 
