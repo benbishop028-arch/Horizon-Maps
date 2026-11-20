@@ -4,8 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### Improved
-- Speed-limit changes on the map: show a road-sign marker at the exact route position of the next posted speed-limit change, alongside the existing distance countdown (thanks to the tester who asked for it).
+### Fixed
+- Opposite-direction hazards and cameras: tighten route matching for directionless point alerts and require line incidents to follow the route's direction, reducing false warnings from nearby carriageways (thanks to the tester who asked for it).
 
 ### Improved
 - TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).
