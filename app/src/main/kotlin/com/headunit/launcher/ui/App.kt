@@ -391,7 +391,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                         (prefs.b(PreferenceKeys.CRUISE_HEADING, true) || engine.roadNow.isNotBlank())
                     // (above the media bar when that's showing at the bottom)
                     val mediaUp = prefs.b(PreferenceKeys.MEDIA_BAR, true) && com.headunit.launcher.MediaNow.showing()
-                    if (!engine.deadReckoning && cruiseShows) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) 84.dp else 18.dp))
+                    if (!engine.deadReckoning && cruiseShows) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) maxOf(84f, engine.mediaLiftDp + 10f).dp else 18.dp))
                     // that pill has the road name, so the one under your arrow steps aside while it's up (they overlapped)
                     val cruisePillUp = !engine.deadReckoning && cruiseShows
                     LaunchedEffect(cruisePillUp) { map.setRoadNameHidden(cruisePillUp) }

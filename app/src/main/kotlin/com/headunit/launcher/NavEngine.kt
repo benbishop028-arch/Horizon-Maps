@@ -762,6 +762,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.onUserGesture = {
             // (moved by hand: a place card settling no longer moves the map back)
             focusUntil = 0L
+            gestureAt = android.os.SystemClock.elapsedRealtime()
             if (chain != null) chainMoved = true else { if (following) { following = false }; altFitting = false; scheduleRecentre(12_000) }
             // moving the map with no route: the panel under the search bar tucks away so the map can be seen (TouristCreepy1884)
             if (route == null && !previewing && chain == null) homeTucked = true
@@ -4043,6 +4044,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (idleSince == 0L) idleSince = nowI
             else if (nowI - idleSince > 30 * 60_000L) { idleSince = 0L; scope.launch { try { endRoute() } catch (e: Exception) { } } }
         }
+        // on Android Auto: the map moved by hand and then the car drives off (over about 10 mph, 5 seconds after the last touch):
+        // back to following the car, so it doesn't drive off the screen and need a tap on Re-centre while driving (GitHub #273).
+        // With a route it also goes back by itself 12 seconds after the last touch, as before
+        if (newFix && isCar && !following && gestureAt > 0L && p.speed > 4.5 && simMode == 0 && !previewing && chain == null && hereState == null &&
+            android.os.SystemClock.elapsedRealtime() - gestureAt > 5_000L) { gestureAt = 0L; try { recenter() } catch (e: Exception) { } }
         // the GPS's direction is only worth anything when moving: slowing for a red light it swings about, and the arrow turned
         // into the car park or plaza beside the road. Below walking pace the last good direction is kept
         if (newFix && p.speed > 2.5) goodHead = p.heading
@@ -6911,6 +6917,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Turn-by-turn guidance is spoken only in "all" mode; alerts are also spoken in "alerts only". */
     /** True for the engine running the Android Auto screen. */
+    /** How far the media bar at the bottom of the phone's map reaches up (dp, 0 when it's not showing), so the road name pill can sit above it (GitHub #277). */
+    var mediaLiftDp by mutableStateOf(0f)
+    /** When the map was last moved by hand (elapsed ms), for going back to following the car once it drives off (GitHub #273). */
+    @Volatile private var gestureAt = 0L
     @Volatile var isCar = false
 
     /** The phone keeps quiet while the car screen is connected: the car says the directions and alerts. */

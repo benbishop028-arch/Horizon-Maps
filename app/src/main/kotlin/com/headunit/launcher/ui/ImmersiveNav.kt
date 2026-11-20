@@ -615,6 +615,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         }
         if (!mediaShow && mediaHPx != 0) androidx.compose.runtime.SideEffect { mediaHPx = 0 }
         val mediaLift = if (mediaShow && mediaHPx > 0) with(dens) { mediaHPx.toDp() } + 10.dp else 0.dp
+        // (the road name pill when cruising, drawn in App, goes above the bar however tall it is: it overlapped on a phone
+        // held sideways, where the bar with the song's name is taller than the room it was given, GitHub #277)
+        val mediaBottomReach = if (mediaShow && mediaHPx > 0) with(dens) { mediaHPx.toDp() } + 16.dp else 0.dp
+        androidx.compose.runtime.SideEffect { if (engine.mediaLiftDp != mediaBottomReach.value) engine.mediaLiftDp = mediaBottomReach.value }
 
         // ---- bottom centre: re-centre once you have panned away, or zoomed in / out with the buttons (it puts the zoom back to automatic)
         AnimatedVisibility(

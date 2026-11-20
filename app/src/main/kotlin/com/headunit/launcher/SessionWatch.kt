@@ -170,6 +170,8 @@ object SessionWatch {
             val desc = e.description.orEmpty()
             // (many phones record a swipe from the recent apps as "other: remove task")
             if (code == 13 && (desc.contains("remove task", true) || desc.contains("swipe", true) || desc.contains("task removed", true))) code = 10
+            // (Xiaomi records its own cleaner, which closes apps when the screen locks, as "you": say what it really was)
+            if (desc.contains("LockScreenClean", true)) return code to ("closed by the phone's cleaner when the screen locked (" + desc.take(80) + ")")
             val seen = if (e.importance <= android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) "on screen" else "in the background"
             code to (reasonName(code) + " (" + seen + (if (desc.isNotBlank()) "; " + desc.take(160) else "") + ")")
         } catch (e: Throwable) { null }
@@ -184,7 +186,7 @@ object SessionWatch {
             am.getHistoricalProcessExitReasons(ctx.packageName, 0, 4).joinToString("") { e ->
                 val desc = e.description.orEmpty()
                 val code = if (e.reason == 13 && desc.contains("remove task", true)) 10 else e.reason
-                fmt.format(java.util.Date(e.timestamp)) + " · " + reasonName(code) + (if (desc.isNotBlank()) " · " + desc.take(120) else "") + "\n"
+                fmt.format(java.util.Date(e.timestamp)) + " · " + (if (desc.contains("LockScreenClean", true)) "closed by the phone's cleaner when the screen locked" else reasonName(code)) + (if (desc.isNotBlank()) " · " + desc.take(120) else "") + "\n"
             }
         } catch (e: Throwable) { "" }
     }

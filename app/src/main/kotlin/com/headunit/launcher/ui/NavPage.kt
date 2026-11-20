@@ -311,7 +311,9 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                 // Stops row, scrolled out of sight)
                 if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                     Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(13.dp))
-                    Text((if (ev) L.t("Charging about ") else L.t("Fuel about ")) + formatMoney(engine.prefs, 
+                    // (≈ in place of "Fuel about": the pump or plug icon already says what it is, and with two or three cards across a
+                    // phone the words pushed the amount off the end, GitHub #272)
+                    Text("≈ " + formatMoney(engine.prefs, 
                         if (ev) r.len / 1609.344 / mpg * ppl / 100.0 else r.len / 1609.344 / mpg * 4.54609 * ppl / 100.0),
                         color = c.text.copy(alpha = 0.8f), fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 4.dp))
                 }

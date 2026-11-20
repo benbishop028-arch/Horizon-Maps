@@ -5,6 +5,14 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Android Auto follows the car again by itself: if the map was moved by hand and the car then drives off, it goes back to following the car after a few seconds, so the arrow doesn't drive off the screen (thanks to fjunakovic)
+
+### Fixed
+- Fuel cost on the route cards: "≈ £2.10" in place of "Fuel about £2.10", as the pump icon already says what it is, so the amount isn't cut off with two or three routes side by side (thanks to clayts450)
+- The road name pill now sits above the media controls however tall they are: on a phone held sideways, with the song's name showing, they overlapped (thanks to desko1973)
+- Problem reports on Xiaomi phones say when the phone's own cleaner closed the app as the screen locked, in place of "closed by you"
+
+### New
 - Speed cameras beep again just before you pass: after the warning about 500 m ahead, a short second beep comes about 4 seconds before the camera (thanks to joel941703-hash)
 - Home and Work from where you are: Set Home and Set Work have a Use where I am now button, showing the address it found, so you can save it while parked outside without typing the address (thanks to jvricardo1)
 - Average speed checks show how far through you are: a bar under the distance left fills as you go, green, amber when you need to ease off for the rest, and red over the limit (thanks to joel941703-hash)
