@@ -422,17 +422,58 @@ jobs:
       # (Play only accepts uploads like this once the app's first version has been uploaded by hand in Play Console. Until then
       # this step fails without failing the build.)
       # closed testing is Play's "alpha" track (the one the testers group is on); internal testing is for you alone
+      # The Play access key, tidied into a file the upload can read: when the key is pasted into Secrets, its private key's line
+      # breaks can arrive as real line breaks instead of \n, which isn't valid JSON ("Bad control character"). Read loosely and
+      # written back out properly, in the runner's temp folder only (it's deleted with the runner, and never printed).
+      - name: Prepare the Play access key
+        id: playkey
+        if: ${{ steps.play.outputs.ready == 'true' }}
+        continue-on-error: true
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - "$RUNNER_TEMP/play-key.json" <<'PY'
+          import json, os, sys
+          raw = os.environ["PLAY_JSON"].strip().lstrip("\ufeff")
+          try:
+              k = json.loads(raw, strict=False)
+          except Exception as e:
+              sys.exit("The Play access key in Secrets (PLAY_SERVICE_ACCOUNT_JSON) isn't a whole JSON key file: " + type(e).__name__)
+          for f in ("type", "client_email", "private_key"):
+              if not k.get(f): sys.exit("The Play access key in Secrets is missing its " + f + ": paste the whole downloaded file")
+          open(sys.argv[1], "w").write(json.dumps(k))
+          print("Play access key read: " + k["client_email"])
+          PY
+
       - name: Send to Google Play
         id: playsend
-        if: ${{ steps.play.outputs.ready == 'true' }}
+        if: ${{ steps.playkey.outcome == 'success' }}
         continue-on-error: true
         uses: r0adkll/upload-google-play@v1
         with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          serviceAccountJson: ${{ runner.temp }}/play-key.json
           packageName: com.headunit.nav.play
           releaseFiles: ${{ env.PROJECT_DIR }}/app/build/outputs/bundle/playRelease/HorizonNav-play.aab
           track: ${{ inputs.send_to_play == 'internal testing' && 'internal' || 'alpha' }}
           status: completed
+          whatsNewDirectory: ${{ runner.temp }}/play-whatsnew
+
+      # A Play app that has never been released yet only takes a release as a draft ("Only releases with status draft may be
+      # created on draft app"). So if the normal upload fails, it's tried once more as a draft: it then waits in Play Console
+      # (Testing > the track > Releases) for "Review release" / "Start rollout" to be pressed there.
+      - name: Send to Google Play as a draft
+        id: playdraft
+        if: ${{ steps.playsend.outcome == 'failure' }}
+        continue-on-error: true
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: ${{ runner.temp }}/play-key.json
+          packageName: com.headunit.nav.play
+          releaseFiles: ${{ env.PROJECT_DIR }}/app/build/outputs/bundle/playRelease/HorizonNav-play.aab
+          track: ${{ inputs.send_to_play == 'internal testing' && 'internal' || 'alpha' }}
+          status: draft
           whatsNewDirectory: ${{ runner.temp }}/play-whatsnew
 
       # The Play steps above never hold up the GitHub release, but a failure there must not pass unnoticed either: the run is
@@ -441,5 +482,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' }}
         run: |
           if [ "${{ steps.playbundle.outcome }}" = "failure" ]; then echo "::error::The Play version didn't build: open the 'Build the Google Play bundle' step above to see why."; exit 1; fi
+          if [ "${{ steps.playkey.outcome }}" = "failure" ]; then echo "::error::The Play access key in Secrets couldn't be read: open the 'Prepare the Play access key' step above to see why."; exit 1; fi
+          if [ "${{ steps.playdraft.outcome }}" = "success" ]; then echo "::warning::Sent to Google Play as a draft (this app hasn't had a release yet): in Play Console open Testing, the track, then Releases, and press Review release, then Start rollout."; exit 0; fi
           if [ "${{ steps.playsend.outcome }}" = "failure" ]; then echo "::error::The Play version built but couldn't be sent to Google Play: open the 'Send to Google Play' step above to see why."; exit 1; fi
           echo "Play version: built${{ steps.playsend.outcome == 'success' && ' and sent to Google Play' || '' }}."
