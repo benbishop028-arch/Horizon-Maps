@@ -1001,7 +1001,6 @@ private fun PlacesSection(engine: NavEngine) {
             SButton(L.t("A–Z"), primary = !favSortNearest) { favSortNearest = false }
             SButton(L.t("Nearest"), primary = favSortNearest) { favSortNearest = true }
         }
-        if (favSortNearest && hereForFavs == null) SNote(L.t("Location needed to sort by distance. Showing A–Z."))
         if (favs.isEmpty()) SNote(L.t("No favourites yet. Tap the star on a destination to add one."))
         favs.forEach { f ->
             when {

@@ -5,7 +5,7 @@ import androidx.compose.runtime.setValue
 import java.util.Locale
 
 /**
- * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak, Danish, Croatian, Malay or Hungarian. "auto" follows the phone (English when the phone's language
+ * The app's language: English, Dutch, German, French, Spanish, Italian, Portuguese, Polish, Thai, Japanese, Indonesian, Bulgarian, Slovenian, Romanian, Basque, Traditional Chinese, Greek, Czech, Finnish, Simplified Chinese, Slovak, Danish, Croatian, Malay, Hungarian or Tamil. "auto" follows the phone (English when the phone's language
  * isn't one of these). Text is looked up by its English wording: [t] gives the phrase in the chosen language, with {0}, {1}…
  * filled in from the arguments; a phrase with no translation yet stays in English.
  */
