@@ -118,7 +118,8 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
         if (tab == 0) for (p in places.recents()) add(p.name, p, Icons.Rounded.History, Color(0xFF9CA4BF))
         if (tab == 2) {
             for (cp in places.customs()) add(cp.label, cp.place, Icons.Rounded.Star, Color(0xFF12A4B4))
-            for (p in places.favourites()) add(p.name, p, Icons.Rounded.Star, Color(0xFFF2C230))
+            for (p in places.favourites().sortedWith(Comparator { a, b -> java.text.Collator.getInstance(L.locale).compare(a.name, b.name) }))
+                add(p.name, p, Icons.Rounded.Star, Color(0xFFF2C230))
         }
         out
     }

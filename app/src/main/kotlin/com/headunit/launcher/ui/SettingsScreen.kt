@@ -955,7 +955,16 @@ private fun PlacesSection(engine: NavEngine) {
     }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val favRaw = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
-    val favs = remember(favRaw) { pl.favourites() }
+    val storedFavs = remember(favRaw) { pl.favourites() }
+    var favSortNearest by rememberSaveable { mutableStateOf(false) }
+    val hereForFavs = engine.fix?.pos
+    val favs = remember(storedFavs, favSortNearest, hereForFavs, L.lang) {
+        if (favSortNearest && hereForFavs != null) storedFavs.sortedBy { Geo.dist(hereForFavs, it.pos) }
+        else {
+            val collator = java.text.Collator.getInstance(L.locale)
+            storedFavs.sortedWith { a, b -> collator.compare(a.name, b.name) }
+        }
+    }
     var renamingFav by remember { mutableStateOf<Place?>(null) }
     var slotFor by remember { mutableStateOf<Place?>(null) }
     var importingGoogle by remember { mutableStateOf(false) }
@@ -988,6 +997,11 @@ private fun PlacesSection(engine: NavEngine) {
             }
         }
 
+        if (favs.size > 1) SItem(L.t("Sort favourites")) {
+            SButton(L.t("A–Z"), primary = !favSortNearest) { favSortNearest = false }
+            SButton(L.t("Nearest"), primary = favSortNearest) { favSortNearest = true }
+        }
+        if (favSortNearest && hereForFavs == null) SNote(L.t("Location needed to sort by distance. Showing A–Z."))
         if (favs.isEmpty()) SNote(L.t("No favourites yet. Tap the star on a destination to add one."))
         favs.forEach { f ->
             when {
