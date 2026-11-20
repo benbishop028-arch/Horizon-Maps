@@ -721,10 +721,14 @@ fun HazardRadar(engine: NavEngine, modifier: Modifier = Modifier) {
     Column(modifier.widthIn(max = 540.dp).fillMaxWidth().panel(8.dp, shape, c.surface).padding(start = 16.dp, end = 16.dp, top = 9.dp, bottom = 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(radarIcon(near.kind), null, tint = radarColor(near.kind), modifier = Modifier.size(20.dp).graphicsFlip(near.kind == "bend" && near.label.endsWith("left")))
-            Text(L.t(near.label), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text(" · " + (if (near.dist < 20) L.t("now") else L.t("in {0}", Geo.fmtDist(near.dist, engine.imperial))), color = c.sub, fontSize = 14.sp, maxLines = 1)
-            Box(Modifier.weight(1f))
-            Text(if (engine.imperial) L.t("next 2 mi") else L.t("next 3 km"), color = c.sub, fontSize = 11.sp)
+            // (one line, whatever the language: with a long name, "Próg zwalniający · za 150 m", there was no room left for
+            // "następne 3 km", which then wrapped a letter or two per line and made the card fill half the screen, changing size
+            // as the distance counted down, GitHub #245. The name now gives way and is cut short instead)
+            Row(Modifier.weight(1f).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(L.t(near.label), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp).weight(1f, fill = false), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(" · " + (if (near.dist < 20) L.t("now") else L.t("in {0}", Geo.fmtDist(near.dist, engine.imperial))), color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false)
+            }
+            Text(if (engine.imperial) L.t("next 2 mi") else L.t("next 3 km"), color = c.sub, fontSize = 11.sp, maxLines = 1, softWrap = false)
         }
         BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 8.dp).height(30.dp)) {
             val w = maxWidth
