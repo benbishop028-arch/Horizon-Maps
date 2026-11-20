@@ -149,7 +149,9 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
                 }
             }
             // the round buttons
-            var saved by remember(h.place) { mutableStateOf(engine.places.favourites().any { Geo.dist(it.pos, h.place.pos) < 15.0 }) }
+            // (matched as the star itself matches, within 60 m: it was 15 m here, so an imported favourite a little way from the
+            // place on the map showed an empty star, and tapping it took the favourite away instead: GitHub #261)
+            var saved by remember(h.place) { mutableStateOf(engine.places.isFavourite(h.place)) }
             // the name box shown after tapping the star (Xundey, #249): filled in with the place's name; Done keeps what's typed,
             // and ignoring it keeps the place's own name, as before
             var naming by remember(h.place) { mutableStateOf<String?>(null) }
@@ -157,7 +159,7 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
                 RoundAction(if (saved) Icons.Rounded.Star else Icons.Rounded.StarBorder, L.t("Save"), if (saved) Color(0xFFFFC83D) else c.text) {
                     saved = engine.hereSave()
                     // just saved: a box to name it straight away (not while moving: no typing while driving)
-                    naming = if (saved && !moving && !engine.isCar) engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 15.0 }?.name else null
+                    naming = if (saved && !moving && !engine.isCar) engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 60.0 }?.name else null
                 }
                 if (!moving && !d?.phone.isNullOrBlank()) RoundAction(Icons.Rounded.Phone, L.t("Call"), c.text) {
                     try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_DIAL, android.net.Uri.parse("tel:" + d!!.phone.replace(" ", ""))).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) } catch (e: Exception) { }
@@ -175,7 +177,7 @@ internal fun HereCardView(engine: NavEngine, h: NavEngine.HereCard, maxH: androi
             }
             naming?.let { cur ->
                 fun keep() {
-                    engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 15.0 }?.let { engine.places.renameFavourite(it, cur) }
+                    engine.places.favourites().firstOrNull { Geo.dist(it.pos, h.place.pos) < 60.0 }?.let { engine.places.renameFavourite(it, cur) }
                     naming = null
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 10.dp, end = 6.dp).clip(RoundedCornerShape(12.dp)).background(c.tile).padding(horizontal = 10.dp, vertical = 8.dp),

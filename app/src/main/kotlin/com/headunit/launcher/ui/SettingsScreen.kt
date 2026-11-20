@@ -547,7 +547,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         if (shapeCar) {
             val cur = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
             val colour = prefs.s(PreferenceKeys.CAR_COLOUR, "#F4F5F7")
-            val names = listOf("saloon" to L.t("Saloon"), "hatch" to L.t("Hatchback"), "estate" to L.t("Estate"), "suv" to "SUV", "pickup" to L.t("Pickup"), "van" to L.t("Van"), "sports" to L.t("Sports"))
+            val names = listOf("saloon" to L.t("Saloon"), "hatch" to L.t("Hatchback"), "estate" to L.t("Estate"), "suv" to L.t("SUV"), "pickup" to L.t("Pickup"), "van" to L.t("Van"), "sports" to L.t("Sports"))
             SItem(L.t("Car type"), names.firstOrNull { it.first == cur }?.second)
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -607,7 +607,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for ((cc, name) in listOf("FR" to L.t("France"), "IT" to L.t("Italy"), "ES" to L.t("Spain"), "PT" to L.t("Portugal"), "AT" to L.t("Austria"), "CH" to L.t("Switzerland"),
-                    "SI" to L.t("Slovenia"), "HR" to L.t("Croatia"), "PL" to L.t("Poland"), "CZ" to L.t("Czechia"), "HU" to L.t("Hungary"), "GR" to L.t("Greece"), "IE" to L.t("Ireland"), "NO" to L.t("Norway"), "US" to "USA")) {
+                    "SI" to L.t("Slovenia"), "HR" to L.t("Croatia"), "PL" to L.t("Poland"), "CZ" to L.t("Czechia"), "HU" to L.t("Hungary"), "GR" to L.t("Greece"), "IE" to L.t("Ireland"), "NO" to L.t("Norway"), "US" to L.t("USA"))) {
                     Pill(name, cc in chosen, { prefs.put(PreferenceKeys.AVOID_TOLL_COUNTRIES, (if (cc in chosen) chosen - cc else chosen + cc).joinToString(",")) })
                 }
             }
@@ -894,6 +894,27 @@ private fun PlacesSection(engine: NavEngine) {
     var openGroups by remember { mutableStateOf(setOf<String>()) }
     var renamingGroup by remember { mutableStateOf<String?>(null) }
     val groups = remember(raw) { pl.groups() }
+    var importingGoogle by remember { mutableStateOf(false) }
+    val googleMapsPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) {
+            importingGoogle = false
+        } else {
+            Thread {
+                val outcome = try {
+                    val json = importContext.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
+                    val places = com.headunit.launcher.GoogleMapsImport.parse(json)
+                    // (into Your places, in a Google Maps group and not starred, so 50 imported places don't fill the row next to
+                    // Home and Work: GitHub #261)
+                    if (places.isEmpty()) null else pl.importToPlaces(places, L.t("Google Maps"))
+                } catch (_: Throwable) { null }
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    importingGoogle = false
+                    if (outcome == null) engine.toast(L.t("No saved places found in that file"), 3500)
+                    else engine.toast(L.t("Imported {0} into Your places, in the Google Maps group · already saved {1}", outcome.first, outcome.second), 5000)
+                }
+            }.start()
+        }
+    }
     SGroup(L.t("Your places"), footer = L.t("The starred ones show next to Home and Work under the search bar; tap a star to change it. All of them are in search and the Your places shortcut.")) {
         if (mine.isEmpty()) SNote(L.t("No places of your own yet."))
         @Composable
@@ -952,6 +973,15 @@ private fun PlacesSection(engine: NavEngine) {
         }
         mine.forEachIndexed { i, lp -> if (lp.group.isBlank()) placeRow(i, lp, false) }
         SItem(L.t("Add a place")) { SButton(L.t("Add"), primary = true) { adding = true } }
+        SItem(L.t("Import Google Maps"), L.t("Choose a Saved Places.json file from Google Takeout. The places go in a Google Maps group here")) {
+            SButton(if (importingGoogle) L.t("Importing…") else L.t("Choose"), primary = true) {
+                if (!importingGoogle) {
+                    importingGoogle = true
+                    try { googleMapsPicker.launch(arrayOf("application/json", "text/plain", "*/*")) }
+                    catch (_: Exception) { importingGoogle = false; engine.toast(L.t("No saved places found in that file"), 3500) }
+                }
+            }
+        }
     }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val favRaw = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
@@ -967,35 +997,7 @@ private fun PlacesSection(engine: NavEngine) {
     }
     var renamingFav by remember { mutableStateOf<Place?>(null) }
     var slotFor by remember { mutableStateOf<Place?>(null) }
-    var importingGoogle by remember { mutableStateOf(false) }
-    val googleMapsPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null) {
-            importingGoogle = false
-        } else {
-            Thread {
-                val outcome = try {
-                    val json = importContext.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }.orEmpty()
-                    val places = com.headunit.launcher.GoogleMapsImport.parse(json)
-                    if (places.isEmpty()) null else pl.importFavourites(places)
-                } catch (_: Throwable) { null }
-                android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    importingGoogle = false
-                    if (outcome == null) engine.toast(L.t("No saved places found in that file"), 3500)
-                    else engine.toast(L.t("Imported {0} · already saved {1}", outcome.first, outcome.second), 4500)
-                }
-            }.start()
-        }
-    }
     SGroup(L.t("Favourites")) {
-        SItem(L.t("Import Google Maps"), L.t("Choose a Saved Places.json file from Google Takeout")) {
-            SButton(if (importingGoogle) L.t("Importing…") else L.t("Choose"), primary = true) {
-                if (!importingGoogle) {
-                    importingGoogle = true
-                    try { googleMapsPicker.launch(arrayOf("application/json", "text/plain", "*/*")) }
-                    catch (_: Exception) { importingGoogle = false; engine.toast(L.t("No saved places found in that file"), 3500) }
-                }
-            }
-        }
 
         if (favs.size > 1) SItem(L.t("Sort favourites")) {
             SButton(L.t("A–Z"), primary = !favSortNearest) { favSortNearest = false }
@@ -1019,9 +1021,14 @@ private fun PlacesSection(engine: NavEngine) {
                 else -> SItemStacked(f.name, f.sub) {
                     SButton(L.t("Rename")) { renamingFav = f }
                     SButton(L.t("Make Home / Work")) { slotFor = f }
+                    SButton(L.t("Move to Your places")) { pl.moveFavouriteToPlaces(f); engine.toast(L.t("{0} moved to Your places", f.name), 2500) }
                     SButton(L.t("Remove"), danger = true) { pl.toggleFavourite(f) }
                 }
             }
+        }
+        // (favourites are best kept short, as they all show next to Home and Work: the rest can go to Your places in one go, GitHub #261)
+        if (favs.size > 1) SItem(L.t("Move every favourite to Your places"), L.t("In a Favourites group there, so they leave the row next to Home and Work")) {
+            SButton(L.t("Move all")) { val n = pl.moveAllFavouritesToPlaces(L.t("Favourites")); engine.toast(L.t("{0} moved to Your places", n), 2500) }
         }
         if (favs.size > 1) SItem(L.t("Remove every favourite")) { SButton(L.t("Remove all"), danger = true) { pl.clearFavourites() } }
     }

@@ -498,7 +498,7 @@ object TomTomRest {
         }
         if (body == null) {
             val m = last?.message ?: ""
-            NetHealth.note(last)
+            NetHealth.note(last, "TomTom route")
             throw IOException(if (!m.startsWith("HTTP")) "no signal" else if (m.startsWith("HTTP 429")) "too many requests, try again in a moment" else m.ifBlank { "Routing failed" })
         }
         val arr = JSONObject(body).optJSONArray("routes") ?: JSONArray()

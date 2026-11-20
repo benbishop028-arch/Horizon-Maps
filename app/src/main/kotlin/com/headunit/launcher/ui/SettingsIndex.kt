@@ -152,6 +152,8 @@ private val allSettingsIndex = listOf(
     SettingRef("Volume", "", "Voice and volume", 8),
     SettingRef("Add a place", "", "Your places", 10),
     SettingRef("Remove every favourite", "", "Favourites", 10),
+    SettingRef("Import Google Maps", "Choose a Saved Places.json file from Google Takeout. The places go in a Google Maps group here", "Your places", 10),
+    SettingRef("Move every favourite to Your places", "In a Favourites group there, so they leave the row next to Home and Work", "Favourites", 10),
     SettingRef("Recent places under the search bar", "Your saved places are in the row of tiles under the search bar, which ends with Add a place", "Under the search bar", 10),
     SettingRef("Recent destinations", "Recent places, and places remembered for searching without signal", "History", 10),
     SettingRef("Send it to", "", "Share your ETA", 10),

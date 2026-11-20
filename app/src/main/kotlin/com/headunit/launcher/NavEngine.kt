@@ -625,6 +625,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var camPos: LL? = null
     private var cameras: List<LL> = emptyList()
     private val camAlerted = HashSet<LL>()
+    /** Cameras already given the second, close-up beep (just before you pass them, GitHub #268). */
+    private val camNearBeeped = HashSet<LL>()
     private var drove = false
     private var stillSince = 0L
     private var posSavedAt = 0L
@@ -637,6 +639,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var tripDest = ""
 
     init {
+        NetHealth.appCtx = ctx.applicationContext
         EuFuel.filesDir = ctx.filesDir
         CarTrains.filesDir = ctx.filesDir   // (the car-train lines, for Avoid car trains)   // (Italy's fuel price list is kept on the device)
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
@@ -1649,6 +1652,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
+            try { NetHealth.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Connection problems:"); append(it) } } catch (e: Throwable) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -2497,14 +2501,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         mine.map { cp -> Nearby(cp.place.copy(name = cp.label), here?.let { Geo.dist(it, cp.place.pos) } ?: 0.0, "") to cp.group } +
                             favs.map { f -> Nearby(f, here?.let { Geo.dist(it, f.pos) } ?: 0.0, "") to "" }
                     }
-                    if (folder != null) all.filter { it.second == folder }.map { it.first }.sortedBy { it.dist }
+                    // nearest first; A–Z when there's no position yet, and the folders always A–Z (GitHub #261)
+                    val collator = java.text.Collator.getInstance(L.locale)
+                    val order: Comparator<Nearby> = if (here != null) compareBy<Nearby> { it.dist } else Comparator<Nearby> { a, b -> collator.compare(a.place.name, b.place.name) }
+                    if (folder != null) all.filter { it.second == folder }.map { it.first }.sortedWith(order)
                     else {
                         val folders = all.map { it.second }.filter { it.isNotBlank() }.distinct().map { g ->
                             val n = all.count { it.second == g }
                             Nearby(Place(g, "", here ?: LL(0.0, 0.0), "folder:$g"), -1.0,
                                 if (tracks) (if (n == 1) L.t("1 track") else L.t("{0} tracks", n)) else (if (n == 1) L.t("1 place") else L.t("{0} places", n)))
                         }
-                        folders + all.filter { it.second.isBlank() }.map { it.first }.sortedBy { it.dist }
+                        folders.sortedWith { a, b -> collator.compare(a.place.name, b.place.name) } + all.filter { it.second.isBlank() }.map { it.first }.sortedWith(order)
                     }
                 } catch (e: Exception) { emptyList() }
             }
@@ -2647,7 +2654,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             } catch (e: Exception) {
                 val m = e.message ?: ""
                 if (m.contains("signal")) {
-                    toast(L.t("No signal: this route will start by itself as soon as there is a connection"), 6000)
+                    // the phone says it's connected, but the route services couldn't be reached (a weak signal out in the country,
+                    // or the services being slow): "No signal" read as wrong there (GitHub #269). The real reason goes in the
+                    // problem report (Connection problems)
+                    toast(if (online()) L.t("Weak signal: the route service couldn't be reached. Trying again by itself…") + NetHealth.clockHint()
+                        else L.t("No signal: this route will start by itself as soon as there is a connection"), 6000)
                     if (waitingFor !== to) waitForSignal(to, departInMin, keepVia)
                 } else toast(L.t("Route failed: {0}", m), 6000)
             } finally { busy = false }
@@ -3311,7 +3322,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         cameraDist = if (best != null) bestD.toInt() else null
         if (best != null) {
             if (camAlerted.size > 100) camAlerted.clear()
-            if (camAlerted.add(best)) { chime(android.media.ToneGenerator.TONE_PROP_PROMPT); raiseAlert("camera", L.t("Speed camera ahead")); speak(L.t("Speed camera ahead"), true) }
+            if (camAlerted.add(best)) { chime(android.media.ToneGenerator.TONE_PROP_PROMPT); raiseAlert("camera", L.t("Speed camera ahead")); speak(L.t("Speed camera ahead"), true)
+                // first seen already close (just joined the road): the spoken warning is enough, no beep straight after it
+                if (bestD <= max(80.0, p.speed * 4.0)) camNearBeeped.add(best) }
+            // a second short beep just before the camera (about 4 seconds out, at least 80 m), so the first warning about 500 m
+            // ahead isn't the only one (GitHub #268). Only for cameras already announced, and only once each
+            else if (bestD <= max(80.0, p.speed * 4.0)) {
+                if (camNearBeeped.size > 100) camNearBeeped.clear()
+                if (camNearBeeped.add(best)) chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+            }
         }
     }
 

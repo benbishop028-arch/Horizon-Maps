@@ -4,6 +4,19 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Speed cameras beep again just before you pass: after the warning about 500 m ahead, a short second beep comes about 4 seconds before the camera (thanks to joel941703-hash)
+- Move favourites to Your places: each favourite has Move to Your places, and Move all puts every one in a Favourites group there, so the row next to Home and Work stays short (thanks to Dixet)
+
+### Improved
+- Google Maps import goes into Your places: the places are filed in a Google Maps group, not starred, so 50 imported places fold into one row instead of filling the tiles next to Home and Work. The import button is now under Your places (thanks to Dixet and Xundey)
+- Your places list: the groups are in A–Z order, and the places are A–Z until the app knows where you are (then nearest first) (thanks to Dixet)
+- "Weak signal" in place of "No signal" when the phone is connected but the route service can't be reached, and the problem report now lists the last few connection problems with Android's own reason, to find out why (thanks to jerzdevil22)
+- Malayalam: SUV, USA, the UK road signs and living turn card switches, Import Google Maps, the search bar settings and Recent destinations, in the wording suggested (thanks to bijindas)
+
+### Fixed
+- A favourite's star on its card: a place saved a little way from where it shows on the map (often the case with imported places) showed an empty star, and tapping it took the favourite away. The card now finds it the same way the star does (thanks to Dixet)
+
 ### Fixed
 - Malayalam Light & 3D settings: refine the Moonlight at night and 3D hills and valleys labels using the reviewer's suggested wording (thanks to the tester who asked for it).
 

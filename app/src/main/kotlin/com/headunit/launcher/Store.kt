@@ -117,6 +117,58 @@ class PlaceStore(private val prefs: Prefs) {
         return added to skipped
     }
 
+    /**
+     * Files [imported] places in Your places, in [group] and not starred, so a long list (50 places from Google Maps) folds into
+     * one group row instead of filling the row of tiles next to Home and Work (GitHub #261, Dixet). Places within 60 m of one
+     * already saved (in Your places, favourites, Home or Work) are skipped. Two places with the same name get "Name 2", "Name 3",
+     * as each label in Your places is unique. Returns how many were added and how many skipped.
+     */
+    fun importToPlaces(imported: List<Place>, group: String): Pair<Int, Int> {
+        val list = customs().toMutableList()
+        val favs = favourites()
+        val slots = listOfNotNull(slot("home"), slot("work"))
+        val g = group.trim().take(24)
+        var added = 0; var skipped = 0
+        for (p in imported) {
+            if (list.any { same(it.place, p) } || favs.any { same(it, p) } || slots.any { same(it, p) }) { skipped++; continue }
+            list += LabeledPlace(uniqueLabel(p.name, list), p, g, pinned = false)
+            added++
+        }
+        if (added > 0) writeCustoms(list)
+        return added to skipped
+    }
+
+    private fun uniqueLabel(name: String, list: List<LabeledPlace>): String {
+        val base = name.trim().ifBlank { "Place" }.take(24)
+        if (list.none { it.label.equals(base, true) }) return base
+        var n = 2
+        while (true) {
+            val tail = " $n"
+            val l = base.take(24 - tail.length).trimEnd() + tail
+            if (list.none { it.label.equals(l, true) }) return l
+            n++
+        }
+    }
+
+    /** Moves the favourite [p] to Your places (not starred, so it leaves the row next to Home and Work), keeping its name. */
+    fun moveFavouriteToPlaces(p: Place, group: String = "") {
+        val list = customs().toMutableList()
+        if (list.none { same(it.place, p) }) list += LabeledPlace(uniqueLabel(p.name, list), p, group.trim().take(24), pinned = false)
+        writeCustoms(list)
+        writeList("places_fav", favourites().filterNot { same(it, p) })
+    }
+
+    /** Moves every favourite to Your places, in [group]. Returns how many were moved. */
+    fun moveAllFavouritesToPlaces(group: String): Int {
+        val favs = favourites()
+        val list = customs().toMutableList()
+        val g = group.trim().take(24)
+        for (f in favs) if (list.none { same(it.place, f) }) list += LabeledPlace(uniqueLabel(f.name, list), f, g, pinned = false)
+        writeCustoms(list)
+        writeList("places_fav", emptyList())
+        return favs.size
+    }
+
     /** Gives a favourite a name of your own (it stays in the same place in the list). */
     fun renameFavourite(p: Place, name: String) {
         val n = name.trim().take(40)

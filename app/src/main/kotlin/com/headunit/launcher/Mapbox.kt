@@ -99,7 +99,7 @@ object MapboxRest {
         c.connectTimeout = connectMs
         c.readTimeout = readMs
         c.setRequestProperty("User-Agent", "HorizonNav/1.0")
-        val code = try { c.responseCode } catch (e: IOException) { NetHealth.note(e); throw IOException("no signal") }
+        val code = try { c.responseCode } catch (e: IOException) { NetHealth.note(e, "Mapbox " + (try { URL(url).path.split('/').filter { it.isNotBlank() }.take(2).joinToString("/") } catch (x: Exception) { "" })); throw IOException("no signal") }
         val body = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
         if (code !in 200..299) throw httpError(code, body)
         return body
