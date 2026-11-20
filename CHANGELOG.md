@@ -5,6 +5,11 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Favourites on the map: your saved places show as yellow stars with their names (smaller, without names, while navigating). Tap one for its card, with Go. Switch it off in Settings › On the map › Favourites on the map (thanks to Xundey)
+- Name a favourite as you save it: after tapping the star on a place's card, a box filled in with its name lets you call it something of your own straight away (thanks to Xundey)
+- Weather from the Met Office: in the UK, a free Met Office key (Settings › Keys & accounts › Weather) gives the current weather for rain on the map, the light and weather advice, usually more accurately than before. If it fails, the app carries on with Open-Meteo (thanks to yurividal)
+- Settings › Weather: everything the weather changes is now in one place, with rain, snow and fog on the map each switched on or off separately (thanks to yurividal)
+- Android Auto: Sound button on the map: a switch in Settings › Android Auto (and the car's own settings) to leave the sound button off the map when not navigating, for more room (thanks to yurividal)
 - Vietnamese: the whole app in Tiếng Việt, on the phone, head unit and Android Auto, with spoken directions ("Sau 200 mét, rẽ trái", "tại vòng xuyến, đi theo lối ra thứ 2"). Picked by itself on a phone set to Vietnamese, or in Settings › Sound & voice › Language (thanks to hi3utr)
 - Malayalam: the whole app in മലയാളം, on the phone, head unit and Android Auto, with spoken directions. Picked by itself on a phone set to Malayalam, or in Settings › Sound & voice › Language. Needs a Malayalam voice on the phone for the spoken directions (thanks to bijindas)
 - Map brightness in Map options: a slider under Day and Night sets how bright the map is, for whichever of day and night is showing. Set each once and the brightness changes with the time of day. Day brightness is new; night brightness is the one in Settings › Light & 3D (thanks to mjdshibly)
@@ -153,6 +158,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Android Auto: Recent places running under the sound button: the suggestion card and Recent rows now fit the room actually left above the bottom-left buttons (thanks to yurividal)
 - Music stays quiet after an alert: the beep and the spoken alert each lowered the music and gave it back separately, and some cars through Android Auto kept it lowered. They now share one hold, given back once when both are done, and never held for more than 90 seconds. The problem report also shows when the music was lowered and given back (thanks to ajg0001)
 - Android Auto: stars, street lamps and headlights by day: with a car (or Android Auto) that keeps the screen dark all day, they now wait for sunset where you are, as on the phone (thanks to bijindas)
 - Android Auto: turns missing from the car's own displays: the turn arrow sent to the dashboard and head-up display is back to the plain arrow for each kind of turn, as the picture sent for a few versions made the turn disappear on VW's display (thanks to desko1973)
