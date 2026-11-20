@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Traffic
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.WbTwilight
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.TurnRight
 import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.DirectionsCar
@@ -104,7 +105,8 @@ private class Section(val title: String, val sub: String, val icon: ImageVector,
 // (made each time it's read, so the names follow a change of language straight away)
 private val sections: List<Section> get() = listOf(
     Section(L.t("Map style"), L.t("Colours, day and night, map detail"), Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
-    Section(L.t("Light, weather & 3D"), L.t("Light, rain and snow, radar, 3D, sky"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
+    Section(L.t("Light & 3D"), L.t("Light, shadows, 3D, sky, satellite"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
+    Section(L.t("Weather"), L.t("Live weather, rain, snow, fog, radar, forecasts"), Icons.Rounded.Cloud, Color(0xFF4C8DFF)),
     Section(L.t("On the map"), L.t("Traffic, lights, cameras, signs, lamps"), Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
     Section(L.t("Your arrow & route line"), L.t("Arrow or car, colours, route look"), Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
     Section(L.t("Routes"), L.t("Vehicle, avoid, choosing, starting"), Icons.Rounded.Route, Color(0xFF12A4B4), "DRIVING"),
@@ -273,20 +275,21 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                     when (cat) {
                         0 -> MapStyleSection(prefs, engine)
                         1 -> LightSection(prefs)
-                        2 -> OnTheMapSection(prefs, engine)
-                        3 -> ArrowSection(prefs, engine)
-                        4 -> RoutesSection(prefs, engine)
-                        5 -> GuidanceSection(prefs, engine)
-                        6 -> AlertsSection(prefs, engine)
-                        7 -> SoundSection(prefs, engine)
-                        8 -> WhileDrivingSection(prefs)
-                        9 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
-                        10 -> FuelSection(prefs, engine)
-                        11 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
-                        12 -> ScreenSection(prefs, engine)
-                        13 -> AndroidAutoSection(prefs)
-                        14 -> PerformanceSection(prefs)
-                        15 -> KeysSection(prefs, engine)
+                        2 -> WeatherSection(prefs)
+                        3 -> OnTheMapSection(prefs, engine)
+                        4 -> ArrowSection(prefs, engine)
+                        5 -> RoutesSection(prefs, engine)
+                        6 -> GuidanceSection(prefs, engine)
+                        7 -> AlertsSection(prefs, engine)
+                        8 -> SoundSection(prefs, engine)
+                        9 -> WhileDrivingSection(prefs)
+                        10 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
+                        11 -> FuelSection(prefs, engine)
+                        12 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
+                        13 -> ScreenSection(prefs, engine)
+                        14 -> AndroidAutoSection(prefs)
+                        15 -> PerformanceSection(prefs)
+                        16 -> KeysSection(prefs, engine)
                         else -> AboutSection(prefs, engine)
                     }
                 }
@@ -392,24 +395,14 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
 
 @Composable
 private fun LightSection(prefs: Prefs) {
-    if (prefs.mapSource() == "mapbox") SGroup(L.t("Light and weather")) {
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Light")) {
         SPercent(L.t("Night brightness"), L.t("How bright the whole night map is. 100% is Mapbox's own night light"), prefs, PreferenceKeys.NIGHT_BRIGHT, 30, 200, 100)
         SToggle(prefs, L.t("Moonlight at night"), PreferenceKeys.MOONLIT, false, L.t("Like dusk, but from the moon: a low blue light with long soft shadows, in place of Mapbox's flat night light. The night sky and your colours stay"))
         if (prefs.b(PreferenceKeys.MOONLIT, false))
             SPercent(L.t("Moon strength"), L.t("How strongly the moon lights walls and casts shadows"), prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
         SToggle(prefs, L.t("Shadows"), PreferenceKeys.SHADOWS, true, L.t("Buildings and trees cast shadows. Off is also lighter work for a slow head unit"))
         SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("Light and shadows come from where the sun really is right now, and at night from the moon"))
-        // (one choice for the two old switches: "Always" already covered "In rain or snow", so both on was the same as Always)
-        val overcast = if (prefs.b(PreferenceKeys.OVERCAST, false)) "always" else if (prefs.b(PreferenceKeys.WEATHER_LIGHT, false)) "wet" else "off"
-        SChoice(L.t("Overcast light"), listOf("off" to L.t("Off"), "wet" to L.t("In rain or snow"), "always" to L.t("Always")), overcast,
-            when (overcast) {
-                "always" -> L.t("Soft daylight with no hard shadows, calmer in glare")
-                "wet" -> L.t("A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow")
-                else -> null
-            }) {
-            prefs.put(PreferenceKeys.OVERCAST, it == "always")
-            prefs.put(PreferenceKeys.WEATHER_LIGHT, it == "wet")
-        }
+        // (Overcast light is in Settings > Weather, with everything else the weather changes)
     }
     SGroup(L.t("3D view"), footer = L.t("30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {
         STilt(L.t("Tilt on a wide screen"), L.t("Landscape head units. Higher shows further ahead (more for a slow unit to draw)"), prefs, PreferenceKeys.TILT_WIDE)
@@ -428,12 +421,48 @@ private fun LightSection(prefs: Prefs) {
     }
     SGroup(L.t("Sky and satellite")) {
         SToggle(prefs, L.t("Satellite"), "satellite", false)
-        SToggle(prefs, L.t("Fog and sky"), "skyweather", true, L.t("Haze towards the horizon to match the weather: grey when overcast, thicker in rain, thick in fog"))
         SToggle(prefs, L.t("Night sky in 3D"), "nightsky", true, L.t("Twinkling stars above the horizon after dark"))
     }
-    SGroup(L.t("Weather")) {
-        SToggle(prefs, L.t("Weather effects on the map"), "rainfx", false, L.t("Real rain and snow falling on the map (and fog) to match the weather where you are"))
-        SToggle(prefs, L.t("Rain radar layer"), "radar", false, L.t("Live radar from RainViewer, under the route"))
+}
+
+// ------------------------------------------------------------------ Weather
+
+/** Everything the weather changes, in one place: live weather and what it shows on the map, the light, advice, forecasts, radar. */
+@Composable
+private fun WeatherSection(prefs: Prefs) {
+    val live = prefs.b(PreferenceKeys.RAIN_EFFECTS, false)
+    val metKey = prefs.s(PreferenceKeys.METOFFICE_KEY, "").isNotBlank()
+    SGroup(L.t("Live weather"), footer = if (metKey) L.t("Source: Met Office (key in Keys & accounts), Open-Meteo if it fails.")
+        else L.t("Source: Open-Meteo. In the UK, a free Met Office key (Keys & accounts) is usually more accurate.")) {
+        // (the key is still "rainfx": switching it on is what fetches the weather where you are, every 10 minutes)
+        SToggle(prefs, L.t("Live weather"), PreferenceKeys.RAIN_EFFECTS, false, L.t("Checks the weather where you are every 10 minutes, for everything below"))
+        if (live) {
+            SToggle(prefs, L.t("Rain on the map"), PreferenceKeys.WX_RAIN, true, L.t("Rain falling on the map, heavier in a downpour or storm"))
+            SToggle(prefs, L.t("Snow on the map"), PreferenceKeys.WX_SNOW, true, L.t("Snow falling on the map"))
+            SToggle(prefs, L.t("Fog and mist on the map"), PreferenceKeys.WX_FOG, true, L.t("A pale wash over the map and a thick haze in fog or mist. Off shows those as a plain overcast day"))
+            SToggle(prefs, L.t("Haze towards the horizon"), PreferenceKeys.SKYWEATHER, true, L.t("The sky to match the weather: grey when overcast, thicker in rain"))
+            SToggle(prefs, L.t("Weather advice"), PreferenceKeys.WXADVICE, true, L.t("A quiet note in heavy rain, snow, fog or ice when you're near the limit"))
+            val st = com.headunit.launcher.MetOffice.status
+            if (metKey && st.isNotBlank()) SNote(st)
+        }
+    }
+    // (only Mapbox's map has its own light)
+    if (prefs.mapSource() == "mapbox") SGroup(L.t("Light")) {
+        // (one choice for the two old switches: "Always" already covered "In rain or snow", so both on was the same as Always)
+        val overcast = if (prefs.b(PreferenceKeys.OVERCAST, false)) "always" else if (prefs.b(PreferenceKeys.WEATHER_LIGHT, false)) "wet" else "off"
+        SChoice(L.t("Overcast light"), listOf("off" to L.t("Off"), "wet" to L.t("In rain or snow"), "always" to L.t("Always")), overcast,
+            when (overcast) {
+                "always" -> L.t("Soft daylight with no hard shadows, calmer in glare")
+                "wet" -> if (live) L.t("A greyer, softer daylight when it's raining or snowing where you are") else L.t("Needs Live weather switched on above")
+                else -> null
+            }) {
+            prefs.put(PreferenceKeys.OVERCAST, it == "always")
+            prefs.put(PreferenceKeys.WEATHER_LIGHT, it == "wet")
+        }
+    }
+    SGroup(L.t("Forecasts and radar")) {
+        SToggle(prefs, L.t("Weather on the route"), PreferenceKeys.ROUTEWX, true, L.t("The forecast along your route, for when you'll be there"))
+        SToggle(prefs, L.t("Rain radar layer"), PreferenceKeys.RAIN_RADAR, false, L.t("Live radar from RainViewer, under the route"))
     }
 }
 
@@ -591,7 +620,6 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Offer faster routes"), "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, L.t("Keep other routes on the map"), "livealts", true, L.t("Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead"))
         SToggle(prefs, L.t("Suggest where you're going"), "predict", true, L.t("With the live journey time, including home and work at your usual times"))
-        SToggle(prefs, L.t("Weather on the route"), "routewx", true)
         SToggle(prefs, L.t("Arrive on your side of the road"), PreferenceKeys.ARRIVE_SIDE, true, L.t("The route brings you to the kerb side of where you're going, so you don't have to cross the traffic. Mapbox and offline routes"))
     }
     SGroup(L.t("Starting a route")) {
@@ -786,7 +814,6 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Zones and reminders")) {
         SToggle(prefs, L.t("Clean Air Zones and ULEZ"), "zonewarn", true)
         SToggle(prefs, L.t("Break reminder after 2 hours"), "breakremind", true)
-        SToggle(prefs, L.t("Weather advice"), "wxadvice", true, L.t("A quiet note in heavy rain, snow, fog or ice when you're near the limit"))
     }
     SGroup(L.t("Your reports"), footer = L.t("Make a report from the map options button. Reports stay on this unit and fade after a few hours.")) {
         SToggle(prefs, L.t("Warn about reports ahead"), "policealerts", true)
@@ -1291,6 +1318,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
     CarTripButtonsGroup(prefs)
     SGroup {
         SToggle(prefs, L.t("Search bar and places on the map"), PreferenceKeys.CAR_MAPUI, true, L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"))
+        SToggle(prefs, L.t("Sound button on the map"), PreferenceKeys.CAR_SOUND_BTN, true, L.t("Sound on / Alerts only / Muted, when not navigating. Off leaves more room for Recent places; the same choice is in the car's Settings"))
     }
     // Voice search from the car screen's microphone button listens through the app, which needs the microphone allowed. Android
     // only lets an app ask from its own screen (asking from the car screen is refused on newer Android), so it's asked here
@@ -1379,6 +1407,18 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Search")) {
         SChoice(L.t("Search results"), searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
         if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
+    }
+    // Weather (shown in every edition, Plus included: the Met Office key is always your own)
+    SGroup(L.t("Weather"), footer = L.t("Live weather (Settings > Weather) comes from Open-Meteo. In the UK, a free Met Office key is usually more accurate: datahub.metoffice.gov.uk, subscribe to Site-Specific Forecast (Global spot), then paste the API key. If the Met Office fails, Open-Meteo is used.")) {
+        SFieldItem(L.t("Met Office API key"), prefs.s(PreferenceKeys.METOFFICE_KEY, ""), L.t("Optional, UK. Free plan: 360 requests a day (the app asks every 10 minutes at most)"),
+            placeholder = L.t("Paste a key")) { prefs.put(PreferenceKeys.METOFFICE_KEY, it.trim()) }
+        if (prefs.s(PreferenceKeys.METOFFICE_KEY, "").isNotBlank()) {
+            SItem(L.t("Test Met Office"), if (engine.fix == null) L.t("Waiting for your location") else L.t("Fetches the weather where you are now")) {
+                SButton(L.t("Test"), primary = true) { engine.refreshWeather() }
+            }
+            val st = com.headunit.launcher.MetOffice.status
+            if (st.isNotBlank()) SNote(st)
+        }
     }
     // Horizon Maps on Play: the keys are the app's own (Plus) or not needed (the free OpenStreetMap version), so there's nothing to paste
     if (com.headunit.launcher.Plus.offered) {
@@ -1470,7 +1510,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
         }
     }
     SGroup(L.t("Backup"), footer = L.t("Includes settings, saved places and GPX tracks, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
-        SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
+        SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom, Mapbox and Met Office keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
         SItem(L.t("Settings, places and tracks")) {
             SButton(L.t("Back up")) {
                 try { exporter.launch("horizon-nav-backup.json") }

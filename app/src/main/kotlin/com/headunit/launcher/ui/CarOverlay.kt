@@ -408,6 +408,8 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             engine.setPanel(i, (r.left - vL) / vW, (r.top - vT) / vH, (r.right - vL) / vW, (r.bottom - vT) / vH)
         // (Search bar and places on the map switched off: nothing drawn top left with no route, so the map has the whole screen)
         val mapUi = engine.prefs.b(PreferenceKeys.CAR_MAPUI, true)
+        // (the sound button when not navigating can be left off: Settings > Android Auto)
+        val soundBtn = engine.prefs.b(PreferenceKeys.CAR_SOUND_BTN, true)
         val topShown = !portrait && !arriving && ((engine.route == null && mapUi) || (guiding && engine.turn != null))
         val colShown = !portrait && !previewing && !arriving
         val stackShown = portrait && !previewing && !arriving
@@ -506,7 +508,14 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // not navigating: the app's search bar and quick chips, top left (tap them as in the app)
         // as many saved places as fit above the sound pill / speed (0 to 3), so the list never runs into what's below it
         // (worked out here: the screen's height can't be read from inside the column below)
-        val savedRows = ((maxHeight - top - bottom - 242.dp - 96.dp) / 58.dp).toInt().coerceIn(0, 3)
+        // The height the chips under the bar may take: down to the column at the bottom left (the sound pill at its button size,
+        // the speed, hazards), all measured. Fixed guesses (242 + 96 dp) used to leave out the green suggestion card and the button
+        // size, so on a short screen Recent ran under "Alerts only". CarChips fits the suggestion and Recent rows into it.
+        var chipsPx by remember { mutableStateOf(0) }
+        val chipsBudget = with(dens) {
+            if (topBlockH == 0 || chipsPx == 0) 0.dp
+            else (maxHeight - top - bottom - bottomColH.toDp() - 10.dp - (topBlockH - chipsPx).toDp()).coerceAtLeast(0.dp)
+        }
         // (a car with a rotary knob and no touchscreen can't reach any of this: Settings › Android Auto can leave it off, and
         // Places (★) in Android Auto's own buttons has Search, Home, Work and the rest, wass0035 #222)
         if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
@@ -529,7 +538,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             }
             // (folded away, with everything in it, by the arrow in the bar)
             if (engine.prefs.b(PreferenceKeys.QUICKLIST, true) && !tile) {
-                if (short) CarChipsCompact(engine, actions) else CarChips(engine, actions, savedRows)
+                if (short) CarChipsCompact(engine, actions) else Box(Modifier.onSizeChanged { chipsPx = it.height }) { CarChips(engine, actions, chipsBudget) }
             }
         }
 
@@ -574,7 +583,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 // your speed on the right above it
                 var tripPx by remember { mutableStateOf(0) }
                 // (while guiding, the sound button is on the trip card)
-                if (!guiding && !small) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) {
+                if (!guiding && !small && soundBtn) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) {
                     ImmRound(engine.soundIcon(), "sound", { engine.cycleSound() }, Modifier.align(Alignment.TopEnd).padding(end = rightTop, top = top + below))
                 }
                 Column(
@@ -612,7 +621,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 ) {
                     if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.widthIn(max = 520.dp)) }
                     // (while guiding, the sound button is on the trip card instead of a pill of its own)
-                    if (!guiding && !small) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
+                    if (!guiding && !small && soundBtn) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
                     hazards()
                     if (carSpeedLeft) {
                         // bottom left (picked, or a short screen (#67)): the speed stays put in the bottom-left corner, with the one-line trip strip beside it
@@ -1166,7 +1175,7 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
 }
 
 @Composable
-private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
+private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.compose.ui.unit.Dp) {
     val c = LocalVw.current
     val home = engine.places.slot("home"); val work = engine.places.slot("work")
     // the drive times (the engine throttles this itself: online only, every 10 minutes or after moving 3 km)
@@ -1210,6 +1219,11 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
                 listOfNotNull(home, work).none { Geo.dist(it.pos, f.pos) < 60 } }
             (mine.map { it.label to it.place } + favs.map { it.name to it }).take(20)
         }
+        // (Home / Work / saved places and the round shortcut buttons are always shown: measured, so what's left of [budget] is known)
+        val dens = LocalDensity.current
+        var fixedPx by remember { mutableStateOf(0) }
+        var predPx by remember { mutableStateOf(0) }
+        Column(Modifier.fillMaxWidth().onSizeChanged { fixedPx = it.height }, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val fixed = (if (showHome) 1 else 0) + (if (showWork) 1 else 0)
             val allW = 50.dp
@@ -1238,11 +1252,24 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
                 for (sc in chosenShortcuts(engine)) find(sc.kind, sc.icon, sc.color, sz)
             }
         }
+        }
         // where you're probably heading now, with the live drive time (as in the app; Settings "Suggest where you're going")
         LaunchedEffect(engine.fix != null) { while (true) { engine.refreshPrediction(); kotlinx.coroutines.delay(60_000) } }
-        val pr = engine.prediction?.takeIf { engine.prefs.b(PreferenceKeys.PREDICT, true) }
-        if (pr != null && rows >= 1) Row(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(22.dp)).background(GmGreen).carTap("predict") { engine.startRoute(pr.place) }.padding(horizontal = 16.dp, vertical = 11.dp),
+        val pr0 = engine.prediction?.takeIf { engine.prefs.b(PreferenceKeys.PREDICT, true) }
+        // what fits under the always-shown part: the suggestion card (its measured height; about 62 dp before it's been shown),
+        // then Recent with as many rows as fit (a row 54 dp: 38 dp icon + 8 dp above and below; its header and padding about 46 dp),
+        // each after a 10 dp gap. Nothing until the fixed part has been measured.
+        var left = with(dens) { if (fixedPx == 0) 0.dp else budget - fixedPx.toDp() }
+        val predH = with(dens) { if (predPx > 0) predPx.toDp() else 62.dp }
+        val pr = pr0?.takeIf { left >= predH + 10.dp }
+        if (pr != null) left -= predH + 10.dp
+        // (a row less when the suggestion is showing, so the map keeps its room)
+        // (the text is in sp, so with a bigger Text size the rows grow: two lines of 16 + 13 sp are about 38 sp, the header line 19 sp)
+        val rowH = with(dens) { maxOf(38.dp, 38.sp.toDp()) } + 16.dp
+        val headH = with(dens) { 24.dp + maxOf(22.dp, 19.sp.toDp()) }
+        val fitRows = ((left - 10.dp - headH) / rowH).toInt().coerceIn(0, if (pr != null) 2 else 3)
+        if (pr != null) Row(
+            Modifier.fillMaxWidth().onSizeChanged { predPx = it.height }.clip(RoundedCornerShape(22.dp)).background(GmGreen).carTap("predict") { engine.startRoute(pr.place) }.padding(horizontal = 16.dp, vertical = 11.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             androidx.compose.material3.Icon(when (pr.title) { "Home" -> androidx.compose.material.icons.Icons.Rounded.Home; "Work" -> androidx.compose.material.icons.Icons.Rounded.Work
@@ -1260,8 +1287,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, rows: Int) {
             val all = engine.places.customs(); val favs = engine.places.favourites()
             engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && all.none { Geo.dist(it.place.pos, r.pos) < 60 } }
         }
-        // (a row less when the suggestion is showing, so the map keeps its room)
-        val listRows = (rows - (if (pr != null) 1 else 0)).coerceAtLeast(0)
+        val listRows = fitRows
         // (folded away with the arrow in the search bar)
         if (engine.prefs.b(PreferenceKeys.QUICKLIST, true) && recents.isNotEmpty() && listRows > 0) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
             Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {

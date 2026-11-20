@@ -48,6 +48,7 @@ import com.headunit.launcher.NavEngine
 import com.headunit.launcher.Prefs
 import com.headunit.launcher.PreferenceKeys
 import com.headunit.launcher.mapSource
+import com.headunit.launcher.mapWeather
 import com.headunit.launcher.locatorSpec
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.setApiKey
@@ -287,7 +288,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     LaunchedEffect(xHd) { map.setHdRoads(xHd) }
     // real rain and snow on the map when it's raining or snowing where you are (Weather effects)
     val wxOn = prefs.b(PreferenceKeys.RAIN_EFFECTS, false)
-    val wxNow = engine.weather?.code
+    // (with the kinds switched off in Settings > Weather shown as overcast)
+    val wxNow = prefs.mapWeather(engine.weather?.code)
     LaunchedEffect(wxOn, wxNow) { map.setWeather(if (wxOn) wxNow else null) }
     // the haze towards the horizon follows the weather, and the route's ribbon look
     val skyOn = prefs.b(PreferenceKeys.SKYWEATHER, true)
@@ -366,7 +368,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                         Box(Modifier.fillMaxSize().bleedCutout(bleed)) { NightSky(Modifier.fillMaxWidth().fillMaxHeight(0.2f)) }
                     // in a tunnel (no GPS) the map is dimmed a little, as the car's own screen would be
                     if (engine.deadReckoning && !c.dark && prefs.b(PreferenceKeys.TUNNELDIM, true)) Box(Modifier.fillMaxSize().bleedCutout(bleed).background(Color.Black.copy(alpha = 0.35f)))
-                    val wxCode = engine.weather?.code
+                    val wxCode = prefs.mapWeather(engine.weather?.code)
                     // rain, snow or fog over the map to match the real weather where you are
                     // (the map draws rain and snow itself now; the screen overlay is kept for fog, and for when the map can't)
                     if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && wxCode != null && (wxCode == 45 || wxCode == 48 || !map.drawsWeather)) WeatherFx(wxCode, Modifier.fillMaxSize())

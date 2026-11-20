@@ -37,6 +37,10 @@ internal object PreferenceKeys {
     const val PATHS = "paths"
     const val RAIN_RADAR = "radar"
     const val RAIN_EFFECTS = "rainfx"
+    /** Settings > Weather: which kinds of weather are shown on the map (with live weather on). */
+    const val WX_RAIN = "wxrain"
+    const val WX_SNOW = "wxsnow"
+    const val WX_FOG = "wxfog"
     const val MAP_FPS = "mapfps"
     const val UI_SCALE = "uiscale"
     const val UI_AUTO_SCALE = "uiauto"
@@ -69,6 +73,8 @@ internal object PreferenceKeys {
     const val ROW_PLACES = "rowplaces"
     const val MAP_RESOLUTION = "mapres"
     const val MAPBOX_TOKEN = "mbtoken"
+    /** Met Office Weather DataHub key (Site-Specific): current weather from the Met Office instead of Open-Meteo. */
+    const val METOFFICE_KEY = "metofficekey"
     const val MAPBOX_AUTO_NETWORK = "mbautonet"
     const val MAPBOX_LOGO = "mblogo"
     const val ARROW_PERCENT = "arrowpct"
@@ -201,6 +207,8 @@ internal object PreferenceKeys {
     const val CARSCALE_MAX = "carscale_max"
     /** Android Auto: the search bar, Home / Work and shortcuts drawn on the map (off for rotary-knob cars that can't tap them, #222). */
     const val CAR_MAPUI = "car_mapui"
+    /** Android Auto: the sound button (Sound on / Alerts only / Muted) on the map when not navigating. */
+    const val CAR_SOUND_BTN = "car_soundbtn"
     /** The map in 3D (true) or flat 2D: remembered between drives, and shared by the phone / head unit and Android Auto. */
     const val VIEW_3D = "view3d"
     /** The donate card has been shown (it's shown once, a day or more after install). */
@@ -296,7 +304,7 @@ internal object PreferenceKeys {
     /** The Home and Work buttons under the search bar (the app and the Android Auto screen alike): each can be left off. */
     const val HOME_BTN = "homebtn"
     const val WORK_BTN = "workbtn"
-    /** Settings > Backup: put the API keys (TomTom, Mapbox) in the backup file too. Off unless switched on: the file is plain text. */
+    /** Settings > Backup: put the API keys (TomTom, Mapbox, Met Office) in the backup file too. Off unless switched on: the file is plain text. */
     const val BACKUP_KEYS = "backupkeys"
     /** Electric car: still show the Fuel (petrol station) button on the map page. */
     const val EV_SHOW_FUEL = "evshowfuel"
@@ -405,7 +413,7 @@ class Prefs(ctx: Context) {
     private companion object {
         val LOCK = Any()
         /** The API keys: only in a backup when asked for. */
-        val SECRET_KEYS = setOf(PreferenceKeys.API_KEY, PreferenceKeys.MAPBOX_TOKEN, PreferenceKeys.GOOGLE_API_KEY)
+        val SECRET_KEYS = setOf(PreferenceKeys.API_KEY, PreferenceKeys.MAPBOX_TOKEN, PreferenceKeys.GOOGLE_API_KEY, PreferenceKeys.METOFFICE_KEY)
         var RAW: HashMap<String, String>? = null
         val STATES = HashMap<String, MutableState<String?>>()
     }
@@ -552,4 +560,19 @@ fun hdRoadsWanted(prefs: Prefs, country: String): Boolean = when (prefs.s(Prefer
     "on" -> true
     "off" -> false
     else -> country.isBlank() || country.equals("GB", true)
+}
+
+/**
+ * The weather code as the map shows it (rain or snow falling, the fog wash, the haze to the horizon): a kind switched off in
+ * Settings > Weather is shown as plain overcast instead. (The light and weather advice still follow the real weather.)
+ */
+fun Prefs.mapWeather(code: Int?): Int? {
+    val c = code ?: return null
+    val off = when (c) {
+        45, 48 -> !b(PreferenceKeys.WX_FOG, true)
+        in 71..77, 85, 86 -> !b(PreferenceKeys.WX_SNOW, true)
+        in 51..67, in 80..82, in 95..99 -> !b(PreferenceKeys.WX_RAIN, true)
+        else -> false
+    }
+    return if (off) 3 else c
 }
