@@ -158,6 +158,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- False freeze reports: when a phone went to sleep or Android paused the app in the background, the problem report could record a "freeze" that never happened. Those are now ignored, so a freeze in the report is a real one (thanks to Dotancom)
 - Android Auto: Recent places running under the sound button: the suggestion card and Recent rows now fit the room actually left above the bottom-left buttons (thanks to yurividal)
 - Music stays quiet after an alert: the beep and the spoken alert each lowered the music and gave it back separately, and some cars through Android Auto kept it lowered. They now share one hold, given back once when both are done, and never held for more than 90 seconds. The problem report also shows when the music was lowered and given back (thanks to ajg0001)
 - Android Auto: stars, street lamps and headlights by day: with a car (or Android Auto) that keeps the screen dark all day, they now wait for sunset where you are, as on the phone (thanks to bijindas)

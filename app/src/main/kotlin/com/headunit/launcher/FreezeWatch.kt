@@ -29,8 +29,16 @@ object FreezeWatch {
             var reported = false
             while (true) {
                 val answered = AtomicBoolean(false)
+                val t0 = android.os.SystemClock.elapsedRealtime()
                 main.post { answered.set(true) }
                 try { Thread.sleep(5000) } catch (e: InterruptedException) { return@Thread }
+                // Not a freeze when the whole app was paused: a phone asleep, or Android putting the app on hold in the background,
+                // stops this check too, so it wakes up late and finds the screen thread hasn't caught up yet. It then reported a
+                // "freeze" whose stack showed the screen thread simply getting on with its work (Dotancom, #241). So: only when this
+                // check itself woke on time, and only if the screen thread still hasn't answered after a further half second.
+                val late = android.os.SystemClock.elapsedRealtime() - t0 > 6500L
+                if (!answered.get() && !late) try { Thread.sleep(500) } catch (e: InterruptedException) { return@Thread }
+                if (late) { reported = false; stuckSince = 0L; continue }
                 if (!answered.get()) {
                     if (stuckSince == 0L) stuckSince = System.currentTimeMillis() - 5000L
                     if (!reported) {
