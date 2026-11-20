@@ -1,5 +1,7 @@
 package com.headunit.launcher
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
@@ -772,7 +774,22 @@ object TomTomRest {
 object Weather {
     data class Now(val tempC: Double, val code: Int)
 
-    fun fetch(p: LL): Now? = try {
+    /** The current weather where you are, one copy for the phone and Android Auto (see NavEngine.weather). */
+    var shared by androidx.compose.runtime.mutableStateOf<Now?>(null)
+    /** When it was last asked for, and with which Met Office key ("" = Open-Meteo). */
+    @Volatile var sharedAt = 0L
+    @Volatile var sharedKey = ""
+
+    /** Current weather: the Met Office when a key is set (Settings > Keys), Open-Meteo otherwise or if that fails. */
+    fun fetch(p: LL, metOfficeKey: String = ""): Now? {
+        if (metOfficeKey.isNotBlank()) try {
+            val m = MetOffice.now(p, metOfficeKey)
+            return Now(m.tempC, m.wmo)
+        } catch (e: Exception) { /* logged and shown in Settings; Open-Meteo below */ }
+        return openMeteo(p)
+    }
+
+    private fun openMeteo(p: LL): Now? = try {
         // the weather code alone often said "cloudy" while it was raining (it's the hour's summary): the rain and snow actually
         // falling now, and in this quarter hour, are asked for too, and rain or snow is shown whenever any is coming down
         val url = "https://api.open-meteo.com/v1/forecast?latitude=${p.lat}&longitude=${p.lon}" +

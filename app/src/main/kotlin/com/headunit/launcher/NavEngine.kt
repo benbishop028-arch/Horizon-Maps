@@ -61,7 +61,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var northUp by mutableStateOf(false)
     var results by mutableStateOf<List<Place>>(emptyList())
     var alternatives by mutableStateOf(false)
-    var weather by mutableStateOf<Weather.Now?>(null)
+    /** The current weather: shared by the phone's engine and Android Auto's (each has its own NavEngine), so a refresh in either
+     *  (or the Settings Test button) shows on both screens, and they don't each ask the weather service every 10 minutes. */
+    var weather: Weather.Now?
+        get() = Weather.shared
+        set(v) { Weather.shared = v }
     var zoomOffset by mutableDoubleStateOf(0.0)
     /** Your own normal zoom when not on a route (Settings > Map look), in levels from the standard one. */
     val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
@@ -615,7 +619,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var lastGpsTime = 0L
     private var msgToken = 0
     private var lm: LocationManager? = null
-    private var weatherAt = 0L
     private var limitAt = 0L
     private var limitPos: LL? = null
     private var camAt = 0L
@@ -1340,10 +1343,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // current weather is only used for the rain effect on the map, so it is only fetched when that is switched on
         // (every 10 minutes: showers come and go quicker than the 20 it used to be)
-        if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && now - weatherAt > 10 * 60 * 1000L) {
-            weatherAt = now
-            scope.launch { weather = withContext(Dispatchers.IO) { Weather.fetch(cur) } ?: weather }
+        // (a different key, or none any more: fetched again now, not in up to 10 minutes)
+        val wxKey = prefs.s(PreferenceKeys.METOFFICE_KEY, "").trim()
+        if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && (now - Weather.sharedAt > 10 * 60 * 1000L || wxKey != Weather.sharedKey)) {
+            refreshWeather(cur)
         }
+    }
+
+    /** Fetches the current weather at [p] (Met Office with a key, else Open-Meteo). Also the Settings "Test" button. */
+    fun refreshWeather(p: LL? = fix?.pos) {
+        val at = p ?: return
+        val key = prefs.s(PreferenceKeys.METOFFICE_KEY, "").trim()
+        Weather.sharedAt = System.currentTimeMillis(); Weather.sharedKey = key
+        scope.launch { weather = withContext(Dispatchers.IO) { Weather.fetch(at, key) } ?: weather }
     }
 
     // ---- extras: journey times, rain at destination, stops, arriving home ----

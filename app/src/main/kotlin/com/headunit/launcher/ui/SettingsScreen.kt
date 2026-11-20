@@ -1291,6 +1291,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
     CarTripButtonsGroup(prefs)
     SGroup {
         SToggle(prefs, L.t("Search bar and places on the map"), PreferenceKeys.CAR_MAPUI, true, L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"))
+        SToggle(prefs, L.t("Sound button on the map"), PreferenceKeys.CAR_SOUND_BTN, true, L.t("Sound on / Alerts only / Muted, when not navigating. Off leaves more room for Recent places; the same choice is in the car's Settings"))
     }
     // Voice search from the car screen's microphone button listens through the app, which needs the microphone allowed. Android
     // only lets an app ask from its own screen (asking from the car screen is refused on newer Android), so it's asked here
@@ -1379,6 +1380,18 @@ private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Search")) {
         SChoice(L.t("Search results"), searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
         if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
+    }
+    // Weather (shown in every edition, Plus included: the Met Office key is always your own)
+    SGroup(L.t("Weather"), footer = L.t("Current weather (rain on the map, weather advice) comes from Open-Meteo. In the UK, a free Met Office key is usually more accurate: datahub.metoffice.gov.uk, subscribe to Site-Specific Forecast (Global spot), then paste the API key. If the Met Office fails, Open-Meteo is used.")) {
+        SFieldItem(L.t("Met Office API key"), prefs.s(PreferenceKeys.METOFFICE_KEY, ""), L.t("Optional, UK. Free plan: 360 requests a day (the app asks every 10 minutes at most)"),
+            placeholder = L.t("Paste a key")) { prefs.put(PreferenceKeys.METOFFICE_KEY, it.trim()) }
+        if (prefs.s(PreferenceKeys.METOFFICE_KEY, "").isNotBlank()) {
+            SItem(L.t("Test Met Office"), if (engine.fix == null) L.t("Waiting for your location") else L.t("Fetches the weather where you are now")) {
+                SButton(L.t("Test"), primary = true) { engine.refreshWeather() }
+            }
+            val st = com.headunit.launcher.MetOffice.status
+            if (st.isNotBlank()) SNote(st)
+        }
     }
     // Horizon Maps on Play: the keys are the app's own (Plus) or not needed (the free OpenStreetMap version), so there's nothing to paste
     if (com.headunit.launcher.Plus.offered) {
@@ -1470,7 +1483,7 @@ private fun AboutSection(prefs: Prefs, engine: NavEngine) {
         }
     }
     SGroup(L.t("Backup"), footer = L.t("Includes settings, saved places and GPX tracks, not the offline pack. Your API keys are only included with the switch on. A backup from Horizon Launcher can be restored here too.")) {
-        SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom and Mapbox keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
+        SToggle(prefs, L.t("Include API keys"), PreferenceKeys.BACKUP_KEYS, false, L.t("Puts your TomTom, Mapbox and Met Office keys in the backup file, so Restore brings them back. The file is plain text: keep it somewhere safe"))
         SItem(L.t("Settings, places and tracks")) {
             SButton(L.t("Back up")) {
                 try { exporter.launch("horizon-nav-backup.json") }
