@@ -802,7 +802,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
-        SToggle(prefs, L.t("Next speed limit ahead"), PreferenceKeys.NEXT_LIMIT, true, L.t("A small sign above the limit with the next one on your route and how far it is, from about half a mile away"))
+        SToggle(prefs, L.t("Upcoming speed limits"), PreferenceKeys.NEXT_LIMIT, true, L.t("The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away"))
         SToggle(prefs, L.t("Show estimated limits"), "limitest", false, L.t("Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess"))
     }
     SGroup(L.t("Cameras")) {

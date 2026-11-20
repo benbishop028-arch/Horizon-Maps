@@ -1722,6 +1722,8 @@ object I18nBs {
         "Saved places on the map" to "Sačuvana mjesta na karti",
         "Home, Work, favourites and starred places. Tap one to go there" to "Kuća, Posao, favoriti i mjesta sa zvjezdicom. Dodirnite za put do njih",
         "Saved places icons" to "Ikone sačuvanih mjesta",
+        "Upcoming speed limits" to "Nadolazeća ograničenja brzine",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Sljedeće ograničenje na ruti, kao znak na karti gdje se mijenja i mali uz vaš znak s udaljenošću, od oko 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Besplatna verzija koristi OpenStreetMap, s rutama iz preuzetog paketa države. Horizon Maps Plus dodaje detaljne 3D zgrade i znamenitosti, satelit i saobraćaj uživo, bez ključeva za postavljanje.",
         "In rain or snow" to "Po kiši ili snijegu",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Sivlje, mekše dnevno svjetlo kada pada kiša ili snijeg gdje ste",

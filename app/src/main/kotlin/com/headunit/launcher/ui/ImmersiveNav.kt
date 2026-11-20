@@ -1117,15 +1117,9 @@ private fun SpeedWithNext(engine: NavEngine) {
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             val num = "${(Math.round(nx.first * k / 5.0) * 5)}"
-            val numSize = with(androidx.compose.ui.platform.LocalDensity.current) { 13.dp.toSp() }
             // the same kind of sign as the main one: the red ring, or the black-bordered board in the US and Canada
-            if (engine.limitSignStyle != "round") Box(Modifier.size(width = 28.dp, height = 34.dp).clip(RoundedCornerShape(4.dp)).background(Color.White)
-                .border(2.5.dp, Color(0xFF151515), RoundedCornerShape(4.dp)), contentAlignment = Alignment.Center) {
-                Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
-            }
-            else Box(Modifier.size(34.dp).clip(CircleShape).background(Color.White).border(4.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
-                Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
-            }
+            // (drawn exactly like the main sign, just smaller)
+            LimitSignFace(num.toInt(), engine.limitSignStyle, if (engine.limitSignStyle != "round") 40.dp else 36.dp)
             Text(L.t("in {0}", Geo.fmtDist(nx.second, engine.imperial)), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         }
         if (!atTop) SpeedBlock(engine)
@@ -1161,14 +1155,7 @@ private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
             Box(Modifier.padding(start = if (lim != null || show) 4.dp else 0.dp, end = 8.dp).width(1.dp).height(34.dp).background(Color.White.copy(alpha = 0.22f)))
             Column(Modifier.padding(end = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 val num = "${(Math.round(nx.first * k / 5.0) * 5)}"
-                val numSize = with(androidx.compose.ui.platform.LocalDensity.current) { 12.dp.toSp() }
-                if (engine.limitSignStyle != "round") Box(Modifier.size(width = 26.dp, height = 30.dp).clip(RoundedCornerShape(4.dp)).background(Color.White)
-                    .border(2.dp, Color(0xFF151515), RoundedCornerShape(4.dp)), contentAlignment = Alignment.Center) {
-                    Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
-                }
-                else Box(Modifier.size(30.dp).clip(CircleShape).background(Color.White).border(3.5.dp, Color(0xFFE0202A), CircleShape), contentAlignment = Alignment.Center) {
-                    Text(num, color = Color.Black, fontSize = numSize, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false)
-                }
+                LimitSignFace(num.toInt(), engine.limitSignStyle, if (engine.limitSignStyle != "round") 34.dp else 30.dp)
                 Text(Geo.fmtDist(nx.second, engine.imperial), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
             }
         }

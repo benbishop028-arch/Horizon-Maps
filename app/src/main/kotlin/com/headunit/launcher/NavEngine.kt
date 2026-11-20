@@ -3191,7 +3191,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val targetOff = (at + nx.second).coerceIn(0.0, r.len)
             val point = routePointAt(r, targetOff)
             val value = kotlin.math.round(nx.first * (if (imperial) 2.23694 else 3.6)).toInt().toString()
-            map.setSpeedChange(point, value)
+            // (Settings › Alerts › Upcoming speed limits switches the sign on the map off along with the one by the speedometer)
+            if (prefs.b(PreferenceKeys.NEXT_LIMIT, true)) map.setSpeedChange(point, value, limitSignStyle) else map.setSpeedChange(null, null)
         }
         routeLimitAt = System.currentTimeMillis()
         pendHits = 0; pendLimit = -2.0

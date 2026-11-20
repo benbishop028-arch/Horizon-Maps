@@ -1722,6 +1722,8 @@ object I18nKn {
         "Saved places on the map" to "ನಕ್ಷೆಯಲ್ಲಿ ಉಳಿಸಿದ ಸ್ಥಳಗಳು",
         "Home, Work, favourites and starred places. Tap one to go there" to "ಮನೆ, ಕೆಲಸ, ಮೆಚ್ಚಿನವು ಮತ್ತು ನಕ್ಷತ್ರ ಹಾಕಿದ ಸ್ಥಳಗಳು. ಅಲ್ಲಿಗೆ ಹೋಗಲು ಟ್ಯಾಪ್ ಮಾಡಿ",
         "Saved places icons" to "ಉಳಿಸಿದ ಸ್ಥಳಗಳ ಐಕಾನ್‌ಗಳು",
+        "Upcoming speed limits" to "ಮುಂದಿನ ವೇಗ ಮಿತಿಗಳು",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "ನಿಮ್ಮ ಮಾರ್ಗದ ಮುಂದಿನ ಮಿತಿ, ಬದಲಾಗುವ ಸ್ಥಳದಲ್ಲಿ ನಕ್ಷೆಯ ಫಲಕವಾಗಿ ಮತ್ತು ನಿಮ್ಮ ಫಲಕದ ಪಕ್ಕ ದೂರದೊಂದಿಗೆ ಚಿಕ್ಕದಾಗಿ, ಸುಮಾರು 800 ಮೀ ಮೊದಲೇ",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "ಉಚಿತ ಆವೃತ್ತಿ OpenStreetMap ಬಳಸುತ್ತದೆ, ಮಾರ್ಗಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ದೇಶದ ಪ್ಯಾಕ್‌ನಿಂದ. Horizon Maps Plus ವಿವರವಾದ 3D ಕಟ್ಟಡಗಳು ಮತ್ತು ಹೆಗ್ಗುರುತುಗಳು, ಉಪಗ್ರಹ ಮತ್ತು ನೇರ ಸಂಚಾರವನ್ನು ಕೀಗಳಿಲ್ಲದೆ ಸೇರಿಸುತ್ತದೆ.",
         "In rain or snow" to "ಮಳೆ ಅಥವಾ ಹಿಮ ಬೀಳುವಾಗ",
         "A greyer, softer daylight when it's raining or snowing where you are" to "ನೀವಿರುವಲ್ಲಿ ಮಳೆ ಅಥವಾ ಹಿಮ ಬೀಳುತ್ತಿರುವಾಗ ಹೆಚ್ಚು ಬೂದು, ಮೃದುವಾದ ಹಗಲು ಬೆಳಕು",

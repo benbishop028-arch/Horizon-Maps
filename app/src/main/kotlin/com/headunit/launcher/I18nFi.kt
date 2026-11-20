@@ -1722,6 +1722,8 @@ object I18nFi {
         "Saved places on the map" to "Tallennetut paikat kartalla",
         "Home, Work, favourites and starred places. Tap one to go there" to "Koti, Työ, suosikit ja tähdellä merkityt paikat. Napauta mennäksesi sinne",
         "Saved places icons" to "Tallennettujen paikkojen kuvakkeet",
+        "Upcoming speed limits" to "Tulevat nopeusrajoitukset",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Reitin seuraava rajoitus merkkinä kartalla kohdassa, jossa se vaihtuu, ja pienenä merkkisi vieressä etäisyyden kanssa, noin 800 metristä",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ilmainen versio käyttää OpenStreetMapia, ja reitit tulevat ladatusta maapaketista. Horizon Maps Plus tuo yksityiskohtaiset 3D-rakennukset ja maamerkit, satelliitin ja reaaliaikaisen liikenteen ilman avaimia.",
         "In rain or snow" to "Sateella tai lumisateella",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Harmaampi, pehmeämpi päivänvalo, kun sijainnissasi sataa vettä tai lunta",

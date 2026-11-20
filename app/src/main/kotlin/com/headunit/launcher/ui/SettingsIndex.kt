@@ -125,7 +125,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Warn when over the limit", "", "Speed", 7),
     SettingRef("Warn when over by", "", "Speed", 7),
     SettingRef("Say when the limit changes", "", "Speed", 7),
-    SettingRef("Next speed limit ahead", "The next limit on your route and how far", "Speed", 7),
+    SettingRef("Upcoming speed limits", "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away", "Speed", 7),
     SettingRef("Show estimated limits", "Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess", "Speed", 7),
     SettingRef("Speed cameras", "", "Cameras", 7),
     SettingRef("Off where they're banned", "France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves", "Cameras", 7),

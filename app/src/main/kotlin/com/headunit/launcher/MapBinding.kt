@@ -2662,10 +2662,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // a lorry's height, weight and width limits ahead: a road sign with the limit, red when the lorry doesn't fit
         limImgs.clear()
         addS(st, GeoJsonSource.Builder("dl-lim").featureCollection(empty()).build())
+        // (always shown, and the map's own road names and labels keep out of their way instead of being written over them; the
+        // speed limit sign has its own size, the lorry signs as before)
         addL(st, SymbolLayer("dl-lim", "dl-lim")
-            .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(false)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
-            .iconSize(zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8)))
+            .iconSize(Expression.switchCase(Expression.eq(Expression.get("k"), Expression.literal(0)),
+                zoomed(1.0, 10 to 0.75, 14 to 0.9, 17 to 1.0), zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8))))
         pushLimits()
         addS(st, GeoJsonSource.Builder("dl-cams").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-cams", "dl-cams")
@@ -3097,25 +3100,85 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     }
 
     /** The next posted speed-limit change, pinned to its position along the route. */
-    fun setSpeedChange(pos: LL?, text: String?) {
+    fun setSpeedChange(pos: LL?, text: String?, board: String = "round") {
         val next = if (pos != null && !text.isNullOrBlank()) pos to text else null
-        main0.post { if (next != speedChange) { speedChange = next; pushLimits() } }
+        main0.post { if (next != speedChange || board != limitBoard) { speedChange = next; limitBoard = board; pushLimits() } }
     }
+    /** How speed limit signs look here: "round" (the red ring), "us" or "ca" (the white board), like the main sign. */
+    @Volatile private var limitBoard = "round"
+
 
     private fun pushLimits() {
         val st = style ?: return
         val s = src("dl-lim") ?: return
         try {
             val feats = ArrayList<Feature>()
-            val all = limits.take(60).toMutableList()
-            speedChange?.let { (p, text) -> all.add(0, Triple(p, text, false)) }
-            for ((p, text, over) in all) {
+            for ((p, text, over) in limits.take(60)) {
                 val id = "dl-lim-" + (if (over) "r-" else "w-") + text
                 if (limImgs.add(id)) addImg(st, id, limitBitmap(text, over))
-                feats += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", id) }
+                feats += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", id); it.addNumberProperty("k", 1) }
+            }
+            // the next speed limit change on the route: the main sign's own look, larger, with a white halo (it was too small,
+            // and covered by the road names)
+            speedChange?.let { (p, text) ->
+                val id = "dl-lim-sp-$limitBoard-$text"
+                if (limImgs.add(id)) addImg(st, id, routeLimitBitmap(text, limitBoard))
+                feats += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addStringProperty("img", id); it.addNumberProperty("k", 0) }
             }
             s.featureCollection(FeatureCollection.fromFeatures(feats))
         } catch (e: Throwable) { }
+    }
+
+    /**
+     * The next speed limit on the route, drawn like the main sign: the domed roundel with its shaded red ring, or the US / Canada
+     * board, on a white halo so it stands out from the map. Sized for the screen's density (the old one was a fixed 104 pixels,
+     * tiny on a sharp screen).
+     */
+    private fun routeLimitBitmap(text: String, board: String): Bitmap {
+        val d = mapView.resources.displayMetrics.density
+        val tf = if (android.os.Build.VERSION.SDK_INT >= 28) android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, 900, false) else android.graphics.Typeface.DEFAULT_BOLD
+        val n0 = text.toIntOrNull() ?: 0
+        fun p(col: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col }
+        if (board == "us" || board == "ca") {
+            val w = (44f * d).toInt(); val h = (54f * d).toInt(); val m = 3f * d
+            val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            val c = Canvas(bmp)
+            c.drawRoundRect(RectF(m, m + 1.5f * d, w - m, h - m + 1.5f * d), 7f * d, 7f * d, p(0x55000000))
+            c.drawRoundRect(RectF(0f, 0f, w.toFloat(), h - 1.5f * d), 8f * d, 8f * d, p(0xFFFFFFFF.toInt()))
+            c.drawRoundRect(RectF(m, m, w - m, h - m - 1.5f * d), 6f * d, 6f * d, p(0xFF151515.toInt()))
+            c.drawRoundRect(RectF(m + 2f * d, m + 2f * d, w - m - 2f * d, h - m - 3.5f * d), 4.5f * d, 4.5f * d, p(0xFFFFFFFF.toInt()))
+            val small = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF151515.toInt(); textAlign = Paint.Align.CENTER; typeface = android.graphics.Typeface.DEFAULT_BOLD; textSize = 6.2f * d }
+            val big = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF111111.toInt(); textAlign = Paint.Align.CENTER; typeface = tf; textSize = (if (n0 >= 100) 15f else 19f) * d }
+            if (board == "ca") c.drawText("MAXIMUM", w / 2f, 15f * d, small)
+            else { c.drawText("SPEED", w / 2f, 13.5f * d, small); c.drawText("LIMIT", w / 2f, 20.5f * d, small) }
+            c.drawText(text, w / 2f, 42f * d, big)
+            return bmp
+        }
+        val size = (54f * d).toInt()
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        val cx = size / 2f; val cy = size / 2f - 1f * d
+        val halo = size / 2f - 1.5f * d
+        val r = halo - 3f * d
+        c.drawCircle(cx, cy + 1.5f * d, halo, p(0x55000000))
+        c.drawCircle(cx, cy, halo, p(0xFFFFFFFF.toInt()))
+        c.drawCircle(cx, cy, r, p(0xFF7A0A14.toInt()))
+        c.drawCircle(cx, cy, r * 0.965f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.LinearGradient(0f, cy - r, 0f, cy + r, intArrayOf(0xFFFF5A5F.toInt(), 0xFFE0142B.toInt(), 0xFFB30C1F.toInt()), null, android.graphics.Shader.TileMode.CLAMP)
+        })
+        val face = r * 0.74f
+        c.drawCircle(cx, cy, face + r * 0.03f, p(0x33000000))
+        c.drawCircle(cx, cy, face, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.RadialGradient(cx - face * 0.25f, cy - face * 0.35f, face * 1.5f,
+                intArrayOf(0xFFFFFFFF.toInt(), 0xFFF1F1F3.toInt(), 0xFFE1E2E6.toInt()), null, android.graphics.Shader.TileMode.CLAMP)
+        })
+        val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFF111111.toInt(); textAlign = Paint.Align.CENTER; typeface = tf; letterSpacing = -0.03f
+            textSize = 2f * r * (if (n0 >= 100) 0.31f else 0.39f)
+        }
+        val b = android.graphics.Rect(); tp.getTextBounds(text, 0, text.length, b)
+        c.drawText(text, cx, cy - (b.top + b.bottom) / 2f, tp)
+        return bmp
     }
 
     /** A round limit sign: white with a red ring and the limit in black, or filled red when the lorry is over the limit. */

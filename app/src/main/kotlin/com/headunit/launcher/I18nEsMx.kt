@@ -1722,6 +1722,8 @@ object I18nEsMx {
         "Saved places on the map" to "Lugares guardados en el mapa",
         "Home, Work, favourites and starred places. Tap one to go there" to "Casa, Trabajo, favoritos y lugares con estrella. Toca uno para ir",
         "Saved places icons" to "Íconos de lugares guardados",
+        "Upcoming speed limits" to "Próximos límites de velocidad",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "El siguiente límite de tu ruta, como señal en el mapa donde cambia y pequeña junto a tu señal con la distancia, desde unos 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "La versión gratuita usa OpenStreetMap, con rutas de tu paquete de país descargado. Horizon Maps Plus suma edificios y monumentos 3D detallados, el satélite y el tráfico en vivo, sin claves que configurar.",
         "In rain or snow" to "Con lluvia o nieve",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Una luz de día más gris y suave cuando llueve o nieva donde estás",

@@ -1722,6 +1722,8 @@ object I18nRo {
         "Saved places on the map" to "Locuri salvate pe hartă",
         "Home, Work, favourites and starred places. Tap one to go there" to "Acasă, Serviciu, favorite și locuri cu stea. Atingeți unul pentru a merge acolo",
         "Saved places icons" to "Pictogramele locurilor salvate",
+        "Upcoming speed limits" to "Limite de viteză următoare",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Următoarea limită de pe traseu, ca indicator pe hartă unde se schimbă și unul mic lângă indicatorul dvs. cu distanța, de la circa 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versiunea gratuită folosește OpenStreetMap, cu rute din pachetul de țară descărcat. Horizon Maps Plus adaugă clădiri și repere 3D detaliate, satelitul și traficul live, fără chei de setat.",
         "In rain or snow" to "Pe ploaie sau ninsoare",
         "A greyer, softer daylight when it's raining or snowing where you are" to "O lumină de zi mai cenușie și mai blândă când plouă sau ninge unde ești",

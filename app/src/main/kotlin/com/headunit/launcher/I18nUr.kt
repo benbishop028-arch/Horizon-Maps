@@ -1722,6 +1722,8 @@ object I18nUr {
         "Saved places on the map" to "نقشے پر محفوظ جگہیں",
         "Home, Work, favourites and starred places. Tap one to go there" to "گھر، کام، پسندیدہ اور ستارہ والی جگہیں۔ وہاں جانے کے لیے تھپتھپائیں",
         "Saved places icons" to "محفوظ جگہوں کے آئیکن",
+        "Upcoming speed limits" to "آنے والی رفتار کی حدیں",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "آپ کے راستے کی اگلی حد، بدلنے کی جگہ نقشے پر نشان کے طور پر اور آپ کے نشان کے ساتھ فاصلے سمیت چھوٹا، تقریباً 800 میٹر پہلے سے",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "مفت ورژن OpenStreetMap استعمال کرتا ہے، راستے ڈاؤن لوڈ کیے گئے ملک کے پیک سے۔ Horizon Maps Plus تفصیلی 3D عمارتیں اور نمایاں مقامات، سیٹلائٹ اور لائیو ٹریفک شامل کرتا ہے، بغیر کلید سیٹ کیے۔",
         "In rain or snow" to "بارش یا برف میں",
         "A greyer, softer daylight when it's raining or snowing where you are" to "جہاں آپ ہیں وہاں بارش یا برف ہو تو زیادہ سرمئی، نرم دن کی روشنی",

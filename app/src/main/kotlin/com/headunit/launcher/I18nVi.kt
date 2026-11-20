@@ -1722,6 +1722,8 @@ object I18nVi {
         "Saved places on the map" to "Địa điểm đã lưu trên bản đồ",
         "Home, Work, favourites and starred places. Tap one to go there" to "Nhà, Nơi làm việc, yêu thích và địa điểm gắn sao. Chạm để đi đến đó",
         "Saved places icons" to "Biểu tượng địa điểm đã lưu",
+        "Upcoming speed limits" to "Giới hạn tốc độ sắp tới",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Giới hạn tiếp theo trên tuyến, là biển trên bản đồ tại chỗ thay đổi và biển nhỏ cạnh biển của bạn kèm khoảng cách, từ khoảng 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bản miễn phí dùng OpenStreetMap, với tuyến đường từ gói quốc gia bạn đã tải. Horizon Maps Plus thêm tòa nhà và địa danh 3D chi tiết, vệ tinh và giao thông trực tiếp, không cần thiết lập khóa.",
         "In rain or snow" to "Khi mưa hoặc tuyết",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Ánh sáng ban ngày xám và dịu hơn khi trời mưa hoặc tuyết ở chỗ bạn",

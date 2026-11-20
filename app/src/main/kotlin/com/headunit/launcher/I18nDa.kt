@@ -1722,6 +1722,8 @@ object I18nDa {
         "Saved places on the map" to "Gemte steder på kortet",
         "Home, Work, favourites and starred places. Tap one to go there" to "Hjem, Arbejde, favoritter og stjernemarkerede steder. Tryk på et for at køre dertil",
         "Saved places icons" to "Ikoner for gemte steder",
+        "Upcoming speed limits" to "Kommende hastighedsgrænser",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Den næste grænse på ruten, som skilt på kortet hvor den skifter og et lille ved dit skilt med afstanden, fra cirka 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversionen bruger OpenStreetMap med ruter fra din downloadede landepakke. Horizon Maps Plus tilføjer detaljerede 3D-bygninger og vartegn, satellit og trafik live, uden nøgler at sætte op.",
         "In rain or snow" to "Ved regn eller sne",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Et gråere, blødere dagslys, når det regner eller sner, hvor du er",

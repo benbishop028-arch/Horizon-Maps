@@ -1722,6 +1722,8 @@ object I18nNb {
         "Saved places on the map" to "Lagrede steder på kartet",
         "Home, Work, favourites and starred places. Tap one to go there" to "Hjem, Jobb, favoritter og stjernemerkede steder. Trykk på ett for å kjøre dit",
         "Saved places icons" to "Ikoner for lagrede steder",
+        "Upcoming speed limits" to "Kommende fartsgrenser",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Neste fartsgrense på ruten, som skilt på kartet der den endres og et lite ved skiltet ditt med avstanden, fra omtrent 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversjonen bruker OpenStreetMap, med ruter fra den nedlastede landpakken. Horizon Maps Plus legger til detaljerte 3D-bygninger og landemerker, satellitt og trafikk i sanntid, uten nøkler å sette opp.",
         "In rain or snow" to "Ved regn eller snø",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Et gråere, mykere dagslys når det regner eller snør der du er",

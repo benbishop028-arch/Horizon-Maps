@@ -1722,6 +1722,8 @@ object I18nEu {
         "Saved places on the map" to "Gordetako tokiak mapan",
         "Home, Work, favourites and starred places. Tap one to go there" to "Etxea, Lana, gogokoak eta izardun tokiak. Ukitu bat hara joateko",
         "Saved places icons" to "Gordetako tokien ikonoak",
+        "Upcoming speed limits" to "Hurrengo abiadura-mugak",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Ibilbideko hurrengo muga, aldatzen den tokian mapako seinale gisa eta zure seinalearen ondoan txiki distantziarekin, 800 m inguru lehenagotik",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Doako bertsioak OpenStreetMap erabiltzen du, deskargatutako herrialde-paketeko ibilbideekin. Horizon Maps Plus-ek 3D eraikin eta leku ezagun xehatuak, satelitea eta zuzeneko trafikoa gehitzen ditu, gakorik konfiguratu gabe.",
         "In rain or snow" to "Euria edo elurra denean",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Eguneko argi grisagoa eta leunagoa zauden lekuan euria edo elurra ari duenean",

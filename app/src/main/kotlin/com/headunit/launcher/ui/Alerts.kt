@@ -270,8 +270,23 @@ fun SpeedLimitSign(engine: NavEngine, size: Dp, modifier: Modifier = Modifier, o
     val over = engine.overLimit
     val board = engine.limitSignStyle
     if (board != "round") { LimitBoard(n, board == "ca", over, engine.limitEstimated, size, sc, modifier, onClick); return }
+    Roundel(n, size, over, engine.limitEstimated, modifier.graphicsLayer { scaleX = sc; scaleY = sc }, onClick)
+}
+
+/**
+ * Any speed limit as a sign that looks like the main one: the roundel, or the white board in the US and Canada ([board] is
+ * NavEngine.limitSignStyle). Used for the next limit ahead too, so it matches the sign it's next to.
+ */
+@Composable
+fun LimitSignFace(n: Int, board: String, size: Dp, modifier: Modifier = Modifier) {
+    if (board != "round") LimitBoard(n, board == "ca", false, false, size, 1f, modifier, null)
+    else Roundel(n, size, false, false, modifier, null)
+}
+
+@Composable
+private fun Roundel(n: Int, size: Dp, over: Boolean, estimated: Boolean, modifier: Modifier, onClick: (() -> Unit)?) {
     Box(
-        modifier.graphicsLayer { scaleX = sc; scaleY = sc; alpha = if (engine.limitEstimated) 0.62f else 1f }.size(size).shadow(10.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.5f), spotColor = Color.Black.copy(alpha = 0.5f))
+        modifier.graphicsLayer { alpha = if (estimated) 0.62f else 1f }.size(size).shadow(10.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.5f), spotColor = Color.Black.copy(alpha = 0.5f))
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         contentAlignment = Alignment.Center,
     ) {
@@ -293,7 +308,7 @@ fun SpeedLimitSign(engine: NavEngine, size: Dp, modifier: Modifier = Modifier, o
         }
         // the number, drawn centred on the digits themselves: as text it sat a little high, as the line's space includes room
         // below the digits for letters like g and y (karthikeyansr, #188). Sized from the sign, not the text-size setting.
-        val ink = if (engine.limitEstimated) 0xFF4A4A4A.toInt() else 0xFF111111.toInt()
+        val ink = if (estimated) 0xFF4A4A4A.toInt() else 0xFF111111.toInt()
         Canvas(Modifier.fillMaxSize()) {
             drawContext.canvas.nativeCanvas.apply {
                 val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {

@@ -1722,6 +1722,8 @@ object I18nTr {
         "Saved places on the map" to "Kayıtlı yerler haritada",
         "Home, Work, favourites and starred places. Tap one to go there" to "Ev, İş, favoriler ve yıldızlı yerler. Gitmek için birine dokunun",
         "Saved places icons" to "Kayıtlı yer simgeleri",
+        "Upcoming speed limits" to "Yaklaşan hız sınırları",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Rotanızdaki sonraki sınır, değiştiği yerde haritada levha olarak ve levhanızın yanında mesafesiyle küçük olarak, yaklaşık 800 m önceden",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ücretsiz sürüm OpenStreetMap kullanır, rotalar indirilen ülke paketinden gelir. Horizon Maps Plus ayrıntılı 3D binalar ve simge yapılar, uydu ve canlı trafik ekler, anahtar ayarlamadan.",
         "In rain or snow" to "Yağmurda veya karda",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Bulunduğunuz yerde yağmur veya kar yağarken daha gri, daha yumuşak gün ışığı",

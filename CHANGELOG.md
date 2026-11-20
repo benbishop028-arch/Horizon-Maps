@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Upcoming speed limits you can read: the sign on the route where the limit changes is now the same sign as your main one (the red ring, or the white board in the US and Canada), about twice the size, on a white halo, and road names move out of its way instead of covering it. The small sign by your limit with how far it is now looks like the main one too. Both are under Settings › Alerts › Upcoming speed limits
 - Home, Work and starred places on the map: as well as your favourites, Home (a house on blue), Work (a briefcase on amber) and the starred places in Your places now show on the map, and a tap opens the place with Go. Settings › On the map › Saved places has one "Saved places icons" slider for the size of them all
 - The faded roads on the turn arrow sit at tidy angles: the arrow is drawn at a set angle for each kind of turn, but the other roads came at their real angles, so one could stick out at an odd angle beside it. They're now set to the nearest 45 degrees, on the side they really are
 

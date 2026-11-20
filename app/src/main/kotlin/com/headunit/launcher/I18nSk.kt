@@ -1722,6 +1722,8 @@ object I18nSk {
         "Saved places on the map" to "Uložené miesta na mape",
         "Home, Work, favourites and starred places. Tap one to go there" to "Domov, Práca, obľúbené a miesta s hviezdičkou. Ťuknutím tam vyrazíte",
         "Saved places icons" to "Ikony uložených miest",
+        "Upcoming speed limits" to "Nadchádzajúce rýchlostné limity",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Ďalší limit na trase ako značka na mape, kde sa mení, a malá vedľa vašej značky so vzdialenosťou, asi od 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verzia používa OpenStreetMap s trasami zo stiahnutého balíka krajiny. Horizon Maps Plus pridáva podrobné 3D budovy a pamiatky, satelit a živú dopravu, bez nastavovania kľúčov.",
         "In rain or snow" to "Pri daždi alebo snežení",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Sivšie, mäkšie denné svetlo, keď tam, kde ste, prší alebo sneží",

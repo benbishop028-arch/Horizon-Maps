@@ -1719,6 +1719,8 @@ object I18nD {
         "Saved places on the map" to listOf("Запазени места на картата"),
         "Home, Work, favourites and starred places. Tap one to go there" to listOf("Дом, Работа, любими и места със звезда. Докоснете, за да отидете"),
         "Saved places icons" to listOf("Икони на запазени места"),
+        "Upcoming speed limits" to listOf("Предстоящи ограничения"),
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to listOf("Следващото ограничение по маршрута, като знак на картата, където се сменя, и малък до вашия знак с разстоянието, от около 800 м"),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Безплатната версия използва OpenStreetMap, с маршрути от изтегления пакет за държавата. Horizon Maps Plus добавя детайлни 3D сгради и забележителности, сателит и трафик на живо, без ключове за настройване."),
         "In rain or snow" to listOf("При дъжд или сняг"),
         "A greyer, softer daylight when it's raining or snowing where you are" to listOf("По-сива, по-мека дневна светлина, когато вали дъжд или сняг там, където сте"),

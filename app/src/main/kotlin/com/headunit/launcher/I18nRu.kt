@@ -1722,6 +1722,8 @@ object I18nRu {
         "Saved places on the map" to "Сохранённые места на карте",
         "Home, Work, favourites and starred places. Tap one to go there" to "Дом, Работа, избранное и места со звёздочкой. Нажмите, чтобы поехать туда",
         "Saved places icons" to "Значки сохранённых мест",
+        "Upcoming speed limits" to "Ближайшие ограничения скорости",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Следующее ограничение на маршруте: знак на карте, где оно меняется, и маленький рядом с вашим знаком с расстоянием, примерно за 800 м",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Бесплатная версия использует OpenStreetMap и маршруты из скачанного пакета страны. Horizon Maps Plus добавляет детализированные 3D-здания и достопримечательности, спутник и пробки в реальном времени без настройки ключей.",
         "In rain or snow" to "В дождь или снег",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Более серый, мягкий дневной свет, когда там, где вы находитесь, идёт дождь или снег",

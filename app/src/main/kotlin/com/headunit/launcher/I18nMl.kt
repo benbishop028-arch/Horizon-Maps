@@ -1731,6 +1731,8 @@ object I18nMl {
         "Saved places on the map" to "മാപ്പിൽ സേവ് ചെയ്ത സ്ഥലങ്ങൾ",
         "Home, Work, favourites and starred places. Tap one to go there" to "വീട്, ജോലിസ്ഥലം, പ്രിയപ്പെട്ടവ, നക്ഷത്രമിട്ട സ്ഥലങ്ങൾ. അവിടേക്ക് പോകാൻ ടാപ്പ് ചെയ്യുക",
         "Saved places icons" to "സേവ് ചെയ്ത സ്ഥലങ്ങളുടെ ഐക്കണുകൾ",
+        "Upcoming speed limits" to "വരാനിരിക്കുന്ന വേഗപരിധികൾ",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "റൂട്ടിലെ അടുത്ത പരിധി, മാറുന്നിടത്ത് മാപ്പിലെ ബോർഡായും നിങ്ങളുടെ ബോർഡിനടുത്ത് ദൂരത്തോടെ ചെറുതായും, ഏകദേശം 800 മീ മുമ്പേ",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "സൗജന്യ പതിപ്പ് OpenStreetMap ഉപയോഗിക്കുന്നു, നിങ്ങൾ ഡൗൺലോഡ് ചെയ്ത രാജ്യ പായ്ക്കിൽ നിന്നുള്ള റൂട്ടുകളോടെ. Horizon Maps Plus വിശദമായ 3D കെട്ടിടങ്ങളും അടയാള സ്ഥലങ്ങളും സാറ്റലൈറ്റും തത്സമയ ട്രാഫിക്കും ചേർക്കുന്നു, കീകളൊന്നും സജ്ജമാക്കാതെ.",
         "In rain or snow" to "മഴയിലോ മഞ്ഞിലോ",
         "A greyer, softer daylight when it's raining or snowing where you are" to "നിങ്ങൾ ഉള്ളിടത്ത് മഴയോ മഞ്ഞോ പെയ്യുമ്പോൾ കൂടുതൽ ചാരനിറമുള്ള, മൃദുവായ പകൽവെളിച്ചം",

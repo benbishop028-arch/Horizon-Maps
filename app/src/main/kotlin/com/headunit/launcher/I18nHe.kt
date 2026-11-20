@@ -1722,6 +1722,8 @@ object I18nHe {
         "Saved places on the map" to "מקומות שמורים במפה",
         "Home, Work, favourites and starred places. Tap one to go there" to "בית, עבודה, מועדפים ומקומות מסומנים בכוכב. הקש על אחד כדי לנסוע אליו",
         "Saved places icons" to "סמלי מקומות שמורים",
+        "Upcoming speed limits" to "מגבלות מהירות קרובות",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "המגבלה הבאה במסלול, כתמרור במפה במקום שבו היא משתנה וכתמרור קטן ליד התמרור שלך עם המרחק, מכ־800 מ׳",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "הגרסה החינמית משתמשת ב-OpenStreetMap, עם מסלולים מחבילת המדינה שהורדה. Horizon Maps Plus מוסיף מבנים ואתרים בולטים מפורטים בתלת-ממד, לוויין ותנועה בזמן אמת, בלי מפתחות להגדיר.",
         "In rain or snow" to "בגשם או בשלג",
         "A greyer, softer daylight when it's raining or snowing where you are" to "אור יום אפור ורך יותר כשיורד גשם או שלג במקום שבו אתה נמצא",

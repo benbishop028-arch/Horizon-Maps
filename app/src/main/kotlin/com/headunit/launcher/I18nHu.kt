@@ -1722,6 +1722,8 @@ object I18nHu {
         "Saved places on the map" to "Mentett helyek a térképen",
         "Home, Work, favourites and starred places. Tap one to go there" to "Otthon, Munkahely, kedvencek és csillagozott helyek. Koppintson rá az útvonalhoz",
         "Saved places icons" to "Mentett helyek ikonjai",
+        "Upcoming speed limits" to "Közelgő sebességkorlátok",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Az útvonal következő korlátja táblaként a térképen ott, ahol változik, és kicsiben a táblája mellett a távolsággal, kb. 800 m-től",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Az ingyenes verzió az OpenStreetMapet használja, az útvonalak a letöltött országcsomagból jönnek. A Horizon Maps Plus részletes 3D épületeket és nevezetességeket, műholdat és élő forgalmat ad, kulcsok beállítása nélkül.",
         "In rain or snow" to "Esőben vagy havazásban",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Szürkébb, lágyabb nappali fény, amikor ott, ahol vagy, esik az eső vagy a hó",

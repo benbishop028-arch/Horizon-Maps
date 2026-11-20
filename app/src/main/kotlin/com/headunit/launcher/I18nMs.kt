@@ -1722,6 +1722,8 @@ object I18nMs {
         "Saved places on the map" to "Tempat disimpan pada peta",
         "Home, Work, favourites and starred places. Tap one to go there" to "Rumah, Kerja, kegemaran dan tempat berbintang. Ketik untuk ke sana",
         "Saved places icons" to "Ikon tempat disimpan",
+        "Upcoming speed limits" to "Had laju akan datang",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Had seterusnya di laluan anda, sebagai papan tanda pada peta di tempat ia berubah dan yang kecil di sebelah papan anda dengan jaraknya, dari kira-kira 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah bangunan dan mercu tanda 3D yang terperinci, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
         "In rain or snow" to "Semasa hujan atau salji",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Cahaya siang yang lebih kelabu dan lembut apabila hujan atau salji di tempat anda",

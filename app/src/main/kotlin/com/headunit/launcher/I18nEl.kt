@@ -1722,6 +1722,8 @@ object I18nEl {
         "Saved places on the map" to "Αποθηκευμένα μέρη στον χάρτη",
         "Home, Work, favourites and starred places. Tap one to go there" to "Σπίτι, Εργασία, αγαπημένα και μέρη με αστέρι. Πατήστε ένα για να πάτε εκεί",
         "Saved places icons" to "Εικονίδια αποθηκευμένων μερών",
+        "Upcoming speed limits" to "Επόμενα όρια ταχύτητας",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Το επόμενο όριο στη διαδρομή, ως πινακίδα στον χάρτη όπου αλλάζει και μικρή δίπλα στην πινακίδα σας με την απόσταση, από περίπου 800 μ.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Η δωρεάν έκδοση χρησιμοποιεί το OpenStreetMap, με διαδρομές από το ληφθέν πακέτο χώρας. Το Horizon Maps Plus προσθέτει λεπτομερή κτίρια και αξιοθέατα 3D, δορυφόρο και ζωντανή κίνηση, χωρίς κλειδιά.",
         "In rain or snow" to "Σε βροχή ή χιόνι",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Πιο γκρίζο, απαλότερο φως ημέρας όταν βρέχει ή χιονίζει εκεί που βρίσκεστε",

@@ -1722,6 +1722,8 @@ object I18nSv {
         "Saved places on the map" to "Sparade platser på kartan",
         "Home, Work, favourites and starred places. Tap one to go there" to "Hem, Jobb, favoriter och stjärnmärkta platser. Tryck på en för att åka dit",
         "Saved places icons" to "Ikoner för sparade platser",
+        "Upcoming speed limits" to "Kommande hastighetsgränser",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "Nästa gräns på rutten, som skylt på kartan där den ändras och en liten vid din skylt med avståndet, från ungefär 800 m",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversionen använder OpenStreetMap, med rutter från ditt nedladdade landspaket. Horizon Maps Plus lägger till detaljerade 3D-byggnader och landmärken, satellit och trafik i realtid, utan nycklar att ställa in.",
         "In rain or snow" to "Vid regn eller snö",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Ett gråare, mjukare dagsljus när det regnar eller snöar där du är",

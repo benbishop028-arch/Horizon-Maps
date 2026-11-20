@@ -1722,6 +1722,8 @@ object I18nZhHant {
         "Saved places on the map" to "地圖上顯示已儲存的地點",
         "Home, Work, favourites and starred places. Tap one to go there" to "住家、公司、最愛和加星號的地點。輕觸即可前往",
         "Saved places icons" to "已儲存地點圖示",
+        "Upcoming speed limits" to "即將到來的限速",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "路線上的下一個限速：在變化處的地圖上顯示標誌，並在您的限速標誌旁顯示帶距離的小標誌，約 800 公尺前開始",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "免費版使用 OpenStreetMap,路線來自下載的國家圖資包。Horizon Maps Plus 加入精細的 3D 建築與地標、衛星與即時路況,無需設定金鑰。",
         "In rain or snow" to "雨雪天氣時",
         "A greyer, softer daylight when it's raining or snowing where you are" to "你所在的地方下雨或下雪時，日光更灰、更柔和",

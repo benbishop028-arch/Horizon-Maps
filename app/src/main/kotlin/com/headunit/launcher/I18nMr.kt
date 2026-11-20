@@ -1722,6 +1722,8 @@ object I18nMr {
         "Saved places on the map" to "नकाशावर जतन केलेली ठिकाणे",
         "Home, Work, favourites and starred places. Tap one to go there" to "घर, काम, आवडी आणि तारांकित ठिकाणे. तिथे जाण्यासाठी टॅप करा",
         "Saved places icons" to "जतन केलेल्या ठिकाणांचे आयकॉन",
+        "Upcoming speed limits" to "पुढील वेगमर्यादा",
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to "तुमच्या मार्गावरील पुढील मर्यादा, बदलते तिथे नकाशावर फलक म्हणून आणि तुमच्या फलकाशेजारी अंतरासह लहान, सुमारे 800 मी आधीपासून",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "मोफत आवृत्ती OpenStreetMap वापरते, मार्ग डाउनलोड केलेल्या देशाच्या पॅकमधून. Horizon Maps Plus तपशीलवार 3D इमारती आणि महत्त्वाची ठिकाणे, उपग्रह आणि थेट वाहतूक जोडते, की सेट न करता.",
         "In rain or snow" to "पाऊस किंवा बर्फ पडताना",
         "A greyer, softer daylight when it's raining or snowing where you are" to "तुम्ही जिथे आहात तिथे पाऊस किंवा बर्फ पडत असताना अधिक राखाडी, मऊ दिवसाचा प्रकाश",

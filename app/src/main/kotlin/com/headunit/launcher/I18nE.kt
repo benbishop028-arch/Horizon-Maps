@@ -1719,6 +1719,8 @@ object I18nE {
         "Saved places on the map" to listOf("Shranjeni kraji na zemljevidu"),
         "Home, Work, favourites and starred places. Tap one to go there" to listOf("Dom, Služba, priljubljeni in kraji z zvezdico. Tapnite za pot tja"),
         "Saved places icons" to listOf("Ikone shranjenih krajev"),
+        "Upcoming speed limits" to listOf("Prihajajoče omejitve hitrosti"),
+        "The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away" to listOf("Naslednja omejitev na poti, kot znak na zemljevidu, kjer se spremeni, in majhen ob vašem znaku z razdaljo, od približno 800 m"),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Brezplačna različica uporablja OpenStreetMap, s potmi iz prenesenega paketa države. Horizon Maps Plus doda podrobne 3D stavbe in znamenitosti, satelit in promet v živo, brez ključev za nastavitev."),
         "In rain or snow" to listOf("Ob dežju ali snegu"),
         "A greyer, softer daylight when it's raining or snowing where you are" to listOf("Bolj siva, mehkejša dnevna svetloba, ko kjer ste dežuje ali sneži"),
