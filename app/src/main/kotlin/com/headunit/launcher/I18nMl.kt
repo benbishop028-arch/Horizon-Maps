@@ -1727,6 +1727,7 @@ object I18nMl {
         "Your location" to "നിങ്ങളുടെ ലൊക്കേഷൻ",
         "or" to "അല്ലെങ്കിൽ",
         "End camera" to "അവസാന ക്യാമറ",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "ആ സ്ഥലം കാറുകൾക്ക് പോകാവുന്ന റോഡിലല്ല: റൂട്ട് {0} അകലെയുള്ള ഏറ്റവും അടുത്ത പൊതു റോഡിലേക്ക് പോകും",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "സൗജന്യ പതിപ്പ് OpenStreetMap ഉപയോഗിക്കുന്നു, നിങ്ങൾ ഡൗൺലോഡ് ചെയ്ത രാജ്യ പായ്ക്കിൽ നിന്നുള്ള റൂട്ടുകളോടെ. Horizon Maps Plus വിശദമായ 3D കെട്ടിടങ്ങളും അടയാള സ്ഥലങ്ങളും സാറ്റലൈറ്റും തത്സമയ ട്രാഫിക്കും ചേർക്കുന്നു, കീകളൊന്നും സജ്ജമാക്കാതെ.",
         "In rain or snow" to "മഴയിലോ മഞ്ഞിലോ",
         "A greyer, softer daylight when it's raining or snowing where you are" to "നിങ്ങൾ ഉള്ളിടത്ത് മഴയോ മഞ്ഞോ പെയ്യുമ്പോൾ കൂടുതൽ ചാരനിറമുള്ള, മൃദുവായ പകൽവെളിച്ചം",

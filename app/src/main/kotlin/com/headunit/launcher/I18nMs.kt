@@ -1718,6 +1718,7 @@ object I18nMs {
         "Your location" to "Lokasi anda",
         "or" to "atau",
         "End camera" to "Kamera akhir",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Tempat itu bukan di jalan untuk kereta: laluan menuju ke jalan awam terdekat, {0} jauhnya",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah bangunan dan mercu tanda 3D yang terperinci, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
         "In rain or snow" to "Semasa hujan atau salji",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Cahaya siang yang lebih kelabu dan lembut apabila hujan atau salji di tempat anda",

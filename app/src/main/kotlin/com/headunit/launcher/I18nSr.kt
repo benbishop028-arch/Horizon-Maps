@@ -1718,6 +1718,7 @@ object I18nSr {
         "Your location" to "Vaša lokacija",
         "or" to "ili",
         "End camera" to "Završna kamera",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "To mesto nije na putu otvorenom za automobile: ruta vodi do najbližeg javnog puta, {0} dalje",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Бесплатна верзија користи OpenStreetMap, са рутама из преузетог пакета државе. Horizon Maps Plus додаје детаљне 3D зграде и знаменитости, сателит и саобраћај уживо, без кључева за подешавање.",
         "In rain or snow" to "Po kiši ili snegu",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Sivlje, mekše dnevno svetlo kada pada kiša ili sneg gde ste",

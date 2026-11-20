@@ -1653,6 +1653,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
             try { NetHealth.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Connection problems:"); append(it) } } catch (e: Throwable) { }
+            try { SessionWatch.exitHistory(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("How the app last ended (Android's record):"); append(it) } } catch (e: Throwable) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
             if (freeze != null) { appendLine(); appendLine("Last freeze:"); appendLine(freeze) }
@@ -5072,7 +5073,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val h = here ?: return
         here = null
         // (while choosing a route too: a stop held on the map goes on the route being planned)
-        if (asStop && route != null && dest != null) addStop(h.place) else startRoute(h.place)
+        // held on a footpath, a pedestrian street, a track, a road closed to the public or away from any road (a park, a works
+        // site): the route goes to the nearest public road instead of along paths and private roads to get as close as it can
+        // (GitHub #256). Car parks and ordinary roads are left as they are
+        val offRoad = h.roadClass.isBlank() || h.roadClass in MapboxRest.NOT_FOR_CARS
+        val tok = mbToken
+        if (!offRoad || tok.isBlank() || !online()) { if (asStop && route != null && dest != null) addStop(h.place) else startRoute(h.place); return }
+        scope.launch {
+            val snapped = withContext(Dispatchers.IO) { MapboxRest.publicRoadNear(tok, h.place.pos) }
+            val to = if (snapped != null && Geo.dist(snapped, h.place.pos) > 15.0) {
+                toast(L.t("That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away", Geo.fmtDist(Geo.dist(snapped, h.place.pos), imperial)), 5000)
+                h.place.copy(pos = snapped)
+            } else h.place
+            if (asStop && route != null && dest != null) addStop(to) else startRoute(to)
+        }
     }
 
     /** Road closures the route is being kept off this trip (id to the closed road's points). */

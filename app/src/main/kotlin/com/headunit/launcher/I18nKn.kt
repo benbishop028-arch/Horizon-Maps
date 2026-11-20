@@ -1718,6 +1718,7 @@ object I18nKn {
         "Your location" to "ನಿಮ್ಮ ಸ್ಥಳ",
         "or" to "ಅಥವಾ",
         "End camera" to "ಕೊನೆಯ ಕ್ಯಾಮೆರಾ",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "ಆ ಸ್ಥಳ ಕಾರುಗಳಿಗೆ ತೆರೆದ ರಸ್ತೆಯಲ್ಲಿಲ್ಲ: ಮಾರ್ಗ {0} ದೂರದ ಹತ್ತಿರದ ಸಾರ್ವಜನಿಕ ರಸ್ತೆಗೆ ಹೋಗುತ್ತದೆ",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "ಉಚಿತ ಆವೃತ್ತಿ OpenStreetMap ಬಳಸುತ್ತದೆ, ಮಾರ್ಗಗಳು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿದ ದೇಶದ ಪ್ಯಾಕ್‌ನಿಂದ. Horizon Maps Plus ವಿವರವಾದ 3D ಕಟ್ಟಡಗಳು ಮತ್ತು ಹೆಗ್ಗುರುತುಗಳು, ಉಪಗ್ರಹ ಮತ್ತು ನೇರ ಸಂಚಾರವನ್ನು ಕೀಗಳಿಲ್ಲದೆ ಸೇರಿಸುತ್ತದೆ.",
         "In rain or snow" to "ಮಳೆ ಅಥವಾ ಹಿಮ ಬೀಳುವಾಗ",
         "A greyer, softer daylight when it's raining or snowing where you are" to "ನೀವಿರುವಲ್ಲಿ ಮಳೆ ಅಥವಾ ಹಿಮ ಬೀಳುತ್ತಿರುವಾಗ ಹೆಚ್ಚು ಬೂದು, ಮೃದುವಾದ ಹಗಲು ಬೆಳಕು",

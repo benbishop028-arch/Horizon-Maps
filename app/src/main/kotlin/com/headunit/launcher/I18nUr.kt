@@ -1718,6 +1718,7 @@ object I18nUr {
         "Your location" to "آپ کا مقام",
         "or" to "یا",
         "End camera" to "آخری کیمرہ",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "وہ جگہ گاڑیوں کے لیے کھلی سڑک پر نہیں: راستہ {0} دور قریب ترین عوامی سڑک تک جاتا ہے",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "مفت ورژن OpenStreetMap استعمال کرتا ہے، راستے ڈاؤن لوڈ کیے گئے ملک کے پیک سے۔ Horizon Maps Plus تفصیلی 3D عمارتیں اور نمایاں مقامات، سیٹلائٹ اور لائیو ٹریفک شامل کرتا ہے، بغیر کلید سیٹ کیے۔",
         "In rain or snow" to "بارش یا برف میں",
         "A greyer, softer daylight when it's raining or snowing where you are" to "جہاں آپ ہیں وہاں بارش یا برف ہو تو زیادہ سرمئی، نرم دن کی روشنی",

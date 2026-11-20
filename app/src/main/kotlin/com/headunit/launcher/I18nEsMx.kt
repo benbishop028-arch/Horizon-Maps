@@ -1718,6 +1718,7 @@ object I18nEsMx {
         "Your location" to "Tu ubicación",
         "or" to "o",
         "End camera" to "Cámara final",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Ese punto no está en una calle abierta a autos: la ruta va a la calle pública más cercana, a {0}",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "La versión gratuita usa OpenStreetMap, con rutas de tu paquete de país descargado. Horizon Maps Plus suma edificios y monumentos 3D detallados, el satélite y el tráfico en vivo, sin claves que configurar.",
         "In rain or snow" to "Con lluvia o nieve",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Una luz de día más gris y suave cuando llueve o nieva donde estás",

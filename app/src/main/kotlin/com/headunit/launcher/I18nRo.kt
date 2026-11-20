@@ -1718,6 +1718,7 @@ object I18nRo {
         "Your location" to "Locația dvs.",
         "or" to "sau",
         "End camera" to "Camera de final",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Locul acela nu e pe un drum deschis mașinilor: traseul merge la cel mai apropiat drum public, la {0}",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versiunea gratuită folosește OpenStreetMap, cu rute din pachetul de țară descărcat. Horizon Maps Plus adaugă clădiri și repere 3D detaliate, satelitul și traficul live, fără chei de setat.",
         "In rain or snow" to "Pe ploaie sau ninsoare",
         "A greyer, softer daylight when it's raining or snowing where you are" to "O lumină de zi mai cenușie și mai blândă când plouă sau ninge unde ești",

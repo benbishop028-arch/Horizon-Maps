@@ -1718,6 +1718,7 @@ object I18nUk {
         "Your location" to "Ваше місцезнаходження",
         "or" to "або",
         "End camera" to "Кінцева камера",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Ця точка не на дорозі для авто: маршрут веде до найближчої дороги загального користування, за {0}",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Безкоштовна версія використовує OpenStreetMap, а маршрути — із завантаженого пакета країни. Horizon Maps Plus додає детальні 3D-будівлі й пам’ятки, супутник і затори в реальному часі, без налаштування ключів.",
         "In rain or snow" to "У дощ або сніг",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Сіріше, м’якше денне світло, коли там, де ви є, іде дощ або сніг",

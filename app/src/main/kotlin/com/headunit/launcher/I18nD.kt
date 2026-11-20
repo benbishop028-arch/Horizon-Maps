@@ -1715,6 +1715,7 @@ object I18nD {
         "Your location" to listOf("Вашето местоположение"),
         "or" to listOf("или"),
         "End camera" to listOf("Крайна камера"),
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to listOf("Това място не е на път, достъпен за коли: маршрутът води до най-близкия обществен път, на {0}"),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Безплатната версия използва OpenStreetMap, с маршрути от изтегления пакет за държавата. Horizon Maps Plus добавя детайлни 3D сгради и забележителности, сателит и трафик на живо, без ключове за настройване."),
         "In rain or snow" to listOf("При дъжд или сняг"),
         "A greyer, softer daylight when it's raining or snowing where you are" to listOf("По-сива, по-мека дневна светлина, когато вали дъжд или сняг там, където сте"),

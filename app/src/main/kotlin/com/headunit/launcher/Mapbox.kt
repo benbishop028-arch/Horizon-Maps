@@ -1026,6 +1026,40 @@ object MapboxRest {
         Here(road, kind, land, place, cls, ref, landCls)
     } catch (e: Exception) { null }
 
+    /** Road kinds you can't drive along to a destination: footpaths, pedestrian streets, tracks and roads closed to the public. */
+    val NOT_FOR_CARS = setOf("path", "pedestrian", "track", "street_limited", "steps", "footway", "cycleway", "bridleway")
+
+    /**
+     * For a spot held on the map that isn't on a road open to cars (a footpath, a park, inside a works site): the closest point
+     * on the nearest public road within 400 m, so the route ends there instead of going down a footpath or private road to get
+     * as near as it can (GitHub #256). Ordinary roads first; a motorway or dual carriageway only when there's nothing else.
+     * Null when there's no such road, or the answer doesn't look right (so the route just goes to the spot, as before).
+     */
+    fun publicRoadNear(token: String, p: LL): LL? = try {
+        val url = String.format(java.util.Locale.US, "$API/v4/mapbox.mapbox-streets-v8/tilequery/%.6f,%.6f.json?radius=400&limit=50&dedupe=true&geometry=linestring&layers=road&access_token=%s",
+            p.lon, p.lat, enc(token))
+        val fs = JSONObject(get(url, 8000, 10000)).optJSONArray("features") ?: JSONArray()
+        val ordinary = setOf("street", "tertiary", "tertiary_link", "secondary", "secondary_link", "primary", "primary_link")
+        val big = setOf("trunk", "trunk_link", "motorway", "motorway_link")
+        var bestOrd: Pair<LL, Double>? = null; var bestBig: Pair<LL, Double>? = null
+        for (i in 0 until fs.length()) {
+            val f = fs.optJSONObject(i) ?: continue
+            val pr = f.optJSONObject("properties") ?: continue
+            val cls = pr.optString("class")
+            if (cls !in ordinary && cls !in big) continue
+            if (pr.optString("structure") == "tunnel") continue
+            val c = f.optJSONObject("geometry")?.optJSONArray("coordinates") ?: continue
+            if (c.length() < 2 || c.opt(0) !is Number) continue
+            val pt = LL(c.getDouble(1), c.getDouble(0))
+            val d = pr.optJSONObject("tilequery")?.optDouble("distance", -1.0) ?: -1.0
+            // the point given back has to be the road's nearest point (as far away as Mapbox says): if not, leave the spot alone
+            if (d < 0 || kotlin.math.abs(Geo.dist(p, pt) - d) > 15.0) continue
+            if (cls in ordinary) { if (bestOrd == null || d < bestOrd.second) bestOrd = pt to d }
+            else if (bestBig == null || d < bestBig.second) bestBig = pt to d
+        }
+        (bestOrd ?: bestBig)?.first
+    } catch (e: Exception) { null }
+
     fun speedLimit(token: String, trail: List<LL>): Double? {
         if (trail.size < 2) return null
         val coords = trail.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }

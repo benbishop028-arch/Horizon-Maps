@@ -1718,6 +1718,7 @@ object I18nTr {
         "Your location" to "Konumunuz",
         "or" to "veya",
         "End camera" to "Bitiş kamerası",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "O nokta araçlara açık bir yolda değil: rota {0} uzaktaki en yakın genel yola gider",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ücretsiz sürüm OpenStreetMap kullanır, rotalar indirilen ülke paketinden gelir. Horizon Maps Plus ayrıntılı 3D binalar ve simge yapılar, uydu ve canlı trafik ekler, anahtar ayarlamadan.",
         "In rain or snow" to "Yağmurda veya karda",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Bulunduğunuz yerde yağmur veya kar yağarken daha gri, daha yumuşak gün ışığı",

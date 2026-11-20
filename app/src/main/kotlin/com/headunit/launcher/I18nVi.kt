@@ -1718,6 +1718,7 @@ object I18nVi {
         "Your location" to "Vị trí của bạn",
         "or" to "hoặc",
         "End camera" to "Camera cuối",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Điểm đó không nằm trên đường cho ô tô: tuyến đường sẽ đến đường công cộng gần nhất, cách {0}",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bản miễn phí dùng OpenStreetMap, với tuyến đường từ gói quốc gia bạn đã tải. Horizon Maps Plus thêm tòa nhà và địa danh 3D chi tiết, vệ tinh và giao thông trực tiếp, không cần thiết lập khóa.",
         "In rain or snow" to "Khi mưa hoặc tuyết",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Ánh sáng ban ngày xám và dịu hơn khi trời mưa hoặc tuyết ở chỗ bạn",

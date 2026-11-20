@@ -1718,6 +1718,7 @@ object I18nZhHans {
         "Your location" to "您的位置",
         "or" to "或",
         "End camera" to "终点摄像头",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "该地点不在汽车可通行的道路上：路线将前往 {0} 外最近的公共道路",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "免费版使用 OpenStreetMap,路线来自下载的国家数据包。Horizon Maps Plus 增加精细的 3D 建筑和地标、卫星和实时路况,无需设置密钥。",
         "In rain or snow" to "雨雪天气时",
         "A greyer, softer daylight when it's raining or snowing where you are" to "你所在的地方下雨或下雪时，日光更灰、更柔和",

@@ -1718,6 +1718,7 @@ object I18nAr {
         "Your location" to "موقعك",
         "or" to "أو",
         "End camera" to "كاميرا النهاية",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "هذا المكان ليس على طريق مفتوح للسيارات: يذهب المسار إلى أقرب طريق عام، على بعد {0}",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "تستخدم النسخة المجانية OpenStreetMap، مع طرق من حزمة الدولة المُنزّلة. يضيف Horizon Maps Plus مباني ومعالم ثلاثية الأبعاد مفصّلة والقمر الصناعي وحركة المرور المباشرة دون إعداد مفاتيح.",
         "In rain or snow" to "عند المطر أو الثلج",
         "A greyer, softer daylight when it's raining or snowing where you are" to "ضوء نهار أكثر رمادية ونعومة عندما تمطر أو تثلج حيث أنت",

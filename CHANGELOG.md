@@ -17,6 +17,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Malayalam: SUV, USA, the UK road signs and living turn card switches, Import Google Maps, the search bar settings and Recent destinations, in the wording suggested (thanks to bijindas)
 
 ### Fixed
+- Routes to a spot held on the map no longer go down footpaths or into private sites to get close: when the spot isn't on a road open to cars (a footpath, a pedestrian street, a park or a works site), the route goes to the nearest public road and says how far away that is. Car parks and ordinary roads are left as they are (thanks to karthikeyansr-lgtm)
+- Problem reports say how the app really ended: Android's own record (swiped away, closed for low memory, crashed in the map's code, not responding) is now in the report, and swiping the app away no longer shows as "closed by Android" or counts towards turning the drawing down (thanks to joel941703-hash)
 - A favourite's star on its card: a place saved a little way from where it shows on the map (often the case with imported places) showed an empty star, and tapping it took the favourite away. The card now finds it the same way the star does (thanks to Dixet)
 
 ### Fixed

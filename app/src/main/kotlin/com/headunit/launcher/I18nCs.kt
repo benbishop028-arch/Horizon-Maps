@@ -1718,6 +1718,7 @@ object I18nCs {
         "Your location" to "Vaše poloha",
         "or" to "nebo",
         "End camera" to "Koncová kamera",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "To místo neleží na silnici pro auta: trasa vede k nejbližší veřejné silnici, {0} odtud",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verze používá OpenStreetMap s trasami ze staženého balíčku země. Horizon Maps Plus přidává podrobné 3D budovy a památky, satelit a živou dopravu, bez nastavování klíčů.",
         "In rain or snow" to "Při dešti nebo sněžení",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Šedivější, měkčí denní světlo, když tam, kde jste, prší nebo sněží",

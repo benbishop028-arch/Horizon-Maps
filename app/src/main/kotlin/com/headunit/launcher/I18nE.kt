@@ -1715,6 +1715,7 @@ object I18nE {
         "Your location" to listOf("Vaša lokacija"),
         "or" to listOf("ali"),
         "End camera" to listOf("Končna kamera"),
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to listOf("To mesto ni na cesti, odprti za avtomobile: pot vodi do najbližje javne ceste, {0} stran"),
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to listOf("Brezplačna različica uporablja OpenStreetMap, s potmi iz prenesenega paketa države. Horizon Maps Plus doda podrobne 3D stavbe in znamenitosti, satelit in promet v živo, brez ključev za nastavitev."),
         "In rain or snow" to listOf("Ob dežju ali snegu"),
         "A greyer, softer daylight when it's raining or snowing where you are" to listOf("Bolj siva, mehkejša dnevna svetloba, ko kjer ste dežuje ali sneži"),

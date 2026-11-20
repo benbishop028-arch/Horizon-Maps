@@ -1718,6 +1718,7 @@ object I18nFi {
         "Your location" to "Sijaintisi",
         "or" to "tai",
         "End camera" to "Loppukamera",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Kohta ei ole autoille avoimella tiellä: reitti päättyy lähimmälle yleiselle tielle, {0} päähän",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Ilmainen versio käyttää OpenStreetMapia, ja reitit tulevat ladatusta maapaketista. Horizon Maps Plus tuo yksityiskohtaiset 3D-rakennukset ja maamerkit, satelliitin ja reaaliaikaisen liikenteen ilman avaimia.",
         "In rain or snow" to "Sateella tai lumisateella",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Harmaampi, pehmeämpi päivänvalo, kun sijainnissasi sataa vettä tai lunta",

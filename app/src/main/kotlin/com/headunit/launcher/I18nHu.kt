@@ -1718,6 +1718,7 @@ object I18nHu {
         "Your location" to "Az Ön helye",
         "or" to "vagy",
         "End camera" to "Záró kamera",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Ez a pont nem autóval járható úton van: az útvonal a legközelebbi közútig vezet, {0} távolságra",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Az ingyenes verzió az OpenStreetMapet használja, az útvonalak a letöltött országcsomagból jönnek. A Horizon Maps Plus részletes 3D épületeket és nevezetességeket, műholdat és élő forgalmat ad, kulcsok beállítása nélkül.",
         "In rain or snow" to "Esőben vagy havazásban",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Szürkébb, lágyabb nappali fény, amikor ott, ahol vagy, esik az eső vagy a hó",

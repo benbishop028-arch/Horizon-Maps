@@ -1718,6 +1718,7 @@ object I18nNb {
         "Your location" to "Din posisjon",
         "or" to "eller",
         "End camera" to "Sluttkamera",
+        "That spot isn't on a road open to cars: the route goes to the nearest public road, {0} away" to "Det stedet ligger ikke ved en vei for biler: ruten går til nærmeste offentlige vei, {0} unna",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversjonen bruker OpenStreetMap, med ruter fra den nedlastede landpakken. Horizon Maps Plus legger til detaljerte 3D-bygninger og landemerker, satellitt og trafikk i sanntid, uten nøkler å sette opp.",
         "In rain or snow" to "Ved regn eller snø",
         "A greyer, softer daylight when it's raining or snowing where you are" to "Et gråere, mykere dagslys når det regner eller snør der du er",

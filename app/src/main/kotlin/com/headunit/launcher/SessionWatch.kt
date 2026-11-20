@@ -55,10 +55,19 @@ object SessionWatch {
                 // drive switched off normally takes longer than that, and ends parked)
                 // A screen that locked up counts whoever ended it: Android closing a stuck app (the unit kept running) used not to
                 // count at all, so a unit that kept freezing never had its drawing turned down
-                val suspicious = beat > 0L && (wasStuck || (unitRestarted && (lastSpeed > 4f || lenS < 90L)))
+                // what Android itself recorded about how the app ended (Android 11 on): swiped away in the recent apps, low memory, a
+                // crash in the map's own code... On phones the app can be swiped away without being told, which used to read as
+                // "closed by Android" (GitHub #267)
+                val exit = lastExit(ctx, start)
+                val byUser = exit != null && exit.first in USER_ENDED
+                val suspicious = beat > 0L && !byUser && (wasStuck || (unitRestarted && (lastSpeed > 4f || lenS < 90L)))
                 val report = buildString {
                     append("Last session didn't close normally: open ${lenS / 60} min ${lenS % 60} s, ")
-                    append(if (unitRestarted) "and the head unit itself restarted afterwards" else "the app was closed by Android (the unit kept running)")
+                    append(when {
+                        unitRestarted -> "and the head unit itself restarted afterwards"
+                        exit != null -> "Android says: " + exit.second
+                        else -> "the app was closed by Android (the unit kept running)"
+                    })
                     append(String.format(java.util.Locale.UK, ". Speed then: %.0f mph. ", lastSpeed / 0.44704f))
                     if (wasStuck) append("The screen thread had stopped responding. ")
                     append("Last note (${java.util.Date(beat)}): ${p.getString(NOTE, "") ?: ""}")
@@ -133,6 +142,51 @@ object SessionWatch {
             }
         }, "session-watch").apply { isDaemon = true; priority = Thread.MIN_PRIORITY }
         thread?.start()
+    }
+
+    /** Exit reasons that mean you closed the app yourself (swiped away, force stopped) or it was updated: not a fault. */
+    private val USER_ENDED = setOf(10, 11, 16)
+
+    /** Android's reason code for [code] in plain words. */
+    private fun reasonName(code: Int): String = when (code) {
+        1 -> "the app closed itself"; 2 -> "ended by a signal"; 3 -> "closed for low memory"; 4 -> "crashed"
+        5 -> "crashed in native code (the map or another library)"; 6 -> "not responding (ANR)"; 7 -> "failed to start"
+        8 -> "a permission was changed"; 9 -> "used too much battery or CPU"; 10 -> "closed by you (swiped away or Close)"
+        11 -> "force stopped by you"; 12 -> "something it depends on closed"; 13 -> "other"; 14 -> "frozen by Android"
+        15 -> "app state changed"; 16 -> "the app was updated"; else -> "unknown"
+    }
+
+    /**
+     * How Android says the app last ended, if that was after [since] (ms): its reason code and a line for the report, with
+     * Android's own description and whether the app was on screen. Null before Android 11, or when there's nothing recorded.
+     */
+    fun lastExit(ctx: Context, since: Long): Pair<Int, String>? {
+        if (Build.VERSION.SDK_INT < 30) return null
+        return try {
+            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val e = am.getHistoricalProcessExitReasons(ctx.packageName, 0, 1).firstOrNull() ?: return null
+            if (e.timestamp < since - 5_000L) return null
+            var code = e.reason
+            val desc = e.description.orEmpty()
+            // (many phones record a swipe from the recent apps as "other: remove task")
+            if (code == 13 && (desc.contains("remove task", true) || desc.contains("swipe", true) || desc.contains("task removed", true))) code = 10
+            val seen = if (e.importance <= android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) "on screen" else "in the background"
+            code to (reasonName(code) + " (" + seen + (if (desc.isNotBlank()) "; " + desc.take(160) else "") + ")")
+        } catch (e: Throwable) { null }
+    }
+
+    /** The last few times the app ended and why, by Android's own record, for the problem report ("" before Android 11). */
+    fun exitHistory(ctx: Context): String {
+        if (Build.VERSION.SDK_INT < 30) return ""
+        return try {
+            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            val fmt = java.text.SimpleDateFormat("dd MMM HH:mm:ss", java.util.Locale.UK)
+            am.getHistoricalProcessExitReasons(ctx.packageName, 0, 4).joinToString("") { e ->
+                val desc = e.description.orEmpty()
+                val code = if (e.reason == 13 && desc.contains("remove task", true)) 10 else e.reason
+                fmt.format(java.util.Date(e.timestamp)) + " · " + reasonName(code) + (if (desc.isNotBlank()) " · " + desc.take(120) else "") + "\n"
+            }
+        } catch (e: Throwable) { "" }
     }
 
     /** Put away or closed normally: not a crash. A good long session clears the count. */
