@@ -226,8 +226,17 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     val altColour = prefs.s(PreferenceKeys.ALT_ROUTE_COLOUR, "#C4D9E6")
     LaunchedEffect(altColour) { map.setAltColour(altColour) }
     val arrowPct = prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240
-    val mainArrowScale = prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).coerceIn(60, 180) / 100f
-    LaunchedEffect(arrowPct, mainArrowScale) { map.setArrowScale(arrowPct / 100f * mainArrowScale) }
+    // the old second slider (Screen & sizes > Navigation arrow size) multiplied this one: it's folded into Arrow size once (also
+    // after restoring an older backup), so the arrow stays the same size, and the car screen's arrow is evened back out
+    val oldMainArrow = prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).coerceIn(60, 180)
+    LaunchedEffect(oldMainArrow) {
+        if (oldMainArrow != 100) {
+            prefs.put(PreferenceKeys.ARROW_PERCENT, (arrowPct * oldMainArrow / 100).coerceIn(60, 500).toString())
+            prefs.put(PreferenceKeys.CAR_ARROW_SIZE, (prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100) * 100 / oldMainArrow).coerceIn(30, 180))
+            prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, 100)
+        }
+    }
+    LaunchedEffect(arrowPct, oldMainArrow) { map.setArrowScale(arrowPct / 100f * oldMainArrow / 100f) }
     val carModel = prefs.s(PreferenceKeys.CAR_MODEL, "saloon")
     LaunchedEffect(carModel) { map.setCarModel(carModel) }
     val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, false)

@@ -1702,6 +1702,7 @@ object I18nAr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "مع النسخة المجانية، نزّل دولتك في خطوة الحزمة دون اتصال: منها تُخطط طرقك.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus مفعّل: الخريطة والبحث والطرق وحركة المرور تستخدم حسابات Horizon Maps الخاصة، فلا حاجة لإضافة مفاتيح.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "تستخدم النسخة المجانية OpenStreetMap، مع طرق من حزمة الدولة المُنزّلة. يضيف Horizon Maps Plus مباني ومعالم ثلاثية الأبعاد مفصّلة والقمر الصناعي وحركة المرور المباشرة دون إعداد مفاتيح.",
+        "In rain or snow" to "عند المطر أو الثلج",
         "Up to {0}% fits this car's screen" to "حتى {0}% يناسب شاشة هذه السيارة",
         "Search bar and places on the map" to "شريط البحث والأماكن على الخريطة",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "أوقفه في سيارة بمقبض دوّار: الخريطة كاملة، مع البحث والمنزل والعمل ضمن الأماكن (★)",

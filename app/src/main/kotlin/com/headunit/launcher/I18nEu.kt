@@ -1702,6 +1702,7 @@ object I18nEu {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Doako bertsioarekin, deskargatu zure herrialdea Lineaz kanpoko paketea urratsean: hortik planifikatzen dira ibilbideak.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus aktibo dago: mapak, bilaketak, ibilbideek eta trafikoak Horizon Maps-en kontuak erabiltzen dituzte, beraz ez dago gakorik gehitzeko.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Doako bertsioak OpenStreetMap erabiltzen du, deskargatutako herrialde-paketeko ibilbideekin. Horizon Maps Plus-ek 3D eraikin eta leku ezagun xehatuak, satelitea eta zuzeneko trafikoa gehitzen ditu, gakorik konfiguratu gabe.",
+        "In rain or snow" to "Euria edo elurra denean",
         "Up to {0}% fits this car's screen" to "{0}% arte sartzen da auto honen pantailan",
         "Search bar and places on the map" to "Bilaketa-barra eta lekuak mapan",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Desaktibatu biraketa-botoidun autoetan: mapa osoa, Bilatu, Etxea eta Lana Lekuak (★) atalean",

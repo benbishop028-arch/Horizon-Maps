@@ -1702,6 +1702,7 @@ object I18nUk {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "У безкоштовній версії завантажте свою країну на кроці «Офлайн-пакет»: саме за ним прокладаються маршрути.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus увімкнено: мапа, пошук, маршрути й затори використовують облікові записи Horizon Maps, тож ключі додавати не потрібно.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Безкоштовна версія використовує OpenStreetMap, а маршрути — із завантаженого пакета країни. Horizon Maps Plus додає детальні 3D-будівлі й пам’ятки, супутник і затори в реальному часі, без налаштування ключів.",
+        "In rain or snow" to "У дощ або сніг",
         "Up to {0}% fits this car's screen" to "До {0}% вміщується на екрані цього авто",
         "Search bar and places on the map" to "Рядок пошуку й місця на мапі",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Вимкніть для авто з поворотним регулятором: уся мапа, а Пошук, Дім і Робота — в Місцях (★)",

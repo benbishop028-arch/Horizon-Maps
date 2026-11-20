@@ -367,8 +367,18 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
     if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
     if (prefs.mapSource() == "mapbox") SavedThemesGroup(prefs)
     SGroup(L.t("The map")) {
-        SChoice(L.t("Map source"), listOf("mapbox" to L.t("Mapbox"), "tomtom" to L.t("TomTom"), "osm" to L.t("OpenStreetMap")), prefs.mapSource(),
-            L.t("Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them")) { prefs.put(PreferenceKeys.MAP_STYLE, it) }
+        // only the choices that work here: the free Play version is always OpenStreetMap (no choice at all), Plus can't show
+        // TomTom's map, and TomTom's map needs a TomTom key
+        if (!com.headunit.launcher.Plus.free) {
+            val src = prefs.mapSource()
+            if (com.headunit.launcher.Plus.offered)
+                SChoice(L.t("Map source"), listOf("mapbox" to L.t("Mapbox"), "osm" to L.t("OpenStreetMap")), src) { prefs.put(PreferenceKeys.MAP_STYLE, it) }
+            else {
+                val withTomTom = engine.hasKey || src == "tomtom"
+                SChoice(L.t("Map source"), listOf("mapbox" to L.t("Mapbox")) + (if (withTomTom) listOf("tomtom" to L.t("TomTom")) else emptyList()) + listOf("osm" to L.t("OpenStreetMap")), src,
+                    L.t("Mapbox: the 3D map. TomTom: TomTom's map in the Horizon colours (needs a TomTom key). All need the Mapbox token, as Mapbox's engine draws them")) { prefs.put(PreferenceKeys.MAP_STYLE, it) }
+            }
+        }
         if (prefs.mapSource() == "mapbox") {
             SChoice(L.t("Map detail"), listOf("full" to L.t("Full 3D"), "lite" to L.t("Lite"), "lightest" to L.t("Lightest")), prefs.mapDetail(),
                 L.t("Full 3D: buildings, landmarks, trees and shadows. Lite: flat buildings, no landmarks or shadows. Lightest: Mapbox's simpler 2D map, for slow head units")) { prefs.put(PreferenceKeys.MAP_DETAIL, it) }
@@ -389,8 +399,17 @@ private fun LightSection(prefs: Prefs) {
             SPercent(L.t("Moon strength"), L.t("How strongly the moon lights walls and casts shadows"), prefs, PreferenceKeys.MOON_STR, 0, 200, 100)
         SToggle(prefs, L.t("Shadows"), PreferenceKeys.SHADOWS, true, L.t("Buildings and trees cast shadows. Off is also lighter work for a slow head unit"))
         SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("Light and shadows come from where the sun really is right now, and at night from the moon"))
-        SToggle(prefs, L.t("Overcast light"), PreferenceKeys.OVERCAST, false, L.t("Soft daylight with no hard shadows, calmer in glare"))
-        SToggle(prefs, L.t("Weather light"), PreferenceKeys.WEATHER_LIGHT, false, L.t("A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow"))
+        // (one choice for the two old switches: "Always" already covered "In rain or snow", so both on was the same as Always)
+        val overcast = if (prefs.b(PreferenceKeys.OVERCAST, false)) "always" else if (prefs.b(PreferenceKeys.WEATHER_LIGHT, false)) "wet" else "off"
+        SChoice(L.t("Overcast light"), listOf("off" to L.t("Off"), "wet" to L.t("In rain or snow"), "always" to L.t("Always")), overcast,
+            when (overcast) {
+                "always" -> L.t("Soft daylight with no hard shadows, calmer in glare")
+                "wet" -> L.t("A greyer, softer daylight when it's raining or snowing where you are. Needs Weather effects on the map switched on (Settings > On the map), which also brings real rain and snow")
+                else -> null
+            }) {
+            prefs.put(PreferenceKeys.OVERCAST, it == "always")
+            prefs.put(PreferenceKeys.WEATHER_LIGHT, it == "wet")
+        }
     }
     SGroup(L.t("3D view"), footer = L.t("30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {
         STilt(L.t("Tilt on a wide screen"), L.t("Landscape head units. Higher shows further ahead (more for a slow unit to draw)"), prefs, PreferenceKeys.TILT_WIDE)
@@ -523,7 +542,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             "#1FC7A6" to L.t("Teal"), "#3DDC84" to L.t("Green"), "#B5E34A" to L.t("Lime"), "#FFD54A" to L.t("Yellow"), "#FF9A3C" to L.t("Orange"), "#FF4D5E" to L.t("Red"),
             "#FF6FB5" to L.t("Pink"), "#A56BFF" to L.t("Purple"),
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
-        SSlider(if (ownShape) L.t("Model size") else if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 100f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
+        SSlider(if (ownShape) L.t("Model size") else if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 60f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
         SToggle(prefs, L.t("Headlight beam at night"), PreferenceKeys.BEAM, true, L.t("A soft cone of light on the road ahead of you after dark, while you're moving"))
     }
     SGroup(L.t("Route line")) {
@@ -577,7 +596,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Starting a route")) {
         SToggle(prefs, L.t("Auto-start route countdown"), PreferenceKeys.AUTO_START_ROUTE, true, L.t("Automatically start navigation when the countdown finishes"))
-        SSlider(L.t("Auto-start countdown"), prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = L.t("How long before navigation starts"), steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
+        if (prefs.b(PreferenceKeys.AUTO_START_ROUTE, true)) SSlider(L.t("Auto-start countdown"), prefs.i(PreferenceKeys.AUTO_START_SECONDS, 10).coerceIn(3, 30).toFloat(), 3f..30f, " s", sub = L.t("How long before navigation starts"), steps = 26, reset = 10f) { prefs.put(PreferenceKeys.AUTO_START_SECONDS, it.coerceIn(3, 30)) }
         SToggle(prefs, L.t("Fly along a new route"), "cinematic", true, L.t("A 3-second 3D fly-through before the overview. Tap the map to skip"))
         SToggle(prefs, L.t("Fly over route button"), "flyover", true, L.t("On the route options: a 3D flight along the whole drive before you set off"))
     }
@@ -1186,7 +1205,6 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
             SSlider(L.t("Card size"), prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_CARD_SIZE, it) }
             SSlider(L.t("Button size"), prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("On-screen controls"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_BUTTON_SIZE, it) }
             SSlider(L.t("Text size"), prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent text scaling"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
-            SSlider(L.t("Navigation arrow size"), prefs.i(PreferenceKeys.MAIN_ARROW_SIZE, 100).toFloat(), 60f..180f, "%", sub = L.t("Map position arrow"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.MAIN_ARROW_SIZE, it) }
             SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
         }
 
@@ -1360,9 +1378,7 @@ private fun PerformanceSection(prefs: Prefs) {
 private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Search")) {
         SChoice(L.t("Search results"), searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
-        if (engine.hasKey && engine.hasMapbox) SChoice(L.t("Search with"), listOf("auto" to L.t("TomTom"), "mapbox" to L.t("Mapbox")), if (prefs.s(PreferenceKeys.SEARCHWITH, "auto") == "mapbox") "mapbox" else "auto",
-            L.t("TomTom's search is the one Horizon Nav uses: best for UK addresses and house numbers")) { prefs.put(PreferenceKeys.SEARCHWITH, it) }
-        else if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
+        if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
     }
     // Horizon Maps on Play: the keys are the app's own (Plus) or not needed (the free OpenStreetMap version), so there's nothing to paste
     if (com.headunit.launcher.Plus.offered) {

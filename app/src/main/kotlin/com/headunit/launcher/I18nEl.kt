@@ -1702,6 +1702,7 @@ object I18nEl {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Με τη δωρεάν έκδοση, κατεβάστε τη χώρα σας στο βήμα Πακέτο εκτός σύνδεσης: από αυτό σχεδιάζονται οι διαδρομές.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Το Plus είναι ενεργό: χάρτης, αναζήτηση, διαδρομές και κίνηση χρησιμοποιούν τους λογαριασμούς του Horizon Maps, οπότε δεν χρειάζονται κλειδιά.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Η δωρεάν έκδοση χρησιμοποιεί το OpenStreetMap, με διαδρομές από το ληφθέν πακέτο χώρας. Το Horizon Maps Plus προσθέτει λεπτομερή κτίρια και αξιοθέατα 3D, δορυφόρο και ζωντανή κίνηση, χωρίς κλειδιά.",
+        "In rain or snow" to "Σε βροχή ή χιόνι",
         "Up to {0}% fits this car's screen" to "Έως {0}% χωράει στην οθόνη αυτού του αυτοκινήτου",
         "Search bar and places on the map" to "Γραμμή αναζήτησης και μέρη στον χάρτη",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Απενεργοποίηση για αυτοκίνητο με περιστροφικό κουμπί: όλος ο χάρτης, με Αναζήτηση, Σπίτι και Δουλειά στα Μέρη (★)",

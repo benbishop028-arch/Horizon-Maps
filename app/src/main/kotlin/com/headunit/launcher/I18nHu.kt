@@ -1702,6 +1702,7 @@ object I18nHu {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Az ingyenes verzióban töltsd le az országodat az Offline csomag lépésben: abból tervezi az útvonalakat.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "A Plus be van kapcsolva: a térkép, a keresés, az útvonalak és a forgalom a Horizon Maps saját fiókjait használják, így nem kell kulcsokat megadni.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Az ingyenes verzió az OpenStreetMapet használja, az útvonalak a letöltött országcsomagból jönnek. A Horizon Maps Plus részletes 3D épületeket és nevezetességeket, műholdat és élő forgalmat ad, kulcsok beállítása nélkül.",
+        "In rain or snow" to "Esőben vagy havazásban",
         "Up to {0}% fits this car's screen" to "Legfeljebb {0}% fér el ennek az autónak a kijelzőjén",
         "Search bar and places on the map" to "Keresősáv és helyek a térképen",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Kikapcsolva forgatógombos autónál: a teljes térkép, a Keresés, Otthon és Munkahely a Helyek (★) alatt",

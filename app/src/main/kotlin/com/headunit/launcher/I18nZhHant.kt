@@ -1702,6 +1702,7 @@ object I18nZhHant {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "使用免費版時,請在「離線圖資包」步驟下載你的國家:路線就是由它規劃的。",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus 已啟用:地圖、搜尋、路線與路況都使用 Horizon Maps 自己的帳戶,因此不需加入金鑰。",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "免費版使用 OpenStreetMap,路線來自下載的國家圖資包。Horizon Maps Plus 加入精細的 3D 建築與地標、衛星與即時路況,無需設定金鑰。",
+        "In rain or snow" to "雨雪天氣時",
         "Up to {0}% fits this car's screen" to "這輛車的螢幕最多可容納 {0}%",
         "Search bar and places on the map" to "地圖上的搜尋列和地點",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "旋鈕操作的車輛請關閉：全螢幕地圖，搜尋、住家和公司在「地點」(★)中",

@@ -2,7 +2,7 @@ name: Build Horizon Nav
 
 on:
   push:
-    branches: [main, development]
+    branches: [main]
     # the app's source is now saved straight into the repository; a change to any of it builds the app
     # (HorizonNav.zip still works as before, as a fallback)
     paths:

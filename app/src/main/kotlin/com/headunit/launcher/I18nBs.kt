@@ -1702,6 +1702,7 @@ object I18nBs {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "U besplatnoj verziji preuzmi svoju državu u koraku Offline paket: iz njega se planiraju rute.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je uključen: mapa, pretraga, rute i saobraćaj koriste vlastite račune Horizon Mapsa, pa ne trebaš dodavati ključeve.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Besplatna verzija koristi OpenStreetMap, s rutama iz preuzetog paketa države. Horizon Maps Plus dodaje detaljne 3D zgrade i znamenitosti, satelit i saobraćaj uživo, bez ključeva za postavljanje.",
+        "In rain or snow" to "Po kiši ili snijegu",
         "Up to {0}% fits this car's screen" to "Do {0}% stane na ekran ovog auta",
         "Search bar and places on the map" to "Traka za pretragu i mjesta na mapi",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Isključite za auto s okretnim dugmetom: cijela mapa, a Pretraga, Kuća i Posao u Mjestima (★)",

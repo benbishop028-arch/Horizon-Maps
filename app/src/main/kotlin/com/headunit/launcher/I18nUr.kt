@@ -1702,6 +1702,7 @@ object I18nUr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "مفت ورژن میں آف لائن پیک والے قدم میں اپنا ملک ڈاؤن لوڈ کریں: اسی سے راستے بنتے ہیں۔",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus آن ہے: نقشہ، تلاش، راستے اور ٹریفک Horizon Maps کے اپنے اکاؤنٹس استعمال کرتے ہیں، اس لیے کوئی کلید شامل نہیں کرنی۔",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "مفت ورژن OpenStreetMap استعمال کرتا ہے، راستے ڈاؤن لوڈ کیے گئے ملک کے پیک سے۔ Horizon Maps Plus تفصیلی 3D عمارتیں اور نمایاں مقامات، سیٹلائٹ اور لائیو ٹریفک شامل کرتا ہے، بغیر کلید سیٹ کیے۔",
+        "In rain or snow" to "بارش یا برف میں",
         "Up to {0}% fits this car's screen" to "اس گاڑی کی اسکرین پر {0}% تک سماتا ہے",
         "Search bar and places on the map" to "نقشے پر سرچ بار اور مقامات",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "گھمانے والے نوب والی گاڑی کے لیے بند کریں: پورا نقشہ، تلاش، گھر اور کام مقامات (★) میں",

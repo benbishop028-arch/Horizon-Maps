@@ -558,7 +558,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * instead. Without a key it's Mapbox's (with OpenStreetMap's alongside), or OpenStreetMap's alone with neither.
      */
     private fun netGeocode(country: String, q: String, near: LL?, typed: Boolean = false): List<Place> {
-        val with = prefs.s(PreferenceKeys.SEARCHWITH, "auto")
+        // search follows Keys & accounts > Routes, search and traffic > Use (the separate "Search with" setting was folded into
+        // it): Mapbox picks Mapbox's search, while Mapbox is working; Auto and TomTom ask TomTom with Mapbox's alongside, as before
+        val with = if (prefs.s(PreferenceKeys.DATAPROV, "auto") == "mapbox" && hasMapbox && System.currentTimeMillis() >= mbDownUntil) "mapbox" else "auto"
         val tomtomOk = hasKey && refusedKey != apiKey && System.currentTimeMillis() >= ttDownUntil
         if (tomtomOk && (with == "tomtom" || (with == "auto") || !hasMapbox)) {
             // with a Mapbox token too, both are asked at the same time and their results put together (jvricardo1, #192: TomTom

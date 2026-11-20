@@ -65,6 +65,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- One arrow size: the arrow had two size sliders, one in Your arrow & route line and one in Screen & sizes, and they multiplied each other, so turning both up made the arrow huge. There's now just Arrow size; if you'd changed both, they're combined so your arrow stays the size it was
+- Overcast light is one choice: Off, In rain or snow, or Always, in place of the Overcast light and Weather light switches, which overlapped (Overcast on made Weather light do nothing)
+- Map source only offers what works: the free version always uses OpenStreetMap, so the choice is gone there; Plus offers Mapbox and OpenStreetMap; and TomTom's map shows once a TomTom key is entered
+- Auto-start countdown hides when auto-start is off, as it does nothing then
 - Turn arrows show the real junction: the faint roads beside the arrow are now the roads that really meet there, from the route data, so a T-junction no longer shows a road straight on and a bend shows none (thanks to mjdshibly)
 - Turn card progress bar: it now appears only once it starts filling, about 450 m before the turn, instead of sitting empty for kilometres (thanks to mjdshibly)
 - Turn card at motorway exits: the blue "EXIT 4" strip is gone. The exit number badge beside the road name already shows it, and the strip's arrows always pointed right, even for an exit on the left (thanks to mjdshibly)
@@ -143,6 +147,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Search with Mapbox: Keys & accounts › Use now covers search as it says, so Mapbox there searches with Mapbox too. The separate Search with setting, which could disagree with it, is gone
 - Android Auto sizes above 150%: raising Overall size made the app think the car screen was smaller, so it switched to the cramped small-screen layouts (squashed cards, missing labels, a smaller speedometer) and kept more and more room for Android Auto's own buttons. The layout is now chosen from the screen's real size, Android Auto's buttons get the same room at any size, and Overall size goes only as far as that layout still fits; the setting says how far that is ("Up to 160% fits this car's screen"). Text that can't fit is cut off neatly, and the stop number badge grows with Text size (thanks to magnazan, for the detailed report)
 - Faded lane arrows: in the big lane picture the faded arrows (lanes not to use) had brighter patches where their lines joined and where two arrows share a stem. Each lane's arrows are now drawn as one shape, so the faded ones are evenly faded (thanks to mjdshibly)
 - Roundabout arrows pointing the wrong way: on Mapbox routes the turn card's roundabout arrow often pointed somewhere other than the exit you take. It was drawn from the road's direction at the next turn after the roundabout rather than at the exit itself; the app now asks Mapbox for the exit's own position, so the arrow shows the exit you really take (thanks to mjdshibly)
