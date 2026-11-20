@@ -38,7 +38,6 @@ import com.mapbox.maps.applyDefaultParams
 import com.mapbox.maps.toCameraOptions
 import com.mapbox.maps.toMapboxImage
 import com.mapbox.maps.extension.style.expressions.generated.Expression
-import com.mapbox.maps.extension.localization.localizeLabels
 import com.mapbox.maps.extension.style.layers.Layer
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.addLayerBelow
@@ -321,7 +320,41 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** Applies the app's selected language to the loaded TomTom vector style's translated labels. */
     fun setTomTomLabelLanguage(locale: Locale) {
         if (wantedStyle?.contains("/assets/styles/") != true) return
-        try { style?.localizeLabels(locale) } catch (e: Throwable) { android.util.Log.w("MapBinding", "TomTom label language", e) }
+        style?.let { tomTomLabels(it, locale) }
+    }
+
+    /**
+     * TomTom's map in the app's language (GitHub #243, #278: still in Arabic in the UAE). Mapbox's own label translation only
+     * touches Mapbox's map data, so it did nothing to TomTom's. TomTom's tiles carry each name as "name" (the local language)
+     * and "name_<language>" ("name_en", "name_zh-Hant"), so every label that shows "name" is pointed at the app's language
+     * first, then the local name where there's no translation. The original text is remembered, so changing language again works.
+     */
+    private val ttFieldOrig = HashMap<String, String>()
+    private fun tomTomLabels(st: Style, locale: Locale) {
+        try {
+            val lang = locale.language.ifBlank { "en" }
+            val tag = locale.toLanguageTag()
+            val script = locale.script
+            val keys = LinkedHashSet<String>().apply {
+                if (script.isNotBlank()) add("name_$lang-$script")
+                if (tag.contains('-') && tag != lang) add("name_$tag")
+                if (lang == "zh") add(if (locale.country in setOf("TW", "HK", "MO")) "name_zh-Hant" else "name_zh-Hans")
+                add("name_$lang")
+                if (lang == "nb" || lang == "nn") add("name_no")
+            }
+            val coalesce = "[\"coalesce\"," + keys.joinToString(",") { "[\"get\",\"$it\"]" } + ",[\"get\",\"name\"]]"
+            for (info in st.styleLayers) {
+                if (info.type != "symbol") continue
+                val id = info.id
+                if (id.startsWith("dl-")) continue
+                val orig = ttFieldOrig[id] ?: try { st.getStyleLayerProperty(id, "text-field").value.toJson() } catch (e: Throwable) { null }?.also { ttFieldOrig[id] = it } ?: continue
+                if (!orig.contains("\"name\"")) continue
+                val json = orig.replace(Regex("\\[\\s*\"get\"\\s*,\\s*\"name\"\\s*\\]"), coalesce)
+                if (json == orig) continue
+                val v = com.mapbox.bindgen.Value.fromJson(json).value ?: continue
+                st.setStyleLayerProperty(id, "text-field", v)
+            }
+        } catch (e: Throwable) { android.util.Log.w("MapBinding", "TomTom label language", e) }
     }
 
     /** Asks for a map style (a Mapbox style address such as [Style.STANDARD]). Loading the same one again does nothing. */
@@ -708,7 +741,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             mbMap.loadStyle(if (standard) wrapperJson(url) else url) { st ->
                 if (token != styleToken) return@loadStyle
                 style = st
-                if (url.contains("/assets/styles/")) try { st.localizeLabels(L.locale) } catch (e: Throwable) { android.util.Log.w("MapBinding", "TomTom label language", e) }
+                if (url.contains("/assets/styles/")) { ttFieldOrig.clear(); tomTomLabels(st, L.locale) }
                 try { install(st) } catch (e: Throwable) { android.util.Log.w("MapBinding", "install failed", e) }
                 onStyleLoaded?.invoke()
             }
