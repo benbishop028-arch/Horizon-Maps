@@ -463,6 +463,26 @@ object MapboxRest {
         return turns >= 2
     }
 
+    /**
+     * The other roads at a turn's junction, as turns from the way you arrive (0 ahead, 90 right, -90 left), from the junction's
+     * bearings: every road but the one you come in on and the one you take. Only the real roads are then drawn faintly round the
+     * turn arrow (a T-junction no longer shows a road straight on, mjdshibly #237). Null when the data isn't there.
+     */
+    private fun sideRoads(j: JSONObject?): List<Double>? = try {
+        val b = j?.optJSONArray("bearings")
+        val inI = j?.optInt("in", -1) ?: -1; val outI = j?.optInt("out", -1) ?: -1
+        if (b == null || inI !in 0 until b.length() || outI !in 0 until b.length()) null else {
+            // (the "in" bearing points back the way you came; the way you're heading is opposite it)
+            val heading = (b.getDouble(inI) + 180.0) % 360.0
+            (0 until b.length()).filter { it != inI && it != outI }.map { i ->
+                var d = (b.getDouble(i) - heading) % 360.0
+                if (d > 180.0) d -= 360.0
+                if (d <= -180.0) d += 360.0
+                d
+            }
+        }
+    } catch (e: Exception) { null }
+
     private fun maneuverOf(type: String, mod: String, leftHand: Boolean): String {
         val left = mod.contains("left"); val right = mod.contains("right")
         fun turn(): String = when {
@@ -609,7 +629,8 @@ object MapboxRest {
                     val j0 = s.optJSONArray("intersections")?.optJSONObject(0)
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
-                        lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay)
+                        lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay,
+                        sides = sideRoads(j0))
                     sigOnWay = sigHere
                     if (type == "roundabout" || type == "rotary") rbIdx = steps.size - 1
                     // the lanes at this junction: which go where, and the ones to be in

@@ -1702,6 +1702,7 @@ object I18nMr {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "मोफत आवृत्तीत ऑफलाइन पॅक पायरीत तुमचा देश डाउनलोड करा: त्यावरूनच मार्ग ठरतात.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus चालू आहे: नकाशा, शोध, मार्ग आणि वाहतूक Horizon Maps ची स्वतःची खाती वापरतात, त्यामुळे की जोडायची गरज नाही.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "मोफत आवृत्ती OpenStreetMap वापरते, मार्ग डाउनलोड केलेल्या देशाच्या पॅकमधून. Horizon Maps Plus तपशीलवार 3D इमारती आणि महत्त्वाची ठिकाणे, उपग्रह आणि थेट वाहतूक जोडते, की सेट न करता.",
+        "Up to {0}% fits this car's screen" to "या गाडीच्या स्क्रीनवर {0}% पर्यंत बसते",
         "Search bar and places on the map" to "नकाशावर शोध पट्टी आणि ठिकाणे",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "रोटरी नॉब असलेल्या गाडीसाठी बंद: पूर्ण नकाशा, शोध, घर आणि काम ठिकाणे (★) मध्ये",
         "Average speed check" to "सरासरी वेग तपासणी",

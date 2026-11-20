@@ -281,8 +281,10 @@ fun ManeuverArrow(
     exitAngle: Float = Float.NaN,
     /** At a roundabout: the exit's number, written large inside a bigger ring (0 = no number, the plain smaller ring). */
     exitNumber: Int = 0,
+    /** The junction's other roads (degrees from straight on), drawn faintly; null = not known, so none are drawn. */
+    sides: List<Double>? = null,
 ) {
-    Canvas(modifier) { drawManeuver(maneuver, angle, color, roundaboutClockwise, exitAngle, exitNumber) }
+    Canvas(modifier) { drawManeuver(maneuver, angle, color, roundaboutClockwise, exitAngle, exitNumber, sides) }
 }
 
 /**
@@ -290,7 +292,7 @@ fun ManeuverArrow(
  * look the same.
  */
 fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: String, angle: Float, color: Color, roundaboutClockwise: Boolean,
-                                                                exitAngle: Float, exitNumber: Int) {
+                                                                exitAngle: Float, exitNumber: Int, sides: List<Double>? = null) {
     val s = size.minDimension / 48f
     val sw = 7f * s
     val u = maneuver.uppercase()
@@ -411,7 +413,19 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
     val ux = sin(r).toFloat(); val uy = -cos(r).toFloat()
     val by = 30f
     val keep = u.startsWith("KEEP_") || u.contains("FORK")
-    if (keep || kotlin.math.abs(angle) >= 15f) faded(0.25f) {
+    // The faint roads: at a fork, the branch not taken; at any other turn, only the roads that really meet the junction (from the
+    // route data), so a T-junction has no road straight on (mjdshibly #237). Not known: none, rather than a guess.
+    val realSides = if (keep) emptyList() else sides.orEmpty().filter { d ->
+        // (not the way you're going, nor back the way you came)
+        kotlin.math.abs(((d - angle + 540.0) % 360.0) - 180.0) > 25.0 && kotlin.math.abs(d) < 160.0
+    }
+    if (keep || realSides.isNotEmpty()) faded(0.25f) {
+        for (d in realSides) {
+            val a = Math.toRadians(d)
+            val sx = sin(a).toFloat(); val sy = -cos(a).toFloat()
+            // (from the turn point outwards, about as long as the arrow's own arm)
+            drawLine(color, p(24f, by), p(24f + sx * 21f, by + sy * 21f), sw, StrokeCap.Round)
+        }
         if (keep) {
             val o = Math.toRadians((if (angle < 0f) 30.0 else -30.0))
             val ox = sin(o).toFloat(); val oy = -cos(o).toFloat()
@@ -420,7 +434,7 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
                 quadraticTo(24 * s, by * s, (24f + ox * 4f) * s, (by + oy * 4f) * s)
                 lineTo((24f + ox * 13f) * s, (by + oy * 13f) * s)
             }, color, style = stroke)
-        } else drawLine(color, p(24f, 46f), p(24f, 3f), sw, StrokeCap.Round)
+        }
     }
     val ex = 24f + ux * 11f; val ey = by + uy * 11f
     val shaft = Path().apply {

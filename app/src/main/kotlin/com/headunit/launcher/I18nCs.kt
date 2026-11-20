@@ -1702,6 +1702,7 @@ object I18nCs {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "U bezplatné verze si v kroku Offline balíček stáhněte svou zemi: z něj se plánují trasy.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus je zapnutý: mapa, hledání, trasy a doprava používají účty Horizon Maps, takže není třeba přidávat klíče.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Bezplatná verze používá OpenStreetMap s trasami ze staženého balíčku země. Horizon Maps Plus přidává podrobné 3D budovy a památky, satelit a živou dopravu, bez nastavování klíčů.",
+        "Up to {0}% fits this car's screen" to "Až {0}% se vejde na displej tohoto auta",
         "Search bar and places on the map" to "Vyhledávací lišta a místa na mapě",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Vypněte v autě s otočným ovladačem: celá mapa, Hledat, Domov a Práce v Místech (★)",
         "Average speed check" to "Úsekové měření",

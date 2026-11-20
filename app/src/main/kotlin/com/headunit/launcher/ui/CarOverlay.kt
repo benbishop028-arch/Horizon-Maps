@@ -173,7 +173,7 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     val carTintStr = prefs.i(PreferenceKeys.CAR_TINT_STR, 40)
     OnChange(carTint, carTintStr) { map.setCarTint(carTint, carTintStr) }
     val light = lightOptsFrom(prefs)
-    OnChange(light.nightBright, light.moon, light.moonStr, light.shadows, light.sunReal, light.overcast, light.weatherLight) { map.setLightOpts(light) }
+    OnChange(light.nightBright, light.dayBright, light.moon, light.moonStr, light.shadows, light.sunReal, light.overcast, light.weatherLight) { map.setLightOpts(light) }
     val logoCorner = prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr")
     OnChange(logoCorner) { map.setLogoCorner(logoCorner) }
     val xFacades = prefs.b(PreferenceKeys.FACADES, true); val xLand = prefs.b(PreferenceKeys.LANDMARKS3D, true); val xPaths = prefs.b(PreferenceKeys.PATHS, true)
@@ -257,9 +257,43 @@ internal fun Modifier.carTap(id: String, action: () -> Unit): Modifier {
     return this.then(Modifier.onGloballyPositioned { CarTaps.set(id, it.boundsInRoot()) { act.value() } })
 }
 
+/**
+ * Overall size (Settings > Android Auto) used to make the app think the car screen was smaller: everything is laid out in the
+ * enlarged units, so past about 150% a roomy screen fell into the cramped small-screen layouts (cards squashed, labels dropped,
+ * the speedometer smaller) and the room kept for Android Auto's own buttons grew with it (magnazan, #234).
+ * So the layout is now picked from the screen's size at 100%, and the size is held at the most that layout still fits; the
+ * cards then lay themselves out as before, in the larger units. (Making things smaller than 100% is never held back.)
+ */
 @Composable
 private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: CarActions, onCover: (Int) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
+        val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
+        // the screen in the units it would have at 100%
+        val rawW = maxWidth.value * user; val rawH = maxHeight.value * user
+        var cap = Float.MAX_VALUE
+        // (each layout switch below is worked out from the size: keep on the roomier side of every one the screen is on at 100%)
+        if (rawW >= 900f) cap = minOf(cap, rawW / 900f)
+        if (rawH >= 460f) cap = minOf(cap, rawH / 460f)
+        if (rawH >= 330f) cap = minOf(cap, rawH / 330f)
+        if (rawW >= 600f) cap = minOf(cap, rawW / 600f)
+        if (rawW >= 1050f) cap = minOf(cap, rawW / 1050f)
+        val eff = if (user <= 1f) user else minOf(user, cap).coerceAtLeast(1f)
+        // (the most this screen fits, for the setting to say)
+        val most = (Math.floor((if (cap == Float.MAX_VALUE) 3f else cap.coerceAtMost(3f)) * 20.0) * 5).toInt().coerceAtLeast(100)
+        androidx.compose.runtime.SideEffect { if (engine.prefs.i(PreferenceKeys.CARSCALE_MAX, 0) != most) engine.prefs.put(PreferenceKeys.CARSCALE_MAX, most) }
+        val d = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(d.density * eff / user, d.fontScale)) {
+            CarScreenBody(engine, a, actions, onCover, eff)
+        }
+    }
+}
+
+/** The car screen's width, in the units the cards are laid out in (so a card's minimum width can't be wider than the room). */
+private val LocalCarWidth = androidx.compose.runtime.compositionLocalOf { 1000.dp }
+
+@Composable
+private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions: CarActions, onCover: (Int) -> Unit, sizeScale: Float) {
+    BoxWithConstraints(Modifier.fillMaxSize()) { CompositionLocalProvider(LocalCarWidth provides maxWidth) {
         val dens = LocalDensity.current
         val cardScale = engine.prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).coerceIn(70, 150) / 100f
         val buttonScale = engine.prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
@@ -323,15 +357,17 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val topTarget = if (portrait) insT + edge else insT.coerceAtMost(12.dp) + edge
         // On tall screens Android Auto's buttons hide after a few seconds and the cards move up smoothly.
         val top by androidx.compose.animation.core.animateDpAsState(topTarget, tween(300), label = "carTop")
+        // (Android Auto's own buttons don't grow with Overall size, so the room kept for them is taken back out of it)
+        val aaUnit = 1f / sizeScale.coerceAtLeast(1f)
         val controlsGap = when {
             portrait -> 64.dp
-            maxWidth < 900.dp -> 68.dp
-            maxWidth < 1250.dp -> 80.dp
+            maxWidth * sizeScale < 900.dp -> 68.dp
+            maxWidth * sizeScale < 1250.dp -> 80.dp
             else -> 92.dp
-        }
+        } * aaUnit
         val rightTop = insR + if (portrait) edge else controlsGap
         // Android Auto's zoom and re-centre buttons, bottom right; reserve less space on smaller displays.
-        val rightBottom = insR + if (portrait) 64.dp else controlsGap
+        val rightBottom = insR + if (portrait) 64.dp * aaUnit else controlsGap
         val bottom = insB + edge
         val previewing = engine.previewing
         val guiding = engine.route != null && !previewing
@@ -697,7 +733,7 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
                 }
             }
         }
-    }
+    } }
 }
 
 /** A faster route turned up while driving: switch or keep, as in the app. */
@@ -737,7 +773,7 @@ private fun SoundPill(engine: NavEngine) {
                 null, tint = tint, modifier = Modifier.size(18.dp),
             )
         }
-        Text(L.t(when (sm) { 0 -> "Sound on"; 1 -> "Alerts only"; else -> "Muted" }), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 8.dp))
+        Text(L.t(when (sm) { 0 -> "Sound on"; 1 -> "Alerts only"; else -> "Muted" }), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
     }
 }
 
@@ -749,9 +785,9 @@ private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
     val c = LocalVw.current
     val dc = delayTint(e.delayMin, c.surface)
     Column(Modifier.panel(10.dp, RoundedCornerShape(18.dp), c.surface).padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-        Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
-        Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+        Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         if (showEnd && "end" in carTripButtonsOn(engine.prefs)) {
             val sz = 34.dp * carButtonScale(engine)
             Box(Modifier.padding(top = 6.dp).size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
@@ -788,13 +824,14 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
         val nextStop = engine.via.firstOrNull()
         if (nextStop != null) Row(w.carTap("trip-stop") { actions.stops() }.padding(start = 16.dp, end = 16.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             val n = engine.via.size
-            Box(Modifier.size(22.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
+            // (sized from the text, so it grows with Text size instead of the number spilling out of it)
+            Box(Modifier.size(with(LocalDensity.current) { 22.sp.toDp() }).clip(androidx.compose.foundation.shape.CircleShape).background(c.accent), contentAlignment = Alignment.Center) {
                 Text(if (n > 1) "$n" else "1", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
             Text(nextStop.name, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp))
             engine.stopEtas.firstOrNull { it.place === nextStop }?.let { s ->
-                Text(s.arrive + " · " + Geo.fmtDur(s.secs), color = Good, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                Text(s.arrive + " · " + Geo.fmtDur(s.secs), color = Good, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
             }
         }
         val end: @Composable (androidx.compose.ui.unit.Dp) -> Unit = { sz ->
@@ -836,9 +873,9 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
                 val sz = 36.dp * grow1
                 // (the figures open the stops card)
                 Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                    Text(e.arrive, color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-                    Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+                    Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                    Text(e.arrive, color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+                    Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
                 }
                 // (across a set width, the buttons go to the far end)
                 if (fill) androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
@@ -866,7 +903,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.weight(1f).carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats() }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(36.dp) }
-        } else Row(Modifier.widthIn(min = if (on.size >= 3) 400.dp else 0.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
+        } else Row(Modifier.widthIn(min = if (on.size >= 3) minOf(400.dp, LocalCarWidth.current * 0.45f) else 0.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats() }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(40.dp) }
@@ -882,8 +919,8 @@ private fun carButtonScale(engine: NavEngine): Float = engine.prefs.i(Preference
 private fun CarStat(value: String, label: String, color: Color) {
     val c = LocalVw.current
     Column {
-        Text(value, color = color, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-        Text(label, color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false)
+        Text(value, color = color, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        Text(label, color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -1105,8 +1142,8 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
             .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
             Text(if (place == null) L.t(if (id == "work") "Set work" else "Set home") else label, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
-                maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 6.dp))
-            if (place != null && mins != null && mins > 0) Text(Geo.fmtDur(mins * 60.0), color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false, modifier = Modifier.padding(start = 6.dp))
+                maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp))
+            if (place != null && mins != null && mins > 0) Text(Geo.fmtDur(mins * 60.0), color = c.sub, fontSize = 14.sp, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp))
         }
     }
     @Composable fun round(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, act: () -> Unit) {

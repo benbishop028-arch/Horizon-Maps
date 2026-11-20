@@ -855,13 +855,13 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             val rb = m.startsWith("ROUNDABOUT")
             val ea = if (rb) com.headunit.launcher.ui.roundaboutTurn(t.rbIn, t.rbOut) else Float.NaN
             val num = if (rb) t.exit else 0
-            val key = "$m|$num|${if (ea.isNaN()) "-" else Math.round(ea / 5f).toString()}|$clockwise"
+            val key = "$m|$num|${if (ea.isNaN()) "-" else Math.round(ea / 5f).toString()}|$clockwise|${t.sides?.joinToString(",") { Math.round(it / 10.0).toString() }}"
             arrowCache?.takeIf { it.first == key }?.second ?: run {
                 val px = 144
                 val bmp = android.graphics.Bitmap.createBitmap(px, px, android.graphics.Bitmap.Config.ARGB_8888)
                 androidx.compose.ui.graphics.drawscope.CanvasDrawScope().draw(androidx.compose.ui.unit.Density(1f), androidx.compose.ui.unit.LayoutDirection.Ltr,
                     androidx.compose.ui.graphics.Canvas(bmp.asImageBitmap()), androidx.compose.ui.geometry.Size(px.toFloat(), px.toFloat())) {
-                    drawManeuver(t.maneuver, com.headunit.launcher.Geo.maneuverAngle(t.maneuver), androidx.compose.ui.graphics.Color.White, clockwise, ea, num)
+                    drawManeuver(t.maneuver, com.headunit.launcher.Geo.maneuverAngle(t.maneuver), androidx.compose.ui.graphics.Color.White, clockwise, ea, num, t.sides)
                 }
                 arrowCache = key to bmp
                 bmp

@@ -210,7 +210,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     LaunchedEffect(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }
     // Light and weather, and the "Match my car" colour
     val lightOpts = com.headunit.launcher.lightOptsFrom(prefs)
-    LaunchedEffect(lightOpts.nightBright, lightOpts.moon, lightOpts.moonStr, lightOpts.shadows, lightOpts.sunReal, lightOpts.overcast, lightOpts.weatherLight) {
+    LaunchedEffect(lightOpts.nightBright, lightOpts.dayBright, lightOpts.moon, lightOpts.moonStr, lightOpts.shadows, lightOpts.sunReal, lightOpts.overcast, lightOpts.weatherLight) {
         map.setLightOpts(lightOpts)
     }
     val wxCode = engine.weather?.code

@@ -5717,7 +5717,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (thenOn && nxt != null) L.t("Then {0}", Geo.maneuverText(nxt.maneuver, nxt.roundExit) + (if (nxt.street.isNotBlank()) L.t(" onto {0}", nxt.street) else "")) else "",
                 laneSec, Geo.stepTag(cur), laneAdv, cur.roundExit, cur.sign,
                 exitNo = cur.exitNo, rbIn = cur.rbIn, rbOut = cur.rbOut, rbExits = cur.rbExits, thenGap = if (thenOn) gap else 0.0, thenExit = if (thenOn) (nxt?.roundExit ?: 0) else 0,
-                junctionPic = cur.junctionPic,
+                junctionPic = cur.junctionPic, sides = cur.sides,
                 thenStreet = if (thenOn) nxt?.street.orEmpty() else "",
                 landmark = if (d <= 500) when (lm) { 1 -> L.t("At the lights"); 2 -> L.t("At the second set of lights"); 3 -> L.t("At the stop sign"); else -> "" } else "",
             )

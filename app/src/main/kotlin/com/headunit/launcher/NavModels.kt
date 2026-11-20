@@ -28,6 +28,8 @@ class TurnInfo(
     val landmark: String = "",
     /** The road the following manoeuvre goes onto (for the short "then" line, with a roundabout's exit number in its icon). */
     val thenStreet: String = "",
+    /** The other roads at the junction (degrees from straight on), for the turn arrow's faint roads; null when unknown. */
+    val sides: List<Double>? = null,
 )
 /** Countries that use miles for road distances and speeds. */
 val MILES_COUNTRIES = setOf("GB", "US", "PR", "LR", "MM", "IM", "GG", "JE", "VG", "VI", "AG", "DM", "GD", "KN", "LC", "VC", "BS", "KY", "FK", "SH", "WS", "GU", "AS", "MP")

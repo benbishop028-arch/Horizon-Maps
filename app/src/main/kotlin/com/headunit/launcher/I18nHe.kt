@@ -1702,6 +1702,7 @@ object I18nHe {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "בגרסה החינמית, הורד את המדינה שלך בשלב חבילה לא מקוונת: ממנה מתוכננים המסלולים.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus פעיל: המפה, החיפוש, המסלולים והתנועה משתמשים בחשבונות של Horizon Maps, כך שאין מפתחות להוסיף.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "הגרסה החינמית משתמשת ב-OpenStreetMap, עם מסלולים מחבילת המדינה שהורדה. Horizon Maps Plus מוסיף מבנים ואתרים בולטים מפורטים בתלת-ממד, לוויין ותנועה בזמן אמת, בלי מפתחות להגדיר.",
+        "Up to {0}% fits this car's screen" to "עד {0}% נכנס במסך של הרכב הזה",
         "Search bar and places on the map" to "שורת חיפוש ומקומות על המפה",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "כבוי ברכב עם חוגה: המפה המלאה, עם חיפוש, בית ועבודה תחת מקומות (★)",
         "Average speed check" to "אכיפת מהירות ממוצעת",

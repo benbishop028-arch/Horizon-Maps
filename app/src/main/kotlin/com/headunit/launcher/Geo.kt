@@ -16,7 +16,10 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
     val rbIn: Double = -1.0, val rbOut: Double = -1.0, val rbExits: List<Double> = emptyList(),
     /** Mapbox marks traffic lights / a stop sign at this junction ([lights], [stopSign]), and how many lights it marks on the way to it
      *  ([lightsBefore]), for "At the traffic lights, turn right". */
-    val lights: Boolean = false, val stopSign: Boolean = false, val lightsBefore: Int = 0)
+    val lights: Boolean = false, val stopSign: Boolean = false, val lightsBefore: Int = 0,
+    /** The other roads at this junction, as turns from the way you arrive (degrees, 0 ahead, 90 right), for the faint roads on the
+     *  turn arrow; null when the route data doesn't say. */
+    val sides: List<Double>? = null)
 /** A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). */
 data class Place(val name: String, val sub: String, val pos: LL, val web: String = "")
 

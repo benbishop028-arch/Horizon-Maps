@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Map brightness in Map options: a slider under Day and Night sets how bright the map is, for whichever of day and night is showing. Set each once and the brightness changes with the time of day. Day brightness is new; night brightness is the one in Settings › Light & 3D (thanks to mjdshibly)
 - Android Auto: Search bar and places on the map: a switch in Settings › Android Auto (and in the car's own settings) to leave the search bar, Home and Work and the shortcut buttons off the map when you're not navigating. For cars with a rotary knob and no touchscreen, which can't reach them: the map gets the whole screen, and Places (★) in Android Auto's own buttons still has Search, Home, Work and your saved places (thanks to wass0035)
 - Español (México): Spanish for Mexico and most of Latin America, with tú ("gira a la derecha", "toma la salida"), glorieta, gasolinera and tráfico, and a Mexican voice. Picked by itself on phones set to Spanish in Mexico, Central and South America (Argentina and Uruguay keep their own) and the US, or in Settings › Sound & voice › Language (thanks to the tester who asked for it)
 - Ukrainian: the whole app in Українська, with spoken directions, roundabout exits and voice commands. Picked by itself on a phone set to Ukrainian, or in Settings › Sound & voice › Language (thanks to Naryma, who has offered to check the wording)
@@ -64,6 +65,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Turn arrows show the real junction: the faint roads beside the arrow are now the roads that really meet there, from the route data, so a T-junction no longer shows a road straight on and a bend shows none (thanks to mjdshibly)
+- Turn card progress bar: it now appears only once it starts filling, about 450 m before the turn, instead of sitting empty for kilometres (thanks to mjdshibly)
 - Turn card at motorway exits: the blue "EXIT 4" strip is gone. The exit number badge beside the road name already shows it, and the strip's arrows always pointed right, even for an exit on the left (thanks to mjdshibly)
 - Hazard radar without crossings: switching off Zebra crossings (Settings › On the map) now takes pedestrian crossings off the hazard radar too, so it only lists what matters to you as a driver (thanks to joel941703)
 - Problem reports: now include what ended the last few routes (which screen, and whether it was to Home, Work or elsewhere, never the place itself), to track down a route that cancels itself (thanks to carlb051)
@@ -140,6 +143,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Android Auto sizes above 150%: raising Overall size made the app think the car screen was smaller, so it switched to the cramped small-screen layouts (squashed cards, missing labels, a smaller speedometer) and kept more and more room for Android Auto's own buttons. The layout is now chosen from the screen's real size, Android Auto's buttons get the same room at any size, and Overall size goes only as far as that layout still fits; the setting says how far that is ("Up to 160% fits this car's screen"). Text that can't fit is cut off neatly, and the stop number badge grows with Text size (thanks to magnazan, for the detailed report)
 - Faded lane arrows: in the big lane picture the faded arrows (lanes not to use) had brighter patches where their lines joined and where two arrows share a stem. Each lane's arrows are now drawn as one shape, so the faded ones are evenly faded (thanks to mjdshibly)
 - Roundabout arrows pointing the wrong way: on Mapbox routes the turn card's roundabout arrow often pointed somewhere other than the exit you take. It was drawn from the road's direction at the next turn after the roundabout rather than at the exit itself; the app now asks Mapbox for the exit's own position, so the arrow shows the exit you really take (thanks to mjdshibly)
 - Floating windows: in a freeform or split-screen window (Taskbar and similar), the app no longer hides the bars, which also hid the window's own title bar, so the window couldn't be dragged, resized or made full screen. Full screen still applies when the app has the whole screen (thanks to Grouchy_Promotion)

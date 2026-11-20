@@ -337,6 +337,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var colours = "mapbox"
     /** Whether the style has Standard's slots (classic styles don't: the app's layers then simply go on top). */
     private var slotsOn = true
+    /** Mapbox's own map is showing, whose light the app can set (the brightness slider is only offered then). */
+    @Volatile var lightsAdjustable = true
+        private set
 
     /** Puts a layer in one of Standard's slots (only when the style has them). */
     private fun <T : Layer> T.inSlot(s: String): T { if (slotsOn) slot(s); return this }
@@ -493,7 +496,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // nothing calls for the app's own any more, the map is loaded again.
     class LightOpts(
         val nightBright: Int = 100, val moon: Boolean = false, val moonStr: Int = 100, val shadows: Boolean = true,
-        val sunReal: Boolean = false, val overcast: Boolean = false, val weatherLight: Boolean = false,
+        val sunReal: Boolean = false, val overcast: Boolean = false, val weatherLight: Boolean = false, val dayBright: Int = 100,
     )
     private var lightOpts = LightOpts()
     private var lightsApplied: String? = null
@@ -559,11 +562,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             }
             "day" -> {
                 val grey = o.overcast || (o.weatherLight && (raining() || snowing()))
-                if (!grey && !o.sunReal && o.shadows) return null
+                val kd = o.dayBright / 100.0
+                if (!grey && !o.sunReal && o.shadows && o.dayBright == 100) return null
                 if (grey) {
                     // overcast: soft light from all round, no hard shadows (greyer still when it's raining)
                     val wet = o.weatherLight && (raining() || snowing())
-                    lightJson(if (wet) "#DCE0E6" else "#F2F4F7", if (wet) 0.86 else 0.92, "#FFFFFF", 0.08, 180.0, 30.0, false, 0.0)
+                    lightJson(if (wet) "#DCE0E6" else "#F2F4F7", (if (wet) 0.86 else 0.92) * kd, "#FFFFFF", 0.08 * kd, 180.0, 30.0, false, 0.0)
                 } else {
                     var az = 180.0; var polar = 30.0
                     if (o.sunReal) try {
@@ -571,7 +575,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                         val (a, el) = Sun.position(c.latitude(), c.longitude(), System.currentTimeMillis())
                         az = a; polar = (90.0 - el).coerceIn(15.0, 75.0)
                     } catch (e: Throwable) { }
-                    lightJson("#FFFFFF", 0.8, "#FFFFFF", 0.2, az, polar, o.shadows, 0.3)
+                    lightJson("#FFFFFF", 0.8 * kd, "#FFFFFF", 0.2 * kd, az, polar, o.shadows, 0.3)
                 }
             }
             else -> null
@@ -691,6 +695,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // Standard (and Standard Satellite) come wrapped with their settings; Mapbox's classic 2D styles load as they are
         val standard = url == Style.STANDARD || url == Style.STANDARD_SATELLITE
         slotsOn = standard
+        lightsAdjustable = standard
         try {
             mbMap.loadStyle(if (standard) wrapperJson(url) else url) { st ->
                 if (token != styleToken) return@loadStyle

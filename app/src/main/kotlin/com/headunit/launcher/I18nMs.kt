@@ -1702,6 +1702,7 @@ object I18nMs {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Dengan versi percuma, muat turun negara anda dalam langkah Pek luar talian: ia merancang laluan anda.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus aktif: peta, carian, laluan dan trafik menggunakan akaun Horizon Maps sendiri, jadi tiada kunci untuk ditambah.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versi percuma menggunakan OpenStreetMap, dengan laluan daripada pek negara yang dimuat turun. Horizon Maps Plus menambah bangunan dan mercu tanda 3D yang terperinci, satelit dan trafik langsung, tanpa kunci untuk ditetapkan.",
+        "Up to {0}% fits this car's screen" to "Sehingga {0}% muat pada skrin kereta ini",
         "Search bar and places on the map" to "Bar carian dan tempat pada peta",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Matikan untuk kereta dengan tombol putar: peta penuh, dengan Cari, Rumah dan Kerja di bawah Tempat (★)",
         "Average speed check" to "Pemeriksaan kelajuan purata",

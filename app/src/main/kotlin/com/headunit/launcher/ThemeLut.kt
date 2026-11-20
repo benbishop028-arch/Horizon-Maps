@@ -101,6 +101,7 @@ object ThemeLut {
 /** The Light and weather settings, for the map. */
 fun lightOptsFrom(prefs: Prefs) = MapBinding.LightOpts(
     nightBright = prefs.i(PreferenceKeys.NIGHT_BRIGHT, 100).coerceIn(30, 200),
+    dayBright = prefs.i(PreferenceKeys.DAY_BRIGHT, 100).coerceIn(50, 150),
     moon = prefs.b(PreferenceKeys.MOONLIT, false),
     moonStr = prefs.i(PreferenceKeys.MOON_STR, 100).coerceIn(0, 200),
     shadows = prefs.b(PreferenceKeys.SHADOWS, true),

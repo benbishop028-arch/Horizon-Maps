@@ -145,7 +145,7 @@ internal fun CarSettingsPanel(engine: NavEngine, actions: CarActions, small: Boo
                     else -> {
                         item {
                             val v = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300)
-                            SetStepper("st-scale", L.t("Overall size"), "$v%", { prefs.put(PreferenceKeys.CARSCALE, (v - 10).coerceAtLeast(40)) }, { prefs.put(PreferenceKeys.CARSCALE, (v + 10).coerceAtMost(300)) })
+                            SetStepper("st-scale", L.t("Overall size"), "$v%" + (prefs.i(PreferenceKeys.CARSCALE_MAX, 0).takeIf { it in 100..299 && v > it }?.let { " (" + L.t("Up to {0}% fits this car's screen", it) + ")" } ?: ""), { prefs.put(PreferenceKeys.CARSCALE, (v - 10).coerceAtLeast(40)) }, { prefs.put(PreferenceKeys.CARSCALE, (v + 10).coerceAtMost(300)) })
                         }
                         item {
                             val opts = listOf("bl" to L.t("Bottom left"), "br" to L.t("Bottom right"), "middle" to L.t("Under turn"), "top" to L.t("Top right"))

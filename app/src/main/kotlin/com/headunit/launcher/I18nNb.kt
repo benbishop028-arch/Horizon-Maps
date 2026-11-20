@@ -1702,6 +1702,7 @@ object I18nNb {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Med gratisversjonen laster du ned landet ditt i trinnet Frakoblet pakke: den planlegger rutene dine.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus er på: kart, søk, ruter og trafikk bruker Horizon Maps' egne kontoer, så det er ingen nøkler å legge til.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Gratisversjonen bruker OpenStreetMap, med ruter fra den nedlastede landpakken. Horizon Maps Plus legger til detaljerte 3D-bygninger og landemerker, satellitt og trafikk i sanntid, uten nøkler å sette opp.",
+        "Up to {0}% fits this car's screen" to "Opptil {0}% passer på skjermen i denne bilen",
         "Search bar and places on the map" to "Søkefelt og steder på kartet",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Av i en bil med dreieknapp: hele kartet, med Søk, Hjem og Jobb under Steder (★)",
         "Average speed check" to "Strekningsmåling",

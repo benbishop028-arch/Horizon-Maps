@@ -1702,6 +1702,7 @@ object I18nRo {
         "With the free version, download your country in the Offline pack step: it's what plans your routes." to "Cu versiunea gratuită, descarcă-ți țara la pasul Pachet offline: din el se planifică rutele.",
         "Plus is on: the map, search, routes and traffic use Horizon Maps' own accounts, so there are no keys to add." to "Plus e activ: harta, căutarea, rutele și traficul folosesc conturile Horizon Maps, deci nu ai chei de adăugat.",
         "The free version uses OpenStreetMap, with routes from your downloaded country pack. Horizon Maps Plus adds detailed 3D buildings and landmarks, satellite and live traffic, with no keys to set up." to "Versiunea gratuită folosește OpenStreetMap, cu rute din pachetul de țară descărcat. Horizon Maps Plus adaugă clădiri și repere 3D detaliate, satelitul și traficul live, fără chei de setat.",
+        "Up to {0}% fits this car's screen" to "Până la {0}% încape pe ecranul acestei mașini",
         "Search bar and places on the map" to "Bara de căutare și locurile pe hartă",
         "Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)" to "Dezactivat pentru o mașină cu buton rotativ: toată harta, cu Căutare, Acasă și Serviciu în Locuri (★)",
         "Average speed check" to "Control viteză medie",
