@@ -7,6 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### Improved
 - Battery: on a phone, the screen now goes off as usual while you're only looking at the map, and stays on just while you're following a route (it stayed on the whole time the app was open). Head units keep it on as before
 - Battery: with another app in front and no route, the map's per-frame work stops completely, instead of waking the phone at every screen refresh
+- Problem reports now say what the app did in the background today: how long GPS ran (with and without a route) and how many online requests were made, by which part of the app, to track down battery drain
 - Battery: a trip the phone carried on with after Android Auto was unplugged with the car parked now ends after 10 minutes of not driving, so GPS and guidance don't keep running in your pocket as you walk away
 
 ### New

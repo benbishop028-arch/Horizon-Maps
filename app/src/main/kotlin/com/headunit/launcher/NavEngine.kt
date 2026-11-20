@@ -640,6 +640,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     init {
         NetHealth.appCtx = ctx.applicationContext
+        BgLog.appCtx = ctx.applicationContext
         EuFuel.filesDir = ctx.filesDir
         CarTrains.filesDir = ctx.filesDir   // (the car-train lines, for Avoid car trains)   // (Italy's fuel price list is kept on the device)
         // the language for directions (Settings > Sound & voice > Language): before the voice starts, so it starts in it
@@ -1368,6 +1369,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var startSavedAt = 0L
 
     private fun handleLocation(l: Location, first: Boolean) {
+        if (!isCar) try { BgLog.fix(route != null && !previewing) } catch (e: Throwable) { }
         try { handleLocationInner(l, first) } catch (e: Exception) { android.util.Log.w("NavEngine", "location handling failed", e) }
     }
 
@@ -1654,6 +1656,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
             try { NetHealth.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Connection problems:"); append(it) } } catch (e: Throwable) { }
+            try { BgLog.text().takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("In the background today:"); append(it) } } catch (e: Throwable) { }
             try { SessionWatch.exitHistory(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("How the app last ended (Android's record):"); append(it) } } catch (e: Throwable) { }
             if (crash != null) { appendLine(); appendLine("Last crash:"); appendLine(crash) }
             val freeze = try { FreezeWatch.file(ctx).takeIf { it.exists() }?.readText()?.take(2500) } catch (e: Exception) { null }
@@ -3774,6 +3777,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var glideRunning = false
     /** The app is on screen (set by the activity): in the background the per-frame work drops right down. */
     @Volatile var appVisible = true
+        set(v) { field = v; if (!isCar) BgLog.foreground = v }
     private var gLastNs = 0L
     private var gGuideAt = 0L
     private var gFullAt = 0L

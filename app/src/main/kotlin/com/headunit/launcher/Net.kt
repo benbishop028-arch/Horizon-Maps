@@ -11,5 +11,6 @@ object Net {
     /** Throws straight away in offline mode, before any connection is tried. */
     fun check() {
         if (offline) throw java.io.IOException("Offline mode is on")
+        BgLog.request()
     }
 }
