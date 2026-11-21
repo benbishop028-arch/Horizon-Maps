@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Quick reports on Android Auto: a flag on the trip card opens a small panel over the map (Police, Crash, Hazard, Broken down, Mobile camera); one tap reports where you are, and it closes by itself after 8 seconds. It can be switched off under Settings › Android Auto › Buttons on the trip card (thanks to sagarraul06-glitch, #290)
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed

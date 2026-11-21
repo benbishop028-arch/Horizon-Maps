@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.EvStation
@@ -164,6 +165,7 @@ internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color
     Triple("routes", "Other routes", Icons.Rounded.AltRoute to Color(0xFF4C8DFF)),
     Triple("sound", "Sound", Icons.Rounded.VolumeUp to Color(0xFF4C8DFF)),
     Triple("search", "Search", Icons.Rounded.Search to Color(0xFF4C8DFF)),
+    Triple("report", "Report", Icons.Rounded.Flag to Color(0xFF4C8DFF)),
     Triple("end", "End", Icons.Rounded.Close to Color(0xFFE5484D)),
 )
 
@@ -173,7 +175,8 @@ internal fun carTripButtonsOn(prefs: com.headunit.launcher.Prefs): Set<String> {
     // (unless picked otherwise, just the button that ends the route: Overview and Other routes are among Android Auto's own round
     // buttons in the top corner while navigating, which fold away, so the trip card stays small)
     // (and Search: a stop on the way, or somewhere else to go, while navigating)
-    return if (raw == "*") setOf("search", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
+    // (and Report: police, a crash or a hazard with one tap, GitHub #290)
+    return if (raw == "*") setOf("search", "report", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
 }
 
 /** Settings > Android Auto: which buttons the trip card has, and how big they are (a narrower card leaves more of the map clear). */

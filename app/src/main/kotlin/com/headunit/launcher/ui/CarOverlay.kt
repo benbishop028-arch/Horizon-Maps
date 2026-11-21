@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Mic
@@ -569,6 +570,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         if (settingsOpen) {
             CarSettingsPanel(engine, actions, small, Modifier.padding(start = left, top = top, end = insR + 8.dp, bottom = bottom).fillMaxSize())
         }
+        // quick reports (the flag on the trip card): top right, beside Android Auto's own buttons (GitHub #290)
+        if (CarReportCard.open && guiding && !covered && !arriving) {
+            Box(Modifier.align(Alignment.TopEnd).padding(top = top, end = rightTop + 8.dp)) { CarReportPanel(engine) }
+        }
 
         if (!previewing && !arriving && !covered) {
             val hazards: @Composable () -> Unit = {
@@ -889,6 +894,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
                     if ("routes" in on) small(androidx.compose.material.icons.Icons.Rounded.AltRoute, "altroutes", { engine.findAlternatives() }, sz)
                     if ("sound" in on) sound(sz)
                     if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
+                    if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
                     if ("end" in on) end(sz)
                 }
             }
@@ -902,6 +908,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
             if ("sound" in on) sound(sz)
             // search while navigating: a stop on the way, or somewhere else to go
             if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
+            if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
             if ("end" in on) end(sz)
         }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
