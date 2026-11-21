@@ -63,6 +63,7 @@ Move items to **Done** as they ship, and add new requests at the bottom of the r
 - Easier stops: one-tap fuel, coffee and so on along the route.
 - Change Home and Work, and rename favourites.
 - Report police, crashes and hazards without a route.
+- Quick report access on the phone map: open Police, Crash, Hazard, Broken down and Mobile camera without first opening Map options (GitHub #275).
 - The Saved & recent list can be folded away or swiped off.
 - Offline maps for many more countries, and several areas at once.
 - Mapbox key working on a second device (stray spaces in pasted keys are removed).

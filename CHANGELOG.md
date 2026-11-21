@@ -5,7 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
-- Multi-stop journey history: remember the destination and every stop as soon as the route is planned, so it can be previewed again with the same stops and fresh traffic (thanks to neilch0111, #279)
+- Multi-stop journey history: remember the destination and every stop as soon as the route is planned, so it can be previewed again with the same stops and fresh traffic
+
+### Improved
+- Quick reports on the map: open Police, Crash, Hazard, Broken down and Mobile camera from a button above the zoom controls, without opening Map options (thanks to ricres77, #275)
 
 ### Fixed
 - Malayalam wording: refine Delete, fuel use and price, fuel-stop suggestions and the map-selection label (thanks to bijindas, #244)

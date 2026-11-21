@@ -82,6 +82,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.LocalParking
@@ -219,6 +220,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val shareEta = rememberShareEta(engine)
     var q by rememberSaveable { mutableStateOf("") }
     var sheet by remember { mutableStateOf(false) }
+    var quickReportOpen by remember { mutableStateOf(false) }
     // voice: "take me to…", "share my ETA", "avoid this road", "mute"… anything else is searched for
     val voice = rememberVoiceInput(L.t("Say a destination or a command")) { said ->
         when (val r = engine.handleVoice(said)) {
@@ -236,6 +238,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     // text shared from another app goes into the search box
     LaunchedEffect(engine.externalQuery) { engine.externalQuery?.let { q = it; engine.externalQuery = null } }
     BackHandler(enabled = sheet) { sheet = false }
+    BackHandler(enabled = quickReportOpen) { quickReportOpen = false }
     val routing = engine.route != null && !engine.previewing
     val previewing = engine.previewing
     val simple by remember { derivedStateOf { engine.driving && engine.prefs.b(PreferenceKeys.DRIVESIMPLE, true) } }
@@ -411,7 +414,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             // are on the trip card while navigating, Settings is beside these when you're not (and in map options' header when you are)
             val railItems = ArrayList<@Composable () -> Unit>()
             railItems.add(@Composable { ImmCompass(engine) })
-            railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
+            // #275: keep one-tap reports on the map itself, rather than making drivers open Map options first.
+            railItems.add(@Composable { ImmIcon(Icons.Rounded.Flag, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
+            railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             // navigating: sound in one big button with the others (voice, alerts only, mute), as in Google Maps. It used to be a small
             // button on the trip card, close to the others and hard to hit while driving (GitHub, magnazan)
             if (routing) railItems.add(@Composable {
@@ -500,6 +505,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 else Row(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
                 }
+                // The compact panel opens inward from the report button, keeping the zoom controls and screen edge clear.
+                AnimatedVisibility(
+                    visible = quickReportOpen,
+                    modifier = Modifier.align(side(Alignment.TopEnd))
+                        .padding(top = railTop + 8.dp, start = if (mir) 76.dp else 12.dp, end = if (mir) 12.dp else 76.dp)
+                        .zIndex(10f),
+                    enter = fadeIn(tween(140)) + androidx.compose.animation.slideInHorizontally(tween(180), initialOffsetX = { if (mir) -it / 5 else it / 5 }),
+                    exit = fadeOut(tween(120)) + androidx.compose.animation.slideOutHorizontally(tween(140), targetOffsetX = { if (mir) -it / 5 else it / 5 }),
+                ) { QuickReportPanel(engine) { quickReportOpen = false } }
             }
         } else androidx.compose.runtime.SideEffect { engine.setPanel(2, 0f, 0f, 0f, 0f); if (buttonsWPx != 0) buttonsWPx = 0 }
 
@@ -722,6 +736,31 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     }
 }
 
+/** The same one-tap reports as Map options, brought onto the map for quick access (#275). */
+@Composable
+private fun QuickReportPanel(engine: NavEngine, close: () -> Unit) {
+    val c = LocalVw.current
+    val shape = RoundedCornerShape(22.dp)
+    Column(
+        Modifier.width(260.dp).panel(8.dp, shape, c.panel).border(1.dp, c.line, shape).padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(L.t("Report here"), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            ImmIcon(Icons.Rounded.Close, close, size = 36.dp, desc = L.t("Close"))
+        }
+        WideTiles(2, listOf(
+            TileSpec(Icons.Rounded.LocalPolice, L.t("Police"), Color(0xFF1E66F5), { engine.report("police"); close() }),
+            TileSpec(Icons.Rounded.CarCrash, L.t("Crash"), Bad, { engine.report("accident"); close() }),
+            TileSpec(Icons.Rounded.PriorityHigh, L.t("Hazard"), Warn, { engine.report("hazard"); close() }),
+            TileSpec(Icons.Rounded.Build, L.t("Broken down"), Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
+        ), compact = true)
+        WideTiles(1, listOf(
+            TileSpec(Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
+        ), compact = true)
+    }
+}
+
 /**
  * Map options: the map's look first (Standard or Satellite, Auto / Day / Night), then what's shown on it as tiles that light up when
  * on, then the trip tools, reports and things to find. In landscape on a wide screen it's twice as wide, in two columns, so nothing
@@ -806,7 +845,7 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
                     TileSpec(Icons.Rounded.CarCrash, L.t("Crash"), Bad, { engine.report("accident"); close() }),
                     TileSpec(Icons.Rounded.PriorityHigh, L.t("Hazard"), Warn, { engine.report("hazard"); close() }),
                     TileSpec(Icons.Rounded.Build, L.t("Broken down"), Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
-                    TileSpec(Icons.Rounded.CameraAlt, L.t("Mobile cam"), Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
+                    TileSpec(Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
                 ), compact = true)
                 // with no route the map page already has fuel, charging, food, coffee and parking, so only the rest are here
                 fun find(kind: String): () -> Unit = { engine.loadNearby(kind, false); close() }
