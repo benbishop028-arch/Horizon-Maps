@@ -512,7 +512,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val otherP = if (mainP == "mapbox") "tomtom" else "mapbox"
         // the other service on a thread of its own, so the two are asked at the same time
         val other = java.util.concurrent.FutureTask<List<Route>>(java.util.concurrent.Callable {
-            try { routesFrom(otherP, from, to, false, departAtMs, via, headingDeg, false) } catch (e: Exception) { emptyList<Route>() }
+            try { routesFrom(otherP, from, to, false, departAtMs, via, headingDeg, false) } catch (e: Exception) {
+                // (a refused key or a used-up limit: stop asking that service alongside for an hour, instead of on every route)
+                val m = e.message ?: ""
+                if (m.startsWith("TomTom didn't accept") || m.startsWith("This TomTom key")) ttDownUntil = System.currentTimeMillis() + 3_600_000L
+                emptyList<Route>()
+            }
         })
         Thread(other, "routes-$otherP").apply { isDaemon = true }.start()
         val mine = try {
