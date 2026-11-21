@@ -3200,19 +3200,34 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val sc = secs[m]
             if (at < sc.off) hi = m - 1 else if (at >= sc.end) lo = m + 1 else { hit = sc; break }
         }
-        if (hit == null) {
-            // #283: a gap in the route's speed-limit sections must not leave the last section's limit showing as if it still applied.
-            clearRouteLimitIfNeeded()
-            nextLimit = null; map.setSpeedChange(null, null); return
-        }
-        // the next change ahead, within about half a mile (shown small above the limit sign)
+        // the next change ahead, within about half a mile (shown small above the limit sign, and as a sign on the map where it
+        // changes). Worked out even where the route has no limit for the stretch you're on (often the case with Mapbox's data):
+        // then it's measured against the limit showing from the road data. It used to stop there, so the sign on the map hardly
+        // ever appeared (GitHub #257)
+        val curMs = hit?.ms ?: speedLimit
         var nx: Pair<Double, Double>? = null
         for (sc in secs) {
             if (sc.off <= at || sc.off - at > 800.0) continue
             // (a stretch with no known limit is 0: it isn't a limit, and showed as "0 in 700 m")
             if (sc.ms < 2.0) continue
-            if (kotlin.math.abs(sc.ms - hit.ms) > 0.5) { nx = sc.ms to (sc.off - at); break }
+            if (curMs == null || kotlin.math.abs(sc.ms - curMs) > 0.5) { nx = sc.ms to (sc.off - at); break }
         }
+        if (hit == null) {
+            // #283: a gap in the route's speed-limit sections must not leave the last section's limit showing as if it still applied.
+            clearRouteLimitIfNeeded()
+            showNextLimit(r, at, nx)
+            return
+        }
+        showNextLimit(r, at, nx)
+        routeLimitAt = System.currentTimeMillis(); routeLimitShown = true
+        pendHits = 0; pendLimit = -2.0
+        if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false }
+        checkLimitChange(hit.ms, false)
+        limitOkAt = routeLimitAt; limitOkPos = p.pos
+    }
+
+    /** Shows (or clears) the next speed limit change [nx] (m/s to metres ahead of [at]) by the limit sign and on the map. */
+    private fun showNextLimit(r: Route, at: Double, nx: Pair<Double, Double>?) {
         val shown = nextLimit
         if (nx == null) {
             if (shown != null) nextLimit = null
@@ -3225,11 +3240,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // (Settings › Alerts › Upcoming speed limits switches the sign on the map off along with the one by the speedometer)
             if (prefs.b(PreferenceKeys.NEXT_LIMIT, true)) map.setSpeedChange(point, value, limitSignStyle) else map.setSpeedChange(null, null)
         }
-        routeLimitAt = System.currentTimeMillis(); routeLimitShown = true
-        pendHits = 0; pendLimit = -2.0
-        if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false }
-        checkLimitChange(hit.ms, false)
-        limitOkAt = routeLimitAt; limitOkPos = p.pos
     }
 
     /** Finds the exact map coordinate at a distance along the route. */

@@ -201,8 +201,11 @@ class CarNavSession : Session() {
                 if (Prefs(carContext.applicationContext).s(PreferenceKeys.CARTHEME, "car") == "sun") {
                     val d = carDark(); if (d != last) { last = d; applyTheme() }
                 } else last = null
+                // whatever the setting: if the map's day / night doesn't match what it should be now, put it right (a run of quick
+                // switches, through tunnels and underpasses, could leave it on night for good, GitHub #292)
+                if (appliedDark != null && appliedDark != carDark()) applyThemeNow()
             } catch (e: Exception) { }
-            sunHandler.postDelayed(this, 60_000L)
+            sunHandler.postDelayed(this, 20_000L)
         }
     }
     private val sunHandler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -221,8 +224,20 @@ class CarNavSession : Session() {
         override fun onLowMemory() {}
     }
 
+    /**
+     * Day or night from the car: settled for a second before the map changes, then checked again, so a quick run of switches
+     * (tunnels and underpasses one after another) ends on what the car says now, rather than on whichever map style finished
+     * loading last (GitHub #292).
+     */
+    private val themeSettle = Runnable { try { applyThemeNow() } catch (e: Exception) { } }
     private fun applyTheme() {
+        sunHandler.removeCallbacks(themeSettle)
+        if (appliedDark == null) applyThemeNow() else sunHandler.postDelayed(themeSettle, 1200L)
+    }
+    @Volatile private var appliedDark: Boolean? = null
+    private fun applyThemeNow() {
         val d = carDark()
+        appliedDark = d
         holder.engine?.applyStyle(d)
         if (::surface.isInitialized) surface.dark.value = d
     }
@@ -246,7 +261,7 @@ class CarNavSession : Session() {
             override fun nearby(kind: String) { screen.screenManager.push(NearbyScreen(carContext, holder, kind)) }
             override fun settings() { screen.openSettings() }
             override fun closeSettings() { screen.closeSearch() }
-            override fun themeChanged() { applyTheme() }
+            override fun themeChanged() { applyThemeNow() }
             override fun otherRoutes() { screen.screenManager.push(AltRoutesScreen(carContext, holder)) }
         }
         // the settings card over the map on cars that pass taps on to the app; Android Auto's own list on the others (a rotary
@@ -1326,6 +1341,8 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
     private var stale: List<Place>? = null
     private var waiting = false
     private var typedPending = false
+    /** Still typing on the car keyboard (not yet sent with the search key), so the keyboard stays up when results arrive. */
+    private var typingNow = false
     /** The results that were there before this search (so old ones aren't taken for the answer). */
     private val before: List<Place>? = holder.engine?.results
     private val askedAt = android.os.SystemClock.uptimeMillis()
@@ -1438,15 +1455,19 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                 android.util.Log.i("CarNav", "search: text \"$searchText\"")
                 query = searchText
                 handler.removeCallbacks(typed); typedPending = false
-                if (searchText.length >= 3 && searchText != asked) { typedPending = true; handler.postDelayed(typed, 500) }
+                // (a longer pause before searching while you type, and the keyboard kept up when the results arrive: after half a
+                // second the results replaced the keyboard on some cars, long before the name was finished, GitHub #293)
+                typingNow = true
+                if (searchText.length >= 3 && searchText != asked) { typedPending = true; handler.postDelayed(typed, 1300) }
             }
             override fun onSearchSubmitted(searchText: String) {
                 android.util.Log.i("CarNav", "search: submitted \"$searchText\"")
+                typingNow = false
                 query = searchText
                 if (searchText.length >= 2) ask(searchText)
             }
         }).setHeaderAction(Action.BACK).setSearchHint(L.t("Search for a place")).setInitialSearchText(query)
-            .setShowKeyboardByDefault(keyboard && query.isEmpty())
+            .setShowKeyboardByDefault(keyboard && (query.isEmpty() || typingNow))
         // still searching: Android Auto's own spinner, rather than the last search's places under the new words
         return (if (waiting && query.length >= 3) b.setLoading(true) else b.setItemList(list.build())).build()
     }

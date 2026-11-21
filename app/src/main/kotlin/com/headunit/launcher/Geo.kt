@@ -425,7 +425,7 @@ object TomTomRest {
         catch (e: IOException) {
             val m = e.message ?: ""
             // no way round the areas (or the request was refused): route normally and say so
-            if (m == "no signal" || m.startsWith("too many")) throw e
+            if (m == "no signal" || m.startsWith("too many") || m.startsWith("TomTom didn't accept") || m.startsWith("This TomTom key")) throw e
             val r = routesWith(key, from, to, alternatives, departAtMs, via, headingDeg, quick, null)
             avoidDropped = true
             r
@@ -499,7 +499,11 @@ object TomTomRest {
         if (body == null) {
             val m = last?.message ?: ""
             NetHealth.note(last, "TomTom route")
-            throw IOException(if (!m.startsWith("HTTP")) "no signal" else if (m.startsWith("HTTP 429")) "too many requests, try again in a moment" else m.ifBlank { "Routing failed" })
+            // a refused key or a used-up daily limit comes back already explained ("TomTom didn't accept the API key…"): that isn't
+            // "no signal". Turning it into one stopped the switch to Mapbox and left the route waiting for a signal that was there
+            // all along, starting only when TomTom happened to answer, or never (GitHub #269, #281, #291)
+            val explained = m.startsWith("TomTom didn't accept") || m.startsWith("This TomTom key")
+            throw IOException(if (explained) m else if (!m.startsWith("HTTP")) "no signal" else if (m.startsWith("HTTP 429")) "too many requests, try again in a moment" else m.ifBlank { "Routing failed" })
         }
         val arr = JSONObject(body).optJSONArray("routes") ?: JSONArray()
         return (0 until arr.length()).map { parse(arr.getJSONObject(it)) }
