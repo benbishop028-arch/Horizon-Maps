@@ -972,6 +972,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         else -> detectedCountry.isNotBlank() && detectedCountry.uppercase() !in KEEP_LEFT
     }
 
+    /** Roundabout traffic follows the country's road rules, not the driver's steering-wheel or card position setting. */
+    val roundaboutClockwise: Boolean get() = if (detectedCountry.isNotBlank()) detectedCountry.uppercase() in KEEP_LEFT else !mirrored
+
     /** The screen layout's side: the turn card and cards on the right (buttons on the left) when true. Follows the steering wheel
      *  side unless Settings > Screen and sizes > Card positions puts the turn card on a side of its own. */
     val layoutMirrored: Boolean get() = when (prefs.s(PreferenceKeys.CARDS_SIDE, "auto")) { "left" -> false; "right" -> true; else -> mirrored }

@@ -717,7 +717,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         if (guiding && t != null && eta != null && tsig != lastTrip) {
             lastTrip = tsig
             try { nav?.updateTrip(trip(e, t, eta)) } catch (x: Exception) { }
-            try { NavService.update(carContext.applicationContext, t, eta, e.imperial, !e.mirrored, e.prefs.b(PreferenceKeys.TURN_NOTIF, true)) } catch (x: Exception) { }
+            try { NavService.update(carContext.applicationContext, t, eta, e.imperial, !e.mirrored, e.roundaboutClockwise, e.prefs.b(PreferenceKeys.TURN_NOTIF, true)) } catch (x: Exception) { }
         }
         CarTicks.tick?.invoke()
     }
@@ -1012,12 +1012,12 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             // A roundabout's exit angle: how far round the roundabout the exit is (degrees, the way the traffic goes round). The
             // car's own displays (a head-up display, the dashboard) draw the exit from it; without it some, like the VW ID.7's
             // head-up display, showed every roundabout as a right turn (desko1973)
-            val rbAngle = if (m.startsWith("ROUNDABOUT") && t.exit > 0) roundaboutExitAngle(t, m, left) else null
+            val rbAngle = if (m.startsWith("ROUNDABOUT") && t.exit > 0) roundaboutExitAngle(t, m, e.roundaboutClockwise) else null
             val type = when {
                 m.startsWith("ROUNDABOUT") -> if (t.exit > 0) (
-                                                  if (rbAngle != null) (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE)
-                                                  else (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW))
-                                               else (if (left) Maneuver.TYPE_ROUNDABOUT_ENTER_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_CCW)
+                                                  if (rbAngle != null) (if (e.roundaboutClockwise) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW_WITH_ANGLE else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW_WITH_ANGLE)
+                                                  else (if (e.roundaboutClockwise) Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_AND_EXIT_CCW))
+                                               else (if (e.roundaboutClockwise) Maneuver.TYPE_ROUNDABOUT_ENTER_CW else Maneuver.TYPE_ROUNDABOUT_ENTER_CCW)
                 m == "TURN_LEFT" -> Maneuver.TYPE_TURN_NORMAL_LEFT
                 m == "TURN_RIGHT" -> Maneuver.TYPE_TURN_NORMAL_RIGHT
                 m == "SHARP_LEFT" -> Maneuver.TYPE_TURN_SHARP_LEFT

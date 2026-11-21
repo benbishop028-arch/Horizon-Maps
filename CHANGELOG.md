@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Roundabout direction: the highlighted path now follows the country's traffic rules, independently of the steering-wheel and screen layout settings, including the turn card, Android Auto and navigation notification (thanks to Dixet, #285)
 - Route progress after rerouting: keep the completed part of the journey, so the progress bar carries on instead of jumping back towards the start (thanks to yurividal, #287)
 - Speed camera warnings while navigating: only use cameras matched to the active route, not nearby cameras on parallel or opposite roads when route matching finds none (thanks to d3stiny999, #286)
 - Stop signs after rerouting: clear the previous route's results, ignore late replies from the old route, and don't guess when the sign's road cannot be identified (thanks to jvricardo1, #280)

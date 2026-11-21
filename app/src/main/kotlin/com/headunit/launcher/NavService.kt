@@ -102,10 +102,10 @@ class NavService : Service() {
         }
 
         /** The arrow picture for each kind of turn (the same arrows Android Auto's turn card uses). */
-        private fun arrowRes(maneuver: String, left: Boolean): Int {
+        private fun arrowRes(maneuver: String, left: Boolean, roundaboutClockwise: Boolean): Int {
             val m = maneuver.uppercase()
             return when {
-                m.startsWith("ROUNDABOUT") -> if (left) R.drawable.ic_man_roundabout_cw else R.drawable.ic_man_roundabout_ccw
+                m.startsWith("ROUNDABOUT") -> if (roundaboutClockwise) R.drawable.ic_man_roundabout_cw else R.drawable.ic_man_roundabout_ccw
                 m == "TURN_LEFT" -> R.drawable.ic_man_turn_left
                 m == "TURN_RIGHT" -> R.drawable.ic_man_turn_right
                 m == "SHARP_LEFT" -> R.drawable.ic_man_sharp_left
@@ -159,7 +159,7 @@ class NavService : Service() {
          * the system (Android drops apps that update notifications too fast).
          * [on] false (the setting is off) keeps the plain "Navigating to ..." notification.
          */
-        fun update(ctx: Context, t: TurnInfo?, eta: EtaInfo?, imperial: Boolean, left: Boolean, on: Boolean) {
+        fun update(ctx: Context, t: TurnInfo?, eta: EtaInfo?, imperial: Boolean, left: Boolean, roundaboutClockwise: Boolean, on: Boolean) {
             if (!running) return
             try {
                 val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -174,7 +174,7 @@ class NavService : Service() {
                 val doing = what(t)
                 val road = t.street.ifBlank { t.sign }
                 val arrive = eta?.arrive.orEmpty()
-                val res = arrowRes(t.maneuver, left)
+                val res = arrowRes(t.maneuver, left, roundaboutClockwise)
                 val sig = "$dist|$doing|$road|$arrive|$res"
                 if (sig == lastSig) return
                 val now = SystemClock.elapsedRealtime()

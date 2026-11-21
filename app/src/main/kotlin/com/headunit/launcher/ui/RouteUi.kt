@@ -1068,7 +1068,8 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
 fun RoundaboutView(engine: NavEngine, t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier) {
     if (!t.maneuver.uppercase().startsWith("ROUNDABOUT") || t.rbIn < 0 || t.rbOut < 0 || t.dist > 800.0) return
     val c = navVw(LocalVw.current)
-    val clockwise = !engine.mirrored
+    // The steering-wheel layout can be manually changed; roundabout direction must still follow local traffic rules.
+    val clockwise = engine.roundaboutClockwise
     // angles on screen: the way you come in points up, so the road you enter from is at the bottom
     fun rel(b: Double) = ((b - t.rbIn) % 360.0 + 360.0) % 360.0
     val exitA = rel(t.rbOut)

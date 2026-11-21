@@ -1348,13 +1348,13 @@ internal fun ImmTurnCard(
             .clickable { engine.itineraryOpen = true },
     ) {
         if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
             RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp))
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = !engine.mirrored, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), exitNumber = t.exit, sides = t.sides)
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), exitNumber = t.exit, sides = t.sides)
             Column(Modifier.padding(start = if (compact) 9.dp else 16.dp).weight(1f)) {
                 // at traffic lights or a stop sign: that in big ("At the lights"), and the distance moves down beside the road name
                 val lmk = t.landmark.isNotBlank()
@@ -1372,7 +1372,7 @@ internal fun ImmTurnCard(
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)
             if (thenIcon && t.thenManeuver != null) Column(Modifier.padding(start = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(TealDeep), contentAlignment = Alignment.Center) {
-                    ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(28.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
+                    ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(28.dp), roundaboutExit = t.thenExit, roundaboutClockwise = engine.roundaboutClockwise)
                 }
                 Text(L.t("then"), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 2.dp))
             }
@@ -1401,8 +1401,8 @@ internal fun ImmTurnCard(
                 // a roundabout next: its exit number goes in the icon, so the line only needs the road ("Then A3057 Romsey Road");
                 // "Then take the 3rd exit onto …" ran out of room on long names (karthikeyansr)
                 val rbShort = t.thenExit > 0 && t.thenStreet.isNotBlank() && t.thenManeuver.uppercase().contains("ROUNDABOUT")
-                if (rbShort) ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(38.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored, exitNumber = t.thenExit)
-                else ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = !engine.mirrored)
+                if (rbShort) ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(38.dp), roundaboutExit = t.thenExit, roundaboutClockwise = engine.roundaboutClockwise, exitNumber = t.thenExit)
+                else ManeuverArrow(t.thenManeuver, Geo.maneuverAngle(t.thenManeuver), Modifier.size(22.dp), roundaboutExit = t.thenExit, roundaboutClockwise = engine.roundaboutClockwise)
                 BadgedLine(if (rbShort) L.t("Then {0}", t.thenStreet) else t.thenText, engine.ukRoadBadges, 14.sp, Color.White.copy(alpha = 0.92f), Modifier.padding(start = 10.dp),
                     // on the car screen a long street name wraps onto a second line before it's cut short (fjunakovic, #248)
                     maxLines = if (car) 2 else 1)
@@ -1859,7 +1859,7 @@ private fun ItineraryCard(engine: NavEngine) {
                 Column(Modifier.fillMaxWidth().background(if (sel) Color.White.copy(alpha = 0.10f) else Color.Transparent)
                     .clickable { touched++; picked = row.index; engine.previewTurn(row) }.padding(horizontal = 16.dp, vertical = 10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        ManeuverArrow(row.maneuver, Geo.maneuverAngle(row.maneuver), Modifier.size(30.dp), roundaboutExit = row.exit, roundaboutClockwise = !engine.mirrored)
+                        ManeuverArrow(row.maneuver, Geo.maneuverAngle(row.maneuver), Modifier.size(30.dp), roundaboutExit = row.exit, roundaboutClockwise = engine.roundaboutClockwise)
                         Column(Modifier.padding(start = 14.dp).weight(1f)) {
                             Text(row.text, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(listOfNotNull(row.tag.ifBlank { null }, "about " + row.arrive).joinToString(" · "), color = Color.White.copy(alpha = 0.75f), fontSize = 12.sp, maxLines = 1)
