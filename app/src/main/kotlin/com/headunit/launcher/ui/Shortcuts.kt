@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.material.icons.rounded.Bookmarks
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material.icons.rounded.EvStation
@@ -164,6 +165,7 @@ internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color
     Triple("overview", "Overview", Icons.Rounded.ZoomOutMap to Color(0xFF4C8DFF)),
     Triple("routes", "Other routes", Icons.Rounded.AltRoute to Color(0xFF4C8DFF)),
     Triple("sound", "Sound", Icons.Rounded.VolumeUp to Color(0xFF4C8DFF)),
+    Triple("stop", "Add stop", Icons.Rounded.AddLocationAlt to Color(0xFF4C8DFF)),
     Triple("search", "Search", Icons.Rounded.Search to Color(0xFF4C8DFF)),
     Triple("report", "Report", Icons.Rounded.Flag to Color(0xFF4C8DFF)),
     Triple("end", "End", Icons.Rounded.Close to Color(0xFFE5484D)),
@@ -171,12 +173,24 @@ internal val carTripButtons: List<Triple<String, String, Pair<ImageVector, Color
 
 /** Which trip card buttons are switched on (all of them unless changed). */
 internal fun carTripButtonsOn(prefs: com.headunit.launcher.Prefs): Set<String> {
-    val raw = prefs.s(PreferenceKeys.CAR_TRIP_BTNS, "*")
+    var raw = prefs.s(PreferenceKeys.CAR_TRIP_BTNS, "*")
+    // once: a trip card whose buttons were picked by hand before Add stop existed gets it too (it's the only quick way to a stop
+    // on the car screen); taking it off afterwards is kept
+    // (unchanged buttons already include it: only marked as done, so taking it off later isn't undone)
+    if (!prefs.b(PreferenceKeys.CAR_TRIP_STOP_ADDED, false)) {
+        if (raw != "*") {
+            val next = raw.split(',').filter { it.isNotBlank() }.toSet() + "stop"
+            raw = carTripButtons.map { it.first }.filter { it in next }.joinToString(",")
+            prefs.put(PreferenceKeys.CAR_TRIP_BTNS, raw)
+        }
+        prefs.put(PreferenceKeys.CAR_TRIP_STOP_ADDED, true)
+    }
     // (unless picked otherwise, just the button that ends the route: Overview and Other routes are among Android Auto's own round
     // buttons in the top corner while navigating, which fold away, so the trip card stays small)
     // (and Search: a stop on the way, or somewhere else to go, while navigating)
     // (and Report: police, a crash or a hazard with one tap, GitHub #290)
-    return if (raw == "*") setOf("search", "report", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
+    // (and Add stop: the stops card, with fuel, charging, food and coffee along the route a tap away, as the phone's pin button)
+    return if (raw == "*") setOf("stop", "search", "report", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
 }
 
 /** Settings > Android Auto: which buttons the trip card has, and how big they are (a narrower card leaves more of the map clear). */

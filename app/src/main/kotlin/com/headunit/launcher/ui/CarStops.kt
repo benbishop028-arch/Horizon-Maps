@@ -18,6 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.EvStation
+import androidx.compose.material.icons.rounded.LocalCafe
+import androidx.compose.material.icons.rounded.LocalGasStation
+import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
@@ -136,6 +140,22 @@ internal fun CarStopsPanel(engine: NavEngine, actions: CarActions, small: Boolea
                 }
             }
         }
+        // one tap for the usual stops along the route ahead (the list shows each with its detour; the one picked is added as a
+        // stop): before, fuel on the way was only under Add a stop > Categories
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val kinds = listOf(
+                Triple("fuel", L.t("Fuel"), Icons.Rounded.LocalGasStation to Color(0xFFEA4335)),
+                Triple("charging", L.t("Charging"), Icons.Rounded.EvStation to Color(0xFF34A853)),
+                Triple("food", L.t("Food"), Icons.Rounded.Restaurant to Color(0xFFF29900)),
+                Triple("coffee", L.t("Coffee"), Icons.Rounded.LocalCafe to Color(0xFFA56BFF)),
+            )
+            for ((kind, name, look) in kinds) KindChip("stp-k-$kind", name, look.first, look.second, small, Modifier.weight(1f)) {
+                // (stops moved or taken off here are kept, as with Add a stop)
+                CarStops.draft?.let { engine.setStops(it) }
+                actions.closeSearch()
+                actions.nearby(kind)
+            }
+        }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             // (a search for the stop: what's picked there is added, without asking whether to go there instead)
             StopPill("stp-add", L.t("Add a stop"), if (draft == null) c.accent else c.tile, if (draft == null) Color.White else c.text, Modifier.weight(1f)) {
@@ -154,6 +174,19 @@ private fun StopButton(id: String, icon: ImageVector, what: String, size: Dp, ti
     // (one that can't be used is still there, greyed, so the others don't move about under your finger)
     Box(Modifier.size(size).clip(CircleShape).then(if (enabled) Modifier.carTap(id, act) else Modifier), contentAlignment = Alignment.Center) {
         Icon(icon, what, tint = if (enabled) tint else tint.copy(alpha = 0.25f), modifier = Modifier.size(size * 0.62f))
+    }
+}
+
+/** A kind of place along the route (fuel, charging...) on the stops card: its icon, with its name when there's room. */
+@Composable
+private fun KindChip(id: String, text: String, icon: ImageVector, tint: Color, small: Boolean, modifier: Modifier, act: () -> Unit) {
+    val c = LocalVw.current
+    Row(modifier.height(46.dp).clip(RoundedCornerShape(23.dp)).background(tint.copy(alpha = 0.18f)).carTap(id, act).padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Icon(icon, text, tint = tint, modifier = Modifier.size(22.dp))
+        // (a small car screen: icons only, so four still fit across)
+        if (!small) Text(text, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 6.dp))
     }
 }
 

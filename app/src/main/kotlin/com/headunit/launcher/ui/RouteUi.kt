@@ -161,8 +161,11 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
     }
     val accent = c.accent
     val theme = engine.map.theme
-    val locator = remember(theme) { engine.map.locatorBitmap().asImageBitmap() }
     // [thin]: the slimmer bar on the car screen (smaller markers, a thinner track and a smaller arrow)
+    // (the locator is drawn large for the map; shrunk to the arrow's size in halves here, once, so its edges stay smooth: shrunk in
+    // one go while drawing, from 384 px to about 60, it came out jagged)
+    val arrowPx = with(androidx.compose.ui.platform.LocalDensity.current) { (if (thin) 22.dp else 32.dp).roundToPx() }
+    val locator = remember(theme, arrowPx) { shrinkSmooth(engine.map.locatorBitmap(), arrowPx).asImageBitmap() }
     val dot = if (thin) 16.dp else 20.dp
     BoxWithConstraints(modifier.height(if (thin) 34.dp else 48.dp)) {
         val w = maxWidth
@@ -184,14 +187,14 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
                 }
             }
             // the arrow: the map's own locator, shrunk and turned to point along the bar
-            val sz = (if (thin) 22.dp else 32.dp).toPx()
+            val sz = arrowPx.toFloat()
             val ax = (frac * size.width).coerceIn(sz / 2f, size.width - sz / 2f)
             val cy = size.height / 2f
             rotate(90f, Offset(ax, cy)) {
                 drawImage(
                     locator, dstOffset = androidx.compose.ui.unit.IntOffset((ax - sz / 2f).toInt(), (cy - sz / 2f).toInt()),
-                    dstSize = androidx.compose.ui.unit.IntSize(sz.toInt(), sz.toInt()),
-                    filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium,
+                    dstSize = androidx.compose.ui.unit.IntSize(arrowPx, arrowPx),
+                    filterQuality = androidx.compose.ui.graphics.FilterQuality.High,
                 )
             }
         }
@@ -1145,3 +1148,16 @@ internal fun LorryWarnCard(engine: NavEngine, modifier: Modifier = Modifier) {
 @Composable
 internal fun Modifier.tapOn(engine: NavEngine, id: String, action: () -> Unit): Modifier =
     if (engine.isCar) carTap(id, action) else clickable(onClick = action)
+
+/**
+ * [b] shrunk to [px] square for drawing small: halved with filtering until it's within twice the size, then scaled the rest of the
+ * way. Bilinear filtering only looks at neighbouring pixels, so one big step skips most of the picture and leaves jagged edges.
+ */
+internal fun shrinkSmooth(b: android.graphics.Bitmap, px: Int): android.graphics.Bitmap {
+    val target = px.coerceAtLeast(1)
+    var cur = b
+    while (cur.width / 2 >= target && cur.height / 2 >= target) {
+        cur = android.graphics.Bitmap.createScaledBitmap(cur, cur.width / 2, cur.height / 2, true)
+    }
+    return if (cur.width == target && cur.height == target) cur else android.graphics.Bitmap.createScaledBitmap(cur, target, target, true)
+}
