@@ -180,7 +180,8 @@ object RouteExtras {
                 }
             }
         }
-        for ((id, pos, t) in stops) if (try { stopForRoute(id, pos, t, stopWays, line) } catch (x: Exception) { true }) pois += RoutePoi("stop", "Stop", pos)
+        // #280: missing or malformed road geometry is not evidence that a stop sign controls this route.
+        for ((id, pos, t) in stops) if (try { stopForRoute(id, pos, t, stopWays, line) } catch (x: Exception) { false }) pois += RoutePoi("stop", "Stop", pos)
         return pois to parseAvgs(rels, nodes)
     }
 
@@ -194,7 +195,7 @@ object RouteExtras {
     private fun stopForRoute(id: Long, pos: LL, t: JSONObject, ways: List<JSONObject>, line: List<LL>): Boolean {
         // the route's heading at its closest point to the sign
         // (flat sums, no trigonometry: up to 300 signs against a long route, on a slow unit)
-        if (line.size < 2) return true
+        if (line.size < 2) return false
         val kx = cos(Math.toRadians(pos.lat))
         var best = Double.MAX_VALUE; var bi = 0
         for (i in 0 until line.size - 1) {
@@ -203,7 +204,7 @@ object RouteExtras {
             val d = hypot(ax, ay) + hypot(bx, by) - hypot(bx - ax, by - ay)
             if (d < best) { best = d; bi = i }
         }
-        if (Geo.dist(line[bi], line[bi + 1]) < 0.5) return true
+        if (Geo.dist(line[bi], line[bi + 1]) < 0.5) return false
         val rb = Geo.bearing(line[bi], line[bi + 1])
         val dirTag = t.optString("direction").lowercase()
         val all = t.optString("stop") == "all"
@@ -223,7 +224,8 @@ object RouteExtras {
                 diff > 140.0 -> if (dirTag != "forward") forUs = true
             }
         }
-        if (onWays == 0) return true
+        // #280: without the parent road geometry we cannot tell which road the stop sign controls, so don't guess.
+        if (onWays == 0) return false
         if (!forUs) return false
         // on the junction itself (where roads meet) with no direction: only a stop for everyone is clearly yours
         if (onWays >= 2 && dirTag != "forward" && dirTag != "backward" && !all) return false

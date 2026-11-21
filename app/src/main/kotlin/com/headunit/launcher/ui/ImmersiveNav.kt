@@ -940,7 +940,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
         // hazard radar: the next two miles at a glance (replaces the separate camera and incident badges)
         if (radarOn) HazardRadar(engine)
         else if ((inc != null && engine.alert?.kind != "incident") || (cam != null && engine.alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (inc != null && engine.alert?.kind != "incident") HazardBadge("incident", inc.label, Geo.fmtDist(inc.dist, engine.imperial))
+            if (inc != null && engine.alert?.kind != "incident") HazardBadge("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
             if (cam != null && engine.alert?.kind != "camera") HazardBadge("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
         }
         eta?.let { e ->

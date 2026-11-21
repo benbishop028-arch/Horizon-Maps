@@ -4,6 +4,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Route progress after rerouting: keep the completed part of the journey, so the progress bar carries on instead of jumping back towards the start (thanks to yurividal, #287)
+- Speed camera warnings while navigating: only use cameras matched to the active route, not nearby cameras on parallel or opposite roads when route matching finds none (thanks to d3stiny999, #286)
+- Stop signs after rerouting: clear the previous route's results, ignore late replies from the old route, and don't guess when the sign's road cannot be identified (thanks to jvricardo1, #280)
+- Spanish incident labels and speed limits: translate incident badges on the phone, and clear a route-derived limit when the route has no known limit for the current stretch so live road data can take over (thanks to pimpampumpam, #283)
+
 ### Improved
 - Battery: on a phone, the screen now goes off as usual while you're only looking at the map, and stays on just while you're following a route (it stayed on the whole time the app was open). Head units keep it on as before
 - Battery: with another app in front and no route, the map's per-frame work stops completely, instead of waking the phone at every screen refresh
