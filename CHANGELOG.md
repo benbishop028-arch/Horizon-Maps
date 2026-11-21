@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
+
 ### Fixed
 - Routes start straight away when TomTom refuses your key: a refused key (or a used-up daily limit) was mistaken for "no signal", so instead of switching to Mapbox the route waited for a signal that was already there, starting late or not at all, with "Weak signal" on screen. It now switches to Mapbox at once and says why (thanks to jerzdevil22, #269, #281, #291)
 - The speed limit sign on the map now shows where the limit changes even when the route has no limit for the stretch you're on (common with Mapbox's data); it used to appear only rarely (thanks to SonicBjork, #257)

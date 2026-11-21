@@ -619,7 +619,7 @@ object TomTomRest {
         val ttLang = when (com.headunit.launcher.L.lang) {
             "ar" -> "ar"; "cs" -> "cs-CZ"; "da" -> "da-DK"; "de" -> "de-DE"; "el" -> "el-GR"; "es", "esar", "esmx" -> "es-ES"; "fi" -> "fi-FI"
             "fr" -> "fr-FR"; "he" -> "he-IL"; "hu" -> "hu-HU"; "id" -> "id-ID"; "it" -> "it-IT"; "nb" -> "nb-NO"; "nl" -> "nl-NL"; "pl" -> "pl-PL"
-            "pt" -> "pt-PT"; "ro" -> "ro-RO"; "ru" -> "ru-RU"; "sk" -> "sk-SK"; "sv" -> "sv-SE"; "tr" -> "tr-TR"; else -> "en-GB"
+            "pt" -> "pt-PT"; "ptbr" -> "pt-BR"; "ro" -> "ro-RO"; "ru" -> "ru-RU"; "sk" -> "sk-SK"; "sv" -> "sv-SE"; "tr" -> "tr-TR"; else -> "en-GB"
         }
         val url0 = "$API/traffic/incidents/details?apiVersion=2&timeValidity=present&language=$ttLang&bbox=$minLon,$minLat,$maxLon,$maxLat"
         // (Horizon Maps Plus: through the key server, which adds the real key)
