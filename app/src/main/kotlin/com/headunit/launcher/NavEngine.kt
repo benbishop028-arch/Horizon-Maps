@@ -2641,6 +2641,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 stopSim()
                 if (TomTomRest.avoidDropped && !usedOffline) toast(L.t("Couldn't find a way round the areas you're avoiding, so the route goes through them"), 5000)
                 dest = to; routes = rs
+                // Save the full set of stops as soon as route planning succeeds: drivers may preview it repeatedly before setting off.
+                rememberMultiStopJourney()
                 clearRouteLimitIfNeeded()
                 // a saved (or sent) route: the choice that goes the same way as before, when one does
                 active = if (preferVia.isBlank()) 0 else rs.indexOfFirst { com.headunit.launcher.ui.viaOf(it) == preferVia }.coerceAtLeast(0)
@@ -3631,6 +3633,53 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (previewing) endRoute()
             } catch (e: Exception) { toast(L.t("Couldn't send it: ") + (e.message ?: "no signal"), 4500) }
         }
+    }
+
+    // ---- recent multi-stop journeys: keep the destination and every stop so the same trip can be planned again ----
+    class JourneyHistory(val id: Long, val dest: Place, val stops: List<Place>)
+
+    fun journeyHistory(): List<JourneyHistory> = try {
+        val a = org.json.JSONArray(prefs.s("journey_history", "[]"))
+        (0 until a.length()).mapNotNull { i ->
+            try {
+                val o = a.getJSONObject(i)
+                val v = o.optJSONArray("v") ?: org.json.JSONArray()
+                JourneyHistory(o.optLong("id"), placeOf(o.getJSONObject("d")),
+                    (0 until v.length()).map { placeOf(v.getJSONObject(it)) })
+            } catch (e: Exception) { null }
+        }.sortedByDescending { it.id }.take(8)
+    } catch (e: Exception) { emptyList() }
+
+    private fun rememberMultiStopJourney() {
+        val d = dest ?: return
+        val stops = via.toList()
+        if (stops.isEmpty()) return
+        val old = journeyHistory().filterNot { h ->
+            Geo.dist(h.dest.pos, d.pos) < 30.0 && h.stops.size == stops.size &&
+                h.stops.zip(stops).all { Geo.dist(it.first.pos, it.second.pos) < 30.0 }
+        }
+        val now = System.currentTimeMillis()
+        val a = org.json.JSONArray()
+        (listOf(JourneyHistory(now, d, stops)) + old).take(8).forEach { h ->
+            a.put(org.json.JSONObject().put("id", h.id).put("d", placeJson(h.dest))
+                .put("v", org.json.JSONArray().apply { h.stops.forEach { put(placeJson(it)) } }))
+        }
+        // Keep this separate from saved routes and single-place recents: it records a journey actually started.
+        prefs.put("journey_history", a.toString())
+    }
+
+    fun startJourneyHistory(journey: JourneyHistory) {
+        via = journey.stops.toList()
+        startRoute(journey.dest, keepVia = true)
+    }
+
+    fun removeJourneyHistory(journey: JourneyHistory) {
+        val a = org.json.JSONArray()
+        journeyHistory().filterNot { it.id == journey.id }.forEach { h ->
+            a.put(org.json.JSONObject().put("id", h.id).put("d", placeJson(h.dest))
+                .put("v", org.json.JSONArray().apply { h.stops.forEach { put(placeJson(it)) } }))
+        }
+        prefs.put("journey_history", a.toString())
     }
 
     // ---- saved routes: a destination with its stops and the road picked, to plan again later (with that day's traffic) ----

@@ -1691,12 +1691,14 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
     val rawRecent = engine.prefs.s(PreferenceKeys.PLACES_RECENT, "")
     val rawRoutes = engine.prefs.s(PreferenceKeys.PLACES_ROUTES, "[]")
     val routes = remember(rawRoutes) { engine.savedRoutes() }
+    val rawJourneyHistory = engine.prefs.s("journey_history", "[]")
+    val journeyHistory = remember(rawJourneyHistory) { engine.journeyHistory() }
     // (kind 0 = one of your own labelled places, 1 = a favourite, 2 = recent, 3 = a saved route, 4 = a group of your places; the
     // label is the name shown). A group is one row that opens to its places (GitHub #138).
     var openGroup by rememberSaveable { mutableStateOf("") }
     val groupCount = remember(rawCustom) { engine.places.customs().filter { it.group.isNotBlank() }.groupingBy { it.group }.eachCount() }
     val inOpen = remember(rawCustom, openGroup) { engine.places.customs().filter { it.group == openGroup && openGroup.isNotEmpty() }.map { it.label }.toSet() }
-    val saved: List<Triple<com.headunit.launcher.Place, Int, String>> = remember(rawCustom, rawFav, rawRecent, routes, openGroup) {
+    val saved: List<Triple<com.headunit.launcher.Place, Int, String>> = remember(rawCustom, rawFav, rawRecent, routes, rawJourneyHistory, journeyHistory, openGroup) {
         val mine = engine.places.customs()
         val favs = engine.places.favourites().filter { f -> mine.none { Geo.dist(it.place.pos, f.pos) < 60 } }
         val recents = engine.places.recents().filter { r -> favs.none { Geo.dist(it.pos, r.pos) < 60 } && mine.none { Geo.dist(it.place.pos, r.pos) < 60 } }
@@ -1706,7 +1708,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
         }
         // (only recent places: everything saved is in the row of tiles above, which ends with "Add a place")
         @Suppress("UNUSED_VARIABLE") val unusedGroups = grouped
-        recents.map { Triple(it, 2, it.name) }
+        journeyHistory.map { Triple(it.dest, 5, it.id.toString()) } + recents.map { Triple(it, 2, it.name) }
     }
     var adding by remember { mutableStateOf(false) }
     if (adding) AddPlaceDialog(engine, null) { adding = false }
@@ -1781,8 +1783,9 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
                         }
                         return@items
                     }
-                    val fav = kind != 2
+                    val fav = kind == 0 || kind == 1
                     val sr = if (kind == 3) routes.firstOrNull { it.dest === p && it.name == label } else null
+                    val jr = if (kind == 5) journeyHistory.firstOrNull { it.id.toString() == label } else null
                     // swipe a place sideways to take it off the list (a favourite is unstarred, a recent one forgotten, your own place removed)
                     var dx by remember { mutableStateOf(0f) }
                     var w by remember { mutableStateOf(1) }
@@ -1794,6 +1797,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
                                     if (kotlin.math.abs(dx) > w * 0.35f) when (kind) {
                                         0 -> { engine.places.removeCustom(label); engine.toast(L.t("Removed {0}", label), 2000) }
                                         3 -> { sr?.let { engine.deleteSavedRoute(it) }; engine.toast(L.t("Removed from saved routes"), 2000) }
+                                        5 -> { jr?.let { engine.removeJourneyHistory(it) }; engine.toast(L.t("Removed from recent places"), 2000) }
                                         1 -> { engine.places.toggleFavourite(p); engine.toast(L.t("Removed from favourites"), 2000) }
                                         else -> { engine.places.removeRecent(p); engine.toast(L.t("Removed from recent places"), 2000) }
                                     }
@@ -1803,15 +1807,17 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
                             ) { change, amount -> change.consume(); dx += amount }
                         }
                         .graphicsLayer { translationX = shown; alpha = 1f - (kotlin.math.abs(shown) / w.toFloat()).coerceIn(0f, 0.7f) }
-                        .clickable { if (sr != null) engine.startSavedRoute(sr) else engine.startRoute(p) }
+                        .clickable { when { sr != null -> engine.startSavedRoute(sr); jr != null -> engine.startJourneyHistory(jr); else -> engine.startRoute(p) } }
                         .padding(start = if (kind == 0 && label in inOpen) 34.dp else 16.dp, end = 16.dp, top = 9.dp, bottom = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(44.dp).clip(CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
-                            if (kind == 3) Icon(Icons.Rounded.Route, null, tint = c.accent, modifier = Modifier.size(22.dp))
+                            if (kind == 3 || kind == 5) Icon(Icons.Rounded.Route, null, tint = c.accent, modifier = Modifier.size(22.dp))
                             else Icon(if (fav) Icons.Rounded.Star else Icons.Rounded.History, null, tint = if (fav) Warn else c.sub, modifier = Modifier.size(22.dp))
                         }
                         Column(Modifier.padding(start = 14.dp).weight(1f)) {
-                            Text(label, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(if (jr != null) p.name else label, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (sr != null) Text(when (sr.stops.size) { 0 -> L.t("Saved route"); 1 -> L.t("Saved route · 1 stop"); else -> L.t("Saved route · {0} stops", sr.stops.size) },
+                                color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            else if (jr != null) Text(L.t(if (jr.stops.size == 1) "1 stop" else "{0} stops", jr.stops.size),
                                 color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             else if (p.sub.isNotBlank()) Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }

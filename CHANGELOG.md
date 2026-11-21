@@ -4,6 +4,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Multi-stop journey history: remember the destination and every stop as soon as the route is planned, so it can be previewed again with the same stops and fresh traffic (thanks to neilch0111, #279)
+
+### Fixed
+- Malayalam wording: refine Delete, fuel use and price, fuel-stop suggestions and the map-selection label (thanks to bijindas, #244)
+- Streetlights loading: queue every missing OpenStreetMap area instead of silently skipping requests while another area is downloading; carry on to the next area even when one request times out (thanks to joel941703-hash, #282)
+
 ### Fixed
 - Roundabout direction: the highlighted path now follows the country's traffic rules, independently of the steering-wheel and screen layout settings, including the turn card, Android Auto and navigation notification (thanks to Dixet, #285)
 - Route progress after rerouting: keep the completed part of the journey, so the progress bar carries on instead of jumping back towards the start (thanks to yurividal, #287)

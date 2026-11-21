@@ -22,7 +22,11 @@ object OsmLamps {
 
     private val mem = android.util.LruCache<String, Area>(16)
     private val failedAt = HashMap<String, Long>()
-    @Volatile private var busy = false
+    private val queueLock = Any()
+    private class Fetch(val i: Int, val j: Int, val key: String, val callbacks: MutableList<() -> Unit>)
+    private val queued = java.util.ArrayDeque<Fetch>()
+    private val pending = HashMap<String, Fetch>()
+    private var busy = false
     private val exec = java.util.concurrent.Executors.newSingleThreadExecutor { r -> Thread(r, "osm-lamps").apply { isDaemon = true; priority = Thread.MIN_PRIORITY } }
 
     private fun key(i: Int, j: Int) = "${i}_$j"
@@ -46,22 +50,54 @@ object OsmLamps {
 
     private fun fetch(ctx: Context, i: Int, j: Int, ready: () -> Unit) {
         val k = key(i, j)
-        synchronized(failedAt) {
-            if (busy) return
-            val f = failedAt[k]
-            if (f != null && System.currentTimeMillis() - f < 5 * 60_000L) return
-            busy = true
+        var startWorker = false
+        synchronized(queueLock) {
+            if (mem.get(k) != null) return
+            val failed = failedAt[k]
+            if (failed != null && System.currentTimeMillis() - failed < 5 * 60_000L) return
+            val existing = pending[k]
+            if (existing != null) {
+                existing.callbacks += ready
+                return
+            }
+            val task = Fetch(i, j, k, mutableListOf(ready))
+            pending[k] = task
+            queued.addLast(task)
+            if (!busy) { busy = true; startWorker = true }
+        }
+        if (startWorker) runNext(ctx)
+    }
+
+    /** Work through every missing square in order. A failed square must not leave the rest of the visible map unrequested. */
+    private fun runNext(ctx: Context) {
+        val task = synchronized(queueLock) {
+            if (queued.isEmpty()) { busy = false; return }
+            queued.removeFirst()
         }
         try {
             exec.execute {
+                var area: Area? = null
                 try {
-                    val a = fromDisk(ctx, k) ?: (if (Net.offline) null else download(ctx, i, j, k))
-                    if (a != null) { mem.put(k, a); ready() } else synchronized(failedAt) { failedAt[k] = System.currentTimeMillis() }
+                    area = fromDisk(ctx, task.key) ?: (if (Net.offline) null else download(ctx, task.i, task.j, task.key))
                 } catch (e: Throwable) {
-                    synchronized(failedAt) { failedAt[k] = System.currentTimeMillis() }
-                } finally { busy = false }
+                    // One Overpass timeout must not block the other squares needed for the current view.
+                }
+                val callbacks = synchronized(queueLock) {
+                    if (area != null) mem.put(task.key, area!!)
+                    else failedAt[task.key] = System.currentTimeMillis()
+                    pending.remove(task.key)
+                    task.callbacks.toList()
+                }
+                if (area != null) callbacks.forEach { callback -> try { callback() } catch (e: Throwable) { } }
+                runNext(ctx)
             }
-        } catch (e: Throwable) { busy = false }
+        } catch (e: Throwable) {
+            synchronized(queueLock) {
+                failedAt[task.key] = System.currentTimeMillis()
+                pending.remove(task.key)
+            }
+            runNext(ctx)
+        }
     }
 
     private fun file(ctx: Context, k: String) = File(File(ctx.cacheDir, "osmlamps").apply { mkdirs() }, "$k.json")
