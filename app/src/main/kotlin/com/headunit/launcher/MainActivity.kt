@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                     // flick between two slightly different distances)
                     if (te != null && !RouteSync.carConnected()) try {
                         NavService.update(applicationContext, te.first, te.second, engine.imperial, !engine.mirrored,
-                            prefs.b(PreferenceKeys.TURN_NOTIF, true))
+                            engine.roundaboutClockwise, prefs.b(PreferenceKeys.TURN_NOTIF, true))
                     } catch (e: Throwable) { }
                 }
         }
