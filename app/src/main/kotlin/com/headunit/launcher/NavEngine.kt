@@ -4571,13 +4571,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return (2.0 * ((left + right) / 2.0 - 0.5)).coerceIn(-0.42, 0.42)
     }
 
+    /** "Police directing traffic" in the app's language where it's known (desko1973, #297); null for the others (they say "Police"). */
+    private fun policeDirecting(): String? = when (L.lang) {
+        "pl" -> "Sterowanie ruchem przez policję"; "de" -> "Verkehrsregelung durch die Polizei"; "fr" -> "Circulation réglée par la police"
+        "es" -> "Tráfico dirigido por la policía"; "it" -> "Traffico regolato dalla polizia"; "nl" -> "Verkeersregeling door de politie"
+        "pt", "ptbr" -> "Trânsito controlado pela polícia"; else -> null
+    }
+
     private fun incidentLabel(i: Incident): String = when (i.cat) {
         "roadWorks" -> "Roadworks"; "roadClosed" -> "Road closed"; "accident" -> "Accident"; "breakdown" -> "Broken-down vehicle"
         "jam" -> "Traffic jam"; "laneClosed" -> "Lane closed"; "danger" -> "Hazard"
         // Mapbox only writes its incidents in English ("Police directing traffic"): in another language a known kind is named in
         // that language and anything else is called an incident, rather than showing English (desko1973, #240)
         else -> if (i.id.startsWith("mb-") && L.lang != "en" && i.text.isNotBlank())
-                (if (i.text.contains("police", true)) "Police" else "Incident")
+                (if (i.text.contains("police", true)) policeDirecting() ?: "Police" else "Incident")
             else i.text.ifBlank { "Incident" }
     }
 
