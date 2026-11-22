@@ -30,6 +30,8 @@ class TurnInfo(
     val thenStreet: String = "",
     /** The other roads at the junction (degrees from straight on), for the turn arrow's faint roads; null when unknown. */
     val sides: List<Double>? = null,
+    /** Road numbers beside the street names (this turn's road, and the one after it); "" when there is none. */
+    val ref: String = "", val thenRef: String = "",
 )
 /** Countries that use miles for road distances and speeds. */
 val MILES_COUNTRIES = setOf("GB", "US", "PR", "LR", "MM", "IM", "GG", "JE", "VG", "VI", "AG", "DM", "GD", "KN", "LC", "VC", "BS", "KY", "FK", "SH", "WS", "GU", "AS", "MP")

@@ -630,7 +630,7 @@ object MapboxRest {
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
                         lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay,
-                        sides = sideRoads(j0))
+                        sides = sideRoads(j0), ref = if (name.isNotBlank() && type != "off ramp") ref else "")
                     sigOnWay = sigHere
                     if (type == "roundabout" || type == "rotary") rbIdx = steps.size - 1
                     // the lanes at this junction: which go where, and the ones to be in

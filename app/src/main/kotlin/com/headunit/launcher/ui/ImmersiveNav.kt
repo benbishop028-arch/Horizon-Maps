@@ -1389,7 +1389,7 @@ internal fun ImmTurnCard(
         if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
-            RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp))
+            RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp), ref = t.ref)
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1405,7 +1405,7 @@ internal fun ImmTurnCard(
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))
                     if (!ukSign && t.sign.isNotBlank() && t.sign != t.street) Text(t.sign, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 130.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF1E8E55)).padding(horizontal = 7.dp, vertical = 2.dp))
-                    RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp)
+                    RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp, ref = t.ref)
                 }
             }
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)
@@ -2028,7 +2028,14 @@ internal fun FixedSides(content: @Composable () -> Unit) {
  * it's the plain white text it always was.
  */
 @Composable
-internal fun RoadLine(text: String, badges: Boolean, size: androidx.compose.ui.unit.TextUnit, modifier: Modifier = Modifier) {
+internal fun RoadLine(text: String, badges: Boolean, size: androidx.compose.ui.unit.TextUnit, modifier: Modifier = Modifier, ref: String = "") {
+    if (ref.isNotBlank() && !badges && text.isNotBlank()) {
+        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            PlainRefChip(ref, size)
+            Text(text, color = Color.White, fontSize = size, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+        }
+        return
+    }
     val refs = if (badges) roadRefRx.findAll(text).toList().take(2) else emptyList()
     if (refs.isEmpty()) { Text(text, color = Color.White, fontSize = size, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = modifier); return }
     // what's left once the numbers are taken out (and the brackets and dots that went with them)
@@ -2043,6 +2050,13 @@ internal fun RoadLine(text: String, badges: Boolean, size: androidx.compose.ui.u
 // or number (the old \b after "(M)" never matched, so A1(M) came out as a green A1 with "(M)" trailing after it)
 private val roadRefRx = Regex("(?<![A-Za-z0-9])((?:M ?|[AB])[0-9]{1,4})(\\s?\\(M\\))?(?![A-Za-z0-9])")
 private fun roadRefOf(m: MatchResult): String = m.groupValues[1].replace(" ", "") + (if (m.groupValues[2].isNotBlank()) "(M)" else "")
+
+/** A road number from outside the UK (169, E39): a plain white badge, as the UK ones are for B roads. */
+@Composable
+private fun PlainRefChip(r: String, size: androidx.compose.ui.unit.TextUnit) {
+    Text(r, color = Color(0xFF111111), fontSize = size * 0.85f, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false,
+        modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White).border(1.5.dp, Color(0xFF111111), RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 1.dp))
+}
 
 /** One UK road-number badge: blue for motorways (M or (M)), green with yellow for A roads, white for B roads. */
 @Composable

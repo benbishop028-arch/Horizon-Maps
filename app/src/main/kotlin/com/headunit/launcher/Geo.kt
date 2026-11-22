@@ -21,7 +21,9 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
     val lights: Boolean = false, val stopSign: Boolean = false, val lightsBefore: Int = 0,
     /** The other roads at this junction, as turns from the way you arrive (degrees, 0 ahead, 90 right), for the faint roads on the
      *  turn arrow; null when the route data doesn't say. */
-    val sides: List<Double>? = null)
+    val sides: List<Double>? = null,
+    /** The road number (169, E39) when the road has a name too, shown beside the name; never spoken (desko1973, #297). */
+    val ref: String = "")
 /** A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). */
 data class Place(val name: String, val sub: String, val pos: LL, val web: String = "")
 
