@@ -1170,14 +1170,15 @@ private fun carCompactSpeed(engine: NavEngine): Boolean = engine.isCar && engine
 
 /**
  * The compact speedometer for the car screen: one small dark pill with the limit sign (when the limit is known) and your speed
- * beside it, or just a dark circle with your speed. Much smaller than the ring, so it tucks into a corner. It's dark by day and
- * by night, so the white figures always read against the map.
+ * beside it, or just a circle with your speed. Much smaller than the ring, so it tucks into a corner. It follows day and night
+ * like the other cards (pc4096: the always-black pill was jarring and the amber and red speeds didn't suit it).
  */
 @Composable
 private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
+    val c = LocalVw.current
     val lim = engine.speedLimit
     Row(
-        Modifier.height(60.dp).widthIn(min = 60.dp).panel(6.dp, RoundedCornerShape(30.dp), Color(0xFF101114)).padding(horizontal = 6.dp),
+        Modifier.height(60.dp).widthIn(min = 60.dp).panel(6.dp, RoundedCornerShape(30.dp), c.surface).padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center,
     ) {
         // (Big speed limit sign: the sign fills the pill's height and your speed is smaller beside it)
@@ -1185,17 +1186,17 @@ private fun SpeedPill(engine: NavEngine, show: Boolean, k: Double) {
         if (lim != null) SpeedLimitSign(engine, if (swap) 54.dp else 48.dp)
         // (the same width with or without the sign, so the pill doesn't change size as the figures do)
         if (show) Column(Modifier.widthIn(min = if (swap) 38.dp else 48.dp).padding(horizontal = if (lim != null) 6.dp else 0.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: Color.White, fontSize = if (swap) 16.sp else 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
-            Text(if (engine.imperial) "mph" else "km/h", color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+            Text("${Math.round((engine.fix?.speed ?: 0.0) * k)}", color = speedTint(engine) ?: c.text, fontSize = if (swap) 16.sp else 22.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
+            Text(if (engine.imperial) "mph" else "km/h", color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
         }
         // the next limit on the route, in the same pill after a thin line: a smaller sign with how far it is under it
         val nx = engine.nextLimit
         if (nx != null && engine.prefs.b(PreferenceKeys.NEXT_LIMIT, true)) {
-            Box(Modifier.padding(start = if (lim != null || show) 4.dp else 0.dp, end = 8.dp).width(1.dp).height(34.dp).background(Color.White.copy(alpha = 0.22f)))
+            Box(Modifier.padding(start = if (lim != null || show) 4.dp else 0.dp, end = 8.dp).width(1.dp).height(34.dp).background(c.sub.copy(alpha = 0.35f)))
             Column(Modifier.padding(end = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 val num = "${(Math.round(nx.first * k / 5.0) * 5)}"
                 LimitSignFace(num.toInt(), engine.limitSignStyle, if (engine.limitSignStyle != "round") 34.dp else 30.dp)
-                Text(Geo.fmtDist(nx.second, engine.imperial), color = Color.White.copy(alpha = 0.85f), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+                Text(Geo.fmtDist(nx.second, engine.imperial), color = c.sub, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
             }
         }
     }
@@ -1330,12 +1331,15 @@ private fun SpeedRing(engine: NavEngine, show: Boolean, k: Double) {
         val signRight = onLeftHalf
         // (on the ring's top corner; its bottom corner where the speed is at the top of the screen)
         val atTop = LocalSpeedAtTop.current
+        // (the car screen's own sign size, 80 to 170%; the sign grows outwards from the ring's corner, so it moves out a little too)
+        val ls = if (engine.isCar) engine.prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).coerceIn(80, 170) / 100f else 1f
+        val extra = ((ls - 1f) * 25f).dp
         if (lim != null) Box(
             Modifier.align(if (!show) Alignment.Center else if (atTop) (if (signRight) Alignment.BottomEnd else Alignment.BottomStart) else if (signRight) Alignment.TopEnd else Alignment.TopStart)
-                .offset(x = if (!show) 0.dp else if (signRight) 30.dp else (-30).dp, y = if (!show) 0.dp else if (atTop) 18.dp else (-18).dp)
+                .offset(x = if (!show) 0.dp else if (signRight) 30.dp + extra else (-30).dp - extra, y = if (!show) 0.dp else if (atTop) 18.dp + extra else (-18).dp - extra)
         ) {
             // (the upright North American board is narrower than the round sign, so it gets a little more height to stay readable)
-            SpeedLimitSign(engine, if (!show) 70.dp else if (engine.limitSignStyle != "round") 58.dp else 50.dp)
+            SpeedLimitSign(engine, (if (!show) 70.dp else if (engine.limitSignStyle != "round") 58.dp else 50.dp) * ls)
         }
     }
 }

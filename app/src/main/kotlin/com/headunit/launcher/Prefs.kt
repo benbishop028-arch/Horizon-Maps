@@ -62,6 +62,8 @@ internal object PreferenceKeys {
     const val CAR_CARD_SIZE = "carcardsize"
     const val CAR_TEXT_SIZE = "cartextsize"
     const val CAR_SPEED_SIZE = "carspeedsize"
+    /** The speed limit sign on the car screen, as a percentage of its usual size (pc4096: it looked too small beside the speedometer). */
+    const val CAR_LIMIT_SIZE = "carlimitsize"
     const val CAR_BUTTON_SIZE = "carbuttonsize"
     const val CAR_ARROW_SIZE = "cararrowsize"
     const val MAP_THEME = "maptheme"

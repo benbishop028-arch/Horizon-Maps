@@ -1405,6 +1405,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
     SGroup(L.t("Sizes on the car screen")) {
         SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay") + (prefs.i(PreferenceKeys.CARSCALE_MAX, 0).takeIf { it in 100..299 }?.let { " · " + L.t("Up to {0}% fits this car's screen", it) } ?: ""), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
+        SSlider(L.t("Speed-limit sign size"), prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).toFloat(), 80f..170f, "%", sub = L.t("Makes the limit sign bigger or smaller next to the speedometer"), reset = 100f) { prefs.put(PreferenceKeys.CAR_LIMIT_SIZE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
             SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }
