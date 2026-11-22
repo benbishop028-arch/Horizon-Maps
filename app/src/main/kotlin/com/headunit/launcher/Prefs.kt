@@ -101,6 +101,8 @@ internal object PreferenceKeys {
     const val SAVED_ICON_SIZE = "savediconsize"
     const val PLACES_ROUTES = "places_routes"
     const val CAR_TRIP_BTNS = "car_trip_btns"
+    /** Set once the Add stop button has been added to a trip card whose buttons were already picked by hand. */
+    const val CAR_TRIP_STOP_ADDED = "car_trip_stop_added"
     const val CAR_TRIP_BTN_SIZE = "car_trip_btn_size"
     /** Android Auto split screen: the trip card as a "bar" along the bottom or a "column" on the left (GitHub). */
     const val CAR_SPLIT_TRIP = "car_split_trip"

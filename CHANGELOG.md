@@ -5,12 +5,16 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Add a stop on Android Auto in one tap: a pin button at the end of the trip card's route bar (as on the phone; it takes no extra room) opens the stops card, which now has Fuel, Charging, Food and Coffee along the route straight away; the one picked is added as a stop. Before, stops were only reached by tapping the trip card's figures, and fuel on the way was under Add a stop › Categories. It's added once to trip cards whose buttons were picked by hand too, and can be switched off under Settings › Android Auto › Buttons on the trip card
 - Quick reports on Android Auto: a flag on the trip card opens a small panel over the map (Police, Crash, Hazard, Broken down, Mobile camera); one tap reports where you are, and it closes by itself after 8 seconds. It can be switched off under Settings › Android Auto › Buttons on the trip card (thanks to sagarraul06-glitch, #290)
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
 - Your own locator picture no longer shows as a white box: a picture saved with a solid white background (rather than a see-through one) now has the white around it made see-through. It's on by default and can be switched off under Settings › Your arrow › Remove white background (thanks to the #303 reporter)
 - The arrival time no longer jumps up and down while you drive: the time left is now smoothed over about half a minute, so a traffic figure that flips between route refreshes doesn't swing the arrival by several minutes (#298)
+- Android Auto trip card: the figures no longer run into each other ("19:206.2 …") with only one or two buttons picked; on a narrow card they now share its width and their text shrinks a little to fit
+- The arrow on the route bar is smooth again: it was the map's large locator picture shrunk in one go, which left its edges jagged
+- Android Auto route choice on a narrower screen: the Start (or Start demo drive) button is no longer cut off at the bottom of the card; with more routes than fit, the routes scroll instead
 - Routes start straight away when TomTom refuses your key: a refused key (or a used-up daily limit) was mistaken for "no signal", so instead of switching to Mapbox the route waited for a signal that was already there, starting late or not at all, with "Weak signal" on screen. It now switches to Mapbox at once and says why (thanks to jerzdevil22, #269, #281, #291)
 - The speed limit sign on the map now shows where the limit changes even when the route has no limit for the stretch you're on (common with Mapbox's data); it used to appear only rarely (thanks to SonicBjork, #257)
 - Android Auto search waits for you to finish typing: it searched half a second after the third letter, and the results replaced the keyboard on some cars long before the name was finished. It now waits for a longer pause and keeps the keyboard up (thanks to joebGer19, #293)
