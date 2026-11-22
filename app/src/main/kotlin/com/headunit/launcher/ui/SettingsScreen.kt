@@ -543,6 +543,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         if (loc == "custom") {
             SItem(L.t("Picture"), L.t("A PNG with a see-through background looks best. Point the top of it the way you drive")) { SButton(if (hasPic) L.t("Change") else L.t("Choose")) { choosePic() } }
             SToggle(prefs, L.t("Turns with you"), PreferenceKeys.LOCATOR_IMAGE_TURNS, true, L.t("Lies flat on the road and turns as you drive, like the arrow. Off keeps it upright"))
+            SToggle(prefs, L.t("Remove white background"), PreferenceKeys.LOCATOR_IMAGE_CLEAR, true, L.t("For a picture saved with a white background instead of a see-through one: the white around it is made see-through. A picture that already has a see-through background is left alone"))
             SToggle(prefs, L.t("Round crop"), PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false, L.t("Cuts it to a circle with a white edge (good for photos)"))
         }
         // the car's shape: for the Car picture and the real 3D car alike

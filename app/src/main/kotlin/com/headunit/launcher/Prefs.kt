@@ -19,6 +19,7 @@ internal object PreferenceKeys {
     const val LOCATOR_IMAGE = "locimg"
     const val LOCATOR_IMAGE_TURNS = "locimgturn"
     const val LOCATOR_IMAGE_CIRCLE = "locimgcircle"
+    const val LOCATOR_IMAGE_CLEAR = "locimgclear"
     const val MODEL_SHAPE = "modelshape"
     const val MODEL_GLOW = "modelglow"
     /** Your own 3D model: "<stamp>|<bytes>|<longest side>|<file name>" (the file itself is in the app's storage). */
@@ -533,7 +534,7 @@ fun Prefs.setApiKey(k: String) {
 fun Prefs.locatorSpec(): Pair<String, String> {
     val loc = s(PreferenceKeys.LOCATOR, "arrow")
     return when (loc) {
-        "custom" -> loc to (s(PreferenceKeys.LOCATOR_IMAGE, "0") + "|" + (if (b(PreferenceKeys.LOCATOR_IMAGE_TURNS, true)) "1" else "0") + "|" + (if (b(PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false)) "1" else "0"))
+        "custom" -> loc to (s(PreferenceKeys.LOCATOR_IMAGE, "0") + "|" + (if (b(PreferenceKeys.LOCATOR_IMAGE_TURNS, true)) "1" else "0") + "|" + (if (b(PreferenceKeys.LOCATOR_IMAGE_CIRCLE, false)) "1" else "0") + "|" + (if (b(PreferenceKeys.LOCATOR_IMAGE_CLEAR, true)) "1" else "0"))
         "model" -> {
             // (your own model, but none saved: the arrow)
             val shape = s(PreferenceKeys.MODEL_SHAPE, "arrow").let { if (it == "own" && s(PreferenceKeys.OWN_MODEL, "").isBlank()) "arrow" else it }

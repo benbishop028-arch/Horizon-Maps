@@ -5883,6 +5883,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return r.freeFlow * frac + ahead
     }
 
+    private var etaSmoothSecs = -1.0
+    private var etaSmoothAt = 0L
+
     private fun updateGuidance(progress: Double, light: Boolean = false) {
         val r = route ?: return
         val rem = max(0.0, r.len - progress)
@@ -5921,7 +5924,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val ttSecs = t.free * (rem / t.span).coerceIn(0.0, 1.2) + ttAhead
                 if (ttSecs > secs) { secs = ttSecs; delayMin = max(delayMin, Math.round(ttAhead / 60.0).toInt()) }
             }
-            val arrive = Clock.hm(System.currentTimeMillis() + (secs * 1000).toLong())
+            // the time left is smoothed over about half a minute, so a traffic figure that flips back and forth between route
+            // refreshes doesn't make the arrival time jump up and down; a change of over 15 minutes shows at once
+            val nowMs = System.currentTimeMillis()
+            if (eta != null && etaSmoothSecs >= 0.0 && etaSmoothAt > 0L && nowMs >= etaSmoothAt) {
+                val expected = etaSmoothSecs - (nowMs - etaSmoothAt) / 1000.0
+                if (expected > 0.0 && Math.abs(secs - expected) < 900.0) {
+                    val a = ((nowMs - etaSmoothAt) / 30000.0).coerceIn(0.0, 1.0)
+                    secs = expected + (secs - expected) * a
+                }
+            }
+            etaSmoothSecs = secs; etaSmoothAt = nowMs
+            val arrive = Clock.hm(nowMs + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
             // each stop's share of the time left (the same sums, up to where the stop is on the route). While a changed route is
             // being worked out the last ones stay
