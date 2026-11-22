@@ -136,7 +136,9 @@ dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     // The map: Mapbox Maps SDK (v11, Standard style). Needs OpenGL ES 3.0; the app checks for it at start-up.
-    implementation("com.mapbox.maps:android:11.32.1")
+    // (the "-ndk27" build, which Mapbox makes for 16 KB memory pages: Google Play now requires apps to support them, and Play Console
+    // showed this app as not supporting them because the standard build's map libraries are made for 4 KB pages)
+    implementation("com.mapbox.maps:android-ndk27:11.32.1")
     // Android Auto: Google's car app library (the navigation layout, search and list screens, and the map surface)
     implementation("androidx.car.app:app:1.4.0")
     implementation("androidx.car.app:app-projected:1.4.0")
