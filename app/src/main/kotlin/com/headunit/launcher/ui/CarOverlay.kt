@@ -435,7 +435,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // separate pill: the left side is then just the turn card and the trip card
         val alert = engine.alert
         val inc = engine.incidentAhead; val cam = engine.cameraDist
-        val incShown = inc != null && alert?.kind != "incident"
+        // roadworks on the turn card show once, as the line on the card: the pop-up for them is left out while the card is
+        // there (desko1973, #309). Accidents and closures still get their pop-up.
+        val worksOnCard = showTurn && inc != null && inc.label == "Roadworks"
+        val incShown = inc != null && (alert?.kind != "incident" || worksOnCard)
         // (while the average speed card shows under the turn card, it takes the speed camera line's place, so the column
         // doesn't grow too tall on a short car screen: magnazan, #177)
         val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
@@ -553,7 +556,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             // width, set in from the edge, ran a little past, so the two overlapped)
             else Modifier.align(Alignment.TopCenter).padding(top = top,
                 start = if (showTurn && turnW > 0) left + with(dens) { turnW.toDp() } + 10.dp else if (guiding) maxWidth * 0.42f + left else left, end = maxOf(rightTop, maxWidth * 0.30f))
-        AnimatedVisibility(alert != null && !altsOpen, modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
+        AnimatedVisibility(alert != null && !altsOpen && !(worksOnCard && alert?.kind == "incident"), modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
 
         // the search card: over the map from the left edge to Android Auto's zoom buttons (its other buttons give way to one
         // Close button while it's open, see MapScreen)

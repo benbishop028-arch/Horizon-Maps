@@ -813,6 +813,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Hazards"), footer = L.t("Speed bumps, schools, level crossings and fords come from OpenStreetMap, so some may be missing.")) {
         SToggle(prefs, L.t("Roadworks and incidents"), "incidents", true)
+        if (prefs.b("incidents", true)) SToggle(prefs, L.t("Roadworks warnings"), "roadworkswarn", true, L.t("Turn off to stop the warning line and voice for roadworks. Accidents and closures still warn"))
         SToggle(prefs, L.t("Wrong-way warning"), "wrongway", true, L.t("If you turn the wrong way into a one-way street"))
         SToggle(prefs, L.t("Speed bumps"), "bumps", true)
         SToggle(prefs, L.t("Sharp bends"), PreferenceKeys.BEND_WARN, true, L.t("Bends that need slowing for are striped yellow on the route, with a warning and a comfortable speed before each"))

@@ -5396,7 +5396,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             }
         }
-        val next = incMatches.filter { it.second > progress - 30 }.minByOrNull { it.second }
+        // "Roadworks warnings" off (Settings > Hazards): roadworks stay on the map but give no line, pop-up or voice
+        val worksOn = prefs.b("roadworkswarn", true)
+        val next = incMatches.filter { it.second > progress - 30 && (worksOn || !it.first.cat.contains("work", true)) }.minByOrNull { it.second }
         if (next == null) { incidentAhead = null; return }
         val d = max(0.0, next.second - progress)
         if (d > 15_000) { incidentAhead = null; return }
