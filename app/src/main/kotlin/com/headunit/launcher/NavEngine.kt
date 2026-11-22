@@ -3037,6 +3037,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun recenter(byUser: Boolean = false) {
         homeTucked = false
+        // re-centring yourself while stopped means you want your usual view: the flat "traffic round you" view (after 30 s stopped)
+        // came straight back as the zoom was reset, so re-centre always gave a top-down map (bluelions25, #312). It comes back
+        // the next time you stop after driving off
+        if (byUser && stoppedSince > 0L) overviewDismissed = true
         val wasFollowing = following
         following = true
         val resetZoom = route != null || (byUser && wasFollowing)
@@ -4495,12 +4499,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Not navigating (on the phone / head unit screen): the arrow sits in the middle of the clear map between the search panel and
         // the buttons, whatever height they reach to, so it's always in the middle of what's left of the map.
         // (Android Auto too: there the outlines are measured within the part of the screen its own buttons leave clear)
+        idleSoft = false
         tLeft = if (!navigating && !previewing) idleShift(bottomCover > 0.0, (1.0 + pad) / 2.0)
                 else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
         // "Keep the arrow to the side" (GitHub): on a wide screen the arrow stays where the cards put it when they fold away, rather
         // than gliding back to the middle (the side the cards were last on; at first the usual side for this screen)
         if (bottomCover <= 0.0 && !stoppedOverview) {
-            if (abs(tLeft) > 0.06) sideShiftSeen = tLeft
+            if (abs(tLeft) > 0.06 && !idleSoft) sideShiftSeen = tLeft
             else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
                 tLeft = sideShiftSeen ?: (if (layoutMirrored && !isCar) -0.3 else 0.3)
         }
@@ -4554,8 +4559,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * on the other (as a part of the screen width; positive moves it right). Portrait: the search panel is above the arrow, so only the
      * buttons count. Kept small, so it's a gentle nudge off centre rather than a jump.
      */
+    /** The last [idleShift] was the small nudge for the search bar alone (not remembered as the side the cards are on). */
+    private var idleSoft = false
+
     private fun idleShift(portrait: Boolean, arrowY: Double = 0.5): Double {
         var left = 0.0; var right = 1.0
+        var softL = 0.0; var softR = 1.0
+        idleSoft = false
         for ((i, p) in panels.withIndex()) {
             if (p[2] - p[0] < 0.02 || p[3] - p[1] < 0.02) continue
             if (i == 1) continue                                   // the trip card isn't up when you're not navigating
@@ -4565,10 +4575,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // That's judged against where the arrow actually is (low on the screen when tilted): a folded-away recents panel, the
             // search bar alone, reached a little past a fixed 30% on a short car screen and still pushed the arrow well over, more
             // than the full panel did. Anything that ends clearly above the arrow now leaves it in the middle
-            if (p[3] < 0.3f || p[3] < arrowY - 0.12) continue
+            if (p[3] < 0.3f || p[3] < arrowY - 0.12) {
+                // (still a small nudge away from it below, as the search bar takes that side of the top of the screen)
+                if (i == 0) { if (p[0] + p[2] < 1.0) softL = max(softL, p[2].toDouble()) else softR = minOf(softR, p[0].toDouble()) }
+                continue
+            }
             if (p[0] + p[2] < 1.0) left = max(left, p[2].toDouble()) else right = minOf(right, p[0].toDouble())
         }
         if (right - left < 0.2) return 0.0
+        // with the recents panel folded away (only the search bar along the top), the arrow sits a third as far off the middle as it
+        // does with the panel down, rather than dead centre: the search bar makes the middle of the map look off to one side
+        if (left == 0.0 && right == 1.0 && (softL > 0.0 || softR < 1.0) && softR - softL >= 0.2) {
+            idleSoft = true
+            return (2.0 * ((softL + softR) / 2.0 - 0.5) / 3.0).coerceIn(-0.14, 0.14)
+        }
         // the arrow's spot moves by half the side padding, so twice the distance from the middle
         return (2.0 * ((left + right) / 2.0 - 0.5)).coerceIn(-0.42, 0.42)
     }
