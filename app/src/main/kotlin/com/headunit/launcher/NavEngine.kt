@@ -2824,7 +2824,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             sharpWarned += i
             val sp = if (imperial) "${(Math.round(b.mps * 2.23694 / 5.0) * 5).coerceAtLeast(10)} mph" else "${(Math.round(b.mps * 3.6 / 10.0) * 10).coerceAtLeast(20)} km/h"
             chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
-            raiseAlert(if (b.right) "bend" else "bend-l", L.t("Take it at {0}", sp), 7000)
+            // stays up until the end of the bend, not for a fixed 7 seconds: at lower speeds it went out before the bend started (desko1973, #309)
+            val untilEnd = ((b.end - prog) / max(spd, 4.0) * 1000.0).toLong() + 1000L
+            raiseAlert(if (b.right) "bend" else "bend-l", L.t("Take it at {0}", sp), untilEnd.coerceIn(7000L, 40000L))
             break
         }
     }

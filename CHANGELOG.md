@@ -20,6 +20,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Android Auto route choice on a narrower screen: the Start (or Start demo drive) button is no longer cut off at the bottom of the card; with more routes than fit, the routes scroll instead
 - Warning banners (rain, hazards and so on) now have room for a third line, so on a wide, short head unit screen (1280 x 480) the rain warning is no longer cut off (#308)
 - Android Auto: roadworks ahead now show once, as the line on the turn card, instead of also popping up a second warning. New switch in Settings › Hazards: "Roadworks warnings", to turn the roadworks line and voice off (accidents and closures still warn) (#309)
+- The "Take it at …" sharp-bend warning now stays on screen until the end of the bend, instead of going out after 7 seconds (at lower speeds that was before the bend started) (#309)
 - Incidents from Mapbox that say "Police directing traffic" now show in Polish, German, French, Spanish, Italian, Dutch and Portuguese instead of just "Police" (#297)
 - Turn card: when a road has a name and a number (road 169, E39), the number now shows in a small badge beside the name, outside the UK (where the UK road badges already do this). Not spoken (#297)
 - The speed bump warning now comes at least 100 m before the bump, also at town speeds (it was about 70 to 85 m; thanks to desko1973, #309)
