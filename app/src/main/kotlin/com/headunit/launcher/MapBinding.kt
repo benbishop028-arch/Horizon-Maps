@@ -3599,8 +3599,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      */
     private fun bubbleBitmap(diff: Int, traffic: Int = 0): Bitmap {
         val d = mapView.resources.displayMetrics.density * 2f
-        val top = if (diff < 0) "${-diff} min faster" else if (diff > 0) "$diff min slower" else "Same time"
-        val sub = when (traffic) { -1 -> "Less traffic"; 1 -> "More traffic"; else -> "Similar traffic" }
+        // (in the app's language: these were always English, so on a Polish unit the card said "1 min slower, Similar traffic", desko1973, #297)
+        val top = if (diff < 0) L.t("{0} min faster", -diff) else if (diff > 0) L.t("{0} min slower", diff) else L.t("Same time")
+        val sub = when (traffic) { -1 -> L.t("Less traffic"); 1 -> L.t("More traffic"); else -> L.t("Similar traffic") }
         // day: a light card with dark writing, like the rest of the day look; night: the dark card. A faster way is green in both
         val day = !nightStyle
         val green = diff < 0

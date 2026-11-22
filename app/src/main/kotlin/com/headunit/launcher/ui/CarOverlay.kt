@@ -964,7 +964,7 @@ private fun CarStat(value: String, label: String, color: Color, modifier: Modifi
 private fun CarHazardLine(kind: String, label: String, dist: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         AlertSign(com.headunit.launcher.AlertInfo(kind, label), 22.dp)
-        Text("$label in $dist", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+        Text("$label " + L.t("in {0}", dist), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
     }
 }
