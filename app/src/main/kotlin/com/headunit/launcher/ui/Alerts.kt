@@ -234,7 +234,8 @@ fun AlertBanner(a: AlertInfo, modifier: Modifier = Modifier) {
             AlertSign(a, 54.dp)
             Column(Modifier.padding(start = 12.dp)) {
                 Text(alertLabel(a.kind), color = col, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, maxLines = 1)
-                Text(a.text, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis, lineHeight = 22.sp)
+                // (up to three lines: in the narrow gap on a wide, short screen the rain warning was cut off after two, "Rain expected in about 11 min on y…")
+                Text(a.text, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 3, overflow = TextOverflow.Ellipsis, lineHeight = 22.sp)
             }
         }
         Box(Modifier.fillMaxWidth().height(4.dp).background(Color.White.copy(alpha = 0.08f))) {

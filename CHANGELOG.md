@@ -15,6 +15,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Android Auto trip card: the figures no longer run into each other ("19:206.2 …") with only one or two buttons picked; on a narrow card they now share its width and their text shrinks a little to fit
 - The arrow on the route bar is smooth again: it was the map's large locator picture shrunk in one go, which left its edges jagged
 - Android Auto route choice on a narrower screen: the Start (or Start demo drive) button is no longer cut off at the bottom of the card; with more routes than fit, the routes scroll instead
+- Warning banners (rain, hazards and so on) now have room for a third line, so on a wide, short head unit screen (1280 x 480) the rain warning is no longer cut off (#308)
 - The speed bump warning now comes at least 100 m before the bump, also at town speeds (it was about 70 to 85 m; thanks to desko1973, #309)
 - Words that were always English now follow the app's language: the hazard line on the Android Auto turn card ("Roboty drogowe za 1 km", not "... in 1 km") and the card on another route ("1 min wolniej", "Podobny ruch"; thanks to desko1973, #297)
 - Routes start straight away when TomTom refuses your key: a refused key (or a used-up daily limit) was mistaken for "no signal", so instead of switching to Mapbox the route waited for a signal that was already there, starting late or not at all, with "Weak signal" on screen. It now switches to Mapbox at once and says why (thanks to jerzdevil22, #269, #281, #291)
