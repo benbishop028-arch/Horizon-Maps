@@ -7244,6 +7244,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             Character.UnicodeScript.GEORGIAN -> listOf(Locale("ka", "GE"))
             Character.UnicodeScript.ARMENIAN -> listOf(Locale("hy", "AM"))
             Character.UnicodeScript.TAMIL -> listOf(Locale("ta", "IN"))
+            Character.UnicodeScript.TELUGU -> listOf(Locale("te", "IN"))
             Character.UnicodeScript.BENGALI -> listOf(Locale("bn", "IN"))
             else -> emptyList()
         }
