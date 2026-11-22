@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -235,12 +236,13 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
 @Composable
 private fun CarSearchLine(title: String, sub: String, trail: String, icon: ImageVector, tint: Color, h: androidx.compose.ui.unit.Dp, modifier: Modifier) {
     val c = LocalVw.current
-    Row(modifier.fillMaxWidth().height(h).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier.fillMaxWidth().heightIn(min = h).padding(horizontal = 8.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(40.dp).clip(CircleShape).background(tint.copy(alpha = 0.22f)), contentAlignment = Alignment.Center) {
             Icon(icon, null, tint = tint, modifier = Modifier.size(23.dp))
         }
         Column(Modifier.weight(1f).padding(start = 14.dp)) {
-            Text(title, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            // (a long name goes onto a second line before it is cut short: on a small screen "Johnsonville Fish…" twice looked the same, pc4096)
+            Text(title, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (sub.isNotBlank()) Text(sub, color = c.sub, fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         if (trail.isNotBlank()) Text(trail, color = Good, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.padding(start = 10.dp))
