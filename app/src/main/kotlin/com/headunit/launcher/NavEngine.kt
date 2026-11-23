@@ -6254,6 +6254,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * once every 10 minutes, sooner if you've moved 3 km or Home / Work changed. Two small route requests at a time.
      */
     val slotMins = androidx.compose.runtime.mutableStateMapOf<String, Int>()
+    /** Minutes of traffic delay on the way to Home and Work just now (with [slotMins]; 0 when clear). */
+    val slotDelay = androidx.compose.runtime.mutableStateMapOf<String, Int>()
     private var slotMinsAt = 0L
     private var slotMinsFrom: LL? = null
     private var slotMinsKey = ""
@@ -6280,6 +6282,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
                 if (route != null) return@launch
                 slotMins[k] = r?.let { Math.round(it.time / 60.0).toInt() } ?: -1
+                slotDelay[k] = r?.let { Math.round(it.delay / 60.0).toInt().coerceAtLeast(0) } ?: 0
             }
         }
     }

@@ -354,7 +354,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
                 // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
                 val tucked = engine.homeTucked
-                if (!tucked) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
+                if (!tucked && !sheetMode) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
                 // a GPX track you're looking at (Settings › Places & trips › GPX tracks › Show)
                 if (!tucked) engine.shownTrack?.let { t -> TrackCard(engine, t) }
                 val showResults = engine.results.isNotEmpty()
@@ -1490,6 +1490,70 @@ internal fun ImmTurnCard(
     }
 } }
 
+/** The weather where you are and the cheapest of your fuel nearby, as two small chips in a row (each only when it's known). */
+@Composable
+private fun SheetGlance(engine: NavEngine) {
+    val c = LocalVw.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val wx = engine.weather
+    val fuel = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
+    val here = engine.fix?.pos
+    // (worked out away from the screen thread, again only after moving about half a kilometre)
+    val cell = here?.let { "${Math.round(it.lat * 200)},${Math.round(it.lon * 200)}" }
+    val cheapest by androidx.compose.runtime.produceState<Pair<com.headunit.launcher.FuelFinder.Station, Double>?>(null, cell, fuel) {
+        value = if (here == null || fuel == "EV" || !com.headunit.launcher.FuelFinder.configured(engine.prefs)) null
+        else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                com.headunit.launcher.FuelFinder.stations(ctx).asSequence().filter { !it.motorway && Geo.dist(here, it.pos) < 5000.0 }
+                    .mapNotNull { s -> com.headunit.launcher.FuelFinder.priceOf(ctx, s.id, fuel)?.let { s to it.pence } }
+                    .minByOrNull { it.second }
+            } catch (e: Exception) { null }
+        }
+    }
+    if (wx == null && cheapest == null) return
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        wx?.let { w ->
+            val f = isImperial(engine.prefs)
+            val t = if (f) Math.round(w.tempC * 9 / 5 + 32) else Math.round(w.tempC)
+            Row(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(c.tile).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(wxIcon(w.code), null, tint = wxTint(w.code), modifier = Modifier.size(20.dp))
+                Text("$t°" + (if (f) "F" else "C"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 6.dp))
+            }
+        }
+        cheapest?.let { (s, p) ->
+            Row(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(c.tile)
+                .clickable { engine.startRoute(com.headunit.launcher.Place(s.brand.ifBlank { s.name }, s.postcode, s.pos)) }.padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.LocalGasStation, null, tint = Color(0xFFEA4335), modifier = Modifier.size(20.dp))
+                Text(String.format(java.util.Locale.UK, "%.1fp", p), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 6.dp))
+                Text(" · " + s.brand.ifBlank { s.name } + " · " + Geo.fmtDist(Geo.dist(here ?: s.pos, s.pos), engine.imperial), color = c.sub, fontSize = 13.sp, maxLines = 1)
+            }
+        }
+    }
+}
+
+/** The drive to Home and Work just now, with any traffic on the way, a line each (tap to go). */
+@Composable
+private fun SlotTraffic(engine: NavEngine) {
+    val c = LocalVw.current
+    val rows = listOf("home" to Pair(Icons.Rounded.Home, Color(0xFF4C8DFF)), "work" to Pair(Icons.Rounded.Work, Color(0xFFF29900)))
+        .mapNotNull { (k, look) -> val m = engine.slotMins[k] ?: return@mapNotNull null; val p = engine.places.slot(k) ?: return@mapNotNull null; if (m <= 0) null else Triple(k, look, Pair(m, p)) }
+    if (rows.isEmpty()) return
+    Column(Modifier.fillMaxWidth().panel(6.dp, RoundedCornerShape(22.dp), c.surface).padding(vertical = 4.dp)) {
+        Text(L.t("Traffic now"), color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 14.dp, top = 6.dp, bottom = 2.dp))
+        for ((k, look, mp) in rows) {
+            val (m, p) = mp
+            val d = engine.slotDelay[k] ?: 0
+            Row(Modifier.fillMaxWidth().clickable { engine.startRoute(p) }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(30.dp).clip(CircleShape).background(look.second.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(look.first, null, tint = look.second, modifier = Modifier.size(18.dp)) }
+                Text(L.t(if (k == "home") "Home" else "Work"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 10.dp).weight(1f))
+                Text(Geo.fmtDur(m * 60.0), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text(if (d >= 1) "  " + L.t("+{0} min traffic", d) else "  " + L.t("No delays"), color = delayTint(d, c.surface), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+    }
+}
+
 /**
  * The portrait sheet with no route: a handle, the road you're on while driving, the music, Home, Work and your places (the same
  * tiles and buttons as under the search bar, in their own colours), any notices (a planned trip, updates), and pulled up (or the
@@ -1503,6 +1567,8 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearc
     // moving the map or driving folds it; a route you can carry on with opens it, so that card is seen
     LaunchedEffect(engine.homeTucked, cruising) { if (engine.homeTucked || cruising) open = false }
     LaunchedEffect(engine.resume != null) { if (engine.resume != null && !cruising) open = true }
+    // a place sent from your phone opens it too, so it's seen straight away
+    LaunchedEffect(engine.phoneDest) { if (engine.phoneDest != null && !cruising) open = true }
     val shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
     // a swipe up or down anywhere on the sheet opens or folds it (only on the handle before, and a swipe elsewhere went through to
     // the map, which moved it and so folded the sheet straight back); the sheet also keeps taps and drags off the map under it
@@ -1522,7 +1588,11 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearc
         }
         if (engine.cruisePillWanted) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CruisePill(engine) }
         if (media) MediaBar()
+        // at a glance: the weather now and the cheapest fuel near you
+        SheetGlance(engine)
         ImmChips(engine, focusSearch)
+        // where you left the car, while you're away from it
+        if (!cruising) ParkedCard(engine)
         if (!cruising) {
             PlannedCard(engine)
             AppUpdateCard(engine)
@@ -1530,7 +1600,11 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearc
         }
         AnimatedVisibility(open && !cruising, enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)),
             exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-            Column(Modifier.fillMaxWidth().heightIn(max = screenH * 0.42f).verticalScroll(rememberScrollState())) { ImmQuick(engine, showSaved = true, listAlways = true) }
+            Column(Modifier.fillMaxWidth().heightIn(max = screenH * 0.42f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                // a place sent from your phone, then the traffic to Home and Work now, then your recent places
+                engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
+                SlotTraffic(engine)
+                ImmQuick(engine, showSaved = true, listAlways = true, parked = false) }
         }
     }
 }
@@ -1801,7 +1875,7 @@ private fun ParkedCard(engine: NavEngine) {
 
 /** Resume a trip, a suggested trip, and saved & recent places. */
 @Composable
-private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true, listAlways: Boolean = false) {
+private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true, listAlways: Boolean = false, parked: Boolean = true) {
     val c = LocalVw.current
     val rawCustom = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
     val rawFav = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
@@ -1831,7 +1905,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true, listAlways: B
     if (adding) AddPlaceDialog(engine, null) { adding = false }
     val here = engine.fix?.pos
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        ParkedCard(engine)
+        if (parked) ParkedCard(engine)
         engine.resume?.let { rp ->
             Row(
                 Modifier.fillMaxWidth().shadow(8.dp, RoundedCornerShape(22.dp)).clip(RoundedCornerShape(22.dp)).background(TealDeep).clickable { engine.startRoute(rp) }.padding(horizontal = 16.dp, vertical = 13.dp),
