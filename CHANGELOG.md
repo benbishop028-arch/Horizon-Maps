@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- New switch in Settings › Sound & voice › Voice and volume: "Play the voice like the chimes". On head units that lower the music for the beeps but not for the spoken directions, the app now plays the voice itself, the way it plays the chimes, so the music is lowered for it too. Off by default (thanks to bluelions25, #331)
 - Add a stop on Android Auto in one tap: a pin button at the end of the trip card's route bar (as on the phone; it takes no extra room) opens the stops card, which now has Fuel, Charging, Food and Coffee along the route straight away; the one picked is added as a stop. Before, stops were only reached by tapping the trip card's figures, and fuel on the way was under Add a stop › Categories. It's added once to trip cards whose buttons were picked by hand too, and can be switched off under Settings › Android Auto › Buttons on the trip card
 - Quick reports on Android Auto: a flag on the trip card opens a small panel over the map (Police, Crash, Hazard, Broken down, Mobile camera); one tap reports where you are, and it closes by itself after 8 seconds. It can be switched off under Settings › Android Auto › Buttons on the trip card (thanks to sagarraul06-glitch, #290)
 - 한국어: Korean, with the core wording (turn instructions, the main screens, alerts, distances); anything not translated yet shows in English, and it's chosen by itself on a Korean phone (GitHub #305)
@@ -13,6 +14,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Android Auto: "Set home" and "Set work" now save the place you pick. Before, they started a route to it and the slot stayed empty (thanks to TheDMAl, #326)
+- The over-the-limit chime now sounds once when you go over, like other navigation apps, instead of every 9 seconds for as long as you're over. It sounds again once you're back at the limit, or when the limit changes (thanks to TheDMAl, #327)
+- Search: a result far away no longer comes before a nearer street or shop that matches as well (a city 700 km off used to be listed first). A place searched for with its town still comes first (thanks to TheDMAl, #327)
+- The coming speed limit change now shows about 15 seconds before it (at least 250 m), instead of up to 45 seconds early in town (thanks to desko1973, #319)
+- "Police directing traffic" in Polish now reads "Ruch sterowany przez policję", and it no longer shows in English when TomTom sends it in English (thanks to desko1973, #332)
+- "Walk back" to your parked car now opens walking directions in Google Maps. On some phones it opened a driving app instead (thanks to Dotancom, #320)
+- The car park lines near the end of a route no longer open and close over and over on the turn card (Android Auto and the phone) (thanks to Dotancom, #324)
 - Your own locator picture no longer shows as a white box: a picture saved with a solid white background (rather than a see-through one) now has the white around it made see-through. It's on by default and can be switched off under Settings › Your arrow › Remove white background (thanks to the #303 reporter)
 - The arrival time no longer jumps up and down while you drive: the time left is now smoothed over about half a minute, so a traffic figure that flips between route refreshes doesn't swing the arrival by several minutes (#298)
 - Android Auto trip card: the figures no longer run into each other ("19:206.2 …") with only one or two buttons picked; on a narrow card they now share its width and their text shrinks a little to fit

@@ -384,6 +384,8 @@ internal object PreferenceKeys {
     const val ZONEWARN = "zonewarn"
     const val TT_MAP_FIX = "ttmapfix"
     const val VOICE_CHANNEL = "voicechan"
+    /** The voice is made into a sound file and played by the app itself, like the chimes (bluelions25 #331). */
+    const val VOICE_VIA_APP = "voiceviaapp"
     const val APP_LANG = "applang"
     const val TANKERKOENIG_KEY = "tkkey"
     /** NSW FuelCheck (Australia: New South Wales and Tasmania): the API key and secret from api.nsw.gov.au. */

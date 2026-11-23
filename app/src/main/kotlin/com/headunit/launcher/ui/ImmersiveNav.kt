@@ -407,11 +407,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     // the lines along its bottom (average speed check, services, parking...: they were cards of
                                     // their own under it), as many as keep it clear of the trip card at the bottom of the screen
                                     val freePx = boxTopPx + boxH - tripPx - with(dens) { 26.dp.toPx() } - turnBottomPx
+                                    // (a line is given back only when there's room for what it took, as on Android Auto, Dotancom #324)
+                                    val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
+                                    val grownBottom = remember(extraWhat) { floatArrayOf(0f) }
                                     androidx.compose.runtime.SideEffect {
                                         val step = with(dens) { 48.dp.toPx() }
                                         if (turnBottomPx <= 0f) return@SideEffect
-                                        if (freePx < 0f && turnExtraMax > 0) turnExtraMax -= 1
-                                        else if (freePx > step && turnExtraMax < 3) turnExtraMax += 1
+                                        val need = if (grownBottom[0] > turnBottomPx) grownBottom[0] - turnBottomPx + with(dens) { 8.dp.toPx() } else step
+                                        if (freePx < 0f && turnExtraMax > 0) { grownBottom[0] = turnBottomPx; turnExtraMax -= 1 }
+                                        else if (freePx > need && turnExtraMax < 3) turnExtraMax += 1
                                     }
                                     // (portrait on a route: one slim line while the turn is far off, about 2 km, and the full card as it
                                     // comes up, a little either side so it can't flicker, as on Android Auto)
@@ -2087,7 +2091,13 @@ private fun ParkedCard(engine: NavEngine) {
                 .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
             val geo = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(String.format(java.util.Locale.US, "geo:%.6f,%.6f?q=%.6f,%.6f(Your car)", spot.lat, spot.lon, spot.lat, spot.lon)))
                 .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-            try { ctx.startActivity(walk) } catch (e: Exception) { try { ctx.startActivity(geo) } catch (x: Exception) { engine.toast(L.t("No walking maps app on this phone"), 3000) } }
+            // (Google Maps by name: on some phones the request went to a driving app, which drove you round to the car, Dotancom
+            // #320; then Google's walking directions on the web, then just the spot)
+            val web = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(String.format(java.util.Locale.US, "https://www.google.com/maps/dir/?api=1&destination=%.6f,%.6f&travelmode=walking", spot.lat, spot.lon)))
+                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            val tries = listOf(android.content.Intent(walk).setPackage("com.google.android.apps.maps"), web.setPackage("com.google.android.apps.maps"),
+                android.content.Intent(web).setPackage(null), geo)
+            if (tries.none { t -> try { ctx.startActivity(t); true } catch (e: Exception) { false } }) engine.toast(L.t("No walking maps app on this phone"), 3000)
         }, filled = true)
         Box(Modifier.size(40.dp).clip(CircleShape).clickable { engine.prefs.put(PreferenceKeys.PARKED_SPOT, "") }, contentAlignment = Alignment.Center) {
             Icon(Icons.Rounded.Close, L.t("Forget where you parked"), tint = c.sub, modifier = Modifier.size(22.dp))

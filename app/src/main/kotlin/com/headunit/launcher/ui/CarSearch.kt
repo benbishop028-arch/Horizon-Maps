@@ -128,9 +128,14 @@ internal fun CarSearchPanel(engine: NavEngine, actions: CarActions, small: Boole
     val rowH = if (small) 56.dp else 64.dp
     // a place picked: with no route, the route to it. While driving it's a stop (from "Add a stop"), or asked about
     // (Add as a stop / Go here instead): it used to replace where you were going without a word
-    val pick: (Place) -> Unit = { p ->
+    val pick: (Place) -> Unit = pick@{ p ->
         val stop = CarSearch.forStop
+        // (opened from an unset Home or Work: the place is saved there, as on the phone; it used to start a route and leave
+        // the slot empty, TheDMAl #326)
+        val saving = engine.pendingSave != null
+        if (saving) engine.pickPlace(p)
         actions.closeSearch()
+        if (saving) return@pick
         // (no route yet: the place's card first, with Go, as on the phone)
         if (stop && engine.driving()) engine.addStop(p)
         else if (!engine.driving() && engine.route == null && engine.prefs.b(com.headunit.launcher.PreferenceKeys.WHATS_HERE, true) && !p.web.startsWith("gpx:")) engine.showHere(p)

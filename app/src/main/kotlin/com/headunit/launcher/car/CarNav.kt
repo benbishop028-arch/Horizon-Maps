@@ -273,7 +273,7 @@ class CarNavSession : Session() {
         }
         // what was said is searched for in the card, as if it had been typed
         voice = CarVoice(carContext, onNoMic = { screen.screenManager.push(SearchScreen(carContext, holder, keyboard = false, mode = if (com.headunit.launcher.ui.CarSearch.forStop) "stop" else "ask")) }) { text -> com.headunit.launcher.ui.CarSearch.query = text }
-        screen.closeSearch = { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false; screen.invalidate() }
+        screen.closeSearch = { CarCardLog.note(carContext.applicationContext); voice.finish(""); holder.engine?.pendingSave = null; com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false; screen.invalidate() }
         // (Android Auto works the visible area out again when it lays the screen out)
         surface.onAreaDoubt = { try { screen.invalidate() } catch (e: Exception) { } }
         try { carContext.getCarService(AppManager::class.java).setSurfaceCallback(surface) } catch (e: Exception) { }
@@ -1330,6 +1330,8 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
         if (e == null) return
         // (the search card this was opened from has done its job)
         if (mode.isNotEmpty()) com.headunit.launcher.ui.CarSearch.open = false
+        // (Set home / Set work, then the car's keyboard: the place is saved there, TheDMAl #326)
+        if (e.pendingSave != null) { e.pickPlace(p); return }
         when { mode == "stop" && e.driving() -> e.addStop(p); mode == "ask" -> e.goOrAsk(p); else -> e.startRoute(p) }
     }
     private var query = initial

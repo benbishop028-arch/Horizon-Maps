@@ -477,12 +477,18 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // taken away when it would reach them and one given back when there's room again (with a margin, so it can't flicker)
         val extraCap = if (tile) 1 else if (small) 2 else 4
         var extraMax by remember { mutableStateOf(extraCap) }
+        // the card's height when it last had one line more: a line is only given back when there's room for that much again. A car
+        // park line is taller than the 48 dp margin, so near the end it was taken away and given back over and over (Dotancom
+        // #324). Forgotten when the lines themselves change
+        val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
+        val grownH = remember(extraWhat) { intArrayOf(0) }
         val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (speedUnderTurn) speedUnderH else 0)
         androidx.compose.runtime.SideEffect {
             val step = with(dens) { 48.dp.toPx() }
+            val need = if (grownH[0] > aboveH) (grownH[0] - aboveH) + with(dens) { 8.dp.toPx() } else step
             if (extraMax > extraCap) extraMax = extraCap
-            else if (extraFreePx < 0f && extraMax > 0) extraMax -= 1
-            else if (extraFreePx > step && extraMax < extraCap) extraMax += 1
+            else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = aboveH; extraMax -= 1 }
+            else if (extraFreePx > need && extraMax < extraCap) extraMax += 1
         }
         if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
             .onSizeChanged { turnH = it.height; turnW = it.width }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
@@ -1189,7 +1195,7 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
     val bs = carButtonScale(engine).coerceAtMost(1.25f)
     LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); kotlinx.coroutines.delay(60_000) } }
     @Composable fun pill(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, label: String, place: com.headunit.launcher.Place?, mins: Int?) {
-        Row(Modifier.height(38.dp).panel(6.dp, RoundedCornerShape(19.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else actions.search() }
+        Row(Modifier.height(38.dp).panel(6.dp, RoundedCornerShape(19.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
             .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
             Text(if (place == null) L.t(if (id == "work") "Set work" else "Set home") else label, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
@@ -1232,7 +1238,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.co
             here != null -> Geo.fmtDist(Geo.dist(here, place.pos), engine.imperial)
             else -> place.sub
         }
-        Row(m.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else actions.search() }
+        Row(m.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
             .padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
                 androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))

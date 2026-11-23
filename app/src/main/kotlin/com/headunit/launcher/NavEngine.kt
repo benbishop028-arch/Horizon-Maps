@@ -288,6 +288,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var candidateHits = 0
     private var announcedLimit = -1
     private var lastBeep = 0L
+    /** The over-the-limit chime can sound (it has once since you went over), and the limit it was for. */
+    private var beepArmed = true
+    private var beepLim: Double? = null
     private var breakNext = 7200L
     private var tripPts = ArrayList<LL>()
 
@@ -743,8 +746,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     override fun onStart(id: String?) {}
                     // (a direction spoken in parts, a street name in another language's voice: the music comes back after the last part)
                     // (with more still queued, the check in [duck] hands the music back once all of it is said)
-                    override fun onDone(id: String?) { if (id?.startsWith("part") != true && tts?.isSpeaking != true) unduck() }
-                    @Deprecated("Deprecated in Java") override fun onError(id: String?) { if (id?.startsWith("part") != true) unduck() }
+                    override fun onDone(id: String?) {
+                        if (id?.startsWith("file") == true) { voiceFileReady(id, true); return }
+                        if (id?.startsWith("part") != true && tts?.isSpeaking != true && !viaBusy) unduck()
+                    }
+                    @Deprecated("Deprecated in Java") override fun onError(id: String?) {
+                        if (id?.startsWith("file") == true) { voiceFileReady(id, false); return }
+                        if (id?.startsWith("part") != true) unduck()
+                    }
                 })
             }
         }
@@ -856,7 +865,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             var quiet = 0
             repeat(60) {
                 if (t != duckToken || focusReq == null) return@launch
-                if (tts?.isSpeaking != true) { if (++quiet >= 2) { unduck(); return@launch } } else quiet = 0
+                if (tts?.isSpeaking != true && !viaBusy) { if (++quiet >= 2) { unduck(); return@launch } } else quiet = 0
                 delay(1000)
             }
             if (t == duckToken) unduck()
@@ -940,7 +949,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun shutdown() {
         RouteSync.unregister(this)
-        stopLocation(); simJob?.cancel(); tts?.shutdown()
+        stopLocation(); simJob?.cancel(); tts?.shutdown(); try { clearVia() } catch (e: Exception) { }
         // everything this engine had running (its timers, lookups and the map glide) stops with it: the car screen makes a new
         // engine each time the phone is plugged in, and the old one must not keep going in the background
         try { scope.coroutineContext[Job]?.cancel() } catch (e: Exception) { }
@@ -1673,6 +1682,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
+            try { com.headunit.launcher.car.CarCardLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Car search card closed:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
             try { NetHealth.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Connection problems:"); append(it) } } catch (e: Throwable) { }
             try { BgLog.text().takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("In the background today:"); append(it) } } catch (e: Throwable) { }
@@ -2037,7 +2047,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         fun strong(p: Place) = p.name.lowercase().let { it == full || it.startsWith(full) }
         fun d(p: Place) = if (near != null) Geo.dist(near, p.pos) else 0.0
         val top = all.filter { strong(it.first) }.sortedBy { d(it.first) }
-        val rest = all.filter { !strong(it.first) }.sortedBy { it.second }
+        // the others in the search service's order, but a far-away one gives way to a few nearer ones: a city 700 km off used to
+        // come before the street or shop down the road (TheDMAl #327). Gently, so a place asked for by its town still comes first
+        fun farBy(p: Place): Int { val km = d(p) / 1000.0; return when { near == null || km < 30 -> 0; km < 150 -> 3; km < 500 -> 6; else -> 10 } }
+        val rest = all.filter { !strong(it.first) }.sortedBy { if (it.second < 1000) it.second + farBy(it.first) else it.second }
         return (top + rest).map { it.first }.take(15)
     }
 
@@ -3044,7 +3057,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.setRoute(emptyList(), emptyList()); map.setDest(null); map.setTurnPulse(false); laneKey = null; map.setLanes(emptyList()); map.setLaneSign(null, emptyList()); laneSignFor = -1.0; map.setRouteShift(emptyList()); laneLatAt = null; laneShiftEnd = 0.0
         map.highlightDestination(null)
         stopSim()
-        tts?.stop()
+        tts?.stop(); try { clearVia() } catch (e: Exception) { }
         glideRoute = null; glideOnRoute = false
         // back to the zoom you use when not on a route
         zoomOffset = try { savedFreeZoom() } catch (e: Exception) { 0.0 }
@@ -3245,9 +3258,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // then it's measured against the limit showing from the road data. It used to stop there, so the sign on the map hardly
         // ever appeared (GitHub #257)
         val curMs = hit?.ms ?: speedLimit
+        // about 15 seconds ahead at the speed you're doing (at least 250 m, at most 800 m): it came up to 45 s early in town
+        // (desko1973 #319). A little more once showing, so it doesn't come and go as you slow down
+        val ahead = (max(p.speed, 0.0) * 15.0).coerceIn(250.0, 800.0) * (if (nextLimit != null) 1.3 else 1.0)
         var nx: Pair<Double, Double>? = null
         for (sc in secs) {
-            if (sc.off <= at || sc.off - at > 800.0) continue
+            if (sc.off <= at || sc.off - at > ahead) continue
             // (a stretch with no known limit is 0: it isn't a limit, and showed as "0 in 700 m")
             if (sc.ms < 2.0) continue
             if (curMs == null || kotlin.math.abs(sc.ms - curMs) > 0.5) { nx = sc.ms to (sc.off - at); break }
@@ -3313,8 +3329,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val tol = tolUnits * (if (imperial) 0.44704 else 0.27778)
             val over = prefs.b(PreferenceKeys.SPEEDWARN, true) && lim != null && !limitEstimated && p.speed > lim + tol && p.speed > 4.0
             overLimit = over
-            if (over && soundMode != 2 && now - lastBeep > 9000) {
-                lastBeep = now
+            // one chime on going over, like other navigation apps, not one every 9 s for as long as you're over (TheDMAl #327).
+            // It's ready again once you're back at the limit, or the limit changes
+            if (lim == null || p.speed <= lim || lim != beepLim) { beepArmed = true; beepLim = lim }
+            if (over && beepArmed && soundMode != 2 && now - lastBeep > 9000) {
+                lastBeep = now; beepArmed = false
                 chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
             }
         }
@@ -4631,7 +4650,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** "Police directing traffic" in the app's language where it's known (desko1973, #297); null for the others (they say "Police"). */
     private fun policeDirecting(): String? = when (L.lang) {
-        "pl" -> "Sterowanie ruchem przez policję"; "de" -> "Verkehrsregelung durch die Polizei"; "fr" -> "Circulation réglée par la police"
+        "pl" -> "Ruch sterowany przez policję"; "de" -> "Verkehrsregelung durch die Polizei"; "fr" -> "Circulation réglée par la police"
         "es" -> "Tráfico dirigido por la policía"; "it" -> "Traffico regolato dalla polizia"; "nl" -> "Verkeersregeling door de politie"
         "pt", "ptbr" -> "Trânsito controlado pela polícia"; else -> null
     }
@@ -4643,6 +4662,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // that language and anything else is called an incident, rather than showing English (desko1973, #240)
         else -> if (i.id.startsWith("mb-") && L.lang != "en" && i.text.isNotBlank())
                 (if (i.text.contains("police", true)) policeDirecting() ?: "Police" else "Incident")
+            // (TomTom also sends this one in English now and then, whatever language it's asked for, desko1973 #332)
+            else if (L.lang != "en" && i.text.contains("police directing", true)) policeDirecting() ?: L.t("Police")
             else i.text.ifBlank { "Incident" }
     }
 
@@ -7242,6 +7263,96 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         try { map.setTomTomLabelLanguage(L.locale) } catch (e: Throwable) { }
     }
 
+    // ---- the voice played by the app itself (Settings › Sound & voice › Play the voice like the chimes, bluelions25 #331) ----
+    // The speech engine plays the voice from its own process, and some head units only lower the music for sound the navigation
+    // app plays itself (the chimes were lowered for, the voice wasn't). With this on, the voice is made into a short sound file and
+    // played here, on the voice channel, like a chime. A direction still cuts off what's being said; an alert waits its turn.
+    private class ViaItem(val id: String, val file: java.io.File, var ready: Boolean = false, var failed: Boolean = false, val text: String)
+    private val viaQueue = java.util.ArrayDeque<ViaItem>()
+    private var viaPlayer: android.media.MediaPlayer? = null
+    private var viaSeq = 0
+    /** The app is making or playing a spoken line (counts as speaking for giving the music back). */
+    @Volatile private var viaBusy = false
+    private val viaMain = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /** Queues [text] to be made into a file and played; false if that couldn't be started (then it's spoken as usual). */
+    private fun speakViaApp(text: String, alert: Boolean): Boolean {
+        val t = tts ?: return false
+        val dir = java.io.File(ctx.cacheDir, "voice").apply { mkdirs() }
+        val item = synchronized(viaQueue) {
+            // (nothing waiting or playing: any lines left from before, cut off part way, are cleared out)
+            if (viaQueue.isEmpty() && !viaBusy) try { dir.listFiles()?.forEach { it.delete() } } catch (e: Exception) { }
+            if (!alert) { for (q in viaQueue) try { q.file.delete() } catch (e: Exception) { }; viaQueue.clear(); viaMain.post { stopViaPlayer() } }
+            // (never more than a few waiting: a backlog would be out of date by the time it's heard)
+            while (viaQueue.size >= 4) viaQueue.pollFirst()?.let { try { it.file.delete() } catch (e: Exception) { } }
+            val id = "file${++viaSeq}"
+            ViaItem(id, java.io.File(dir, "$id.wav"), text = text).also { viaQueue.addLast(it); viaBusy = true }
+        }
+        val r = try { t.synthesizeToFile(text, null, item.file, item.id) } catch (e: Exception) { TextToSpeech.ERROR }
+        if (r != TextToSpeech.SUCCESS) { synchronized(viaQueue) { viaQueue.remove(item); viaBusy = viaQueue.isNotEmpty() || viaPlayer != null }; return false }
+        // (a speech engine that never says the file is made mustn't hold up everything after it: after 6 s it's said the usual way)
+        viaMain.postDelayed({
+            val stuck = synchronized(viaQueue) { if (!item.ready && viaQueue.remove(item)) true else false }
+            if (stuck) { try { item.file.delete() } catch (e: Exception) { }; try { tts?.speak(item.text, TextToSpeech.QUEUE_ADD, null, "nav") } catch (e: Exception) { }; playNextVia() }
+        }, 6_000L)
+        return true
+    }
+
+    private fun voiceFileReady(id: String, ok: Boolean) {
+        synchronized(viaQueue) { viaQueue.firstOrNull { it.id == id }?.let { it.ready = true; it.failed = !ok } }
+        viaMain.post { playNextVia() }
+    }
+
+    /** Plays the first line in the queue once it's made (main thread). */
+    private fun playNextVia() {
+        if (viaPlayer != null) return
+        val item = synchronized(viaQueue) {
+            val f = viaQueue.firstOrNull()
+            if (f == null) { viaBusy = false; null } else if (!f.ready) null else viaQueue.pollFirst()
+        } ?: return
+        if (item.failed || !item.file.exists() || item.file.length() < 100) {
+            // (the file couldn't be made: said the usual way instead)
+            try { item.file.delete() } catch (e: Exception) { }
+            try { tts?.speak(item.text, TextToSpeech.QUEUE_ADD, null, "nav") } catch (e: Exception) { }
+            playNextVia(); return
+        }
+        try {
+            val mp = android.media.MediaPlayer()
+            viaPlayer = mp
+            mp.setAudioAttributes(speechAttrs)
+            mp.setDataSource(item.file.absolutePath)
+            mp.setOnCompletionListener { finishVia(it, item.file) }
+            mp.setOnErrorListener { m, _, _ -> finishVia(m, item.file); true }
+            mp.prepare()
+            mp.start()
+        } catch (e: Exception) {
+            viaPlayer?.let { try { it.release() } catch (x: Exception) { } }
+            viaPlayer = null
+            try { item.file.delete() } catch (x: Exception) { }
+            playNextVia()
+        }
+    }
+
+    private fun finishVia(mp: android.media.MediaPlayer, file: java.io.File) {
+        try { mp.release() } catch (e: Exception) { }
+        if (viaPlayer === mp) viaPlayer = null
+        try { file.delete() } catch (e: Exception) { }
+        playNextVia()
+    }
+
+    /** Drops what's waiting and stops what's playing (the route ended, or the app is closing). */
+    private fun clearVia() {
+        synchronized(viaQueue) { for (q in viaQueue) try { q.file.delete() } catch (e: Exception) { }; viaQueue.clear(); viaBusy = false }
+        viaMain.post { stopViaPlayer() }
+    }
+
+    private fun stopViaPlayer() {
+        val mp = viaPlayer ?: return
+        viaPlayer = null
+        try { mp.stop() } catch (e: Exception) { }
+        try { mp.release() } catch (e: Exception) { }
+    }
+
     fun speak(text: String, alert: Boolean = false) {
         if (quiet()) return
         val m = soundMode
@@ -7253,6 +7364,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // cut a direction off half way (with limits changing often in town, some directions were never heard)
         val mode = if (alert) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH
         val parts = try { foreignParts(text) } catch (e: Exception) { null }
+        if (parts == null && prefs.b(PreferenceKeys.VOICE_VIA_APP, false) && speakViaApp(text, alert)) return
         if (parts == null) { tts?.speak(text, mode, null, "nav"); return }
         // a street name in letters the voice can't read (Hebrew names with an English voice, say): it used to be skipped. Each such
         // part is said in the phone's voice for those letters, and the rest in the usual voice (Dotancom). Each part takes the
