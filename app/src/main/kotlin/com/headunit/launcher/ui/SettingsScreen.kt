@@ -1869,15 +1869,20 @@ private fun SettingsMapPreview(engine: NavEngine, heightDp: Int) {
         MapHost(engine.map, Modifier.fillMaxSize(), cornerDp = 20)
         // (touches stop here: the preview only shows)
         Box(Modifier.fillMaxSize().pointerInput(Unit) { awaitPointerEventScope { while (true) awaitPointerEvent().changes.forEach { it.consume() } } })
-        Text(L.t("Live preview"), color = Color.White, fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.TopStart).padding(10.dp).clip(RoundedCornerShape(10.dp)).background(Color(0x99000000)).padding(horizontal = 10.dp, vertical = 4.dp))
-        Row(Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x99000000))) {
+        // (the label and the Day / Night / Now tabs share one row, so a long label gives way rather than running under the tabs:
+        // "Podgląd na żywo" did in Polish, ChrisSantosGarage)
+        Row(Modifier.align(Alignment.TopStart).fillMaxWidth().padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(L.t("Live preview"), color = Color.White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false).clip(RoundedCornerShape(10.dp)).background(Color(0x99000000)).padding(horizontal = 10.dp, vertical = 4.dp))
+        Box(Modifier.weight(1f).width(8.dp))
+        Row(Modifier.clip(RoundedCornerShape(16.dp)).background(Color(0x99000000))) {
             for ((id, label) in listOf("day" to L.t("Day"), "night" to L.t("Night"), "now" to L.t("Now"))) {
                 val sel = id == mode
                 Box(Modifier.background(if (sel) c.accent else Color.Transparent).pressClick { mode = id }.padding(horizontal = 14.dp, vertical = 7.dp)) {
                     Text(label, color = Color.White, fontSize = 13.sp, fontWeight = if (sel) FontWeight.SemiBold else FontWeight.Normal)
                 }
             }
+        }
         }
     }
 }

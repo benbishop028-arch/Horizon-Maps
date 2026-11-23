@@ -2014,6 +2014,31 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             return res
         }
         fun mappedNear(lat: Double, lon: Double): Boolean = cellsNear(lampGrid, lat, lon).any { Geo.dist(LL(it[0], it[1]), LL(lat, lon)) < clearOf }
+        // every street piece on screen in the same 30 m squares, so a placed lamp can be kept off the carriageway: at the left kerb
+        // of one road it could stand on another (the other half of a dual carriageway, a side road at a junction), which showed as
+        // lamps in the middle of the road (ChrisSantosGarage, #296)
+        val roadGrid = HashMap<Long, MutableList<DoubleArray>>()
+        for (line in roads) for (i in 0 until line.size - 1) {
+            val a = line[i]; val b = line[i + 1]
+            val piece = doubleArrayOf(a.longitude() * kx, a.latitude() * ky, b.longitude() * kx, b.latitude() * ky)
+            val len = Math.hypot(piece[2] - piece[0], piece[3] - piece[1])
+            val n = Math.max(1, Math.ceil(len / cellM).toInt())
+            val keys = HashSet<Long>()
+            for (t in 0..n) keys += cell(a.latitude() + (b.latitude() - a.latitude()) * t / n, a.longitude() + (b.longitude() - a.longitude()) * t / n)
+            for (kk in keys) roadGrid.getOrPut(kk) { ArrayList() } += piece
+        }
+        /** How far [lat], [lon] is from the middle of the nearest street on screen (up to 30 m). */
+        fun roadGap(lat: Double, lon: Double): Double {
+            val px = lon * kx; val py = lat * ky
+            var best = 30.0
+            for (q in cellsNear(roadGrid, lat, lon)) {
+                val dx = q[2] - q[0]; val dy = q[3] - q[1]
+                val l2 = dx * dx + dy * dy
+                val t = if (l2 < 1e-6) 0.0 else (((px - q[0]) * dx + (py - q[1]) * dy) / l2).coerceIn(0.0, 1.0)
+                best = minOf(best, Math.hypot(px - (q[0] + dx * t), py - (q[1] + dy * t)))
+            }
+            return best
+        }
         var skippedUnlit = 0
         if (roads.isNotEmpty()) {
             val taken = HashSet<Long>()
@@ -2041,6 +2066,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                         val dir = Math.toDegrees(Math.atan2(bx - ax, by - ay))
                         // at the left kerb, about 5.5 m from the middle of the road, arm reaching back over it
                         val at = Furniture.offset(LL(lat, lon), dir - 90.0, 5.5)
+                        // (not where it would stand in another road: within 4.5 m of any street's middle, its own included)
+                        if (roadGap(at.lat, at.lon) < 4.5) continue
                         if (taken.add(key(at.lat, at.lon)) && Geo.dist(at, c) < 900.0) spots += doubleArrayOf(at.lat, at.lon, dir + 90.0)
                     }
                     carry = d - len
