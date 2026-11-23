@@ -1677,7 +1677,8 @@ private fun FeedbackDialog(engine: NavEngine, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var note by remember { mutableStateOf("") }
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
-        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // (scrolls: on a short, wide head unit screen the buttons were below the bottom of the screen and couldn't be reached, bluelions25 #329)
+        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).verticalScroll(rememberScrollState()).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(L.t("Feedback or a problem"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(L.t("What happened, or what would you like? Where you were and what you tapped helps."), color = c.sub, fontSize = 14.sp)
             SField(note, { note = it.take(600) }, placeholder = L.t("e.g. Rerouted the wrong way near Southampton"), width = 516.dp, fill = true)
@@ -1715,7 +1716,8 @@ private fun LanguageRequestDialog(engine: NavEngine, onClose: () -> Unit) {
     var note by remember { mutableStateOf("") }
     var helper by remember { mutableStateOf(false) }
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
-        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // (scrolls: on a short, wide head unit screen the buttons were below the bottom of the screen and couldn't be reached, bluelions25 #329)
+        Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).verticalScroll(rememberScrollState()).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(L.t("Request a language"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
             Text(L.t("Which language would you like Horizon Nav in? If you can speak it, say so: you could help check the wording."), color = c.sub, fontSize = 14.sp)
             SField(lang, { lang = it.take(40) }, placeholder = L.t("e.g. Swedish"), width = 516.dp, fill = true)

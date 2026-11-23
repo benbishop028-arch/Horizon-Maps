@@ -22,6 +22,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Send feedback (and Request a language) on a short, wide head unit screen: the window now scrolls, so its Send and Copy buttons can be reached; they were below the bottom of the screen (thanks to bluelions25, #329)
+- Picture in picture: your arrow sits low in the small window, so more of the road ahead shows, and clear of the time along the bottom (it was in the middle)
 - Picture in picture: the map now zooms out and your arrow shrinks to suit the small window (and again if you resize it), so the road ahead can be seen; both go back to normal when the app is full size again
 - The upright phone's trip sheet: End is now the round red X, as it is everywhere else, instead of a wide red "End" button (thanks to Dotancom, #318)
 - Android Auto with a rotary knob: with "Search bar and places on the map" off (the setting for knob cars), Stop, sound and Report stay in Android Auto's own row of buttons, where the knob can reach them. Touching the screen while parked used to move them onto the trip card, out of the knob's reach (thanks to corocota1975, #333)
