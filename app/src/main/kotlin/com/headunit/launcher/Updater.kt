@@ -105,6 +105,47 @@ object Updater {
      * Always fetch the installed tag directly first so the card still has useful notes if the releases-list
      * endpoint is rate-limited, unavailable, or its first page does not include the target release.
      */
+    /** A change's line tidied for comparing: lower case, letters and figures only. */
+    private fun noteKey(line: String): String = line.lowercase().replace(Regex("[^a-z0-9]+"), " ").trim()
+
+    /**
+     * [notes] without the changes this unit has already been shown ([shown], from [WHATS_NEW_SHOWN]), and without any heading
+     * left with nothing under it. A build's notes are everything since the last published version, so someone who installed a
+     * build in between (or had one from the same day) saw the same changes again on the next card.
+     */
+    fun unseenNotes(notes: String, shown: String): String {
+        val seen = shown.split('\n').filter { it.isNotBlank() }.toHashSet()
+        val bullet = Regex("^\\s*[-*]\\s+(.*)")
+        val kept = ArrayList<String>()
+        var keep = true
+        for (line in notes.lines()) {
+            val m = bullet.find(line)
+            when {
+                m != null -> { keep = noteKey(m.groupValues[1]) !in seen; if (keep) kept += line }
+                line.isNotEmpty() && line[0].isWhitespace() -> if (keep) kept += line
+                else -> { keep = true; kept += line }
+            }
+        }
+        // headings (### New, ### 1.0.806...) with no change left under them go
+        val out = ArrayList<String>()
+        for ((i, line) in kept.withIndex()) {
+            if (line.startsWith("#")) {
+                val next = kept.drop(i + 1).firstOrNull { it.isNotBlank() }
+                if (next == null || next.startsWith("#")) continue
+            }
+            out += line
+        }
+        return if (out.none { bullet.containsMatchIn(it) }) "" else out.joinToString("\n").trim()
+    }
+
+    /** [shown] with the changes in [notes] added (the newest 800 kept). */
+    fun markNotesShown(notes: String, shown: String): String {
+        val bullet = Regex("^\\s*[-*]\\s+(.*)")
+        val keys = shown.split('\n').filter { it.isNotBlank() }.toMutableList()
+        for (line in notes.lines()) bullet.find(line)?.let { val k = noteKey(it.groupValues[1]); if (k.isNotEmpty() && k !in keys) keys += k }
+        return keys.takeLast(800).joinToString("\n")
+    }
+
     fun installedReleaseNotes(version: String = BuildConfig.VERSION_NAME, previouslySeenVersion: String = "", ctx: android.content.Context? = null): String {
         if (!enabled || !version.matches(Regex("1\\.0\\.\\d+"))) return ""
         val installedBuild = version.substringAfterLast('.').toIntOrNull() ?: return ""

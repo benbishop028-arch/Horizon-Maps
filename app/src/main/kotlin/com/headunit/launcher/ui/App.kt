@@ -91,7 +91,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     LaunchedEffect(installedVersion) {
         if (com.headunit.launcher.BuildConfig.UPDATE_REPO.isNotBlank() && prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "") != installedVersion) {
             val previousVersion = prefs.s(PreferenceKeys.WHATS_NEW_SEEN_VERSION, "")
-            val notes = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
+            val notes0 = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.Updater.installedReleaseNotes(installedVersion, previousVersion, appCtx) } } catch (_: Exception) { "" }
+            // (only what this unit hasn't been shown before: a build's notes are everything since the last published version)
+            val notes = com.headunit.launcher.Updater.unseenNotes(notes0, prefs.s(PreferenceKeys.WHATS_NEW_SHOWN, ""))
             // (only shown when there's something to say: an update with no new notes showed a card saying just that no notes
             // were found. It counts as seen, so it isn't looked up again on every start)
             if (notes.isNotBlank()) {
@@ -523,7 +525,11 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
         // landscape (wide and short, like most head units): a wide card with the title and button on the left and the changes in
         // two columns on the right, so more of them show at once; portrait keeps the tall single-column card
         val wideCard = conf.screenWidthDp > conf.screenHeightDp && conf.screenWidthDp >= 640
-        val dismissWhatsNew = { prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion); whatsNewVisible = false }
+        val dismissWhatsNew = {
+            prefs.put(PreferenceKeys.WHATS_NEW_SEEN_VERSION, installedVersion)
+            prefs.put(PreferenceKeys.WHATS_NEW_SHOWN, com.headunit.launcher.Updater.markNotesShown(whatsNewNotes, prefs.s(PreferenceKeys.WHATS_NEW_SHOWN, "")))
+            whatsNewVisible = false
+        }
         androidx.compose.ui.window.Dialog(onDismissRequest = dismissWhatsNew,
             properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = !wideCard)) {
             val shape = RoundedCornerShape(28.dp)

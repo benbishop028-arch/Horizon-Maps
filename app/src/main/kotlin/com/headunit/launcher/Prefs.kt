@@ -123,6 +123,8 @@ internal object PreferenceKeys {
     const val WHATS_NEW_SEEN_VERSION = "whatsnew_seen_version"
     /** The notes the What's new card last showed, so Settings › Version › What's new can bring them back (GitHub #149). */
     const val WHATS_NEW_LAST_NOTES = "whatsnew_last_notes"
+    /** Every change the What's new card has already shown on this unit (one tidied line each), so it never shows one twice. */
+    const val WHATS_NEW_SHOWN = "whatsnew_shown"
     const val AUTO_START_ROUTE = "autostartroute"
     const val AUTO_START_SECONDS = "autostartseconds"
     // Additional legacy keys centralised without changing their persisted names.
