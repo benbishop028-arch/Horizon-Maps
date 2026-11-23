@@ -821,8 +821,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      *  head units have the navigation channel turned right down or not wired to the speakers, so the beeps (on the media channel)
      *  sounded but the spoken directions never did. */
     private var voiceChan = "nav"
+    /** The Android sound channel for [voiceChan]. Some head units' own "Broadcast" or prompt volume is one of the last three, so the
+     *  voice can be kept apart from the music on units that play the navigation channel as media (monxDIFIED, #307). */
+    private val voiceUsage: Int get() = when (voiceChan) {
+        "media" -> android.media.AudioAttributes.USAGE_MEDIA
+        "notif" -> android.media.AudioAttributes.USAGE_NOTIFICATION
+        "alarm" -> android.media.AudioAttributes.USAGE_ALARM
+        "ring" -> android.media.AudioAttributes.USAGE_NOTIFICATION_RINGTONE
+        else -> android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE
+    }
     private val speechAttrs: android.media.AudioAttributes get() = android.media.AudioAttributes.Builder()
-        .setUsage(if (voiceChan == "media") android.media.AudioAttributes.USAGE_MEDIA else android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+        .setUsage(voiceUsage)
         .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH).build()
     private val audioMgr = ctx.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
     private var focusReq: android.media.AudioFocusRequest? = null
@@ -885,7 +894,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // held far too long (a "give back" was lost): start again from nothing
             if (focusHolds > 0 && now - focusSince > 90_000) { forceGiveBack("held over 90 s"); }
             if (focusHolds++ == 0) {
-                val req = if (voiceChan == "media") android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                val req = if (voiceChan != "nav") android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                     .setAudioAttributes(speechAttrs).setOnAudioFocusChangeListener { }.build() else focusOne
                 focusHeld = req; focusSince = now
                 val r = try { audioMgr.requestAudioFocus(req) } catch (e: Exception) { -1 }
@@ -1521,7 +1530,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try {
                 val pcm = if (double) beepDouble else beepSingle
                 val attrs = android.media.AudioAttributes.Builder()
-                    .setUsage(if (voiceChan == "media") android.media.AudioAttributes.USAGE_MEDIA else android.media.AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                    .setUsage(voiceUsage)
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
                 fr = takeFocus("beep")
                 val t = android.media.AudioTrack.Builder().setAudioAttributes(attrs)

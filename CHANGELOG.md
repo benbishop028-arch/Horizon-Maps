@@ -336,6 +336,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Android Auto: new slider in Settings › Android Auto › Sizes, "Speed-limit sign size", to make the limit sign bigger beside the speedometer; and the compact speedometer now follows day and night instead of always being black (thanks to pc4096)
 - Works on newer phones that use 16 KB memory pages (Google Play now requires this): the map libraries are switched to Mapbox's 16 KB build
 - Re-centring while stopped now gives your usual 3D view: the flat traffic view (shown after 30 seconds stopped) came straight back, so re-centre always looked top-down (#312)
+- Voice channel (Settings › Sound): three more choices, Notification, Alarm and Ringtone, for head units that play the navigation channel at the music's volume; some units call one of these Broadcast (#307)
 - Map screen with no route: with the recents panel folded away, your arrow now sits slightly off centre away from the search bar (a third as far as with the panel down) instead of dead centre
 - Driving the route the wrong way: turning round, or setting off the other way along the route, now finds a new route in about 2 seconds. Your arrow follows you instead of freezing, facing backwards, with the map standing still (thanks to jvricardo1)
 - Map not appearing: if the map still hasn't loaded after 25 seconds with no error, the app now checks with Mapbox itself and says what's in the way: a blocked server (private DNS or an ad blocker), the head unit's clock, the token, or the connection

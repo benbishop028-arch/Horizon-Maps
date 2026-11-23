@@ -854,8 +854,8 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Smarter directions"), "smartvoice", true, L.t("Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot"))
     }
     SGroup(L.t("Voice and volume")) {
-        SChoice(L.t("Voice channel"), listOf("nav" to L.t("Navigation"), "media" to L.t("Media")), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
-            L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel")) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
+        SChoice(L.t("Voice channel"), listOf("nav" to L.t("Navigation"), "media" to L.t("Media"), "notif" to L.t("Notification"), "alarm" to L.t("Alarm"), "ring" to L.t("Ringtone")), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
+            L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel. If the voice shares the music's volume, try Notification, Alarm or Ringtone (some units call one of these Broadcast)"), wrap = true) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
         SItem(L.t("Voice and language"), L.t("Uses the system text-to-speech voice")) { SButton(L.t("Open")) { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
         SItem(L.t("Volume")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }
         SSlider(L.t("Chime volume"), prefs.i(PreferenceKeys.CHIME_VOL, 70).coerceIn(5, 100).toFloat(), 5f..100f, "%",
