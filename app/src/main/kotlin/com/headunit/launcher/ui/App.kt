@@ -492,8 +492,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                             else Modifier.align(Alignment.TopStart).fillMaxWidth().padding(start = if (engine.mirrored) 290.dp else 412.dp, end = if (engine.mirrored) 412.dp else 290.dp, top = 16.dp),
                             contentAlignment = if (narrow) Alignment.BottomCenter else Alignment.TopCenter,
                         ) {
+                            // (the portrait route layout draws them under its turn card instead)
                             androidx.compose.animation.AnimatedVisibility(
-                                visible = curAlert != null,
+                                visible = curAlert != null && !engine.alertsUnderTurn,
                                 enter = androidx.compose.animation.slideInVertically(initialOffsetY = { if (narrow) it else -it }) + androidx.compose.animation.fadeIn(),
                                 exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { if (narrow) it else -it }) + androidx.compose.animation.fadeOut(),
                             ) { lastAlert.value?.let { AlertBanner(it) } }

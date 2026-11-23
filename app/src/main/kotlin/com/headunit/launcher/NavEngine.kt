@@ -6541,6 +6541,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** "left" or "right" for the side of the road the destination is on, from the route's own instruction or from where the pin is. */
+    /** Which side of the road the destination is on ("left", "right" or "" when not known), for the trip sheet as you arrive. */
+    fun destSide(): String = try { route?.let { r -> r.steps.lastOrNull()?.let { arrivalSide(r, it.maneuver) } }.orEmpty() } catch (e: Exception) { "" }
+
     private fun arrivalSide(r: Route, maneuver: String): String {
         val m = maneuver.uppercase()
         val said = if (m.endsWith("LEFT")) "left" else if (m.endsWith("RIGHT")) "right" else ""
@@ -7137,6 +7140,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var mediaLiftDp by mutableStateOf(0f)
     /** The portrait sheet (Settings › Screen & sizes › New portrait layout) is up: the road name pill goes in it, not over the map. */
     var portraitSheetOn by mutableStateOf(false)
+    /** The portrait route layout is up: warnings pop up just under the turn card (drawn there) instead of above the trip card. */
+    var alertsUnderTurn by mutableStateOf(false)
     /** Settings' live map preview is showing (see [previewInSettings]). */
     var settingsPreview = false
         private set

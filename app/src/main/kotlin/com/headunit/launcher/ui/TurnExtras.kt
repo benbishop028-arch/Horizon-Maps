@@ -51,12 +51,12 @@ private val RedOnDark = Color(0xFFFF7A6E)
  * so the card can be kept clear of the trip card below it on a short screen. [advice]: the line of advice for the conditions.
  */
 @Composable
-internal fun TurnCardExtras(engine: NavEngine, max: Int, advice: Boolean = true) {
+internal fun TurnCardExtras(engine: NavEngine, max: Int, advice: Boolean = true, parking: Boolean = true) {
     if (max <= 0) return
     val keys = ArrayList<String>()
     if (engine.lorryWarn != null) keys += "lorry"
     if (engine.avgInfo != null) keys += "avg"
-    if (engine.parkingNear.isNotEmpty()) keys += "park"
+    if (parking && engine.parkingNear.isNotEmpty()) keys += "park"
     if (engine.servicesAhead.isNotEmpty() && engine.avgInfo == null && engine.prefs.b(PreferenceKeys.SERVICESCARD, true)) keys += "services"
     if (advice && engine.advice != null) keys += "advice"
     if (keys.isEmpty()) return
@@ -211,5 +211,31 @@ private fun StripButton(engine: NavEngine, id: String, text: String, filled: Boo
     Box(Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(if (filled) Good else c.line).tapOn(engine, id, act).padding(horizontal = 14.dp),
         contentAlignment = Alignment.Center) {
         Text(text, color = if (filled) Color.White else c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false)
+    }
+}
+
+/**
+ * The roadworks or incident and the speed camera ahead as lines along the bottom of the turn card (the portrait route layout; Android
+ * Auto has its own), each left out while its own pop-up is showing.
+ */
+@Composable
+internal fun RouteHazardLines(engine: NavEngine) {
+    val inc = engine.incidentAhead; val cam = engine.cameraDist
+    val alert = engine.alert
+    val incShown = inc != null && alert?.kind != "incident"
+    val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
+    if (!incShown && !camShown) return
+    Column(Modifier.fillMaxWidth().background(GmGreenDeep).padding(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (incShown && inc != null) HazardLine("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
+        if (camShown && cam != null) HazardLine("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
+    }
+}
+
+@Composable
+private fun HazardLine(kind: String, label: String, dist: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AlertSign(com.headunit.launcher.AlertInfo(kind, label), 22.dp)
+        Text("$label " + L.t("in {0}", dist), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+            overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp))
     }
 }
