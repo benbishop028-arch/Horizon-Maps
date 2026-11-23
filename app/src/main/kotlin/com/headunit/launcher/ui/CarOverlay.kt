@@ -556,7 +556,9 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             // width, set in from the edge, ran a little past, so the two overlapped)
             else Modifier.align(Alignment.TopCenter).padding(top = top,
                 start = if (showTurn && turnW > 0) left + with(dens) { turnW.toDp() } + 10.dp else if (guiding) maxWidth * 0.42f + left else left, end = maxOf(rightTop, maxWidth * 0.30f))
-        AnimatedVisibility(alert != null && !altsOpen && !(worksOnCard && alert?.kind == "incident"), modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
+        // (only that roadworks pop-up: another one, "Road closed ahead", still shows)
+        val worksPopup = worksOnCard && alert?.kind == "incident" && alert?.text?.startsWith(L.t("Roadworks")) == true
+        AnimatedVisibility(alert != null && !altsOpen && !worksPopup, modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
 
         // the search card: over the map from the left edge to Android Auto's zoom buttons (its other buttons give way to one
         // Close button while it's open, see MapScreen)

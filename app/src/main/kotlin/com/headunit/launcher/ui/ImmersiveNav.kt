@@ -1393,7 +1393,7 @@ internal fun ImmTurnCard(
         if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
-            RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp), ref = t.ref)
+            RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp), ref = if (t.landmark.isBlank()) t.ref else "")
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
         Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1409,7 +1409,7 @@ internal fun ImmTurnCard(
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))
                     if (!ukSign && t.sign.isNotBlank() && t.sign != t.street) Text(t.sign, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 130.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF1E8E55)).padding(horizontal = 7.dp, vertical = 2.dp))
-                    RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp, ref = t.ref)
+                    RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp, ref = if (!lmk) t.ref else "")
                 }
             }
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)

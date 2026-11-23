@@ -2820,7 +2820,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Once a second while navigating: the warning for the next sharp bend, about 9 seconds before it (at least 150 m). */
+    /** Where along the route the bend with the warning showing ends (-1: none). */
+    private var bendAlertEnd = -1.0
+
     private fun bendTick(r: Route, prog: Double) {
+        if (bendAlertEnd >= 0.0 && (prog > bendAlertEnd + 10.0 || sharpFor !== r)) {
+            bendAlertEnd = -1.0
+            if (alert?.kind?.startsWith("bend") == true) alert = null
+        }
         if (sharpFor !== r || sharpBends.isEmpty() || !prefs.b(PreferenceKeys.BEND_WARN, true)) return
         val spd = fix?.speed ?: 0.0
         val look = max(150.0, spd * 9.0)
@@ -2833,9 +2840,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             sharpWarned += i
             val sp = if (imperial) "${(Math.round(b.mps * 2.23694 / 5.0) * 5).coerceAtLeast(10)} mph" else "${(Math.round(b.mps * 3.6 / 10.0) * 10).coerceAtLeast(20)} km/h"
             chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
-            // stays up until the end of the bend, not for a fixed 7 seconds: at lower speeds it went out before the bend started (desko1973, #309)
-            val untilEnd = ((b.end - prog) / max(spd, 4.0) * 1000.0).toLong() + 1000L
-            raiseAlert(if (b.right) "bend" else "bend-l", L.t("Take it at {0}", sp), untilEnd.coerceIn(7000L, 40000L))
+            // stays up until you're through the bend (taken away below once you pass its end), not for a fixed 7 seconds: at lower
+            // speeds it went out before the bend started (desko1973, #309). 40 s at most, in case you stop on the way
+            raiseAlert(if (b.right) "bend" else "bend-l", L.t("Take it at {0}", sp), 40_000L)
+            bendAlertEnd = b.end
             break
         }
     }
@@ -5925,6 +5933,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private var etaSmoothSecs = -1.0
     private var etaSmoothAt = 0L
+    /** The route the smoothing is for: a new route, a reroute or another route picked shows its own time straight away. */
+    private var etaSmoothFor: Route? = null
 
     private fun updateGuidance(progress: Double, light: Boolean = false) {
         val r = route ?: return
@@ -5967,14 +5977,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // the time left is smoothed over about half a minute, so a traffic figure that flips back and forth between route
             // refreshes doesn't make the arrival time jump up and down; a change of over 15 minutes shows at once
             val nowMs = System.currentTimeMillis()
-            if (eta != null && etaSmoothSecs >= 0.0 && etaSmoothAt > 0L && nowMs >= etaSmoothAt) {
+            if (eta != null && etaSmoothFor === r && etaSmoothSecs >= 0.0 && etaSmoothAt > 0L && nowMs >= etaSmoothAt) {
                 val expected = etaSmoothSecs - (nowMs - etaSmoothAt) / 1000.0
                 if (expected > 0.0 && Math.abs(secs - expected) < 900.0) {
                     val a = ((nowMs - etaSmoothAt) / 30000.0).coerceIn(0.0, 1.0)
                     secs = expected + (secs - expected) * a
                 }
             }
-            etaSmoothSecs = secs; etaSmoothAt = nowMs
+            etaSmoothSecs = secs; etaSmoothAt = nowMs; etaSmoothFor = r
             val arrive = Clock.hm(nowMs + (secs * 1000).toLong())
             eta = EtaInfo(arrive, rem, secs, delayMin)
             // each stop's share of the time left (the same sums, up to where the stop is on the route). While a changed route is
