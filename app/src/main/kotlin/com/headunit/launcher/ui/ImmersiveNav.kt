@@ -328,6 +328,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // a phone held upright, on a route: the turn card takes the whole width and the map buttons go under it, instead of being
         // squeezed in beside it (the cards that come and go under the turn card still leave room for the buttons)
         var turnBottomPx by remember { mutableStateOf(0f) }
+        var turnExtraMax by remember { mutableStateOf(3) }
         var boxTopPx by remember { mutableStateOf(0f) }
         var railHPx by remember { mutableStateOf(0) }
         val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
@@ -388,19 +389,27 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                 val turnDensity = LocalDensity.current
                                 val cardSize = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
                                 CompositionLocalProvider(LocalDensity provides Density(turnDensity.density * cardSize, turnDensity.fontScale)) {
-                                    Box(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }) { ImmTurnCard(engine, t, slim = altFocus) }
+                                    // the lines along its bottom (average speed check, services, parking...: they were cards of
+                                    // their own under it), as many as keep it clear of the trip card at the bottom of the screen
+                                    val freePx = boxTopPx + boxH - tripPx - with(dens) { 26.dp.toPx() } - turnBottomPx
+                                    androidx.compose.runtime.SideEffect {
+                                        val step = with(dens) { 48.dp.toPx() }
+                                        if (turnBottomPx <= 0f) return@SideEffect
+                                        if (freePx < 0f && turnExtraMax > 0) turnExtraMax -= 1
+                                        else if (freePx > step && turnExtraMax < 3) turnExtraMax += 1
+                                    }
+                                    Box(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }) {
+                                        ImmTurnCard(engine, t, slim = altFocus, footer = { if (!altFocus) TurnCardExtras(engine, turnExtraMax) })
+                                    }
                                 }
                             }
                         }
                     }
                     // (not while choosing a route on a phone: the map is kept clear for the routes)
                     if (!altFocus) Column(if (railBelow) Modifier.sides(end = 52.dp * mainButtonScale + 10.dp) else Modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        engine.advice?.let { AdvicePill(it) }
-                        LorryWarnCard(engine)
+                        // (the advice, a lorry's limit ahead, the average speed check, services and parking are lines of the
+                        // turn card now)
                         JunctionCloseup(engine)
-                        AvgSpeedCard(engine)
-                        ServicesCard(engine)
-                        ParkingCard(engine)
                     }
                 }
             }
@@ -693,20 +702,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             exit = androidx.compose.animation.slideOutVertically { it } + fadeOut(),
         ) { lastArr.value?.let { a -> ArrivalCard(engine, a) } }
 
-        engine.faster?.let { fr ->
-            Row(
-                Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = if (narrow) tripH + 10.dp else 84.dp).widthIn(max = 540.dp).panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(horizontal = 18.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
-            ) {
-                Box(Modifier.size(44.dp).clip(CircleShape).background(Good.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Route, null, tint = Good, modifier = Modifier.size(24.dp)) }
-                Column {
-                    Text(L.t("Faster route found"), color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(L.t("Saves about {0} min", fr.savedMin), color = Good, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                }
-                ImmPill(L.t("Switch"), { engine.acceptFaster() }, filled = true)
-                ImmPill(L.t("Keep"), { engine.dismissFaster() })
-            }
-        }
+        // ("Faster route found" is a strip across the top of the trip card: TripArea)
 
         AnimatedVisibility(engine.busy, modifier = Modifier.align(Alignment.TopCenter).padding(top = 22.dp), enter = fadeIn(tween(160)) + androidx.compose.animation.scaleIn(tween(200), initialScale = 0.7f), exit = fadeOut(tween(160))) {
             Box(Modifier.size(44.dp).panel(6.dp, CircleShape, c.surface), contentAlignment = Alignment.Center) {
@@ -992,6 +988,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
             val rowW = with(dens) { rowPx.toDp() }
             TextSides { Column(Modifier.then(if (narrow) Modifier.fillMaxWidth() else Modifier).panel(10.dp, shape, c.surface).animateContentSize()) {
                 val barMod = if (narrow) Modifier.fillMaxWidth() else Modifier.width(rowW)
+                // "Faster route found" across the top of the card (it was a box of its own floating above it)
+                if (narrow || rowPx > 0) FasterStrip(engine, barMod)
                 // the route bar across the top of the card, with room to breathe
                 if (engine.showRouteBar && (narrow || rowPx > 0)) {
                     RouteBar(engine, barMod.padding(start = if (narrow) 16.dp else 18.dp, end = if (narrow) 16.dp else 18.dp, top = if (narrow) 7.dp else 9.dp, bottom = if (narrow) 2.dp else 4.dp))

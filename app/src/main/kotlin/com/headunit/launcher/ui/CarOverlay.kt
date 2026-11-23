@@ -472,6 +472,18 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         var speedUnderH by remember { mutableStateOf(0) }
         // (worked out here: the screen's height can't be read from inside the column below)
         val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
+        // the lines along the bottom of the turn card (average speed check, services, parking...: they were cards of their own
+        // under it): as many as leave the turn card clear of what's at the bottom of the screen (the trip card, the speed), one
+        // taken away when it would reach them and one given back when there's room again (with a margin, so it can't flicker)
+        val extraCap = if (tile) 1 else if (small) 2 else 4
+        var extraMax by remember { mutableStateOf(extraCap) }
+        val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (speedUnderTurn) speedUnderH else 0)
+        androidx.compose.runtime.SideEffect {
+            val step = with(dens) { 48.dp.toPx() }
+            if (extraMax > extraCap) extraMax = extraCap
+            else if (extraFreePx < 0f && extraMax > 0) extraMax -= 1
+            else if (extraFreePx > step && extraMax < extraCap) extraMax += 1
+        }
         if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
             .onSizeChanged { turnH = it.height; turnW = it.width }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
@@ -485,19 +497,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                                 if (incShown && inc != null) CarHazardLine("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
                                 if (camShown && cam != null) CarHazardLine("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
                             }
+                            // a lorry's limit ahead, an average speed check (magnazan, #177), the next services, car parks near the
+                            // end and advice for the conditions, as lines of the card instead of cards stacked under it
+                            TurnCardExtras(engine, extraMax, advice = !small)
                         })
-                }
-                if (!small) engine.advice?.let { AdvicePill(it) }
-                // a low bridge or weight limit the lorry is over: shown even on a small car screen
-                LorryWarnCard(engine)
-                // an average speed check: your average so far, the limit, how far is left and what keeps you under, as on the
-                // phone (it only showed there: magnazan, #177). At the car cards' size, under the turn card
-                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    AvgSpeedCard(engine)
-                    // the next motorway services (and the fuel price there), and car parks near the end, as on the phone. The
-                    // services card stays off a short screen, where it would sit over the lanes; parking is wanted most then, so it shows
-                    if (!small && !tile) ServicesCard(engine)
-                    if (!tile) ParkingCard(engine)
                 }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
@@ -605,7 +608,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                         .onGloballyPositioned { engine.bottomCover = ((vT + vH - it.boundsInRoot().top) / vH).coerceIn(0f, 0.6f).toDouble() },
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.fillMaxWidth()) }
+                    if (guiding && tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.fillMaxWidth()) }
                     // (the row keeps the speed's height, so the hazards line up with it)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
                         Box(Modifier.weight(1f)) { hazards() }
@@ -632,7 +635,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                         .onGloballyPositioned { report(1, it.boundsInRoot()) },
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    if (guiding) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.widthIn(max = 520.dp)) }
+                    if (guiding && tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { FasterCard(engine, Modifier.widthIn(max = 520.dp)) }
                     // (while guiding, the sound button is on the trip card instead of a pill of its own)
                     if (!guiding && !small && soundBtn) CompositionLocalProvider(LocalDensity provides Density(dens.density * buttonScale, dens.fontScale)) { SoundPill(engine) }
                     hazards()
@@ -841,6 +844,8 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
         val onTrip = if (buttonsShown) carTripButtonsOn(engine.prefs) else emptySet()
         val barShown = engine.showRouteBar && (!oneLine || bar)
         val pinOnBar = barShown && "stop" in onTrip
+        // "Faster route found" across the top of the card (it was a box of its own floating above it)
+        FasterStrip(engine, w)
         if (pinOnBar) Row(w.padding(start = 16.dp, end = 10.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             RouteBar(engine, Modifier.weight(1f), thin = true)
             Box(Modifier.padding(start = 8.dp).size(32.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.line).carTap("tripstop") { actions.stops() },
