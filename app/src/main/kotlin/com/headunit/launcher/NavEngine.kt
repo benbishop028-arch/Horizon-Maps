@@ -6163,7 +6163,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val span = max(1.0, d.end - d.off)
             d.secs * ((d.end - max(p, d.off)) / span).coerceIn(0.0, 1.0)
         }
-        return r.freeFlow * frac + ahead
+        return NavigationPolicy.remainingSegmentTime(r.cum, r.segmentTimes, p) ?: (r.freeFlow * frac + ahead)
     }
 
     private var etaSmoothSecs = -1.0
@@ -6198,7 +6198,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
             }
             val ahead2 = ahead + incAhead
-            var secs = r.freeFlow * frac + ahead2
+            // Mapbox supplies a duration for each road segment. Sum the time still ahead on those segments rather than
+            // spreading the whole route's free-flow time evenly by distance (which made ETA wrong on mixed-speed roads).
+            // Those segment durations already include traffic, so add only separately detected incident delays here.
+            val segmentRemaining = NavigationPolicy.remainingSegmentTime(r.cum, r.segmentTimes, progress)
+            var secs = (segmentRemaining ?: (r.freeFlow * frac + ahead)) + incAhead
+            // Keep the delay figure separate from travel time; it is the traffic delay still ahead, not a second addition.
             var delayMin = Math.round(ahead2 / 60.0).toInt()
             // TomTom's own timing of this road (a Mapbox route with a TomTom key): the longer of the two is used
             ttTiming?.takeIf { it.route === r && it.span > 0 }?.let { t ->
