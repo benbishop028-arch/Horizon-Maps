@@ -4717,8 +4717,21 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         try { layer("dl-route-chev")?.visibility(vis(on)) } catch (e: Exception) { }
     }
 
-    fun setArrowScale(f: Float) {
-        arrowScale = f
+    /** The arrow's size as set, before [pipShrink]. */
+    private var baseArrowScale = 2.4f
+    /** In the small picture-in-picture window the arrow is shrunk with the window (1 = full screen; #301). */
+    @Volatile private var pipShrink = 1f
+    fun setPipShrink(k: Float) {
+        val v = k.coerceIn(0.2f, 1f)
+        if (v == pipShrink) return
+        pipShrink = v
+        main0.post { setArrowScale(baseArrowScale) }
+    }
+
+    fun setArrowScale(want: Float) {
+        baseArrowScale = want
+        arrowScale = want * pipShrink
+        val f = arrowScale
         val im = theme == "immersive"
         try {
             (layer("dl-me-arrow") as? SymbolLayer)?.iconSize((if (im) 0.25 else 0.625) * f)

@@ -90,6 +90,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Additional auto-zoom adjustment for Android Auto's usable viewport. Negative values zoom out
      * on compact or narrow displays, where the same camera zoom shows too little road ahead. */
     @Volatile private var carViewportZoomOffset = 0.0
+    /** How much further out the map is in the picture-in-picture window (0 at full size; MainActivity sets it, #301). */
+    @Volatile var pipZoomShift = 0.0
 
     /** Recalculate the camera's automatic zoom for the actual Android Auto display, not just its pixel count.
      * Inputs are surface pixels and the display's DPI. The short edge controls the base adjustment and
@@ -4607,6 +4609,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // (the Settings preview as far out as the 3D buildings still show, about zoom 15.5 (they fade out below 15), so as much of
         // the map as possible fits its small box with the buildings still in it)
         if (settingsPreview) tZoom = 15.5
+        // (the small picture-in-picture window: further out, so about as much of the road shows as on the full screen, #301)
+        tZoom -= pipZoomShift
         // landscape: your arrow moves sideways just enough to clear whatever card is beside it at its height (the search panel
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.

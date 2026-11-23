@@ -192,9 +192,29 @@ class MainActivity : ComponentActivity() {
         !RouteSync.carConnected() && engine.prefs.b(PreferenceKeys.PIP, true) &&
         packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
+    /** The window's width (dp) at full size, from just before the picture-in-picture window, to scale the map to it. */
+    private var fullWidthDp = 0
+
+    /** Scales the map to the small window: further out, and the arrow shrunk with it (both put back at full size). */
+    private fun fitPip(on: Boolean, widthDp: Int) {
+        if (!::engine.isInitialized) return
+        val full = if (fullWidthDp > 0) fullWidthDp else resources.displayMetrics.let { (it.widthPixels / it.density).toInt() }
+        val k = if (on && widthDp > 0 && full > 0) (widthDp.toFloat() / full).coerceIn(0.2f, 1f) else 1f
+        // (not all the way out: the map in a quarter-size window at a quarter of the detail was too small to read)
+        engine.pipZoomShift = if (k < 1f) (kotlin.math.ln(1.0 / k) / kotlin.math.ln(2.0)) * 0.8 else 0.0
+        try { engine.map.setPipShrink(k) } catch (e: Exception) { }
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // (the small window resized with two fingers)
+        if (com.headunit.launcher.ui.PipUi.on) fitPip(true, newConfig.screenWidthDp)
+    }
+
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         if (!pipWanted() || Build.VERSION.SDK_INT < 26) return
+        fullWidthDp = resources.configuration.screenWidthDp
         try {
             enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(3, 4)).build())
         } catch (e: Exception) { }
@@ -203,6 +223,7 @@ class MainActivity : ComponentActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         com.headunit.launcher.ui.PipUi.on = isInPictureInPictureMode
+        fitPip(isInPictureInPictureMode, newConfig.screenWidthDp)
         // (the cards are gone in the small window: the map's room for them is given back, so your arrow sits in the middle)
         if (isInPictureInPictureMode && ::engine.isInitialized) for (i in 0..2) engine.setPanel(i, 0f, 0f, 0f, 0f)
     }
