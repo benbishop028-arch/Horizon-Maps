@@ -4525,8 +4525,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         tZoom = max(requestedZoom, laneZoomFloor) - initialOverviewOffset
         // (the traffic view pulls back about two zoom levels)
         if (stoppedOverview) tZoom = (tZoom - 1.8).coerceAtLeast(12.5)
-        // (the Settings preview a little further out, so more of the map shows in its small box)
-        if (settingsPreview) tZoom = (tZoom - 2.5).coerceAtLeast(11.0)
+        // (the Settings preview as far out as the 3D buildings still show, about zoom 15.5 (they fade out below 15), so as much of
+        // the map as possible fits its small box with the buildings still in it)
+        if (settingsPreview) tZoom = 15.5
         // landscape: your arrow moves sideways just enough to clear whatever card is beside it at its height (the search panel
         // and saved places, the turn card, the trip card), and back to the middle when they fold away, e.g. once you're driving.
         // Portrait: the cards span the width, so it stays centred. Mirrored for left-hand drive.
