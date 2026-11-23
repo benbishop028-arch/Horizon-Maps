@@ -99,9 +99,9 @@ class NavigationPolicyTest {
     }
 
     @Test fun remainingSegmentTimeRejectsMismatchedOrInvalidAnnotations() {
-        assertEquals(null, NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(), 0.0))
-        assertEquals(null, NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(-1.0), 0.0))
-        assertEquals(null, NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, Double.NaN), doubleArrayOf(10.0), 0.0))
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(), 0.0) == null)
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(-1.0), 0.0) == null)
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, Double.NaN), doubleArrayOf(10.0), 0.0) == null)
     }
 
     @Test fun roundaboutSweepFollowsLocalTrafficSide() {
