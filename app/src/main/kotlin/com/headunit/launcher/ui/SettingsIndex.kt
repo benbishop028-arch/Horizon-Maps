@@ -179,6 +179,8 @@ private val allSettingsIndex = listOf(
     SettingRef("Show petrol stations too", "Electric car: the Fuel button on the map page too", "Your electric car", 11),
     SettingRef("Usable battery (kWh)", "", "Your electric car", 11),
     SettingRef("Electricity price (pence per kWh)", "", "Your electric car", 11),
+    SettingRef("My routes", "Routes you saved after driving them, offered next time", "My routes", 10),
+    SettingRef("When a saved route fits", "Offer it first, or start on it straight away", "My routes", 10),
     SettingRef("Fuel economy (miles per gallon)", "", "Fuel cost on the route options", 11),
     SettingRef("Fuel price (pence per litre)", "", "Fuel cost on the route options", 11),
     SettingRef("Live fuel cost", "What the trip has cost so far, and the total when you arrive", "Live fuel cost", 11),

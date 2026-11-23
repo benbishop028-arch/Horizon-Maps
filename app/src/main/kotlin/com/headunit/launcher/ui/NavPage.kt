@@ -291,7 +291,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         rs.forEachIndexed { i, r ->
             val sel = i == engine.active
             val shape = RoundedCornerShape(18.dp)
-            val label = if (i == fastest) L.t("Fastest") else if (rs[i].simpler) L.t("Simplest") else if (i == shortest) L.t("Shortest") else L.t("Alternative")
+            val label = if (r.mine.isNotBlank()) L.t("Your route") else if (i == fastest) L.t("Fastest") else if (rs[i].simpler) L.t("Simplest") else if (i == shortest) L.t("Shortest") else L.t("Alternative")
             Column(
                 Modifier.weight(1f).inset(18.dp, if (sel) c.accent else null)
                                         .clickable { engine.selectRoute(i) }.padding(horizontal = 14.dp, vertical = 9.dp),
@@ -303,9 +303,10 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                 Text(L.t("{0} · arrive {1}", Geo.fmtDist(r.len, engine.imperial), fmt.format(java.util.Date(baseMs + (r.time * 1000).toLong()))), color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val via = viaOf(r)
                 val delayMin = Math.round(r.delay / 60.0).toInt()
+                val mine = mineLine(rs, r)
                 Text(
-                    if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) "via $via" else L.t("No delays"),
-                    color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    mine ?: if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) "via $via" else L.t("No delays"),
+                    color = if (mine != null) Good else if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 // roughly what this route costs in fuel (or charging), from Settings › Fuel (pc4096: it was only at the far end of the
                 // Stops row, scrolled out of sight)
@@ -371,6 +372,17 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         }
     }
     }
+}
+
+/**
+ * One of your saved routes in the route choice (#321): "Home → Work (morning) · +2 min" against the quickest of the others
+ * ("2 min faster", "same time"), or null for a normal route.
+ */
+internal fun mineLine(rs: List<com.headunit.launcher.Route>, r: com.headunit.launcher.Route): String? {
+    if (r.mine.isBlank()) return null
+    val best = rs.filter { it.mine.isBlank() }.minOfOrNull { it.time } ?: return r.mine
+    val d = Math.round((r.time - best) / 60.0).toInt()
+    return r.mine + " · " + when { d > 0 -> L.t("+{0} min", d); d < 0 -> L.t("{0} min faster", -d); else -> L.t("same time") }
 }
 
 /**
@@ -482,6 +494,20 @@ internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier =
                 Text(L.t("Go"), color = c.accent, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             }
         }
+        // the way you drove, kept as one of your routes (#321): named on the phone; on the car screen (no typing) with the name it suggests
+        engine.finishedDrive?.let { d ->
+            var naming by remember { mutableStateOf(false) }
+            Row(
+                Modifier.clip(RoundedCornerShape(20.dp)).background(c.accent).clickable { if (car) engine.saveMyRoute(d.suggested) else naming = true }
+                    .then(if (car) Modifier.carTap("arr-mine") { engine.saveMyRoute(d.suggested) } else Modifier)
+                    .padding(horizontal = 16.dp, vertical = if (compact) 7.dp else 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Rounded.Route, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Text(L.t("Save as my route"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 6.dp))
+            }
+            if (naming) SaveMyRouteDialog(d.suggested, onSave = { n -> naming = false; engine.saveMyRoute(n) }, onClose = { naming = false })
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             a.place?.let { p ->
                 var fav by remember { mutableStateOf(engine.places.isFavourite(p)) }
@@ -492,6 +518,25 @@ internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier =
             if (engine.tripFrom != null && engine.prefs.b(PreferenceKeys.ROUTEBACK, true)) Pill(L.t("Route back"), false, { engine.routeBack() },
                 if (car) Modifier.carTap("arr-back") { engine.routeBack() } else Modifier)
             Pill(L.t("Done"), true, { engine.dismissArrival() }, if (car) Modifier.carTap("arr-done") { engine.dismissArrival() } else Modifier)
+        }
+    }
+}
+
+/** Names a route before it's saved to My routes (#321), with the name it suggests filled in. */
+@Composable
+private fun SaveMyRouteDialog(suggested: String, onSave: (String) -> Unit, onClose: () -> Unit) {
+    val c = LocalVw.current
+    var name by remember { mutableStateOf(suggested) }
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
+        Column(Modifier.widthIn(max = 480.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel)
+            .verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(L.t("Save this route"), color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            SField(name, { name = it.take(60) }, placeholder = L.t("e.g. School run"), width = 436.dp, fill = true)
+            Text(L.t("Offered next time you go from near here to the same place. Settings › Places & trips › My routes to rename or delete it."), color = c.sub, fontSize = 13.sp)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                SButton(L.t("Cancel")) { onClose() }
+                SButton(L.t("Save"), primary = true) { onSave(name.ifBlank { suggested }) }
+            }
         }
     }
 }

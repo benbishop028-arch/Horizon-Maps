@@ -233,6 +233,8 @@ internal object PreferenceKeys {
     const val CARSCALE_MAX = "carscale_max"
     /** Android Auto: the search bar, Home / Work and shortcuts drawn on the map (off for rotary-knob cars that can't tap them, #222). */
     const val CAR_MAPUI = "car_mapui"
+    /** When one of your saved routes fits the trip (#321): "offer" (listed first, and picked), "start" (start on it straight away) or "off". */
+    const val MY_ROUTES = "myroutes"
     /** On a phone, on a route: leaving the app keeps the map going in a small picture-in-picture window (Srikanth1022v #301). */
     const val PIP = "pip"
     /** The traffic colours on the route line and the route bar blend into each other instead of changing in steps (#334). */

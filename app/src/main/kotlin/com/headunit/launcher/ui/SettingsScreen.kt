@@ -283,7 +283,7 @@ private fun SettingsBody(prefs: Prefs, engine: NavEngine, onClose: () -> Unit) {
                         7 -> AlertsSection(prefs, engine)
                         8 -> SoundSection(prefs, engine)
                         9 -> WhileDrivingSection(prefs)
-                        10 -> { PlacesSection(engine); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
+                        10 -> { PlacesSection(engine); MyRoutesGroup(engine, onShown = onClose); GpxGroup(engine, onShown = onClose); PhoneLinkGroup(prefs); SharingGroups(prefs) }
                         11 -> FuelSection(prefs, engine)
                         12 -> { OfflineMapsContent(prefs, engine); OfflinePlacesGroup(engine) }
                         13 -> ScreenSection(prefs, engine)

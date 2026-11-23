@@ -162,3 +162,49 @@ internal fun TrackCard(engine: NavEngine, t: GpxTrack) {
         }
     }
 }
+
+/**
+ * Settings › Places & trips › My routes (igalshe-ai #321): the routes you saved from the arrival card, offered in the route choice
+ * when a trip fits one. Show one on the map, rename or delete it, and choose what happens when one fits.
+ */
+@Composable
+internal fun MyRoutesGroup(engine: NavEngine, onShown: () -> Unit) {
+    val ctx = LocalContext.current
+    val c = LocalVw.current
+    LaunchedEffect(Unit) { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { com.headunit.launcher.MyRoutes.all(ctx.applicationContext) } }
+    val list = com.headunit.launcher.MyRoutes.list
+    val fmt = remember { java.text.SimpleDateFormat("d MMM", L.locale) }
+    SGroup(L.t("My routes"), footer = L.t("Save the way you drove from the arrival card. When you next go from near the same start to the same place, it's offered as \"Your route\" beside the fastest, with the difference in time.")) {
+        for (r in list) {
+            var ask by remember(r.id) { mutableStateOf(false) }
+            var renaming by remember(r.id) { mutableStateOf(false) }
+            var newName by remember(r.id) { mutableStateOf(r.name) }
+            Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (renaming) {
+                    SField(newName, { newName = it.take(60) }, width = 240.dp)
+                    Box(Modifier.weight(1f))
+                    SButton(L.t("Save"), primary = true) { com.headunit.launcher.MyRoutes.rename(ctx, r.id, newName); renaming = false }
+                    SButton(L.t("Cancel")) { renaming = false; newName = r.name }
+                } else {
+                    Column(Modifier.weight(1f)) {
+                        Text(r.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(Geo.fmtDist(r.len, engine.imperial) + " · " + L.t("saved {0}", fmt.format(java.util.Date(r.at))), color = c.sub, fontSize = 13.sp, maxLines = 1)
+                    }
+                    if (ask) {
+                        SButton(L.t("Yes, delete"), danger = true) { com.headunit.launcher.MyRoutes.delete(ctx, r.id); ask = false }
+                        SButton(L.t("Cancel")) { ask = false }
+                    } else {
+                        SButton(L.t("Show")) { engine.showMyRoute(r.id); onShown() }
+                        SButton(L.t("Rename")) { renaming = true }
+                        Box(Modifier.size(44.dp).clip(CircleShape).pressClick { ask = true }, contentAlignment = Alignment.Center) {
+                            Icon(Icons.Rounded.Delete, L.t("Delete"), tint = c.sub, modifier = Modifier.size(22.dp))
+                        }
+                    }
+                }
+            }
+        }
+        if (list.isEmpty()) Text(L.t("No routes saved yet. When you arrive, tap \"Save as my route\" on the arrival card."), color = c.sub, fontSize = 14.sp, modifier = Modifier.padding(vertical = 6.dp))
+        SChoice(L.t("When a saved route fits"), listOf("offer" to L.t("Offer it first"), "start" to L.t("Start on it straight away"), "off" to L.t("Don't offer")),
+            engine.prefs.s(com.headunit.launcher.PreferenceKeys.MY_ROUTES, "offer")) { engine.prefs.put(com.headunit.launcher.PreferenceKeys.MY_ROUTES, it) }
+    }
+}

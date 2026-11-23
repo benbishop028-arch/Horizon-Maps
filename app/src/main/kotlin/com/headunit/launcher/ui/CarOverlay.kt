@@ -1057,15 +1057,16 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
     val cards: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
         rs.forEachIndexed { i, r ->
             val sel = i == engine.active
-            val label = L.t(if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
+            val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
             Column(Modifier.weight(1f).inset(18.dp, if (sel) c.accent else null).carTap("route-$i") { engine.selectRoute(i) }.padding(horizontal = 12.dp, vertical = 9.dp)) {
                 Text(label.uppercase(), color = if (sel) c.accent else c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, maxLines = 1)
                 Text(Geo.fmtDur(r.time), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1)
                 Text("${Geo.fmtDist(r.len, engine.imperial)} · arrive ${fmt.format(java.util.Date(baseMs + (r.time * 1000).toLong()))}", color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 val via = viaOf(r)
                 val delayMin = Math.round(r.delay / 60.0).toInt()
-                Text(if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays"),
-                    color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                val mine = mineLine(rs, r)
+                Text(mine ?: if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays"),
+                    color = if (mine != null) Good else if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 cost(r)
                 LorryBadge(r)
                 if (i == engine.active) LorryCheck(engine, r)
@@ -1139,7 +1140,7 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
             Column(Modifier.weight(1f, fill = false).verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             rs.forEachIndexed { i, r ->
                 val sel = i == engine.active
-                val label = L.t(if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
+                val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
                 val via = viaOf(r)
                 val delayMin = Math.round(r.delay / 60.0).toInt()
                 Column(Modifier.fillMaxWidth().inset(14.dp, if (sel) c.accent else null).carTap("route-$i") { engine.selectRoute(i) }.padding(horizontal = 10.dp, vertical = 5.dp)) {
@@ -1148,8 +1149,9 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
                         Text("${Geo.fmtDist(r.len, engine.imperial)} · ${fmt.format(java.util.Date(baseMs + (r.time * 1000).toLong()))}", color = c.sub, fontSize = 12.sp, maxLines = 1,
                             overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 8.dp, bottom = 2.dp))
                     }
-                    Text(label + " · " + (if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays")),
-                        color = if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else if (sel) c.accent else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val mine = mineLine(rs, r)
+                    Text(mine ?: (label + " · " + (if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) L.t("via {0}", via) else L.t("No delays"))),
+                        color = if (mine != null) Good else if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else if (sel) c.accent else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     // (just the chosen route's, so the list doesn't grow past a short screen)
                     if (sel) cost(r)
                     LorryBadge(r)

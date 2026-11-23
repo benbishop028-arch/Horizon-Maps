@@ -14,6 +14,8 @@ import java.io.File
  */
 object Backup {
     private const val GPX = "__gpx"
+    /** Your saved routes (My routes, #321), the same way as the tracks. */
+    private const val MINE = "__myroutes"
     /** Settings that belong to this device, never carried over: the automatic backup's folder (its permission is for this unit) and when it ran. */
     private val LOCAL = setOf(PreferenceKeys.AUTO_BACKUP_DIR, PreferenceKeys.AUTO_BACKUP_AT)
 
@@ -27,6 +29,11 @@ object Backup {
             try { arr.put(JSONObject().put("id", f.nameWithoutExtension).put("track", JSONObject(f.readText()))) } catch (e: Exception) { }
         }
         if (arr.length() > 0) o.put(GPX, arr)
+        val mine = JSONArray()
+        (File(ctx.filesDir, "myroutes").listFiles { f -> f.name.endsWith(".json") } ?: emptyArray()).forEach { f ->
+            try { mine.put(JSONObject().put("id", f.nameWithoutExtension).put("route", JSONObject(f.readText()))) } catch (e: Exception) { }
+        }
+        if (mine.length() > 0) o.put(MINE, mine)
         return o.toString(1)
     }
 
@@ -36,6 +43,8 @@ object Backup {
         val o = JSONObject(text)
         val tracks = o.optJSONArray(GPX)
         o.remove(GPX)
+        val mine = o.optJSONArray(MINE)
+        o.remove(MINE)
         for (k in LOCAL) o.remove(k)
         // the settings are checked in full before any are changed (Prefs.importJson); tracks only after that check has passed
         val n = prefs.importJson(o.toString())
@@ -51,6 +60,18 @@ object Backup {
                 try { File(dir, "$id.json").writeText(tr.toString()); t++ } catch (x: Exception) { }
             }
             if (t > 0) GpxStore.reload(ctx)
+        }
+        if (mine != null) {
+            val dir = File(ctx.filesDir, "myroutes").apply { mkdirs() }
+            var m = 0
+            for (i in 0 until mine.length()) {
+                val e = mine.optJSONObject(i) ?: continue
+                val id = e.optString("id")
+                val r = e.optJSONObject("route") ?: continue
+                if (!Regex("^[A-Za-z0-9_-]{1,80}$").matches(id) || r.optJSONArray("pts") == null) continue
+                try { File(dir, "$id.json").writeText(r.toString()); m++ } catch (x: Exception) { }
+            }
+            if (m > 0) MyRoutes.reload(ctx)
         }
         return n to t
     }

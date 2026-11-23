@@ -58,6 +58,11 @@ class Route(
     @Volatile var lorry: String = ""
     /** Which service planned it ("mapbox", "tomtom"; "" offline). */
     @Volatile var from: String = ""
+    /** One of your own saved routes (Settings › Places & trips › My routes, #321): its name ("" for a normal route), its id, and the
+     *  points along it the route goes through. */
+    @Volatile var mine: String = ""
+    @Volatile var mineId: String = ""
+    @Volatile var mineVia: List<LL> = emptyList()
     /** Picked first for having far fewer turns than the quickest (Prefer simpler routes): labelled "Simplest" on the route choice. */
     @Volatile var simpler: Boolean = false
     /** An offline route's own time before the usual-traffic estimate ([JourneyTimes]) was added; 0 for other routes. */

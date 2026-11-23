@@ -2640,6 +2640,95 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    // ---- your own routes (Settings › Places & trips › My routes, igalshe-ai #321) ----
+    /** Routes along your saved routes that fit a trip from [from] to [to] (at most two), each marked with its name. Off the main thread. */
+    private fun myRoutesFor(from: LL, to: LL, departMs: Long): List<Route> {
+        val out = ArrayList<Route>()
+        for (m in try { MyRoutes.matching(ctx, from, to) } catch (e: Exception) { emptyList() }) {
+            try {
+                val full = MyRoutes.read(ctx, m.id) ?: continue
+                val vp = MyRoutes.viaPoints(full.pts)
+                val r = netRoutes(from, to, false, departMs, vp).firstOrNull() ?: continue
+                r.mine = m.name; r.mineId = m.id; r.mineVia = vp
+                out += r
+            } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { }
+        }
+        return out
+    }
+
+    /** Your saved route being driven now ("" for none): rerouting keeps to it, and the arrival card doesn't offer to save it again. */
+    private var drivingMine = ""
+    /** Where you went on this route (about every 20 m), for "Save as my route" when you arrive. */
+    private var drivenPts = ArrayList<LL>()
+    private var drivenStartMin = 0
+    private var drivenFromName = ""
+
+    /** The drive just finished, ready to save as one of your routes from the arrival card (null: nothing to save). */
+    class FinishedDrive(val toName: String, val pts: List<LL>, val minute: Int, val suggested: String)
+    var finishedDrive by mutableStateOf<FinishedDrive?>(null)
+        private set
+
+    private fun noteDriven(p: LL) {
+        if (navStartMs <= 0L || previewing || route == null || simMode != 0) return
+        val last = drivenPts.lastOrNull()
+        if ((last == null || Geo.dist(last, p) >= 20.0) && drivenPts.size < 8000) drivenPts.add(p)
+    }
+
+    private fun startDriven() {
+        drivenPts = ArrayList(); fix?.pos?.let { drivenPts.add(it) }
+        val cal = java.util.Calendar.getInstance()
+        drivenStartMin = cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+        val here = fix?.pos
+        val home = places.slot("home"); val work = places.slot("work")
+        drivenFromName = when {
+            here != null && home != null && Geo.dist(here, home.pos) < 300.0 -> L.t("Home")
+            here != null && work != null && Geo.dist(here, work.pos) < 300.0 -> L.t("Work")
+            else -> onRoad
+        }
+        drivingMine = route?.mine ?: ""
+        // your route: the reroutes go through what's left of it, as when driving a GPX track (and no "faster route" prompts)
+        val r = route
+        if (r != null && r.mine.isNotBlank() && drivingTrack == null) { trackVia = r.mineVia; trackPassed = 0 }
+        else if (drivingTrack == null) { trackVia = emptyList(); trackPassed = 0 }
+    }
+
+    /** Arrived: the drive is kept for the arrival card's "Save as my route" (not a demo drive, nor one of your routes already). */
+    private fun finishDriven(toName: String) {
+        val pts = drivenPts
+        var len = 0.0
+        for (i in 1 until pts.size) len += Geo.dist(pts[i - 1], pts[i])
+        finishedDrive = if (simMode == 0 && drivingMine.isBlank() && len > 500.0) {
+            val base = if (drivenFromName.isNotBlank() && drivenFromName != toName) "$drivenFromName → $toName" else toName
+            // a second route for the same trip gets the time of day, so the two can be told apart
+            val same = try { pts.firstOrNull()?.let { a -> MyRoutes.matching(ctx, a, pts.last(), 5) }.orEmpty() } catch (e: Exception) { emptyList() }
+            val part = when (drivenStartMin / 60) { in 5..10 -> L.t("morning"); in 11..16 -> L.t("afternoon"); in 17..21 -> L.t("evening"); else -> L.t("night") }
+            FinishedDrive(toName, ArrayList(pts), drivenStartMin, if (same.isNotEmpty()) "$base ($part)" else base)
+        } else null
+        drivingMine = ""
+    }
+
+    /** Saves the drive just finished as one of your routes, called [name]. */
+    fun saveMyRoute(name: String) {
+        val d = finishedDrive ?: return
+        finishedDrive = null
+        scope.launch {
+            val r = withContext(Dispatchers.IO) { try { MyRoutes.save(ctx, name, d.toName, d.pts, d.minute) } catch (e: Exception) { null } }
+            toast(if (r != null) L.t("Saved to My routes: offered next time you go there") else L.t("Couldn't save that route"), 4000)
+        }
+    }
+
+    /** Shows one of your saved routes on the map (Settings › My routes › Show). */
+    fun showMyRoute(id: String) {
+        scope.launch {
+            val r = withContext(Dispatchers.IO) { MyRoutes.read(ctx, id) } ?: return@launch
+            if (r.pts.size < 2) return@launch
+            shownTrack = GpxTrack("mine-" + r.id, r.name, r.len, r.at, r.pts, "", r.pts.first())
+            map.setTrack(r.pts)
+            following = false
+            map.fit(r.pts, panel = false)
+        }
+    }
+
     private fun stopTrackDrive() {
         if (drivingTrack == null && trackVia.isEmpty()) return
         drivingTrack = null; trackVia = emptyList(); trackPassed = 0
@@ -2675,7 +2764,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 var usedOffline = false
                 // a house address: the route ends on the street the house is on, not whichever road is nearest the middle of its plot
                 val target = withContext(Dispatchers.IO) { streetTarget(to) }
-                val rs = withContext(Dispatchers.IO) {
+                var rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed
                     if (Plus.free && !haveOffline) throw IllegalStateException(L.t("download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus"))
@@ -2686,6 +2775,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                 }
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
+                // one of your own saved routes fits this trip (#321): planned through points along it, and put first
+                val myMode = prefs.s(PreferenceKeys.MY_ROUTES, "offer")
+                val mineRs = if (usedOffline || keepVia || fromTrack || via.isNotEmpty() || myMode == "off") emptyList()
+                    else withContext(Dispatchers.IO) { myRoutesFor(from, target, departMs) }
+                val rsAll = if (mineRs.isEmpty()) rs else mineRs + rs.take(if (mineRs.size >= 2) 1 else 2)
+                rs = rsAll
                 shortRoute = usedOffline && OfflineRouter.endsShort
                 if (shortRoute) toast(L.t("Your downloaded map ends before {0}: the route goes to the edge of it for now, and the rest is planned as soon as there's signal", to.name), 8000)
                 else if (usedOffline && !Plus.free) toast(L.t("Offline route: no traffic or live data"), 4000)
@@ -2730,7 +2825,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 } else map.fit(allPts)
                 waitingFor = null; waitJob?.cancel()
                 // changing stops while already driving carries straight on, without the route options in between
-                if (startNow) beginNavigation()
+                // (and Settings › My routes › Start on it: straight onto your own route)
+                if (startNow || (mineRs.isNotEmpty() && myMode == "start")) beginNavigation()
             } catch (e: Exception) {
                 val m = e.message ?: ""
                 if (m.contains("signal")) {
@@ -2786,6 +2882,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         dest?.let { d -> try { RouteSync.started(this, d, via) } catch (e: Exception) { } }
         said.clear(); lastIdx = 0; zoomOffset = 0.0
         navStartMs = System.currentTimeMillis(); navStartDist = tripDist
+        try { startDriven() } catch (e: Exception) { }
         lastFasterCheck = System.currentTimeMillis(); faster = null; lastTrafficAt = 0L
         dest?.let { d -> prefs.put(PreferenceKeys.RESUME, org.json.JSONObject().put("n", d.name).put("s", d.sub).put("la", d.pos.lat).put("lo", d.pos.lon).put("t", System.currentTimeMillis()).toString()) }
         following = true
@@ -4255,6 +4352,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun onPosition(p: Fix, force: Boolean) {
         fix = p
         val newFix = p !== lastMeasured
+        if (newFix) try { noteDriven(p.pos) } catch (e: Exception) { }
         if (newFix) isStill = try { stillCheck(p) } catch (e: Exception) { false }
         // a route left running with the app put away and the car standing still for half an hour (parked, the journey long over):
         // it's ended, which also stops the GPS and the notification, so nothing runs on in the background for hours (pc4096)
@@ -6249,6 +6347,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val dd = max(0.0, tripDist - navStartDist)
                 val sideA = try { arrivalSide(r, r.steps.lastOrNull()?.maneuver ?: "") } catch (e: Exception) { "" }
                 val a = ArrivalInfo(dest, dest?.name ?: "Destination", dd, secsT, if (secsT > 0) dd / secsT else 0.0, sideA, if (liveFuelOn()) fuelCostOf(dd) else null)
+                try { finishDriven(dest?.name ?: L.t("Destination")) } catch (e: Exception) { }
                 // how long it really took, for next time ([JourneyTimes]; offline routes, real drives only)
                 val tf = tripFrom; val td = dest?.pos
                 if (tripBase > 0 && tf != null && td != null && simMode == 0 && (isCar || !RouteSync.carConnected())) {
@@ -6627,7 +6726,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Closes the arrival card and goes back to following the car. */
     fun dismissArrival() {
-        arrival = null; arrivalParking = null
+        arrival = null; arrivalParking = null; finishedDrive = null
         if (!following && route == null) recenter()
     }
 
