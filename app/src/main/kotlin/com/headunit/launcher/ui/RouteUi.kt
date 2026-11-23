@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.ExpandLess
 import com.headunit.launcher.L
+import com.headunit.launcher.NavigationPolicy
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
