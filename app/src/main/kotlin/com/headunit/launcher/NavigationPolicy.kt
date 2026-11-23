@@ -98,6 +98,36 @@ internal object NavigationPolicy {
         return (-0.30 + sizeOffset + shapeOffset).coerceIn(-0.90, -0.15)
     }
 
+    /**
+     * Remaining time from per-segment route durations. Returns null when the annotation doesn't line up
+     * with the route geometry, allowing callers to use the provider's whole-route fallback safely.
+     */
+    fun remainingSegmentTime(cumulativeDistances: DoubleArray, segmentSeconds: DoubleArray, progressMeters: Double): Double? {
+        if (cumulativeDistances.size < 2 || segmentSeconds.size != cumulativeDistances.size - 1 ||
+            !progressMeters.isFinite()) return null
+        var remaining = 0.0
+        for (i in segmentSeconds.indices) {
+            val start = cumulativeDistances[i]
+            val end = cumulativeDistances[i + 1]
+            val seconds = segmentSeconds[i]
+            if (!start.isFinite() || !end.isFinite() || !seconds.isFinite() || seconds < 0.0 || end < start) return null
+            val length = end - start
+            if (length <= 0.0 || progressMeters >= end) continue
+            val fraction = ((end - maxOf(progressMeters, start)) / length).coerceIn(0.0, 1.0)
+            remaining += seconds * fraction
+        }
+        return remaining.takeIf { it.isFinite() }
+    }
+
+    /** The signed sweep from the entry (bottom) to a roundabout exit, following the local traffic direction. */
+    fun roundaboutSweep(exitRelativeDegrees: Double, clockwise: Boolean): Float {
+        if (!exitRelativeDegrees.isFinite()) return 0f
+        val exitCanvas = ((exitRelativeDegrees - 90.0) % 360.0 + 360.0) % 360.0
+        val startCanvas = 90.0
+        return if (clockwise) ((exitCanvas - startCanvas + 360.0) % 360.0).toFloat()
+        else -((startCanvas - exitCanvas + 360.0) % 360.0).toFloat()
+    }
+
     /** Clamp the map renderer frame cap to a safe range; settings expose 20/30/45/60 and auto defaults to 30. */
     fun mapFrameLimit(requestedFps: Int): Int = requestedFps.coerceIn(15, 60)
 
