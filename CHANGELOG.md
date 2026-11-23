@@ -4,12 +4,6 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### Improved
-- More accurate arrival times: the map now uses the actual time for each remaining road segment instead of spreading the whole journey time evenly by distance. Live incident delays are added only when they are not already included in the route's traffic estimate.
-- Android Auto voice search keeps a recognised destination when the speech service reports an error after returning partial text, and also submits usable text if listening times out.
-- Mapbox receives Android's low-memory notifications so it can release native and GPU map resources before memory pressure causes freezes.
-- Roundabout mini-card direction now uses a shared, tested calculation for left-hand and right-hand traffic.
-
 ### New
 - Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
 - Pop-up when the limit changes can be switched off (Settings › Alerts): the sign by your speedometer still pulses, and the sign on the route ahead still shows (thanks to karthikeyansr, #328)
@@ -808,6 +802,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map style, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
 
 ### Improved
+- More accurate arrival times: the map now uses the actual time for each remaining road segment instead of spreading the whole journey time evenly by distance. Live incident delays are added only when they are not already included in the route's traffic estimate.
+- Android Auto voice search keeps a recognised destination when the speech service reports an error after returning partial text, and also submits usable text if listening times out.
+- Mapbox receives Android's low-memory notifications so it can release native and GPU map resources before memory pressure causes freezes.
+- Roundabout mini-card direction now uses a shared, tested calculation for left-hand and right-hand traffic.
 - Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
 - Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
 - Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
