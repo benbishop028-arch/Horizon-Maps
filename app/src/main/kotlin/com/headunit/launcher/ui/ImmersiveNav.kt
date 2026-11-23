@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -461,6 +462,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Flag, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             }
+            // (the portrait route layout: map options stays, above sound)
+            if (routeSheet) railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             // navigating: sound in one big button with the others (voice, alerts only, mute), as in Google Maps. It used to be a small
             // button on the trip card, close to the others and hard to hit while driving (GitHub, magnazan)
             if (routing) railItems.add(@Composable {
@@ -1550,28 +1553,35 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
             }) { ch, dy: Float -> ch.consume(); dragged += dy }
         }
         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { touched++ }
+        .navigationBarsPadding()
         .animateContentSize()) {
         Box(Modifier.fillMaxWidth().height(20.dp).clickable { open = !open; touched++ }, contentAlignment = Alignment.Center) {
             Box(Modifier.width(40.dp).height(5.dp).clip(RoundedCornerShape(3.dp)).background(c.line))
         }
-        FasterStrip(engine, Modifier.fillMaxWidth())
-        if (engine.showRouteBar) RouteBar(engine, Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 2.dp))
-        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp, top = 6.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+        // (well in from the screen's edges: 22 dp each side)
+        FasterStrip(engine, Modifier.fillMaxWidth(), edge = 22.dp)
+        if (engine.showRouteBar) RouteBar(engine, Modifier.fillMaxWidth().padding(start = 22.dp, end = 22.dp, top = 6.dp, bottom = 2.dp))
+        Row(Modifier.fillMaxWidth().padding(start = 22.dp, end = 18.dp, top = 8.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) L.t("+{0} min", e.delayMin) else L.t("time left"), dc, compact = true)
             ImmStat(e.arrive, "arrival", c.text)
             ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text, compact = true)
             Box(Modifier.weight(1f))
-            Box(Modifier.height(40.dp).shadow(6.dp, RoundedCornerShape(20.dp)).clip(RoundedCornerShape(20.dp)).background(Bad).pressClick { engine.endRoute() }.padding(horizontal = 16.dp),
+            // add a stop, then End: both big enough to hit while driving
+            Box(Modifier.size(50.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(c.tile).pressClick { engine.stopsEditor = true; open = false },
                 contentAlignment = Alignment.Center) {
-                Text(L.t("End"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(25.dp))
+            }
+            Box(Modifier.height(50.dp).shadow(6.dp, RoundedCornerShape(25.dp)).clip(RoundedCornerShape(25.dp)).background(Bad).pressClick { engine.endRoute() }.padding(horizontal = 22.dp),
+                contentAlignment = Alignment.Center) {
+                Text(L.t("End"), color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
         }
         // arriving: the side of the road, and car parks near the destination (tap one to go there instead)
         if (arriving) {
             val side = remember(engine.route) { engine.destSide() }
             val parks = engine.parkingNear
-            if (side.isNotEmpty() || parks.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+            if (side.isNotEmpty() || parks.isNotEmpty()) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, bottom = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 if (side.isNotEmpty()) Row(Modifier.height(38.dp).clip(RoundedCornerShape(19.dp)).background(c.accent.copy(alpha = 0.16f)).padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically) {
@@ -1593,7 +1603,7 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         }
         AnimatedVisibility(open, enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)),
             exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-            Column(Modifier.fillMaxWidth().heightIn(max = screenH * 0.45f).verticalScroll(rememberScrollState()).padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
+            Column(Modifier.fillMaxWidth().heightIn(max = screenH * 0.45f).verticalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 // the trip's actions, as tiles
                 val evPct = engine.evArrivalPct()
@@ -1605,7 +1615,6 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                             Text(label, color = c.text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
-                    act(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), c.accent) { engine.stopsEditor = true; open = false }
                     if (canShare) act(Icons.Rounded.Send, L.t("Share ETA"), c.accent) {
                         engine.etaShareText()?.let { t ->
                             val i = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain").putExtra(android.content.Intent.EXTRA_TEXT, t)
@@ -1788,7 +1797,8 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOffline:
             }) { ch, dy: Float -> ch.consume(); dragged += dy }
         }
         .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { }
-        .padding(start = 14.dp, end = 14.dp, bottom = 14.dp).animateContentSize(),
+        .navigationBarsPadding()
+        .padding(start = 20.dp, end = 20.dp, bottom = 16.dp).animateContentSize(),
         verticalArrangement = Arrangement.spacedBy(10.dp)) {
         // the handle: tap to open or fold
         Box(Modifier.fillMaxWidth().height(24.dp).clickable { if (!cruising) { open = !open; if (open) engine.homeTucked = false } }, contentAlignment = Alignment.Center) {

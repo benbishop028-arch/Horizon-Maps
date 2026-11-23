@@ -190,10 +190,10 @@ private fun AdviceLine(text: String) {
 
 /** "Faster route found" across the top of the trip card, with Switch and Keep; gone once you've picked. */
 @Composable
-internal fun FasterStrip(engine: NavEngine, modifier: Modifier = Modifier) {
+internal fun FasterStrip(engine: NavEngine, modifier: Modifier = Modifier, edge: androidx.compose.ui.unit.Dp = 14.dp) {
     val fr = engine.faster ?: return
     val c = LocalVw.current
-    Row(modifier.background(Good.copy(alpha = 0.16f)).padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+    Row(modifier.background(Good.copy(alpha = 0.16f)).padding(start = edge, end = edge - 6.dp, top = 6.dp, bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Icon(Icons.Rounded.Route, null, tint = Good, modifier = Modifier.size(22.dp))
         Column(Modifier.weight(1f)) {
