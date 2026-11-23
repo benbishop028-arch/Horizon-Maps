@@ -1109,11 +1109,9 @@ fun RoundaboutView(engine: NavEngine, t: com.headunit.launcher.TurnInfo, modifie
             leg(180.0, blue, sw * 0.75f)
             leg(exitA, blue, sw * 0.75f)
             // the ring from the entry (bottom) to the exit, the way traffic goes
-            val startCanvas = 90f   // drawArc angles: 0 = right, 90 = bottom (clockwise on screen)
-            val exitCanvas = ((exitA - 90.0) % 360.0 + 360.0).toFloat() % 360f
-            // (on screen a positive sweep goes clockwise: bottom, then left, then top, then right)
-            val sweep = if (clockwise) (exitCanvas - startCanvas + 360f) % 360f else -((startCanvas - exitCanvas + 360f) % 360f)
-            drawArc(blue, startCanvas, sweep, false, topLeft = Offset(cx - r, cy - r), size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = Stroke(sw * 0.75f, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            val sweep = NavigationPolicy.roundaboutSweep(exitA, clockwise)
+            // A positive canvas sweep follows the clockwise roundabout used where traffic keeps left.
+            drawArc(blue, 90f, sweep, false, topLeft = Offset(cx - r, cy - r), size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = Stroke(sw * 0.75f, cap = androidx.compose.ui.graphics.StrokeCap.Round))
         }
     }
 }
