@@ -1263,6 +1263,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Dim the screen at night"), "dimnight", false)
         SToggle(prefs, L.t("Keep the screen on"), "keepon", true)
         SToggle(prefs, L.t("Glass panels"), "glass", true, L.t("See-through cards tinted by the map. Off gives solid cards"))
+        SToggle(prefs, L.t("New portrait layout"), PreferenceKeys.PORTRAIT_SHEET, true, L.t("On an upright screen with no route: just the search bar at the top, and your places, music and notices in a sheet along the bottom"))
         SChoice(L.t("Mapbox logo position"), listOf("tl" to L.t("Top left"), "tr" to L.t("Top right"), "bl" to L.t("Bottom left"), "br" to L.t("Bottom right")), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),
             L.t("Mapbox requires their logo on the map; pick the corner that suits your layout")) { prefs.put(PreferenceKeys.MAPBOX_LOGO, it) }
     }

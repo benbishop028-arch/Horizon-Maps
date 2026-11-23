@@ -158,6 +158,8 @@ internal object PreferenceKeys {
     const val CRUISE = "cruise"
     /** "Heading E" after the road name in that pill (liamstears: a switch of its own). */
     const val CRUISE_HEADING = "cruise_heading"
+    /** A portrait screen with no route: just the search bar at the top, and your places, music and notices in a sheet along the bottom. */
+    const val PORTRAIT_SHEET = "portraitsheet"
     const val DATAPROV = "dataprov"
     const val DATASNOOZE = "datasnooze"
     const val DEMO = "demo"

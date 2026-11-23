@@ -7114,6 +7114,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** True for the engine running the Android Auto screen. */
     /** How far the media bar at the bottom of the phone's map reaches up (dp, 0 when it's not showing), so the road name pill can sit above it (GitHub #277). */
     var mediaLiftDp by mutableStateOf(0f)
+    /** The portrait sheet (Settings › Screen & sizes › New portrait layout) is up: the road name pill goes in it, not over the map. */
+    var portraitSheetOn by mutableStateOf(false)
+    /** The road name pill would show (worked out on the map screen), for the portrait sheet to show it in its place. */
+    var cruisePillWanted by mutableStateOf(false)
     /** When the map was last moved by hand (elapsed ms), for going back to following the car once it drives off (GitHub #273). */
     @Volatile private var gestureAt = 0L
     @Volatile var isCar = false

@@ -25,6 +25,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Auto zoom", "Zooms out at speed and in at junctions. Off keeps one steady zoom, which + and − still change", "The map", 0),
     SettingRef("Footpaths and trails", "Turn off for a cleaner driving map", "The map", 0),
     SettingRef("Glass panels", "See-through cards tinted by the map. Off gives solid cards", "Screen", 13),
+    SettingRef("New portrait layout", "Search bar at the top, places in a sheet along the bottom", "Screen", 13),
     SettingRef("Mapbox logo position", "Pick the corner for Mapbox's logo", "Screen", 13),
     SettingRef("Satellite", "", "Sky and satellite", 1),
     SettingRef("Live weather", "Checks the weather where you are, for rain, snow and fog on the map", "Live weather", 2),

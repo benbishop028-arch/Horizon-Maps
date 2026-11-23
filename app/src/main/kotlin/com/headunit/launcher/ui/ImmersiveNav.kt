@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.boundsInParent
@@ -322,6 +323,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var searchOpen by remember { mutableStateOf(false) }
         val searchBusy = q.isNotEmpty() || engine.results.isNotEmpty() || engine.nearbyKind != null || engine.phoneDest != null || engine.shownTrack != null
         val compact = searchBtn && !routing && !previewing && !searchOpen && !searchBusy
+        // the portrait layout with no route (Settings › Screen & sizes › New portrait layout): only the search bar at the top, with
+        // Settings in it, and your places, music and notices in a sheet along the bottom, instead of a column of cards down from the
+        // search bar and the buttons beside it (reports of a cluttered upright screen)
+        val sheetMode = narrow && !routing && !previewing && !compact && engine.prefs.b(PreferenceKeys.PORTRAIT_SHEET, true)
+        androidx.compose.runtime.SideEffect { if (engine.portraitSheetOn != sheetMode) engine.portraitSheetOn = sheetMode }
+        // (out of the way while you search, look at a place, or browse places of a kind nearby)
+        val homeSheetUp = sheetMode && q.isEmpty() && engine.results.isEmpty() && engine.here == null && engine.nearbyKind == null && engine.chain == null && !engine.chainBusy
         LaunchedEffect(searchOpen, searchBusy) { if (searchOpen && !searchBusy) { delay(20_000); searchOpen = false } }
         LaunchedEffect(routing) { if (routing) { searchOpen = false; engine.homeTucked = false } }
         LaunchedEffect(searchOpen) { if (searchOpen && !typingLocked) { delay(350); try { focus.requestFocus() } catch (_: Exception) {} } }
@@ -333,7 +341,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var railHPx by remember { mutableStateOf(0) }
         val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow || sheetMode) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -343,7 +351,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
             AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, onSettings = if (sheetMode) ({ sheet = false; onSettings() }) else null)
                 // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
                 val tucked = engine.homeTucked
                 if (!tucked) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
@@ -353,7 +361,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
                     ImmResults(engine, q) { q = "" }
                 }
-                AnimatedVisibility(!showResults && q.isEmpty() && engine.nearbyKind == null && !tucked, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+                AnimatedVisibility(!sheetMode && !showResults && q.isEmpty() && engine.nearbyKind == null && !tucked, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         // your places (Home, Work...) always stay under the search bar; while you drive with no route, the suggestion and
                         // resume cards stay too and the rest folds away
@@ -449,7 +457,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val spNow = engine.fix?.speed ?: 0.0
             androidx.compose.runtime.SideEffect { if (spNow > 3.0) stopped = false else if (spNow < 1.0) stopped = true }
             val showZoom = stopped || !engine.following || kotlin.math.abs(engine.zoomOffset) > 0.01
-            val showSettings = !routing
+            val showSettings = !routing && !sheetMode
             val unit = 52.dp * mainButtonScale
             // the top of the speedometer (measured; a fair guess until it has been laid out)
             // (only in the way at the bottom: in the middle or at the top it sits beside the buttons instead)
@@ -500,7 +508,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 // (under the turn card on an upright phone on a route; kept clear of the trip card at the bottom if the screen is short)
                 // (worked out in the buttons' own size, as the padding below is: Settings › sizes › map buttons scales it)
                 // (just past halfway down the space between the turn card and the trip card, and never down into the speed sign)
-                val railTop = if (!railBelow) 16.dp else with(LocalDensity.current) {
+                // (the portrait sheet: under the search bar, which has the whole width)
+                val railTop = if (sheetMode) (16.dp + 60.dp + 12.dp) / mainButtonScale else if (!railBelow) 16.dp else with(LocalDensity.current) {
                     val gapTop = turnBottomPx - boxTopPx + 10.dp.toPx()
                     val tripTop = boxH - tripPx - 16.dp.toPx()
                     val gapBottom = (if (speedTopPx > 0) minOf(tripTop, speedTopPx.toFloat()) else tripTop) - 10.dp.toPx()
@@ -591,6 +600,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
             val tripAlign = when (tripAt) { "centre" -> Alignment.BottomCenter; "right" -> Alignment.BottomEnd; "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
+            if (homeSheetUp) Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().onSizeChanged { tripPx = it.height; tripWPx = it.width }
+                .onGloballyPositioned { report(1, it.boundsInParent()) }) {
+                // (in the trip card's place: everything that keeps clear of the trip card, the speed, re-centre and your arrow, keeps
+                // clear of the sheet the same way)
+                HomeSheet(engine, engine.prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.showing(), screenH) { try { focus.requestFocus() } catch (_: Exception) {} }
+            } else
             Box(Modifier.align(tripAlign).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height; tripWPx = it.width }
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
                 CompositionLocalProvider(LocalDensity provides Density(tripBaseDensity.density * tripCardScale, tripBaseDensity.fontScale)) {
@@ -607,7 +622,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, false)
         FollowMedia(mediaOn)
         val mediaShow = mediaOn && com.headunit.launcher.MediaNow.showing() && !previewing && engine.arrival == null && engine.here == null &&
-            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus
+            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus && !homeSheetUp
         val tripW = with(dens) { tripWPx.toDp() }
         val speedW = with(dens) { speedWPx.toDp() }
         val mediaMax = 360.dp
@@ -1462,8 +1477,53 @@ internal fun ImmTurnCard(
     }
 } }
 
+/**
+ * The portrait sheet with no route: a handle, the road you're on while driving, the music, Home, Work and your places (the same
+ * tiles and buttons as under the search bar, in their own colours), any notices (a planned trip, updates), and pulled up (or the
+ * handle tapped) your recent places. While you drive it stays folded.
+ */
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit) { TextSides {
+private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearch: () -> Unit) {
+    val c = LocalVw.current
+    var open by rememberSaveable { mutableStateOf(false) }
+    val cruising = engine.cruising
+    // moving the map or driving folds it; a route you can carry on with opens it, so that card is seen
+    LaunchedEffect(engine.homeTucked, cruising) { if (engine.homeTucked || cruising) open = false }
+    LaunchedEffect(engine.resume != null) { if (engine.resume != null && !cruising) open = true }
+    val shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp)
+    // a swipe up or down anywhere on the sheet opens or folds it (only on the handle before, and a swipe elsewhere went through to
+    // the map, which moved it and so folded the sheet straight back); the sheet also keeps taps and drags off the map under it
+    Column(Modifier.fillMaxWidth().panel(12.dp, shape, c.surface)
+        .pointerInput(cruising) {
+            var dragged = 0f
+            detectVerticalDragGestures(onDragStart = { dragged = 0f }, onDragEnd = {
+                if (dragged < -40f && !cruising) { open = true; engine.homeTucked = false } else if (dragged > 40f) open = false
+            }) { ch, dy: Float -> ch.consume(); dragged += dy }
+        }
+        .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { }
+        .padding(start = 14.dp, end = 14.dp, bottom = 14.dp).animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // the handle: tap to open or fold
+        Box(Modifier.fillMaxWidth().height(24.dp).clickable { if (!cruising) { open = !open; if (open) engine.homeTucked = false } }, contentAlignment = Alignment.Center) {
+            Box(Modifier.width(40.dp).height(5.dp).clip(RoundedCornerShape(3.dp)).background(c.line))
+        }
+        if (engine.cruisePillWanted) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CruisePill(engine) }
+        if (media) MediaBar()
+        ImmChips(engine, focusSearch)
+        if (!cruising) {
+            PlannedCard(engine)
+            AppUpdateCard(engine)
+            if (engine.dataUpdates.isNotEmpty()) DataUpdateCard(engine) else PackAgeCard(engine)
+        }
+        AnimatedVisibility(open && !cruising, enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)),
+            exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+            Column(Modifier.fillMaxWidth().heightIn(max = screenH * 0.42f).verticalScroll(rememberScrollState())) { ImmQuick(engine, showSaved = true, listAlways = true) }
+        }
+    }
+}
+
+@Composable
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: (() -> Unit)? = null) { TextSides {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -1477,7 +1537,10 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                     // folds Saved & recent up under the bar, and back down again
                     // (tucked away by moving the map: the arrow points down, and brings it all back)
                     val open = engine.prefs.b(PreferenceKeys.QUICKLIST, true) && !engine.homeTucked
-                    Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable {
+                    // (the portrait sheet: Settings here instead, the places being in the sheet at the bottom)
+                    if (onSettings != null) Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { onSettings() }, contentAlignment = Alignment.Center) {
+                        Icon(Icons.Rounded.Settings, L.t("Settings"), tint = c.sub, modifier = Modifier.size(24.dp))
+                    } else Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable {
                         if (engine.homeTucked) { engine.homeTucked = false; engine.prefs.put(PreferenceKeys.QUICKLIST, true) }
                         else engine.prefs.put(PreferenceKeys.QUICKLIST, !open)
                     }, contentAlignment = Alignment.Center) {
@@ -1725,7 +1788,7 @@ private fun ParkedCard(engine: NavEngine) {
 
 /** Resume a trip, a suggested trip, and saved & recent places. */
 @Composable
-private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
+private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true, listAlways: Boolean = false) {
     val c = LocalVw.current
     val rawCustom = engine.prefs.s(PreferenceKeys.PLACES_CUSTOM, "")
     val rawFav = engine.prefs.s(PreferenceKeys.PLACES_FAVOURITES, "")
@@ -1799,7 +1862,7 @@ private fun ImmQuick(engine: NavEngine, showSaved: Boolean = true) {
             Text(L.t("Go"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
         // three places on show to keep the map clear; "All" opens the rest (it used to be a list up to five tall)
-        AnimatedVisibility(showSaved && engine.prefs.b(PreferenceKeys.QUICKLIST, true),
+        AnimatedVisibility(showSaved && (listAlways || engine.prefs.b(PreferenceKeys.QUICKLIST, true)),
             enter = fadeIn(tween(200)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
         Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(26.dp), c.surface).padding(vertical = 6.dp)) {
             Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
