@@ -3083,21 +3083,76 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun line(p: List<LL>): Feature =
         Feature.fromGeometry(LineString.fromLngLats(p.map { Point.fromLngLat(it.lon, it.lat) }))
 
-    private fun lineSev(p: List<LL>, level: Int): Feature {
+    private fun lineSev(p: List<LL>, level: Number): Feature {
         val f = line(p)
         f.addNumberProperty("sev", level)
         return f
+    }
+
+    /**
+     * [seg] as lines coloured by traffic, where each point's level is [level] of its index from [firstIdx]. With blending on, the
+     * colour runs from one level to the next over about 150 m each side of where it changes, in short pieces of in-between levels
+     * (about 25 m each), instead of changing in one step (#334).
+     */
+    private fun trafficRuns(seg: List<LL>, firstIdx: Int, level: (Int) -> Int, out: ArrayList<Feature>) {
+        if (seg.size < 2) return
+        // the plain runs, as before
+        val runs = ArrayList<Triple<Int, Int, Int>>()   // start index, end index (inclusive), level
+        var start = 0; var cur = level(firstIdx)
+        for (j in 1 until seg.size - 1) {
+            val l = level(firstIdx + j)
+            if (l != cur) { runs += Triple(start, j, cur); start = j; cur = l }
+        }
+        runs += Triple(start, seg.size - 1, cur)
+        if (!blendTraffic || runs.size == 1) { for ((a, b, l) in runs) out += lineSev(seg.subList(a, b + 1), l); return }
+        val cum = DoubleArray(seg.size); for (j in 1 until seg.size) cum[j] = cum[j - 1] + Geo.dist(seg[j - 1], seg[j])
+        // where each change is, and the levels either side
+        val changes = (1 until runs.size).map { k -> Triple(cum[runs[k].first], runs[k - 1].third, runs[k].third) }
+        fun at(d: Double): LL {
+            var i = java.util.Arrays.binarySearch(cum, d).let { if (it >= 0) it else -it - 2 }.coerceIn(0, seg.size - 2)
+            val span = cum[i + 1] - cum[i]; val t = if (span > 0) ((d - cum[i]) / span).coerceIn(0.0, 1.0) else 0.0
+            val a = seg[i]; val b = seg[i + 1]
+            return LL(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t)
+        }
+        // the cuts: every route point, plus every 25 m inside a blend; each piece gets the level at its middle
+        val total = cum.last()
+        val cuts = java.util.TreeSet<Double>(); for (c0 in cum) cuts += c0
+        for ((d, _, _) in changes) { var x = maxOf(0.0, d - 150.0); while (x < minOf(total, d + 150.0)) { cuts += x; x += 25.0 } }
+        fun sevAt(d: Double): Double {
+            var best = Double.MAX_VALUE; var v = 0.0; var near = false
+            for ((cd, a, b) in changes) { val off = d - cd; if (kotlin.math.abs(off) < 150.0 && kotlin.math.abs(off) < best) { best = kotlin.math.abs(off); near = true
+                val t = ((off + 150.0) / 300.0).coerceIn(0.0, 1.0); val sm = t * t * (3 - 2 * t); v = a + (b - a) * sm } }
+            if (near) return v
+            val k = runs.indexOfLast { cum[it.first] <= d }.coerceAtLeast(0); return runs[k].third.toDouble()
+        }
+        val list = cuts.toList()
+        var pts = arrayListOf(at(list[0])); var lvl = Math.round(sevAt((list[0] + list.getOrElse(1) { list[0] }) / 2) * 10) / 10.0
+        for (i in 1 until list.size) {
+            val mid = (list[i - 1] + list[i]) / 2
+            val l = Math.round(sevAt(mid) * 10) / 10.0
+            val p = at(list[i])
+            if (l != lvl && pts.size >= 2) { out += lineSev(pts, lvl); pts = arrayListOf(pts.last()) }
+            lvl = l; pts += p
+        }
+        if (pts.size >= 2) out += lineSev(pts, lvl)
     }
 
     private var mainSev: IntArray? = null
     private var mainOff = 0
 
     /** Route colour: blue (a deeper blue by day, like the progress bar), amber where traffic is slow, red where it's heavy. */
-    private fun sevColor(im: Boolean = false, day: Boolean = false): Expression = Expression.switchCase(
-        Expression.eq(Expression.get("sev"), lit(2)), col(if (im) "#D93025" else "#FF4D4D"),
-        Expression.eq(Expression.get("sev"), lit(1)), col(if (im) "#F9AB00" else "#FFB020"),
-        col(customRouteCol() ?: if (day) "#2A7BE4" else if (im) "#2FC4F5" else "#4CC9FF"),
-    )
+    // (the same colours as before, now blended: "sev" is 0 for clear, 1 slow and 2 heavy, and between those where one turns into the
+    // next along the route, #334. Whole numbers come out exactly as they did)
+    private fun sevColor(im: Boolean = false, day: Boolean = false): Expression {
+        fun rgba(hex: String): String { val c = android.graphics.Color.parseColor(hex)
+            return "\"rgba(${android.graphics.Color.red(c)},${android.graphics.Color.green(c)},${android.graphics.Color.blue(c)},${String.format(java.util.Locale.US, "%.3f", android.graphics.Color.alpha(c) / 255.0)})\"" }
+        val base = rgba(customRouteCol() ?: if (day) "#2A7BE4" else if (im) "#2FC4F5" else "#4CC9FF")
+        return Expression.fromRaw("[\"interpolate\",[\"linear\"],[\"to-number\",[\"get\",\"sev\"],0],0,$base,1,${rgba(if (im) "#F9AB00" else "#FFB020")},2,${rgba(if (im) "#D93025" else "#FF4D4D")}]")
+    }
+
+    /** Settings › On the map › Blend traffic colours (#334). */
+    @Volatile private var blendTraffic = true
+    fun setBlendTraffic(on: Boolean) { if (on == blendTraffic) return; blendTraffic = on; main0.post { try { setLine(main) } catch (e: Exception) { } } }
 
     private fun pushAll() {
         pushLive(); pushRadar(); pushSatFallback(); pushTurn()
@@ -3345,15 +3400,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val cut = if (cutZoomOk()) turnCut else null
         cutActive = cut != null
         val feats = ArrayList<Feature>()
-        fun addRun(seg: List<LL>, firstIdx: Int) {
-            if (seg.size < 2) return
-            var start = 0; var cur = level(firstIdx)
-            for (j in 1 until seg.size - 1) {
-                val l = level(firstIdx + j)
-                if (l != cur) { feats += lineSev(seg.subList(start, j + 1), cur); start = j; cur = l }
-            }
-            feats += lineSev(seg.subList(start, seg.size), cur)
-        }
+        fun addRun(seg: List<LL>, firstIdx: Int) = trafficRuns(seg, firstIdx, ::level, feats)
         val pa = cut?.firstOrNull()?.let { MapRouteGeometry.projectOn(pts, it) }
         val pb = cut?.lastOrNull()?.let { MapRouteGeometry.projectOn(pts, it) }
         if (pa != null && pb != null && pb.first > pa.first) {

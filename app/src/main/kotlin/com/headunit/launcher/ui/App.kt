@@ -248,6 +248,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     LaunchedEffect(carModel) { map.setCarModel(carModel) }
     val trafficGreen = prefs.b(PreferenceKeys.TRAFFIC_GREEN, false)
     LaunchedEffect(trafficGreen) { map.setTrafficGreen(trafficGreen) }
+    val blendTraffic = prefs.b(PreferenceKeys.BLEND_TRAFFIC, true)
+    LaunchedEffect(blendTraffic) { map.setBlendTraffic(blendTraffic) }
     val roadNamePct = prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).coerceIn(70, 200)
     LaunchedEffect(roadNamePct) { map.setRoadNameScale(roadNamePct / 100f) }
     val mbToken = prefs.s(PreferenceKeys.MAPBOX_TOKEN, "")
@@ -373,7 +375,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                 } else if (!settings && carOn && !phoneMap) {
                     // Android Auto is connected: the car screen has the map, so the phone shows the trip in brief
                     CarConnectedScreen(engine, onShowMap = { phoneMap = true }, onSettings = { settings = true })
-                } else if (settings) {
+                } else if (settings && !PipUi.on) {
                     // the map is taken off screen while the settings are open, so it is not drawing underneath them.
                     // The settings rise and fade in over a moment, so opening them doesn't feel like a jump.
                     val inA = remember { androidx.compose.animation.core.Animatable(0f) }
@@ -395,10 +397,11 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     // rain, snow or fog over the map to match the real weather where you are
                     // (the map draws rain and snow itself now; the screen overlay is kept for fog, and for when the map can't)
                     if (prefs.b(PreferenceKeys.RAIN_EFFECTS, false) && wxCode != null && (wxCode == 45 || wxCode == 48 || !map.drawsWeather)) WeatherFx(wxCode, Modifier.fillMaxSize())
-                    NavOverlays(engine, onSettings = { settings = true })
-                    if (prefs.b(PreferenceKeys.PERFORMANCE_METER, false) && engine.perfLine.isNotEmpty()) Text(engine.perfLine, color = Color.White, fontSize = 12.sp,
+                    // (in the small picture-in-picture window, #301: just the turn and the time left over the map)
+                    if (PipUi.on) PipOverlay(engine) else NavOverlays(engine, onSettings = { settings = true })
+                    if (!PipUi.on && prefs.b(PreferenceKeys.PERFORMANCE_METER, false) && engine.perfLine.isNotEmpty()) Text(engine.perfLine, color = Color.White, fontSize = 12.sp,
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 4.dp).background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
-                    if (engine.deadReckoning) DeadReckoningChip(Modifier.align(Alignment.BottomCenter).padding(bottom = 84.dp))
+                    if (engine.deadReckoning && !PipUi.on) DeadReckoningChip(Modifier.align(Alignment.BottomCenter).padding(bottom = 84.dp))
                     // (with the heading switched off and no road name known, there's nothing to show)
                     // it stays up while you slow down or wait at lights (a minute below walking pace), instead of swapping back and
                     // forth with the bubble under your arrow every time you dropped under 9 mph (liamstears)
@@ -416,7 +419,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     val mediaUp = prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.showing()
                     androidx.compose.runtime.SideEffect { val w = !engine.deadReckoning && cruiseShows; if (engine.cruisePillWanted != w) engine.cruisePillWanted = w }
                     // (with the portrait sheet up, the pill is the top line of the sheet instead)
-                    if (!engine.deadReckoning && cruiseShows && !engine.portraitSheetOn) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) maxOf(84f, engine.mediaLiftDp + 10f).dp else 18.dp))
+                    if (!engine.deadReckoning && cruiseShows && !engine.portraitSheetOn && !PipUi.on) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) maxOf(84f, engine.mediaLiftDp + 10f).dp else 18.dp))
                     // that pill has the road name, so the one under your arrow steps aside while it's up (they overlapped)
                     val cruisePillUp = !engine.deadReckoning && cruiseShows
                     LaunchedEffect(cruisePillUp) { map.setRoadNameHidden(cruisePillUp) }
@@ -431,14 +434,14 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                 // app is next opened. (Not while the downloaded map is showing: that one needs no key.)
                 var mbLater by remember { mutableStateOf(false) }
                 val noMapKey = !engine.hasMapbox && !mbLater && !engine.useOfflineMap() && !(carOn && !phoneMap)
-                if (setupDone && !settings && (prefs.b(PreferenceKeys.MAPBOX_PROMPT, false) || noMapKey))
+                if (setupDone && !settings && !PipUi.on && (prefs.b(PreferenceKeys.MAPBOX_PROMPT, false) || noMapKey))
                     MapboxKeyDialog(prefs, refused = engine.mbKeyRefused, why = engine.mbRefusedWhy) { prefs.put(PreferenceKeys.MAPBOX_PROMPT, false); mbLater = true }
                 // short messages (saved, sent, no signal...) show over everything
                 val curMsg = engine.message
                 val lastMsg = remember { mutableStateOf(curMsg) }
                 if (curMsg != null) lastMsg.value = curMsg
                 androidx.compose.animation.AnimatedVisibility(
-                    visible = curMsg != null,
+                    visible = curMsg != null && !PipUi.on,
                     modifier = Modifier.align(if (settings) Alignment.BottomCenter else Alignment.TopCenter).padding(top = 12.dp, bottom = 18.dp),
                     enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) + androidx.compose.animation.slideInVertically(androidx.compose.animation.core.tween(240)) { if (settings) it / 2 else -it / 2 },
                     exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
@@ -458,7 +461,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     }
                 }
                 // one of your reports tapped on the map: what it is and when you made it, with Remove / Keep
-                val rc = if (settings) null else engine.reportCard
+                val rc = if (settings || PipUi.on) null else engine.reportCard
                 // (above the trip card on a tall screen, where that card fills the bottom)
                 val tallScreen = LocalConfiguration.current.screenHeightDp > LocalConfiguration.current.screenWidthDp
                 if (rc != null) Column(

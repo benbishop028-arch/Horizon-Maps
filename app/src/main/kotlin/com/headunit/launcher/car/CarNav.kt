@@ -325,6 +325,7 @@ class CarNavSession : Session() {
         map.setArrowScale(prefs.carArrowScale())
         map.setMapDetail(prefs.mapDetail())
         map.setTrafficGreen(prefs.b(PreferenceKeys.TRAFFIC_GREEN, false))
+        map.setBlendTraffic(prefs.b(PreferenceKeys.BLEND_TRAFFIC, true))
         map.setCarModel(prefs.s(PreferenceKeys.CAR_MODEL, "saloon"))
         map.setRoadNameScale(prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).coerceIn(70, 200) / 100f)
         val mapCols = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")

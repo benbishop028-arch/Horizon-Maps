@@ -487,6 +487,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Live traffic"), "traffic", true)
         SToggle(prefs, L.t("Only show traffic on your route while navigating"), "routetrafficonly", false, L.t("Off shows traffic on the roads around you too, as Google Maps does"))
         SToggle(prefs, L.t("Light traffic in green"), PreferenceKeys.TRAFFIC_GREEN, false, L.t("Free-flowing main roads shown green, as well as slow traffic in amber and red"))
+        SToggle(prefs, L.t("Blend traffic colours"), PreferenceKeys.BLEND_TRAFFIC, true, L.t("On your route line and the trip card's route bar, the traffic colours run into each other instead of changing in steps"))
     }
     SGroup(L.t("On your route")) {
         SToggle(prefs, L.t("Traffic lights"), "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) L.t("Only the ones on your route. Now: ") + engine.map.signalInfo() else null)
@@ -1358,6 +1359,7 @@ private fun WhileDrivingSection(prefs: Prefs) {
         if (prefs.b("cruise", true)) SToggle(prefs, L.t("Heading next to the road name"), PreferenceKeys.CRUISE_HEADING, true, L.t("\"Heading E\" after the road. Off shows just the road"))
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
+        if (android.os.Build.VERSION.SDK_INT >= 26) SToggle(prefs, L.t("Picture in picture"), PreferenceKeys.PIP, true, L.t("On a phone, on a route: going to the home screen or another app keeps the map, the next turn and the time left in a small window"))
         SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
         SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
         SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, false, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))

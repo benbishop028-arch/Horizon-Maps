@@ -1586,9 +1586,9 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                 contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(25.dp))
             }
-            Box(Modifier.height(50.dp).shadow(6.dp, RoundedCornerShape(25.dp)).clip(RoundedCornerShape(25.dp)).background(Bad).pressClick { engine.endRoute() }.padding(horizontal = 22.dp),
-                contentAlignment = Alignment.Center) {
-                Text(L.t("End"), color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            // (a round red X, as everywhere else End is: the wide "End" button was missed, Dotancom #318)
+            Box(Modifier.size(50.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(26.dp))
             }
         }
         // what the trip has cost so far (#316)

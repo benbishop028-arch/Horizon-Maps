@@ -185,6 +185,28 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) { }
     }
 
+    // ---- picture in picture (Settings › While driving › Picture in picture, Srikanth1022v #301) ----
+    // On a phone, on a route, going to the home screen or another app keeps the map going in a small window, like Google Maps.
+    // Not on head units (the app is the car's screen there), nor while Android Auto has the map.
+    private fun pipWanted(): Boolean = Build.VERSION.SDK_INT >= 26 && ::engine.isInitialized && guiding() && engine.onPhone() &&
+        !RouteSync.carConnected() && engine.prefs.b(PreferenceKeys.PIP, true) &&
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (!pipWanted() || Build.VERSION.SDK_INT < 26) return
+        try {
+            enterPictureInPictureMode(android.app.PictureInPictureParams.Builder().setAspectRatio(android.util.Rational(3, 4)).build())
+        } catch (e: Exception) { }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        com.headunit.launcher.ui.PipUi.on = isInPictureInPictureMode
+        // (the cards are gone in the small window: the map's room for them is given back, so your arrow sits in the middle)
+        if (isInPictureInPictureMode && ::engine.isInitialized) for (i in 0..2) engine.setPanel(i, 0f, 0f, 0f, 0f)
+    }
+
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
         // into or out of a floating / split window: the bars (and the window's title bar) back, or full screen again

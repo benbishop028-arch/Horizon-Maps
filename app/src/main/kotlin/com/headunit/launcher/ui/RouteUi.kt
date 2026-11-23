@@ -159,6 +159,15 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
         }
         out
     }
+    // (blended: each bin's level is averaged with the bins a little either side, so the colours run into each other where the
+    // traffic changes instead of stepping, #334; the same colours as before)
+    val blend = engine.prefs.b(com.headunit.launcher.PreferenceKeys.BLEND_TRAFFIC, true)
+    val smooth = remember(levels, blend) {
+        FloatArray(bins) { b -> if (!blend) levels[b].toFloat() else {
+            var sum = 0f; var wsum = 0f
+            for (k in -3..3) { val i = b + k; if (i !in 0 until bins) continue; val w = 4f - kotlin.math.abs(k); sum += levels[i] * w; wsum += w }
+            sum / wsum } }
+    }
     val accent = c.accent
     val theme = engine.map.theme
     // [thin]: the slimmer bar on the car screen (smaller markers, a thinner track and a smaller arrow)
@@ -182,7 +191,8 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
             clipPath(ends) {
                 for (b in 0 until bins) {
                     val done = (b + 1f) / bins <= frac
-                    val col = when (levels[b]) { 2 -> Bad; 1 -> Warn; else -> accent }
+                    val v = smooth[b]
+                    val col = if (v <= 1f) androidx.compose.ui.graphics.lerp(accent, Warn, v) else androidx.compose.ui.graphics.lerp(Warn, Bad, (v - 1f).coerceAtMost(1f))
                     drawRect(if (done) Color(0xFF8A8F99) else col, Offset(b * bw, y0), Size(bw + 0.6f, th))
                 }
             }
