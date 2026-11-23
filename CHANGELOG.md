@@ -804,8 +804,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### Improved
 - More accurate arrival times: the map now uses the actual time for each remaining road segment instead of spreading the whole journey time evenly by distance. Live incident delays are added only when they are not already included in the route's traffic estimate.
 - Android Auto voice search keeps a recognised destination when the speech service reports an error after returning partial text, and also submits usable text if listening times out.
-- Mapbox receives Android's low-memory notifications so it can release native and GPU map resources before memory pressure causes freezes.
-- Roundabout mini-card direction now uses a shared, tested calculation for left-hand and right-hand traffic.
+- Mapbox is now notified when Android reports low memory, giving it a chance to release native map resources and reduce the risk of freezes.
 - Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
 - Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
 - Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.
