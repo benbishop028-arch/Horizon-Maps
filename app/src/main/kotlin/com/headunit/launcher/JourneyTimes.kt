@@ -88,6 +88,19 @@ object JourneyTimes {
         return r.withTime(base * f).also { it.baseTime = base }
     }
 
+    /**
+     * The time you usually set off for [to] (minutes after midnight) on a day like today (weekday or weekend): the middle of your
+     * last trips that ended within about 400 m of it, from at least three. Null when there aren't enough to go on.
+     */
+    fun usualStart(ctx: Context, to: LL, atMs: Long = System.currentTimeMillis()): Int? {
+        val c = Calendar.getInstance().apply { timeInMillis = atMs }
+        val dow = c.get(Calendar.DAY_OF_WEEK)
+        val weekend = dow == Calendar.SATURDAY || dow == Calendar.SUNDAY
+        val ms = try { synchronized(trips(ctx)) { trips(ctx).filter { it.weekend == weekend && Geo.dist(LL(it.tLat, it.tLon), to) < 400.0 }.map { it.minute } } } catch (e: Exception) { emptyList() }
+        if (ms.size < 3) return null
+        return ms.sorted()[ms.size / 2]
+    }
+
     private fun trips(ctx: Context): MutableList<Trip> {
         cache?.let { return it }
         val out = ArrayList<Trip>()

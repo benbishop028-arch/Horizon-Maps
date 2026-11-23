@@ -148,6 +148,8 @@ import com.headunit.launcher.Geo
 import com.headunit.launcher.LL
 import com.headunit.launcher.NavEngine
 import kotlinx.coroutines.delay
+import androidx.compose.material.icons.rounded.Navigation
+import androidx.compose.material.icons.rounded.CloudDownload
 import com.headunit.launcher.PreferenceKeys
 
 private val Teal = GmGreen
@@ -617,7 +619,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
                 // (in the trip card's place: everything that keeps clear of the trip card, the speed, re-centre and your arrow, keeps
                 // clear of the sheet the same way)
-                HomeSheet(engine, engine.prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.showing(), screenH) { try { focus.requestFocus() } catch (_: Exception) {} }
+                HomeSheet(engine, engine.prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.showing(), screenH, { engine.prefs.put("settingscat", 12); sheet = false; onSettings() }) { try { focus.requestFocus() } catch (_: Exception) {} }
             } else
             Box(Modifier.align(tripAlign).then(if (narrow) Modifier.fillMaxWidth().sides(end = 16.dp) else Modifier).onSizeChanged { tripPx = it.height; tripWPx = it.width }
                 .onGloballyPositioned { report(1, it.boundsInParent()) }) {
@@ -1532,6 +1534,68 @@ private fun SheetGlance(engine: NavEngine) {
     }
 }
 
+/**
+ * "Leave by 08:04 for Work": from 45 minutes before the time you usually set off for Home or Work (learnt from your trips there)
+ * until 15 minutes after, while you're not already there; earlier by any traffic on the way just now.
+ */
+@Composable
+private fun DepartureNudge(engine: NavEngine) {
+    val c = LocalVw.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val here = engine.fix?.pos ?: return
+    // (looked at again each minute)
+    val minute by androidx.compose.runtime.produceState(System.currentTimeMillis() / 60_000L) { while (true) { delay(30_000L); value = System.currentTimeMillis() / 60_000L } }
+    val pick = remember(minute, engine.slotMins["home"], engine.slotMins["work"]) {
+        val cal = java.util.Calendar.getInstance()
+        val now = cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+        listOf("work", "home").firstNotNullOfOrNull { k ->
+            val p = engine.places.slot(k) ?: return@firstNotNullOfOrNull null
+            if (Geo.dist(here, p.pos) < 800.0) return@firstNotNullOfOrNull null
+            val usual = com.headunit.launcher.JourneyTimes.usualStart(ctx, p.pos) ?: return@firstNotNullOfOrNull null
+            val delayMin = engine.slotDelay[k] ?: 0
+            val leave = usual - delayMin
+            if (now in (leave - 45)..(leave + 15)) Triple(k, p, leave) else null
+        }
+    } ?: return
+    val (k, p, leave) = pick
+    val mins = engine.slotMins[k]
+    val d = engine.slotDelay[k] ?: 0
+    val (icon, tint) = if (k == "home") Icons.Rounded.Home to Color(0xFF4C8DFF) else Icons.Rounded.Work to Color(0xFFF29900)
+    val at = String.format(java.util.Locale.UK, "%02d:%02d", ((leave % 1440) + 1440) % 1440 / 60, ((leave % 60) + 60) % 60)
+    Row(Modifier.fillMaxWidth().panel(6.dp, RoundedCornerShape(22.dp), c.surface).clickable { engine.startRoute(p) }.padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(34.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp)) }
+        Column(Modifier.padding(start = 10.dp).weight(1f)) {
+            Text(L.t("Leave by {0} for {1}", at, L.t(if (k == "home") "Home" else "Work")), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text((if (mins != null && mins > 0) Geo.fmtDur(mins * 60.0) + " · " else "") + (if (d >= 1) L.t("+{0} min traffic", d) else L.t("No delays")),
+                color = delayTint(d, c.surface), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        }
+        Icon(Icons.Rounded.Navigation, null, tint = c.accent, modifier = Modifier.size(22.dp))
+    }
+}
+
+/** You're outside every map you've downloaded: a line to get this area (only when you have downloaded some). */
+@Composable
+private fun OfflineHealth(engine: NavEngine, onOffline: () -> Unit) {
+    val c = LocalVw.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val here = engine.fix?.pos ?: return
+    val cell = "${Math.round(here.lat * 20)},${Math.round(here.lon * 20)}"
+    val outside by androidx.compose.runtime.produceState(false, cell) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try { com.headunit.launcher.OfflineRouter.installedIds(ctx).isNotEmpty() && com.headunit.launcher.OfflineRouter.areaFor(ctx, here) == null } catch (e: Exception) { false }
+        }
+    }
+    if (!outside) return
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Warn.copy(alpha = 0.14f)).clickable { onOffline() }.padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Rounded.CloudDownload, null, tint = Warn, modifier = Modifier.size(20.dp))
+        Text(L.t("You're outside your downloaded maps"), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = 10.dp).weight(1f))
+        Text(L.t("Get this area"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+    }
+}
+
 /** The drive to Home and Work just now, with any traffic on the way, a line each (tap to go). */
 @Composable
 private fun SlotTraffic(engine: NavEngine) {
@@ -1560,7 +1624,7 @@ private fun SlotTraffic(engine: NavEngine) {
  * handle tapped) your recent places. While you drive it stays folded.
  */
 @Composable
-private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearch: () -> Unit) {
+private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOffline: () -> Unit, focusSearch: () -> Unit) {
     val c = LocalVw.current
     var open by rememberSaveable { mutableStateOf(false) }
     val cruising = engine.cruising
@@ -1588,11 +1652,15 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, focusSearc
         }
         if (engine.cruisePillWanted) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { CruisePill(engine) }
         if (media) MediaBar()
+        // around the time you usually set off for Home or Work: when to leave today, with the traffic
+        DepartureNudge(engine)
         // at a glance: the weather now and the cheapest fuel near you
         SheetGlance(engine)
         ImmChips(engine, focusSearch)
         // where you left the car, while you're away from it
         if (!cruising) ParkedCard(engine)
+        // outside every map you've downloaded (only when you have some): a line to get this area
+        if (!cruising) OfflineHealth(engine, onOffline)
         if (!cruising) {
             PlannedCard(engine)
             AppUpdateCard(engine)
