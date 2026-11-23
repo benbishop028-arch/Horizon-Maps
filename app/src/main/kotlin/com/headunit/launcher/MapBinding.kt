@@ -2735,8 +2735,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-lim", "dl-lim")
             .iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(false)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
-            .iconSize(Expression.switchCase(Expression.eq(Expression.get("k"), Expression.literal(0)),
-                zoomed(1.0, 10 to 0.75, 14 to 0.9, 17 to 1.0), zoomed(1.0, 8 to 0.3, 12 to 0.4, 15 to 0.6, 18 to 0.8))))
+            // (the zoom has to be the outermost part: Mapbox refuses a zoom curve inside a case, and then the whole layer was
+            // never added, so neither the speed limit sign on the route nor the lorry signs ever showed)
+            .iconSize(run {
+                val isSpeed = Expression.eq(Expression.get("k"), lit(0))
+                fun both(speed: Double, lorry: Double) = Expression.switchCase(isSpeed, lit(speed), lit(lorry))
+                zoomedExpr(1.0, 8 to both(0.75, 0.3), 10 to both(0.75, 0.35), 12 to both(0.825, 0.4), 14 to both(0.9, 0.533),
+                    15 to both(0.933, 0.6), 17 to both(1.0, 0.733), 18 to both(1.0, 0.8))
+            }))
         pushLimits()
         addS(st, GeoJsonSource.Builder("dl-cams").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-cams", "dl-cams")
