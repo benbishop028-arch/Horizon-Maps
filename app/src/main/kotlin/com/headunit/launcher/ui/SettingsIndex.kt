@@ -153,6 +153,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Say road names", "Just the direction, without the road or the places on the signs", "Directions", 8),
     SettingRef("Smarter directions", "Junction numbers and sign destinations, the next move when it comes straight after, and fewer early prompts on roads you drive a lot", "Directions", 8),
     SettingRef("Voice channel", "If you hear the beeps but not the spoken directions", "Voice and volume", 8),
+    SettingRef("Voice comes out of", "The phone speaker instead of Bluetooth", "Voice and volume", 8),
     SettingRef("Play the voice like the chimes", "If the music is lowered for the beeps but not for the spoken directions", "Voice and volume", 8),
     SettingRef("Voice and language", "Uses the system text-to-speech voice", "Voice and volume", 8),
     SettingRef("Volume", "", "Voice and volume", 8),

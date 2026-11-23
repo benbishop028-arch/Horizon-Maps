@@ -405,6 +405,8 @@ internal object PreferenceKeys {
     const val VOICE_CHANNEL = "voicechan"
     /** The voice is made into a sound file and played by the app itself, like the chimes (bluelions25 #331). */
     const val VOICE_VIA_APP = "voiceviaapp"
+    /** Where the voice and chimes come out: "auto" (wherever Android sends them) or "phone" (the phone's own speaker; benkkwok #314). */
+    const val VOICE_OUT = "voiceout"
     const val APP_LANG = "applang"
     const val TANKERKOENIG_KEY = "tkkey"
     /** NSW FuelCheck (Australia: New South Wales and Tasmania): the API key and secret from api.nsw.gov.au. */

@@ -869,6 +869,8 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Voice and volume")) {
         SChoice(L.t("Voice channel"), listOf("nav" to L.t("Navigation"), "media" to L.t("Media"), "notif" to L.t("Notification"), "alarm" to L.t("Alarm"), "ring" to L.t("Ringtone")), prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav"),
             L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel. If the voice shares the music's volume, try Notification, Alarm or Ringtone (some units call one of these Broadcast)"), wrap = true) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
+        if (android.os.Build.VERSION.SDK_INT >= 28 && !engine.isCar) SChoice(L.t("Voice comes out of"), listOf("auto" to L.t("Automatic"), "phone" to L.t("Phone speaker")), prefs.s(PreferenceKeys.VOICE_OUT, "auto"),
+            L.t("Phone speaker keeps the directions and chimes on the phone while music plays over Bluetooth. Not for Android Auto, which uses the car's speakers")) { prefs.put(PreferenceKeys.VOICE_OUT, it) }
         SToggle(prefs, L.t("Play the voice like the chimes"), PreferenceKeys.VOICE_VIA_APP, false, L.t("Turn on if the music is lowered for the beeps but not for the spoken directions: some head units only lower it for sound the app plays itself"))
         SItem(L.t("Voice and language"), L.t("Uses the system text-to-speech voice")) { SButton(L.t("Open")) { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
         SItem(L.t("Volume")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }

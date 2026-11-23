@@ -1359,8 +1359,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 m.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, this, Looper.getMainLooper())
             if (m.allProviders.contains(LocationManager.NETWORK_PROVIDER))
                 m.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 3000L, 0f, this, Looper.getMainLooper())
-            (m.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?: m.getLastKnownLocation(LocationManager.NETWORK_PROVIDER))
-                ?.let { handleLocation(it, true) }
+            // the newer of the two last positions the phone remembers (the GPS one can be from the last drive, hours ago and
+            // somewhere else: it always won, even over a network position from a minute ago)
+            listOfNotNull(m.getLastKnownLocation(LocationManager.GPS_PROVIDER), m.getLastKnownLocation(LocationManager.NETWORK_PROVIDER))
+                .maxByOrNull { it.elapsedRealtimeNanos }?.let { handleLocation(it, true) }
         } catch (e: SecurityException) {
             lm = null
             toast(L.t("Location permission is needed for navigation"))
@@ -1424,8 +1426,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (simMode != 0) return
         detectCountry(l.latitude, l.longitude)
         val now = System.currentTimeMillis()
-        if (l.provider == LocationManager.GPS_PROVIDER) lastGpsTime = now
-        else if (now - lastGpsTime < 10000) return
+        // (a remembered position more than 2 minutes old, shown while the GPS starts up, isn't taken for a live GPS fix: it used to
+        // be, and the phone's network positions were then turned away for 10 s, or 2 minutes on a route, so standing still at the
+        // start the arrow stayed where the phone last was until you drove off and the GPS caught up, neilch0111 #300)
+        val stale = first && (android.os.SystemClock.elapsedRealtimeNanos() - l.elapsedRealtimeNanos) > 120_000_000_000L
+        if (l.provider == LocationManager.GPS_PROVIDER && !stale) lastGpsTime = now
+        else if (l.provider != LocationManager.GPS_PROVIDER && now - lastGpsTime < 10000) return
         // with the GPS gone (a tunnel) a rough mobile-network position would throw the route off: keep estimating along the route instead
         else if (route != null && !previewing && glideOnRoute && now - lastGpsTime < 120_000 && (!l.hasAccuracy() || l.accuracy > 30f)) return
         val cur = LL(l.latitude, l.longitude)
@@ -1549,6 +1555,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         .setSampleRate(22050).setChannelMask(android.media.AudioFormat.CHANNEL_OUT_MONO).build())
                     .setTransferMode(android.media.AudioTrack.MODE_STATIC).setBufferSizeInBytes(pcm.size * 2).build()
                 tr = t
+                phoneSpeaker()?.let { d -> try { t.setPreferredDevice(d) } catch (e: Exception) { } }
                 t.write(pcm, 0, pcm.size)
                 // Settings > Sound & voice > Chime volume: compared with the spoken directions on the same channel
                 try { t.setVolume((prefs.i(PreferenceKeys.CHIME_VOL, 70).coerceIn(5, 100) / 100f)) } catch (e: Exception) { }
@@ -7373,6 +7380,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val mp = android.media.MediaPlayer()
             viaPlayer = mp
             mp.setAudioAttributes(speechAttrs)
+            phoneSpeaker()?.let { d -> try { mp.setPreferredDevice(d) } catch (e: Exception) { } }
             mp.setDataSource(item.file.absolutePath)
             mp.setOnCompletionListener { finishVia(it, item.file) }
             mp.setOnErrorListener { m, _, _ -> finishVia(m, item.file); true }
@@ -7391,6 +7399,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (viaPlayer === mp) viaPlayer = null
         try { file.delete() } catch (e: Exception) { }
         playNextVia()
+    }
+
+    /**
+     * The phone's own speaker, when Settings › Sound & voice › Voice comes out of is "Phone speaker" (benkkwok #314): the voice
+     * (played by the app, as with Play the voice like the chimes) and the chimes go there, while music carries on over Bluetooth.
+     * Only on the phone itself (not for Android Auto, whose sound is the car's), and on Android 9 or later. Null otherwise.
+     */
+    private fun phoneSpeaker(): android.media.AudioDeviceInfo? {
+        if (isCar || android.os.Build.VERSION.SDK_INT < 28 || prefs.s(PreferenceKeys.VOICE_OUT, "auto") != "phone") return null
+        return try { audioMgr.getDevices(android.media.AudioManager.GET_DEVICES_OUTPUTS).firstOrNull { it.type == android.media.AudioDeviceInfo.TYPE_BUILTIN_SPEAKER } } catch (e: Exception) { null }
     }
 
     /** Drops what's waiting and stops what's playing (the route ended, or the app is closing). */
@@ -7417,7 +7435,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // cut a direction off half way (with limits changing often in town, some directions were never heard)
         val mode = if (alert) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH
         val parts = try { foreignParts(text) } catch (e: Exception) { null }
-        if (parts == null && prefs.b(PreferenceKeys.VOICE_VIA_APP, false) && speakViaApp(text, alert)) return
+        if (parts == null && (prefs.b(PreferenceKeys.VOICE_VIA_APP, false) || phoneSpeaker() != null) && speakViaApp(text, alert)) return
         if (parts == null) { tts?.speak(text, mode, null, "nav"); return }
         // a street name in letters the voice can't read (Hebrew names with an English voice, say): it used to be skipped. Each such
         // part is said in the phone's voice for those letters, and the rest in the usual voice (Dotancom). Each part takes the

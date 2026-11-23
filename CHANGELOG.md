@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Voice through the phone speaker: Settings › Sound & voice › Voice comes out of › Phone speaker keeps the spoken directions and chimes on the phone while music plays over Bluetooth (Android 9 and later; not for Android Auto, which uses the car's speakers) (thanks to benkkwok, #314)
 - Turn card sizes: new sliders under Settings › Screen & sizes › Advanced display sizes (and Settings › Android Auto › Advanced car-screen sizes for the car screen): "Turn arrow size" (the arrow on its own, up to twice as big), "Turn card width" (how far the card reaches across the map) and "Turn card height" (the room above and below the writing). The card size slider only made what's in the card bigger, not the card narrower (thanks to ZarulOfficial, #317)
 - The speed limit sign flashes while you're over by more than a margin you choose: Settings › Alerts › Flash the sign when over, with one margin for towns (limits up to 60 km/h or 40 mph, 10 by default) and one outside them (15 by default), in km/h or mph or as a share of the limit (thanks to desko1973, #323)
 - Live fuel cost: what the trip has really cost so far, from the distance you've driven, as a line under the trip card's figures (phone, head unit and Android Auto), and the total on the arrival card. It uses the economy and price you've set for the fuel estimate; off by default, under Settings › Fuel & charging › Live fuel cost (thanks to ZarulOfficial, #316)
@@ -19,6 +20,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Android Auto with a rotary knob: with "Search bar and places on the map" off (the setting for knob cars), Stop, sound and Report stay in Android Auto's own row of buttons, where the knob can reach them. Touching the screen while parked used to move them onto the trip card, out of the knob's reach (thanks to corocota1975, #333)
+- Your position when the app opens: an old remembered GPS position (from your last drive, say) is no longer taken for a live one. Standing still at the start, the arrow stayed where the phone last was until you drove off; it now moves to where you are as soon as the phone knows (thanks to neilch0111, #300)
 - The next services is a card of its own under the turn card again (phone, head unit and Android Auto), instead of a line joined to the bottom of the turn card
 - Android Auto: "Set home" and "Set work" now save the place you pick. Before, they started a route to it and the slot stayed empty (thanks to TheDMAl, #326)
 - The over-the-limit chime now sounds once when you go over, like other navigation apps, instead of every 9 seconds for as long as you're over. It sounds again once you're back at the limit, or when the limit changes (thanks to TheDMAl, #327)

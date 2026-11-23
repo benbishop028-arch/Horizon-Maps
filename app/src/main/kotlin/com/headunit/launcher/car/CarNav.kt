@@ -744,7 +744,11 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
      * showing and this car is known to pass taps on to the app (otherwise Stop is the only way to end the route from the car;
      * "End route" is also the first row of the car's settings, for a rotary knob).
      */
-    private fun stopOnCard(e: NavEngine?): Boolean = e != null && CarLayout.endOnCard && e.prefs.b(PreferenceKeys.CAR_TAPS_SEEN, false)
+    // (a car with a rotary knob, Search bar and places on the map switched off for it: Stop, sound and Report stay in Android Auto's
+    // own row, the only buttons a knob can reach. A tap on the screen while parked, which some such cars allow, used to move them
+    // onto the trip card, out of reach while driving, corocota1975 #333)
+    private fun stopOnCard(e: NavEngine?): Boolean = e != null && CarLayout.endOnCard && e.prefs.b(PreferenceKeys.CAR_TAPS_SEEN, false) &&
+        e.prefs.b(PreferenceKeys.CAR_MAPUI, true)
 
     /** Report (police, crash, hazard...): opens the "Report here" screen. It has the Search button's place. */
     private fun reportAction(): Action = (if (CarLayout.short) Action.Builder().setIcon(icon(R.drawable.ic_car_report)) else Action.Builder().setTitle(L.t("Report")))
