@@ -92,6 +92,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Volatile private var carViewportZoomOffset = 0.0
     /** How much further out the map is in the picture-in-picture window (0 at full size; MainActivity sets it, #301). */
     @Volatile var pipZoomShift = 0.0
+    /** The camera's top padding (as a share of the height) in the picture-in-picture window, or -1 when it isn't showing (#301). */
+    @Volatile var pipPad = -1.0
 
     /** Recalculate the camera's automatic zoom for the actual Android Auto display, not just its pixel count.
      * Inputs are surface pixels and the display's DPI. The short edge controls the base adjustment and
@@ -4585,6 +4587,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (settingsPreview) { tilt = minOf(tilt, 40.0); pad = 0.0 }
         // (cool running on the car screen: a flat map, which draws far less, #327)
         if (isCar && coolOn && !settingsPreview) { tilt = 0.0; pad = minOf(pad, flatPad) }
+        // (the picture-in-picture window: your arrow low down, so more of the road ahead shows, but clear of the time strip along
+        // the bottom; it sat in the middle. Also while stopped, when the traffic view centres it on the full screen, #301)
+        if (pipPad >= 0.0) pad = pipPad
         tTilt = tilt; tPad = pad
         val requestedZoom = autoZoom(sp, navigating) + zoomOffset + (if (isCar) carViewportZoomOffset else 0.0) + (if (!navigating) defaultZoom else 0.0)
         // Road-level lane ribbons are only useful when their lane boundaries and the route are
