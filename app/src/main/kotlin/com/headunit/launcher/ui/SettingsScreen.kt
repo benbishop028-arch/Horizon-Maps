@@ -1864,7 +1864,7 @@ private fun SettingsMapPreview(engine: NavEngine, heightDp: Int) {
         engine.map.forceLight(when (mode) { "day" -> "day"; "night" -> "night"; else -> null })
         onDispose { }
     }
-    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { engine.map.forceLight(null); PreviewLight.mode = "now" } }
+    androidx.compose.runtime.DisposableEffect(Unit) { engine.previewInSettings(true); onDispose { engine.map.forceLight(null); PreviewLight.mode = "now"; engine.previewInSettings(false) } }
     Box(Modifier.fillMaxWidth().widthIn(max = 820.dp).height(heightDp.dp).padding(bottom = 10.dp).clip(RoundedCornerShape(20.dp)).border(1.dp, c.line, RoundedCornerShape(20.dp))) {
         MapHost(engine.map, Modifier.fillMaxSize(), cornerDp = 20)
         // (touches stop here: the preview only shows)

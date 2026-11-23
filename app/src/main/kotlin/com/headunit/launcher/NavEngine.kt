@@ -4489,6 +4489,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (ov != stoppedOverview) stoppedOverview = ov
             if (ov) { tilt = 0.0; pad = 0.0 }
         }
+        // the small live preview in Settings: the full screen's steep tilt and low arrow showed little but sky in a short, wide box,
+        // so there the view is gentler, with your arrow in the middle
+        if (settingsPreview) { tilt = minOf(tilt, 40.0); pad = 0.0 }
         tTilt = tilt; tPad = pad
         val requestedZoom = autoZoom(sp, navigating) + zoomOffset + (if (isCar) carViewportZoomOffset else 0.0) + (if (!navigating) defaultZoom else 0.0)
         // Road-level lane ribbons are only useful when their lane boundaries and the route are
@@ -4526,6 +4529,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
                 tLeft = sideShiftSeen ?: (if (layoutMirrored && !isCar) -0.3 else 0.3)
         }
+        if (settingsPreview) tLeft = 0.0
         map.cardsMirrored = layoutMirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }
@@ -7116,6 +7120,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var mediaLiftDp by mutableStateOf(0f)
     /** The portrait sheet (Settings › Screen & sizes › New portrait layout) is up: the road name pill goes in it, not over the map. */
     var portraitSheetOn by mutableStateOf(false)
+    /** Settings' live map preview is showing (see [previewInSettings]). */
+    var settingsPreview = false
+        private set
+
+    /** Settings' live map preview opened or closed: it's re-centred on you (a map you'd moved showed the wrong place, or sky). */
+    fun previewInSettings(on: Boolean) {
+        settingsPreview = on
+        if (on && fix != null) recenter() else fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
+    }
     /** The road name pill would show (worked out on the map screen), for the portrait sheet to show it in its place. */
     var cruisePillWanted by mutableStateOf(false)
     /** When the map was last moved by hand (elapsed ms), for going back to following the car once it drives off (GitHub #273). */

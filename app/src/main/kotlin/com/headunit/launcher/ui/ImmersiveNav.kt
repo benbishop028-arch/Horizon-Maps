@@ -341,7 +341,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var railHPx by remember { mutableStateOf(0) }
         val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow || sheetMode) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -351,7 +351,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
             AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, onSettings = if (sheetMode) ({ sheet = false; onSettings() }) else null)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
                 // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
                 val tucked = engine.homeTucked
                 if (!tucked) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
@@ -509,7 +509,16 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 // (worked out in the buttons' own size, as the padding below is: Settings › sizes › map buttons scales it)
                 // (just past halfway down the space between the turn card and the trip card, and never down into the speed sign)
                 // (the portrait sheet: under the search bar, which has the whole width)
-                val railTop = if (sheetMode) (16.dp + 60.dp + 12.dp) / mainButtonScale else if (!railBelow) 16.dp else with(LocalDensity.current) {
+                // (the portrait sheet: half-way down the clear map between the search bar and the sheet, or the speed above the sheet)
+                val railTop = if (sheetMode) with(LocalDensity.current) {
+                    // (in real pixels: this density has the buttons' size in it, which the search bar and the sheet don't)
+                    val px1 = 1.dp.toPx() / mainButtonScale
+                    val gapTop = (16f + 60f + 16f) * px1
+                    val sheetTop = boxH - tripPx - 12f * px1
+                    val gapBottom = (if (speedTopPx > 0) minOf(sheetTop, speedTopPx.toFloat()) else sheetTop) - 10f * px1
+                    val h = railHPx.toFloat()
+                    ((gapTop + gapBottom) / 2f - h / 2f).coerceAtMost(gapBottom - h).coerceAtLeast(gapTop).toDp()
+                } else if (!railBelow) 16.dp else with(LocalDensity.current) {
                     val gapTop = turnBottomPx - boxTopPx + 10.dp.toPx()
                     val tripTop = boxH - tripPx - 16.dp.toPx()
                     val gapBottom = (if (speedTopPx > 0) minOf(tripTop, speedTopPx.toFloat()) else tripTop) - 10.dp.toPx()
@@ -522,6 +531,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 // (the same with no Settings button above the panel: the panel itself goes under the turn card, Duddon Close)
                 else Row(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
+                }
+                // the portrait sheet: Settings on its own at the end of the search bar, level with it
+                if (sheetMode) Box(Modifier.align(side(Alignment.TopEnd)).sides(end = 16.dp).padding(top = 16.dp + (60.dp / mainButtonScale - 52.dp) / 2)) {
+                    ImmIcon(Icons.Rounded.Settings, { sheet = false; onSettings() }, desc = L.t("Settings"))
                 }
                 // The compact panel opens inward from the report button, keeping the zoom controls and screen edge clear.
                 AnimatedVisibility(
