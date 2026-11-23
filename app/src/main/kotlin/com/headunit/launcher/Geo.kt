@@ -827,10 +827,15 @@ object Weather {
             if (sn != null) for (i in 0 until minOf(2, sn.length())) { val v = sn.optDouble(i, 0.0); if (!v.isNaN()) snow = maxOf(snow, v) }
         } catch (e: Exception) { }
         val falling = code in 51..67 || code in 71..77 || code in 80..86 || code in 95..99
+        // (the amounts only count when the sky isn't clear: outside Europe and North America the quarter-hour figures are worked
+        // out from hourly forecasts, and a trace of forecast drizzle (0.1 mm) put rain on the map on a clear, sunny day in New
+        // Zealand, pc4096. Clear or mostly clear (codes 0 to 2) is taken as dry, and it takes a little more than a trace)
+        val clearSky = code <= 2
         val shown = when {
             falling -> code
-            snow > 0.05 -> if (snow > 0.5) 73 else 71
-            wet >= 0.1 -> if (wet >= 2.5) 63 else if (wet >= 0.5) 61 else 51
+            clearSky -> code
+            snow > 0.1 -> if (snow > 0.5) 73 else 71
+            wet >= 0.3 -> if (wet >= 2.5) 63 else if (wet >= 0.8) 61 else 51
             else -> code
         }
         Now(cur.getDouble("temperature_2m"), shown)

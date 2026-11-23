@@ -814,9 +814,11 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
                 L.t("Limits up to 60 km/h (40 mph)")) { prefs.put(PreferenceKeys.FLASH_TOWN, it) }
             SChoice(L.t("Outside towns"), listOf("5", "10", "15", "20").map { it to it + unit }, prefs.s(PreferenceKeys.FLASH_OUT, "15")) { prefs.put(PreferenceKeys.FLASH_OUT, it) }
         }
+        SToggle(prefs, L.t("Speed limit sounds"), PreferenceKeys.LIMIT_SOUNDS, true, L.t("The beep when you go over the limit and the beep or voice when it changes. Off keeps them quiet while cameras, hazards and other alerts still sound"))
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
+        if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SToggle(prefs, L.t("Pop-up when the limit changes"), PreferenceKeys.LIMIT_POPUP, true, L.t("The banner with the new limit. Off leaves just the sign by your speedometer, which pulses, and the sign on the route ahead"))
         SToggle(prefs, L.t("Upcoming speed limits"), PreferenceKeys.NEXT_LIMIT, true, L.t("The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away"))
         SToggle(prefs, L.t("Show estimated limits"), "limitest", false, L.t("Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess"))
     }

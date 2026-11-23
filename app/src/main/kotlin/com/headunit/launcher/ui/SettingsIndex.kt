@@ -126,6 +126,8 @@ private val allSettingsIndex = listOf(
     SettingRef("Route back", "The way back from the arrival card", "Arriving", 6),
     SettingRef("Clean air zones on this unit", "", "", 5),
     SettingRef("Warn when over the limit", "", "Speed", 7),
+    SettingRef("Speed limit sounds", "Mute the speed limit beeps and voice, keep the other alerts", "Speed", 7),
+    SettingRef("Pop-up when the limit changes", "Off leaves just the sign, which pulses", "Speed", 7),
     SettingRef("Flash the sign when over", "The speed limit sign flashes while you're over by more than this", "Speed", 7),
     SettingRef("Warn when over by", "", "Speed", 7),
     SettingRef("Say when the limit changes", "", "Speed", 7),

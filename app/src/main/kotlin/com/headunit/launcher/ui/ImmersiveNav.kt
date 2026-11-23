@@ -423,6 +423,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     // comes up, a little either side so it can't flicker, as on Android Auto)
                                     val slimHold = remember { booleanArrayOf(false) }
                                     slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
+                                    // (one under the other: inside the animated block they were drawn on top of each other, so a warning
+                                    // "under" the turn card covered its top, the turn and the distance)
+                                    Column {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
@@ -440,6 +443,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                             exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
                                             lastA.value?.let { Box(Modifier.padding(top = 6.dp)) { AlertBanner(it) } }
                                         }
+                                    }
                                     }
                                 }
                             }

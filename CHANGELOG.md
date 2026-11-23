@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
+- Pop-up when the limit changes can be switched off (Settings › Alerts): the sign by your speedometer still pulses, and the sign on the route ahead still shows (thanks to karthikeyansr, #328)
 - My routes: save the way you drove. When you arrive, "Save as my route" on the arrival card keeps the roads you really took (on the phone you can name it; on Android Auto it's saved with a name like "Home → Work"). Next time you go from near the same start to the same place, it's in the route choice as "Your route", first and picked, with how it compares with the fastest ("+2 min", "3 min faster"). Save more than one for the same trip and the one driven nearest this time of day comes first, so a morning and an evening way each come up at their own time. Driving it, a reroute brings you back onto it, and there are no "Faster route found" prompts. Settings › Places & trips › My routes lists them, to show on the map, rename or delete, and to choose whether a saved route is offered, started on straight away or not offered. They're in backups too (thanks to igalshe-ai, #321)
 - Picture in picture on phones: on a route, going to the home screen or another app keeps the map going in a small window, with the next turn and the time left, like Google Maps. Tap it to come back. Settings › While driving › Picture in picture (on by default; not on head units, or while Android Auto has the map) (thanks to Srikanth1022v, #301)
 - Traffic colours on your route line and on the trip card's route bar now blend into each other where the traffic changes, instead of changing in one step. The same colours as before; Settings › On the map › Blend traffic colours to switch it off (#334)
@@ -23,6 +25,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Portrait, on a route: a warning (traffic jam, camera…) now shows under the turn card instead of on top of it, where it hid the turn and the distance
+- Dim the screen at night now really dims: it's half of what the screen is at, never brighter. It used to set a fixed 50%, which is brighter than most screens at night (testers' group)
+- Rain on the map on a clear day: outside Europe and North America the weather service's rainfall figures are estimates, and a trace of forecast drizzle put rain on the map in sunshine. A clear sky is now taken as dry, and it takes more than a trace (thanks to pc4096)
+- A trip that ended by itself while you were stopped on the way (at a shop, say) is kept for 3 hours, so back in the car it's offered again ("Resume trip" on the phone) (thanks to pc4096)
 - Send feedback (and Request a language) on a short, wide head unit screen: the window now scrolls, so its Send and Copy buttons can be reached; they were below the bottom of the screen (thanks to bluelions25, #329)
 - Picture in picture: your arrow sits low in the small window, so more of the road ahead shows, and clear of the time along the bottom (it was in the middle)
 - Picture in picture: the map now zooms out and your arrow shrinks to suit the small window (and again if you resize it), so the road ahead can be seen; both go back to normal when the app is full size again

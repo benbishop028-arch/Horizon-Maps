@@ -125,6 +125,10 @@ internal object PreferenceKeys {
     /** The limit sign flashes when you're over by more than these (desko1973 #323): on, the margins in towns (limits up to
      *  60 km/h or 40 mph) and outside, and whether they're km/h / mph or % of the limit. */
     const val FLASH_OVER = "flashover"
+    /** The speed limit's beeps and voice (over the limit, and when it changes) on or off on their own, the other alerts kept (testers). */
+    const val LIMIT_SOUNDS = "limitsounds"
+    /** The pop-up banner when the limit changes (karthikeyansr #328): off leaves the sign itself (it pulses) and the one on the route. */
+    const val LIMIT_POPUP = "limitpopup"
     const val FLASH_TOWN = "flashtown"
     const val FLASH_OUT = "flashout"
     const val FLASH_PCT = "flashpct"

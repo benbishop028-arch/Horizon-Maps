@@ -729,9 +729,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     toast(L.t("Carrying on to {0}", d.name), 3500)
                     startRoute(d, 0, keepVia = true, startNow = true)
                 }
-            } else if (o.has("la") && age < 15 * 60_000L)
-                // stopped navigating 4 to 15 minutes ago: offer to carry on with the "Resume trip" card
-                resume = Place(o.optString("n"), o.optString("s"), LL(o.getDouble("la"), o.getDouble("lo")))
+            } else if (o.has("la") && (age < 15 * 60_000L || (o.optBoolean("pause") && age < 3 * 3600_000L))) {
+                // stopped navigating 4 to 15 minutes ago, or a trip paused by a stop on the way (up to 3 hours ago, pc4096): offer to
+                // carry on ("Resume trip" on the phone; on Android Auto a card that carries on by itself after a few seconds).
+                // Not when you're already at the destination
+                val d = Place(o.optString("n"), o.optString("s"), LL(o.getDouble("la"), o.getDouble("lo")))
+                resume = d
+                scope.launch {
+                    var n = 0
+                    while (fix == null && n < 40) { delay(500); n++ }
+                    if (fix?.let { Geo.dist(it.pos, d.pos) < 400.0 } == true && resume === d) { resume = null; prefs.put(PreferenceKeys.RESUME, "{}") }
+                }
+            }
         } catch (e: Exception) { }
         tts = TextToSpeech(ctx) { status ->
             if (status != TextToSpeech.SUCCESS) {
@@ -1585,10 +1594,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (candidateHits >= 2 && (fix?.speed ?: 0.0) > 3.0) {
             announcedLimit = n; candidateHits = 0; limitCandidate = -1
             // Settings > Alerts > When the limit changes: chime and voice, the voice alone, or the chime alone
-            val how = prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")
-            raiseAlert("limit", L.t("Speed limit {0}", n))
-            if (how != "voice") chime()
-            if (how != "chime") {
+            // (Settings › Alerts › Speed limit sounds off: no beep or voice for it, the other alerts as they are; Pop-up when the limit
+            // changes off: no banner, the sign by the speedometer still pulses)
+            val how = if (prefs.b(PreferenceKeys.LIMIT_SOUNDS, true)) prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both") else "none"
+            if (prefs.b(PreferenceKeys.LIMIT_POPUP, true)) raiseAlert("limit", L.t("Speed limit {0}", n))
+            if (how == "both" || how == "chime") chime()
+            if (how == "both" || how == "voice") {
                 // after the chime has finished, so the two don't talk over each other (on some units the voice was lost under it)
                 if (how == "voice") speak(L.t("Speed limit {0}", n), true)
                 else scope.launch { delay(450); speak(L.t("Speed limit {0}", n), true) }
@@ -3464,7 +3475,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // one chime on going over, like other navigation apps, not one every 9 s for as long as you're over (TheDMAl #327).
             // It's ready again once you're back at the limit, or the limit changes
             if (lim == null || p.speed <= lim || lim != beepLim) { beepArmed = true; beepLim = lim }
-            if (over && beepArmed && soundMode != 2 && now - lastBeep > 9000) {
+            if (over && beepArmed && soundMode != 2 && prefs.b(PreferenceKeys.LIMIT_SOUNDS, true) && now - lastBeep > 9000) {
                 lastBeep = now; beepArmed = false
                 chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
             }
@@ -4364,7 +4375,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val walkedOff = !isCar && RouteSync.carLeftParkedAt > 0L && p.speed < 3.0
             if (route == null || previewing || appVisible || !(isStill || p.speed < 1.0 || walkedOff) || simMode != 0 || (!isCar && RouteSync.carConnected())) idleSince = 0L
             else if (idleSince == 0L) idleSince = nowI
-            else if (nowI - idleSince > (if (walkedOff) 10 else 30) * 60_000L) { idleSince = 0L; scope.launch { try { endRoute() } catch (e: Exception) { } } }
+            else if (nowI - idleSince > (if (walkedOff) 10 else 30) * 60_000L) {
+                idleSince = 0L
+                // (ended because you stopped for a while, at a shop say, not because you'd finished: kept, so back in the car the
+                // trip is offered again, pc4096)
+                scope.launch { try { val keep = prefs.s(PreferenceKeys.RESUME, "{}"); endRoute(); keepPaused(keep) } catch (e: Exception) { } }
+            }
         }
         // on Android Auto: the map moved by hand and then the car drives off (over about 10 mph, 5 seconds after the last touch):
         // back to following the car, so it doesn't drive off the screen and need a tap on Re-centre while driving (GitHub #273).
@@ -5998,6 +6014,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private val liveSaid = HashSet<Int>()
     private var lastBeat = 0L
+
+    /** A trip ended by itself while you were stopped part way (see onPosition): kept as paused, to offer for 3 hours (#pc4096). */
+    private fun keepPaused(saved: String) {
+        try {
+            val o = org.json.JSONObject(saved)
+            if (!o.has("la")) return
+            prefs.put(PreferenceKeys.RESUME, o.put("pause", true).put("b", System.currentTimeMillis()).toString())
+        } catch (e: Exception) { }
+    }
 
     /** While navigating, notes every 20 s that a route is running (with its stops), so a restart can carry straight on. */
     private fun saveResumeBeat() {
