@@ -6015,6 +6015,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val liveSaid = HashSet<Int>()
     private var lastBeat = 0L
 
+    /** "Not now" on the offer to carry on: it's forgotten. */
+    fun forgetResume() { resume = null; prefs.put(PreferenceKeys.RESUME, "{}") }
+
     /** A trip ended by itself while you were stopped part way (see onPosition): kept as paused, to offer for 3 hours (#pc4096). */
     private fun keepPaused(saved: String) {
         try {

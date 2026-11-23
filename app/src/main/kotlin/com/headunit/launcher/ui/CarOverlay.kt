@@ -546,7 +546,34 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         // (a car with a rotary knob and no touchscreen can't reach any of this: Settings › Android Auto can leave it off, and
         // Places (★) in Android Auto's own buttons has Search, Home, Work and the rest, wass0035 #222)
-        if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
+        // a trip paused by a stop on the way (or stopped a few minutes ago): "Carry on to …", which starts by itself after 10 seconds
+        // unless "Not now" is tapped, as Waze does (pc4096). It takes the search bar's place while it's up
+        val resumeTo = if (engine.route == null && !arriving && !covered && !engine.busy) engine.resume else null
+        if (resumeTo != null) Column(Modifier.padding(start = left, top = top).width(topW).onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }
+            .panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(horizontal = 16.dp, vertical = 12.dp)) {
+            val left10 = remember(resumeTo) { androidx.compose.animation.core.Animatable(1f) }
+            LaunchedEffect(resumeTo) {
+                left10.animateTo(0f, androidx.compose.animation.core.tween(10_000, easing = androidx.compose.animation.core.LinearEasing))
+                if (engine.resume === resumeTo && engine.route == null) engine.startRoute(resumeTo, startNow = true)
+            }
+            Text(L.t("Carry on to"), color = c.sub, fontSize = 13.sp)
+            Text(resumeTo.name, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (resumeTo.sub.isNotBlank()) Text(resumeTo.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Box(Modifier.padding(vertical = 10.dp).fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)).background(c.line)) {
+                Box(Modifier.fillMaxWidth(left10.value).fillMaxHeight().background(Good))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Box(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(c.accent).carTap("resume-go") { engine.startRoute(resumeTo, startNow = true) }
+                    .padding(horizontal = 18.dp), contentAlignment = Alignment.Center) {
+                    Text(L.t("Go") + " (" + kotlin.math.ceil(left10.value * 10f).toInt() + ")", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                }
+                Box(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(c.line).carTap("resume-no") { engine.forgetResume() }
+                    .padding(horizontal = 18.dp), contentAlignment = Alignment.Center) {
+                    Text(L.t("Not now"), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+        else if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth().height(if (small) 48.dp else 60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {

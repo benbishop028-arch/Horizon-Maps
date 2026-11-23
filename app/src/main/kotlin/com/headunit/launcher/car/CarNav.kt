@@ -727,7 +727,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
         val t = e.turn; val eta = e.eta
         // Android Auto's buttons only change with the state (rebuilding them every second while the distance counts down made the
         // host redo its layout for nothing); the turn and distance go to the car's displays through updateTrip
-        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}|${stopOnCard(e)}|${com.headunit.launcher.ui.CarSearch.open}|${com.headunit.launcher.ui.CarSettingsCard.open}|${com.headunit.launcher.ui.CarStops.open}"
+        val sig = "${guiding}|${e.previewing}|${e.active}|${e.routes.size}|${e.busy}|${e.simMode}|${e.faster?.savedMin}|${e.soundMode}|${e.demoNext}|${stopOnCard(e)}|${com.headunit.launcher.ui.CarSearch.open}|${com.headunit.launcher.ui.CarSettingsCard.open}|${com.headunit.launcher.ui.CarStops.open}|${e.resume != null}"
         if (sig != lastSig) { lastSig = sig; invalidate() }
         val tsig = "${t?.maneuver}|${t?.street}|${t?.landmark}|${t?.exit}|${t?.dist?.let { Math.round(it / 10) }}|${eta?.secs?.let { Math.round(it / 30) }}|${eta?.dist?.let { Math.round(it / 100) }}|${System.identityHashCode(t?.lanes)}"
         if (guiding && t != null && eta != null && tsig != lastTrip) {
@@ -823,6 +823,9 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             // Report has the Search button's place, and Search is the first row in Places. Every car gets Places: a rotary knob or
             // the car's buttons can only reach Android Auto's own buttons, never the search bar and chips the app draws on the map
             // (cars that pass taps on still have those too)
+            // a trip to carry on (paused by a stop on the way): first, where a rotary knob can reach it (pc4096)
+            val rp = e?.resume
+            if (rp != null && e != null && e.route == null) strip.addAction(Action.Builder().setTitle(L.t("Carry on")).setOnClickListener { e.startRoute(rp, startNow = true); invalidate() }.build())
             strip.addAction(reportAction())
             // (on a short car screen these are icons, so Android Auto's row of buttons takes less of the map)
             strip.addAction((if (CarLayout.short) Action.Builder().setIcon(icon(R.drawable.ic_car_star)) else Action.Builder().setTitle(L.t("Places")))
