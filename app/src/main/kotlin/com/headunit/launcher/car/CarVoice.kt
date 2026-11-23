@@ -106,8 +106,12 @@ class CarVoice(private val carContext: CarContext, private val onNoMic: () -> Un
         rec = r
         r.setRecognitionListener(object : RecognitionListener {
             private fun first(b: Bundle?) = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
-            override fun onPartialResults(partialResults: Bundle?) { first(partialResults).let { if (it.isNotBlank()) CarSearch.heard = it } }
+            override fun onPartialResults(partialResults: Bundle?) {
+                if (rec !== r) return
+                first(partialResults).let { if (it.isNotBlank()) CarSearch.heard = it }
+            }
             override fun onResults(results: Bundle?) {
+                if (rec !== r) return
                 val text = first(results).ifBlank { CarSearch.heard }.trim()
                 Log.i(TAG, "voice: heard \"$text\"")
                 finish(if (text.isBlank()) L.t("Didn't catch that") else "")
