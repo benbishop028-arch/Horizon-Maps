@@ -2607,6 +2607,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.setTrack(shownTrack?.pts ?: emptyList())
     }
 
+    /** Where a route to [to] should end: for a house address, the nearest point on the street it's on (see Overpass.nearestOnStreet). */
+    private fun streetTarget(to: Place): LL {
+        if (!hasOnline || to.web.startsWith("gpx:")) return to.pos
+        val street = Overpass.streetOf(to.name) ?: return to.pos
+        if (!try { online() } catch (e: Exception) { false }) return to.pos
+        val p = Overpass.nearestOnStreet(to.pos, street) ?: return to.pos
+        return if (Geo.dist(p, to.pos) < 150.0) p else to.pos
+    }
+
     fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false, preferVia: String = "", fromTrack: Boolean = false) {
         // a GPX track picked from the search (on the car screen, say): drive it rather than to its start
         if (to.web.startsWith("gpx:")) { driveTrack(to.web.removePrefix("gpx:")); return }
@@ -2625,14 +2634,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try {
                 val departMs = if (departInMin > 0) System.currentTimeMillis() + departInMin * 60_000L else 0L
                 var usedOffline = false
+                // a house address: the route ends on the street the house is on, not whichever road is nearest the middle of its plot
+                val target = withContext(Dispatchers.IO) { streetTarget(to) }
                 val rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed
                     if (Plus.free && !haveOffline) throw IllegalStateException(L.t("download your country in Settings › Offline maps first (the free version plans routes from it), or get Horizon Maps Plus"))
-                    if (haveOffline && (!hasOnline || !online())) { usedOffline = true; offlineRoutes(from, to.pos, routeVia()) }
-                    else try { netRoutes(from, to.pos, true, departMs, routeVia(), askBoth = true, simple = true) }
+                    if (haveOffline && (!hasOnline || !online())) { usedOffline = true; offlineRoutes(from, target, routeVia()) }
+                    else try { netRoutes(from, target, true, departMs, routeVia(), askBoth = true, simple = true) }
                     catch (e: Exception) {
-                        if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; offlineRoutes(from, to.pos, routeVia()) } else throw e
+                        if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) { usedOffline = true; offlineRoutes(from, target, routeVia()) } else throw e
                     }
                 }
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
@@ -2654,7 +2665,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 results = emptyList()
                 stopSim()
                 if (TomTomRest.avoidDropped && !usedOffline) toast(L.t("Couldn't find a way round the areas you're avoiding, so the route goes through them"), 5000)
-                dest = to; routes = rs
+                // (with the street's point, so a reroute on the way ends there too)
+                dest = if (target != to.pos) to.copy(pos = target) else to; routes = rs
                 // Save the full set of stops as soon as route planning succeeds: drivers may preview it repeatedly before setting off.
                 rememberMultiStopJourney()
                 clearRouteLimitIfNeeded()

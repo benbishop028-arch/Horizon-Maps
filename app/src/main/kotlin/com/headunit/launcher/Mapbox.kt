@@ -783,6 +783,12 @@ object MapboxRest {
         val sub = pr.optString("full_address").takeIf { it.isNotBlank() && it != name && pr.optString("feature_type") == "poi" }
             ?: pr.optString("place_formatted")
         val web = pr.optJSONObject("metadata")?.optString("website").orEmpty()
+        // an address: Mapbox's routable point, on the street in front of it, when it gives one (the address point itself can be in
+        // the middle of the plot, nearer a road behind the house than the one it's on)
+        if (pr.optString("feature_type") == "address") co?.optJSONArray("routable_points")?.optJSONObject(0)?.let { rp ->
+            val la = rp.optDouble("latitude"); val lo = rp.optDouble("longitude")
+            if (!la.isNaN() && !lo.isNaN() && Geo.dist(LL(la, lo), LL(lat, lon)) < 200.0) return Place(name, sub, LL(la, lo), web)
+        }
         return Place(name, sub, LL(lat, lon), web)
     }
 

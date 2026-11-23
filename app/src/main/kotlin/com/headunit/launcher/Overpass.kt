@@ -73,6 +73,42 @@ object Overpass {
         throw IOException(errors.joinToString("; "))
     }
 
+    /**
+     * The street a house address is on, from its name: "12 Acacia Avenue" (or "12a", "Flat 3, 12 Acacia Avenue") and
+     * "Hauptstraße 12" both give the street; null when the name isn't a house number and a street.
+     */
+    fun streetOf(name: String): String? {
+        val t = name.trim()
+        val a = Regex("^(?:.*?,\\s*)?\\d+[A-Za-z]?(?:[-/]\\d+[A-Za-z]?)?\\s+([^,\\d][^,]*)$").find(t)?.groupValues?.get(1)
+            ?: Regex("^([^,\\d][^,]*?)\\s+\\d+[A-Za-z]?$").find(t)?.groupValues?.get(1)
+        return a?.trim()?.takeIf { it.length >= 3 && it.any { ch -> ch.isLetter() } }
+    }
+
+    /**
+     * The nearest point on a road called [street] within [radius] m of [p], or null. For a house address: the address point is
+     * often in the middle of the plot, and the route then ended on whichever road was nearest to that, which could be the one
+     * behind the house rather than the one it's on. A few seconds at most (it's asked before the route is planned).
+     */
+    fun nearestOnStreet(p: LL, street: String, radius: Int = 150): LL? = try {
+        val esc = street.replace("\\", "\\\\").replace("\"", "\\\"")
+        val els = run("[out:json][timeout:5];way(around:$radius,${p.lat},${p.lon})[\"highway\"][\"name\"=\"$esc\"];out geom;", 2500, 4000, 2)
+        val kx = 111320.0 * Math.cos(Math.toRadians(p.lat)); val ky = 110540.0
+        var best: LL? = null; var bd = Double.MAX_VALUE
+        for (i in 0 until els.length()) {
+            val g = els.optJSONObject(i)?.optJSONArray("geometry") ?: continue
+            for (k in 0 until g.length() - 1) {
+                val a = g.optJSONObject(k) ?: continue; val b = g.optJSONObject(k + 1) ?: continue
+                val ax = (a.optDouble("lon") - p.lon) * kx; val ay = (a.optDouble("lat") - p.lat) * ky
+                val bx = (b.optDouble("lon") - p.lon) * kx; val by = (b.optDouble("lat") - p.lat) * ky
+                val dx = bx - ax; val dy = by - ay; val l2 = dx * dx + dy * dy
+                val f = if (l2 <= 0.0) 0.0 else (-(ax * dx + ay * dy) / l2).coerceIn(0.0, 1.0)
+                val x = ax + dx * f; val y = ay + dy * f; val d = x * x + y * y
+                if (d < bd) { bd = d; best = LL(p.lat + y / ky, p.lon + x / kx) }
+            }
+        }
+        best
+    } catch (e: Exception) { null }
+
     private const val MPH = 0.44704
 
     /** Country of a position, from where it is rather than the head unit's language setting (which is often en-US). */
