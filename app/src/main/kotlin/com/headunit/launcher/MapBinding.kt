@@ -1170,14 +1170,22 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun setWeather(code: Int?) {
         if (code == weatherCode && style != null) return
         weatherCode = code
-        main0.post { style?.let { drawsWeather = Sky.weather(it, weatherCode) } }
+        main0.post { style?.let { drawsWeather = Sky.weather(it, if (noEffects) null else weatherCode) } }
+    }
+
+    /** No falling rain or snow on the map (Android Auto's cool running: the phone is hot). */
+    @Volatile private var noEffects = false
+    fun setNoEffects(on: Boolean) {
+        if (on == noEffects) return
+        noEffects = on
+        main0.post { style?.let { drawsWeather = Sky.weather(it, if (noEffects) null else weatherCode) } }
     }
 
     /** Puts the extras on a freshly loaded (or rebuilt) map. */
     private fun installExtras(st: Style) {
         // hills and valleys (not on the classic 2D map)
         Sky.terrain(st, terrainOn && mapDetail != "lightest")
-        drawsWeather = Sky.weather(st, weatherCode)
+        drawsWeather = Sky.weather(st, if (noEffects) null else weatherCode)
         Sky.atmosphere(st, skyCode, nightStyle, daylightOutside)
         if (furnitureOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)) {
             Furniture.addModels(st)

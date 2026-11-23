@@ -270,8 +270,12 @@ fun SpeedLimitSign(engine: NavEngine, size: Dp, modifier: Modifier = Modifier, o
     val sc = if (engine.limitPulse) pulse else 1f
     val over = engine.overLimit
     val board = engine.limitSignStyle
-    if (board != "round") { LimitBoard(n, board == "ca", over, engine.limitEstimated, size, sc, modifier, onClick); return }
-    Roundel(n, size, over, engine.limitEstimated, modifier.graphicsLayer { scaleX = sc; scaleY = sc }, onClick)
+    // flashing while you're over by more than the margin set in Settings › Alerts (desko1973 #323); read while drawing, so the
+    // flash repaints the sign without recomposing it
+    val flash = rememberPulse(engine.flashOver, 420, 1f, 0.25f)
+    val fm = modifier.graphicsLayer { alpha = flash.value }
+    if (board != "round") { LimitBoard(n, board == "ca", over, engine.limitEstimated, size, sc, fm, onClick); return }
+    Roundel(n, size, over, engine.limitEstimated, fm.graphicsLayer { scaleX = sc; scaleY = sc }, onClick)
 }
 
 /**

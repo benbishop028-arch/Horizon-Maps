@@ -348,7 +348,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var railHPx by remember { mutableStateOf(0) }
         val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth().sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp))
+        // Settings › sizes › Turn card width (ZarulOfficial #317): the card size slider scales what's in the cards, this how wide they are
+        val turnWK = engine.prefs.i(PreferenceKeys.TURN_WIDTH, 100).coerceIn(60, 130) / 100f
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth(turnWK.coerceAtMost(1f)).sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp * turnWK))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -421,11 +423,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     // comes up, a little either side so it can't flicker, as on Android Auto)
                                     val slimHold = remember { booleanArrayOf(false) }
                                     slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
-                                    Box(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }) {
+                                    Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
                                             if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = !routeSheet)
                                         })
+                                        // the next services: a card of its own under the turn card again, not joined to it
+                                        if (!altFocus) ServicesCard(engine)
                                     }
                                     // warnings (a camera, a limit, rain...) pop up just under the turn card, joined to it
                                     if (routeSheet) {
@@ -1131,6 +1135,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                         smallButtons(Modifier.align(Alignment.End))
                     }
                 }
+                // what the trip has cost so far (#316)
+                LiveFuelLine(engine, Modifier.padding(start = if (narrow) 14.dp else 18.dp, end = 12.dp, bottom = 8.dp))
             } }
         }
     }
@@ -1432,6 +1438,10 @@ internal fun ImmTurnCard(
     // read only while drawing, so the pulse repaints the card without recomposing it 60 times a second
     val pulse = rememberPulse(alive && t.dist < 80.0, 650)
     val glowCol = Color(0xFF7FFFE6)
+    // Settings › sizes › Turn arrow size and Turn card height (ZarulOfficial #317): the arrow on its own, and how much room there
+    // is above and below the writing (70% is a tight card, 130% a roomy one)
+    val arrowK = engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_ARROW else PreferenceKeys.TURN_ARROW, 100).coerceIn(80, 200) / 100f
+    val padK = (1f + (engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_HEIGHT else PreferenceKeys.TURN_HEIGHT, 100).coerceIn(70, 130) / 100f - 1f) * 2.5f).coerceIn(0.25f, 1.75f)
     Column(
         Modifier.fillMaxWidth()
             // (grows from its top middle, evenly both ways: grown from its left edge, a card the full width of an upright phone went off
@@ -1456,14 +1466,14 @@ internal fun ImmTurnCard(
             // tap for the list of every turn on the route
             .clickable { engine.itineraryOpen = true },
     ) {
-        if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
+        if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp * padK), verticalAlignment = Alignment.CenterVertically) {
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp * arrowK), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
             RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp), ref = if (t.landmark.isBlank()) t.ref else "")
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
-        Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = if (compact) 9.dp else 16.dp, bottom = if (compact) 8.dp else 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(if (compact) 42.dp else 60.dp), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), exitNumber = t.exit, sides = t.sides)
+        Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = (if (compact) 9.dp else 16.dp) * padK, bottom = (if (compact) 8.dp else 12.dp) * padK), verticalAlignment = Alignment.CenterVertically) {
+            ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size((if (compact) 42.dp else 60.dp) * arrowK), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), exitNumber = t.exit, sides = t.sides)
             Column(Modifier.padding(start = if (compact) 9.dp else 16.dp).weight(1f)) {
                 // at traffic lights or a stop sign: that in big ("At the lights"), and the distance moves down beside the road name
                 val lmk = t.landmark.isNotBlank()
@@ -1523,7 +1533,7 @@ internal fun ImmTurnCard(
         // when it ran along the very bottom edge, karthikeyansr)
         // (only once it starts to fill, about 450 m out: an empty bar for kilometres before looked like nothing was happening,
         // mjdshibly. Its space stays, so the card doesn't change height when it appears)
-        Box(Modifier.fillMaxWidth().padding(start = 22.dp, end = 22.dp, top = 5.dp, bottom = 9.dp).height(4.dp).clip(RoundedCornerShape(2.dp))
+        Box(Modifier.fillMaxWidth().padding(start = 22.dp, end = 22.dp, top = 5.dp * padK.coerceAtMost(1f), bottom = 9.dp * padK.coerceIn(0.5f, 1.2f)).height(4.dp).clip(RoundedCornerShape(2.dp))
             .background(if (frac > 0f) Color.Black.copy(alpha = 0.18f) else Color.Transparent)) {
             Box(Modifier.fillMaxWidth(frac).fillMaxHeight().background(Color.White.copy(alpha = 0.9f)))
         }
@@ -1581,6 +1591,8 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                 Text(L.t("End"), color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1)
             }
         }
+        // what the trip has cost so far (#316)
+        LiveFuelLine(engine, Modifier.padding(start = 22.dp, end = 18.dp, bottom = 10.dp))
         // arriving: the side of the road, and car parks near the destination (tap one to go there instead)
         if (arriving) {
             val side = remember(engine.route) { engine.destSide() }

@@ -51,13 +51,14 @@ private val RedOnDark = Color(0xFFFF7A6E)
  * so the card can be kept clear of the trip card below it on a short screen. [advice]: the line of advice for the conditions.
  */
 @Composable
-internal fun TurnCardExtras(engine: NavEngine, max: Int, advice: Boolean = true, parking: Boolean = true) {
+internal fun TurnCardExtras(engine: NavEngine, max: Int, advice: Boolean = true, parking: Boolean = true, services: Boolean = false) {
     if (max <= 0) return
     val keys = ArrayList<String>()
     if (engine.lorryWarn != null) keys += "lorry"
     if (engine.avgInfo != null) keys += "avg"
     if (parking && engine.parkingNear.isNotEmpty()) keys += "park"
-    if (engine.servicesAhead.isNotEmpty() && engine.avgInfo == null && engine.prefs.b(PreferenceKeys.SERVICESCARD, true)) keys += "services"
+    // (the next services is its own card under the turn card again, ServicesCard; [services] puts it back in here)
+    if (services && engine.servicesAhead.isNotEmpty() && engine.avgInfo == null && engine.prefs.b(PreferenceKeys.SERVICESCARD, true)) keys += "services"
     if (advice && engine.advice != null) keys += "advice"
     if (keys.isEmpty()) return
     var left = max

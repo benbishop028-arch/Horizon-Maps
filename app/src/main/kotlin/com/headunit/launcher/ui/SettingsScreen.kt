@@ -804,6 +804,15 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Speed")) {
         SToggle(prefs, L.t("Warn when over the limit"), "speedwarn", true)
         if (prefs.b(PreferenceKeys.SPEEDWARN, true)) SChoice(L.t("Warn when over by"), listOf("0", "5", "10").map { it to it + if (engine.imperial) " mph" else " km/h" }, prefs.s(PreferenceKeys.TRAFFIC_WARNING, "5")) { prefs.put(PreferenceKeys.TRAFFIC_WARNING, it) }
+        SToggle(prefs, L.t("Flash the sign when over"), PreferenceKeys.FLASH_OVER, true, L.t("The speed limit sign flashes while you're over by more than this"))
+        if (prefs.b(PreferenceKeys.FLASH_OVER, true)) {
+            val pct = prefs.b(PreferenceKeys.FLASH_PCT, false)
+            val unit = if (pct) "%" else if (engine.imperial) " mph" else " km/h"
+            SChoice(L.t("Measure as"), listOf("speed" to (if (engine.imperial) "mph" else "km/h"), "pct" to L.t("% of the limit")), if (pct) "pct" else "speed") { prefs.put(PreferenceKeys.FLASH_PCT, it == "pct") }
+            SChoice(L.t("In towns"), listOf("5", "10", "15", "20").map { it to it + unit }, prefs.s(PreferenceKeys.FLASH_TOWN, "10"),
+                L.t("Limits up to 60 km/h (40 mph)")) { prefs.put(PreferenceKeys.FLASH_TOWN, it) }
+            SChoice(L.t("Outside towns"), listOf("5", "10", "15", "20").map { it to it + unit }, prefs.s(PreferenceKeys.FLASH_OUT, "15")) { prefs.put(PreferenceKeys.FLASH_OUT, it) }
+        }
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
@@ -1223,6 +1232,10 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         val sym = try { cur.getSymbol(java.util.Locale.getDefault()) } catch (e: Exception) { cur.currencyCode }
         SFieldItem(if (!small) L.t("Fuel price per litre ({0})", sym) else if (mi) L.t("Fuel price (pence per litre)") else L.t("Fuel price (cents per litre)"), prefs.s(PreferenceKeys.FUELPPL, ""), placeholder = if (small) L.t("e.g. 139.9") else "", number = true) { s -> prefs.put(PreferenceKeys.FUELPPL, s.filter { it.isDigit() || it == '.' || it == ',' }.take(6)) }
     }
+    // (ZarulOfficial #316)
+    SGroup(L.t("Live fuel cost")) {
+        SToggle(prefs, L.t("Live fuel cost"), PreferenceKeys.LIVE_FUEL, false, L.t("What the trip has cost so far, from the distance you've really driven, under the trip card's figures, and the total when you arrive. Uses the economy and price above"))
+    }
 }
 
 
@@ -1295,6 +1308,9 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         }
         if (mainAdvanced) {
             SSlider(L.t("Card size"), prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_CARD_SIZE, it) }
+            SSlider(L.t("Turn arrow size"), prefs.i(PreferenceKeys.TURN_ARROW, 100).toFloat(), 80f..200f, "%", sub = L.t("The arrow on the turn card, on its own"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.TURN_ARROW, it) }
+            SSlider(L.t("Turn card width"), prefs.i(PreferenceKeys.TURN_WIDTH, 100).toFloat(), 60f..130f, "%", sub = L.t("How far the turn card reaches across the map"), steps = 13, reset = 100f) { prefs.put(PreferenceKeys.TURN_WIDTH, it) }
+            SSlider(L.t("Turn card height"), prefs.i(PreferenceKeys.TURN_HEIGHT, 100).toFloat(), 70f..130f, "%", sub = L.t("The room above and below the writing"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.TURN_HEIGHT, it) }
             SSlider(L.t("Button size"), prefs.i(PreferenceKeys.MAIN_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("On-screen controls"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_BUTTON_SIZE, it) }
             SSlider(L.t("Text size"), prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent text scaling"), steps = 15, reset = 100f) { prefs.put(PreferenceKeys.MAIN_TEXT_SIZE, it) }
             SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.ROAD_NAME_SIZE, it) }
@@ -1380,7 +1396,11 @@ private fun AndroidAutoSection(prefs: Prefs) {
     }
     CarTripButtonsGroup(prefs)
     SGroup {
+        SChoice(L.t("Cool running"), listOf("off" to L.t("Off"), "auto" to L.t("Automatic"), "always" to L.t("Always")), prefs.s(PreferenceKeys.CAR_COOL, "off"),
+            L.t("For phones that get hot: 30 frames a second, a flat map, no rain or lamp effects. Automatic turns it on when the phone reports it's getting hot")) { prefs.put(PreferenceKeys.CAR_COOL, it) }
         SToggle(prefs, L.t("Search bar and places on the map"), PreferenceKeys.CAR_MAPUI, true, L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"))
+        if (prefs.b(PreferenceKeys.CAR_MAPUI, true)) SChoice(L.t("Hide them after"), listOf("30" to L.t("30 s"), "60" to L.t("1 min"), "120" to L.t("2 min"), "300" to L.t("5 min"), "0" to L.t("Never")),
+            prefs.s(PreferenceKeys.CAR_MAPUI_HIDE, "0"), L.t("Comes back when you touch the screen")) { prefs.put(PreferenceKeys.CAR_MAPUI_HIDE, it) }
         SToggle(prefs, L.t("Sound button on the map"), PreferenceKeys.CAR_SOUND_BTN, true, L.t("Sound on / Alerts only / Muted, when not navigating. Off leaves more room for Recent places; the same choice is in the car's Settings"))
     }
     // Voice search from the car screen's microphone button listens through the app, which needs the microphone allowed. Android
@@ -1416,6 +1436,9 @@ private fun AndroidAutoSection(prefs: Prefs) {
         }
         if (carAdvanced) {
             SSlider(L.t("Card size"), prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_CARD_SIZE, it) }
+            SSlider(L.t("Turn arrow size"), prefs.i(PreferenceKeys.CAR_TURN_ARROW, 100).toFloat(), 80f..200f, "%", sub = L.t("The arrow on the turn card, on its own"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_ARROW, it) }
+            SSlider(L.t("Turn card width"), prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).toFloat(), 60f..130f, "%", sub = L.t("How far the turn card reaches across the map"), steps = 13, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_WIDTH, it) }
+            SSlider(L.t("Turn card height"), prefs.i(PreferenceKeys.CAR_TURN_HEIGHT, 100).toFloat(), 70f..130f, "%", sub = L.t("The room above and below the writing"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_HEIGHT, it) }
             SSlider(L.t("Button size"), prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Round controls and tappable buttons"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
             SSlider(L.t("Text size"), prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent of card and button sizing"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
             SSlider(L.t("Navigation arrow size"), prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 30f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }

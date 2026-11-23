@@ -394,7 +394,9 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             minOf((380f + 60f * ((layoutW.value - 1000f) / 100f).coerceIn(0f, 1f)).dp, maxWidth * 0.38f)
         }
         // (the turn card's width, which the trip card under it on the same side takes too, so the two line up)
-        val turnCardW = if (portrait) topW else if (small) minOf(340.dp, maxWidth * 0.42f) else minOf(420.dp, maxWidth * 0.36f)
+        // (Settings › Android Auto › sizes › Turn card width, ZarulOfficial #317; never more than about half the screen)
+        val turnWK = engine.prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).coerceIn(60, 130) / 100f
+        val turnCardW = (if (portrait) topW else if (small) minOf(340.dp, maxWidth * 0.42f) else minOf(420.dp, maxWidth * 0.36f)).let { (it * turnWK).coerceAtMost(maxWidth * (if (portrait) 1f else 0.55f)) }
         var turnH by remember { mutableStateOf(0) }
         var turnW by remember { mutableStateOf(0) }
         // the turn card and what's under it, without the lane picture, and the cards along the bottom on the same side: the lane
@@ -411,7 +413,15 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) =
             engine.setPanel(i, (r.left - vL) / vW, (r.top - vT) / vH, (r.right - vL) / vW, (r.bottom - vT) / vH)
         // (Search bar and places on the map switched off: nothing drawn top left with no route, so the map has the whole screen)
-        val mapUi = engine.prefs.b(PreferenceKeys.CAR_MAPUI, true)
+        // ...and with Hide them after set, they fold away once the screen hasn't been touched for that long (a touch anywhere brings
+        // them back: CarButtons is poked by every tap, drag and pinch), for a clean map with no route (ZarulOfficial #315)
+        val hideAfter = engine.prefs.s(PreferenceKeys.CAR_MAPUI_HIDE, "0").toIntOrNull() ?: 0
+        var uiAsleep by remember { mutableStateOf(false) }
+        LaunchedEffect(CarButtons.shownAt, hideAfter, engine.route == null) {
+            uiAsleep = false
+            if (hideAfter > 0 && engine.route == null) { kotlinx.coroutines.delay(hideAfter * 1000L); uiAsleep = true }
+        }
+        val mapUi = engine.prefs.b(PreferenceKeys.CAR_MAPUI, true) && !(uiAsleep && !CarSearch.open)
         // (the sound button when not navigating can be left off: Settings > Android Auto)
         val soundBtn = engine.prefs.b(PreferenceKeys.CAR_SOUND_BTN, true)
         val topShown = !portrait && !arriving && ((engine.route == null && mapUi) || (guiding && engine.turn != null))
@@ -508,6 +518,8 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                             TurnCardExtras(engine, extraMax, advice = !small)
                         })
                 }
+                // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
+                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { ServicesCard(engine) }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
@@ -955,6 +967,8 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
             Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats(false) }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(40.dp) }
         }
+        // what the trip has cost so far (#316; not on the one-line card of a short screen)
+        if (!oneLine) LiveFuelLine(engine, Modifier.padding(start = 16.dp, end = 12.dp, bottom = 8.dp))
     }
 }
 

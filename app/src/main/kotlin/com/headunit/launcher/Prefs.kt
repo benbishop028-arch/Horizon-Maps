@@ -60,6 +60,13 @@ internal object PreferenceKeys {
     const val MAIN_BUTTON_SIZE = "mainbuttonsize"
     const val MAIN_ARROW_SIZE = "mainarrowsize"
     const val CAR_CARD_SIZE = "carcardsize"
+    /** The turn card's arrow, height and width (%), on the phone / head unit and on Android Auto (ZarulOfficial #317). */
+    const val TURN_ARROW = "turnarrow"
+    const val TURN_HEIGHT = "turnheight"
+    const val TURN_WIDTH = "turnwidth"
+    const val CAR_TURN_ARROW = "carturnarrow"
+    const val CAR_TURN_HEIGHT = "carturnheight"
+    const val CAR_TURN_WIDTH = "carturnwidth"
     const val CAR_TEXT_SIZE = "cartextsize"
     const val CAR_SPEED_SIZE = "carspeedsize"
     /** The speed limit sign on the car screen, as a percentage of its usual size (pc4096: it looked too small beside the speedometer). */
@@ -115,6 +122,12 @@ internal object PreferenceKeys {
     const val DISTANCE_UNIT = "distunit"
     const val TEMPERATURE_UNIT = "tempunit"
     const val TRAFFIC_WARNING = "warntol"
+    /** The limit sign flashes when you're over by more than these (desko1973 #323): on, the margins in towns (limits up to
+     *  60 km/h or 40 mph) and outside, and whether they're km/h / mph or % of the limit. */
+    const val FLASH_OVER = "flashover"
+    const val FLASH_TOWN = "flashtown"
+    const val FLASH_OUT = "flashout"
+    const val FLASH_PCT = "flashpct"
     const val RIBBON = "ribbon"
     const val LANE_VIEW = "laneview"
     const val JUNCTION_VIEW = "junctionview"
@@ -179,6 +192,8 @@ internal object PreferenceKeys {
     const val FORCESETUP = "forcesetup"
     const val FUELMPG = "fuelmpg"
     const val FUELPPL = "fuelppl"
+    /** The fuel (or charging) the trip has really cost so far, on the trip card, and its total when you arrive (ZarulOfficial #316). */
+    const val LIVE_FUEL = "livefuel"
     const val FURNITURE3D = "furniture3d"
     const val GLASS = "glass"
     const val HABITS = "habits"
@@ -218,6 +233,10 @@ internal object PreferenceKeys {
     const val CARSCALE_MAX = "carscale_max"
     /** Android Auto: the search bar, Home / Work and shortcuts drawn on the map (off for rotary-knob cars that can't tap them, #222). */
     const val CAR_MAPUI = "car_mapui"
+    /** Android Auto's cool running (TheDMAl #327): "off", "auto" (when the phone says it's getting hot) or "always". */
+    const val CAR_COOL = "car_cool"
+    /** Seconds without a touch before the search bar and places fold away on Android Auto ("0" = never; ZarulOfficial #315). */
+    const val CAR_MAPUI_HIDE = "car_mapui_hide"
     /** Android Auto: the sound button (Sound on / Alerts only / Muted) on the map when not navigating. */
     const val CAR_SOUND_BTN = "car_soundbtn"
     /** The map in 3D (true) or flat 2D: remembered between drives, and shared by the phone / head unit and Android Auto. */

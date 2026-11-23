@@ -463,6 +463,8 @@ internal fun ArrivalCard(engine: NavEngine, a: ArrivalInfo, modifier: Modifier =
             ArrivalStat(Geo.fmtDist(a.dist, imp), "distance")
             ArrivalStat(Geo.fmtDur(a.secs), "time")
             ArrivalStat("${Math.round(a.avgMs * k)} ${if (imp) "mph" else "km/h"}", "average")
+            // what the drive really cost, from the distance driven (Settings › Places and trips › Live fuel cost, #316)
+            a.fuelCost?.let { ArrivalStat(formatMoney(engine.prefs, it), L.t(if (engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") "charging" else "fuel")) }
         }
         engine.arrivalParking?.let { pk ->
             Row(
@@ -804,6 +806,25 @@ internal fun DemoChoiceBtn(engine: NavEngine, modifier: Modifier = Modifier, hei
  * litre, so anything under 10 is taken as euros or pounds (smikkelvriend: 2.15 gave 3 cents for a 30-minute drive). For
  * electricity, anything under 2 (no one pays 2 cents a kWh).
  */
+/**
+ * The fuel the trip has cost so far and how far you've driven ("£1.84 so far · 23.4 km driven"), under the trip card's figures
+ * (Settings › Places and trips › Live fuel cost, ZarulOfficial #316). Nothing when it's off or no economy and price are set.
+ */
+@Composable
+internal fun LiveFuelLine(engine: NavEngine, modifier: Modifier = Modifier) {
+    if (!engine.liveFuelOn()) return
+    // (to the nearest 100 m: the line doesn't need redrawing for every metre)
+    val driven = Math.round(engine.drivenThisRoute / 100.0) * 100.0
+    val cost = engine.fuelCostOf(driven) ?: return
+    val c = LocalVw.current
+    val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(14.dp))
+        Text(L.t("{0} so far", formatMoney(engine.prefs, cost)) + " · " + L.t("{0} driven", Geo.fmtDist(driven, engine.imperial)),
+            color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp))
+    }
+}
+
 internal fun pricePence(raw: String, ev: Boolean, prefs: com.headunit.launcher.Prefs? = null): Double? {
     val v = raw.trim().replace(',', '.').toDoubleOrNull()?.takeIf { it > 0 } ?: return null
     // (rupees, kroner, forints, yen...: the price is typed as normally written, in the main unit; bijindas: ₹107.40 came out as paise)

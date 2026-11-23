@@ -174,6 +174,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     // extras
     val habits = HabitStore(prefs)
     var overLimit by mutableStateOf(false)
+    /** Over the limit by more than the margin in Settings › Alerts › Flash the sign: the limit sign flashes (desko1973 #323). */
+    var flashOver by mutableStateOf(false)
     var via by mutableStateOf<List<Place>>(emptyList())
     var stopMode by mutableStateOf(false)
     var destRain by mutableStateOf<String?>(null)
@@ -1585,6 +1587,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    // ---- what the trip has really cost (Settings › Places and trips › Live fuel cost, ZarulOfficial #316) ----
+    /** Switched on, and the economy and price set (Settings › Fuel), so there's something to work it out from. */
+    fun liveFuelOn(): Boolean = prefs.b(PreferenceKeys.LIVE_FUEL, false) && fuelCostOf(1000.0) != null
+    /** The fuel (or charging) for [metres] of driving, from the economy and pump price in Settings, or null if they're not set. */
+    fun fuelCostOf(metres: Double): Double? {
+        val ev = prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
+        val mpg = prefs.s(if (ev) "evmpk" else "fuelmpg", "").toDoubleOrNull()?.takeIf { it > 0 } ?: return null
+        val ppl = com.headunit.launcher.ui.pricePence(prefs.s(if (ev) "evppk" else "fuelppl", ""), ev, prefs) ?: return null
+        return if (ev) metres / 1609.344 / mpg * ppl / 100.0 else metres / 1609.344 / mpg * 4.54609 * ppl / 100.0
+    }
+    /** How far you've really driven since this route started (by GPS, not the route's length). */
+    val drivenThisRoute: Double get() = if (navStartMs > 0) max(0.0, tripDist - navStartDist) else 0.0
+
     /** A route is being driven (not just looked at): a place picked now can be a stop on the way, or where to go instead. */
     fun driving(): Boolean = route != null && !previewing && dest != null
 
@@ -1668,7 +1683,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             appendLine("Frame rate: ${prefs.s(PreferenceKeys.MAP_FPS, "auto")} · map detail: ${prefs.mapDetail()} · steering wheel: ${if (mirrored) "left (traffic on the right)" else "right (traffic on the left)"}")
             if (perfLine.isNotBlank()) appendLine("Performance: $perfLine")
             try { appendLine(com.headunit.launcher.ui.NightWatch.line() + " · theme " + prefs.s(PreferenceKeys.THEME, "auto")) } catch (e: Exception) { }
-            if (heatLevel >= 0) appendLine("Heat: ${listOf("cool", "light", "moderate", "severe", "critical", "emergency", "shutdown").getOrElse(heatLevel) { "$heatLevel" }}")
+            if (heatLevel >= 0) appendLine("Heat: ${listOf("cool", "light", "moderate", "severe", "critical", "emergency", "shutdown").getOrElse(heatLevel) { "$heatLevel" }}" + " · cool running: " + prefs.s(PreferenceKeys.CAR_COOL, "off") + (if (coolOn) " (on now)" else ""))
             try { append(SessionWatch.report(ctx)) } catch (e: Exception) { }
             if (laneDiag.isNotBlank()) appendLine(laneDiag)
             if (laneNote.isNotBlank()) appendLine(laneNote)
@@ -3329,6 +3344,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val tol = tolUnits * (if (imperial) 0.44704 else 0.27778)
             val over = prefs.b(PreferenceKeys.SPEEDWARN, true) && lim != null && !limitEstimated && p.speed > lim + tol && p.speed > 4.0
             overLimit = over
+            run {
+                // (towns: limits up to 60 km/h, or 40 mph; the margin is in your units, or a share of the limit)
+                val town = lim != null && lim <= (if (imperial) 40.5 * 0.44704 else 60.5 / 3.6)
+                val m = prefs.s(if (town) PreferenceKeys.FLASH_TOWN else PreferenceKeys.FLASH_OUT, if (town) "10" else "15").toIntOrNull() ?: 10
+                val margin = if (lim == null) 0.0 else if (prefs.b(PreferenceKeys.FLASH_PCT, false)) lim * m / 100.0 else m * (if (imperial) 0.44704 else 0.27778)
+                val fl = prefs.b(PreferenceKeys.FLASH_OVER, true) && lim != null && !limitEstimated && p.speed > 4.0 &&
+                    (if (flashOver) p.speed > lim + margin - 0.5 else p.speed > lim + margin)
+                if (fl != flashOver) flashOver = fl
+            }
             // one chime on going over, like other navigation apps, not one every 9 s for as long as you're over (TheDMAl #327).
             // It's ready again once you're back at the limit, or the limit changes
             if (lim == null || p.speed <= lim || lim != beepLim) { beepArmed = true; beepLim = lim }
@@ -4026,6 +4050,32 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         } catch (e: Throwable) { 60 }
         return heatCapNow
     }
+    // ---- Android Auto's cool running (Settings › Android Auto › Cool running, TheDMAl #327) ----
+    // Full 3D on the car screen while the phone also makes Android Auto's video gets a phone hot. Cool running draws 30 frames a
+    // second, a flat map with the lighter detail, and no street lamps or falling rain or snow. "Automatic" turns it on when the phone
+    // says it's getting warm (moderate, or worse) and off again once it's cool; "Always" keeps it on.
+    /** Cool running is on now. */
+    @Volatile var coolOn = false
+        private set
+    private fun updateCool() {
+        val mode = prefs.s(PreferenceKeys.CAR_COOL, "off")
+        val h = heatLevel
+        val want = when (mode) {
+            "always" -> true
+            "auto" -> if (coolOn) h > android.os.PowerManager.THERMAL_STATUS_NONE else h >= android.os.PowerManager.THERMAL_STATUS_MODERATE
+            else -> false
+        }
+        if (want == coolOn) return
+        coolOn = want
+        scope.launch {
+            try {
+                map.setMapDetail(if (want) (if (prefs.mapDetail() == "lightest") "lightest" else "lite") else prefs.mapDetail())
+                map.lampsEnabled(!want && prefs.b(PreferenceKeys.LAMPS, true))
+                map.setNoEffects(want)
+            } catch (e: Exception) { }
+        }
+    }
+
     private var vsyncLastNs = 0L
     private var vsyncNs = 16_666_667.0
     private var frameCount = 0L
@@ -4039,7 +4089,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val want = if (p == "auto") autoFps else (p.toIntOrNull() ?: 30).coerceIn(15, 60)
             // a hot phone or battery saver: fewer frames, whatever is chosen (60 a second on a phone running Android Auto drained
             // the battery and made it hot, and a hot phone slows itself down, which made the arrow lag)
-            glideFps = minOf(want, heatCap())
+            glideFps = minOf(want, heatCap(), if (coolOn) 30 else 60)
+            if (isCar) updateCool()
         }
         // with another app in front (guidance carrying on in the background) a few updates a second is plenty: nobody sees the map
         val fps = if (appVisible) glideFps else 5
@@ -4523,6 +4574,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the small live preview in Settings: the full screen's steep tilt and low arrow showed little but sky in a short, wide box,
         // so there the view is gentler, with your arrow in the middle
         if (settingsPreview) { tilt = minOf(tilt, 40.0); pad = 0.0 }
+        // (cool running on the car screen: a flat map, which draws far less, #327)
+        if (isCar && coolOn && !settingsPreview) { tilt = 0.0; pad = minOf(pad, flatPad) }
         tTilt = tilt; tPad = pad
         val requestedZoom = autoZoom(sp, navigating) + zoomOffset + (if (isCar) carViewportZoomOffset else 0.0) + (if (!navigating) defaultZoom else 0.0)
         // Road-level lane ribbons are only useful when their lane boundaries and the route are
@@ -6179,7 +6232,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val secsT = (System.currentTimeMillis() - navStartMs) / 1000.0
                 val dd = max(0.0, tripDist - navStartDist)
                 val sideA = try { arrivalSide(r, r.steps.lastOrNull()?.maneuver ?: "") } catch (e: Exception) { "" }
-                val a = ArrivalInfo(dest, dest?.name ?: "Destination", dd, secsT, if (secsT > 0) dd / secsT else 0.0, sideA)
+                val a = ArrivalInfo(dest, dest?.name ?: "Destination", dd, secsT, if (secsT > 0) dd / secsT else 0.0, sideA, if (liveFuelOn()) fuelCostOf(dd) else null)
                 // how long it really took, for next time ([JourneyTimes]; offline routes, real drives only)
                 val tf = tripFrom; val td = dest?.pos
                 if (tripBase > 0 && tf != null && td != null && simMode == 0 && (isCar || !RouteSync.carConnected())) {

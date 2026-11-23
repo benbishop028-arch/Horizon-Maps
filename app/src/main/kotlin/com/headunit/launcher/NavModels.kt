@@ -48,7 +48,7 @@ class AlertInfo(val kind: String, val text: String, val ms: Long = 5000)
 /** A lorry's limit ahead that it's over: [title] "Low bridge", the [sign] text ("4.1m"), how far, and the line under it. */
 class LorryWarn(val kind: String, val title: String, val sign: String, val dist: Double, val detail: String)
 /** Shown after you arrive: how the trip went. */
-class ArrivalInfo(val place: Place?, val name: String, val dist: Double, val secs: Double, val avgMs: Double, val side: String = "")
+class ArrivalInfo(val place: Place?, val name: String, val dist: Double, val secs: Double, val avgMs: Double, val side: String = "", val fuelCost: Double? = null)
 /** Another way to the destination, drawn grey on the map while you drive, with how it compares (minutes, negative = quicker). */
 /** Another way to go while you drive: how many minutes it saves or costs, and [traffic] -1 less, 0 similar, 1 more than yours. */
 class LiveAlt(val route: Route, val diffMin: Int, val bubble: LL, val divergeOff: Double, val traffic: Int = 0, val divIdx: Int = 0) {
