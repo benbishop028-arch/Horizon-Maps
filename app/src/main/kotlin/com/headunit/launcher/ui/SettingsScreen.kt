@@ -105,7 +105,7 @@ private class Section(val title: String, val sub: String, val icon: ImageVector,
 // (made each time it's read, so the names follow a change of language straight away)
 private val sections: List<Section> get() = listOf(
     Section(L.t("Map style"), L.t("Colours, day and night, map detail"), Icons.Rounded.Map, Color(0xFF4C8DFF), "MAP"),
-    Section(L.t("Light & 3D"), L.t("Light, shadows, 3D, sky, satellite"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
+    Section(L.t("Light & 3D"), L.t("Light, shadows, map view, 3D, sky"), Icons.Rounded.WbTwilight, Color(0xFF4C8DFF)),
     Section(L.t("Weather"), L.t("Live weather, rain, snow, fog, radar, forecasts"), Icons.Rounded.Cloud, Color(0xFF4C8DFF)),
     Section(L.t("On the map"), L.t("Traffic, lights, cameras, signs, lamps"), Icons.Rounded.Traffic, Color(0xFF4C8DFF)),
     Section(L.t("Your arrow & route line"), L.t("Arrow or car, colours, route look"), Icons.Rounded.Navigation, Color(0xFF4C8DFF)),
@@ -113,7 +113,7 @@ private val sections: List<Section> get() = listOf(
     Section(L.t("Turn card & lanes"), L.t("Signs, lanes, trip card, arriving"), Icons.Rounded.TurnRight, Color(0xFF12A4B4)),
     Section(L.t("Alerts"), L.t("Speed, cameras, hazards, reports"), Icons.Rounded.NotificationsActive, Color(0xFFEA4335)),
     Section(L.t("Sound & voice"), L.t("Spoken directions and volume"), Icons.Rounded.VolumeUp, Color(0xFFEA4335)),
-    Section(L.t("While driving"), L.t("Road name, arrow, tunnels, media, locking"), Icons.Rounded.DriveEta, Color(0xFF12A4B4)),
+    Section(L.t("While driving"), L.t("Road name, tunnels, media, locking"), Icons.Rounded.DriveEta, Color(0xFF12A4B4)),
     Section(L.t("Places & trips"), L.t("Home, work, favourites, sharing, trip log"), Icons.Rounded.Star, Color(0xFFF29900), "YOU"),
     Section(L.t("Fuel & charging"), L.t("Your fuel, prices, electric car"), Icons.Rounded.LocalGasStation, Color(0xFF34A853)),
     Section(L.t("Offline maps"), L.t("Maps, routes and town names with no signal"), Icons.Rounded.CloudDownload, Color(0xFF8E5CF0)),
@@ -390,8 +390,6 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Footpaths and trails"), "paths", true, L.t("Turn off for a cleaner driving map"))
         SChoice(L.t("HD roads"), listOf("auto" to L.t("Automatic"), "on" to L.t("On"), "off" to L.t("Off")), prefs.s(PreferenceKeys.HD_ROADS, "auto"),
             sub = L.t("Lane markings, turn arrows and 3D overpasses where Mapbox has them (Full 3D). Automatic: on in the UK only, as in some countries they hide the ordinary streets")) { prefs.put(PreferenceKeys.HD_ROADS, it) }
-        SToggle(prefs, L.t("Show lane data diagnostics"), PreferenceKeys.HD_LANE_DIAGNOSTICS, false,
-            L.t("Only shown in Demo mode; does not affect lane guidance."))
     }
 }
 
@@ -406,10 +404,15 @@ private fun LightSection(prefs: Prefs) {
         SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("Light and shadows come from where the sun really is right now, and at night from the moon"))
         // (Overcast light is in Settings > Weather, with everything else the weather changes)
     }
-    SGroup(L.t("3D view"), footer = L.t("30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {
+    // everything that sets the map's angle in one place (the switches below were in Turn card & lanes and On the map, where the
+    // flat view when stopped wasn't found: bluelions25, #312)
+    SGroup(L.t("Map view"), footer = L.t("Tilt: 30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {
         STilt(L.t("Tilt on a wide screen"), L.t("Landscape head units. Higher shows further ahead (more for a slow unit to draw)"), prefs, PreferenceKeys.TILT_WIDE)
         STilt(L.t("Tilt on a tall screen"), L.t("Portrait screens and phones"), prefs, PreferenceKeys.TILT_TALL)
         STilt(L.t("Tilt on Android Auto"), L.t("The car screen"), prefs, PreferenceKeys.TILT_CAR)
+        SToggle(prefs, L.t("Flatten the map to 2D at turns"), "turn2d", true)
+        SToggle(prefs, L.t("Tilt with speed"), "speedtilt", true, L.t("Flatter when slow, a longer view at speed"))
+        SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
     }
     SGroup("3D") {
         SToggle(prefs, L.t("Hill shading"), PreferenceKeys.HILLSHADE, false, L.t("Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills"))
@@ -482,7 +485,6 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Traffic")) {
         SToggle(prefs, L.t("Live traffic"), "traffic", true)
-        SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
         SToggle(prefs, L.t("Only show traffic on your route while navigating"), "routetrafficonly", false, L.t("Off shows traffic on the roads around you too, as Google Maps does"))
         SToggle(prefs, L.t("Light traffic in green"), PreferenceKeys.TRAFFIC_GREEN, false, L.t("Free-flowing main roads shown green, as well as slow traffic in amber and red"))
     }
@@ -581,6 +583,10 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         ), prefs.s(PreferenceKeys.ARROW_COLOUR, "#F2F2F6")) { prefs.put(PreferenceKeys.ARROW_COLOUR, it) }
         SSlider(if (ownShape) L.t("Model size") else if (shapeCar) L.t("Car size") else if (loc == "custom") L.t("Picture size") else L.t("Arrow size"), prefs.s(PreferenceKeys.ARROW_PERCENT, "240").toFloatOrNull() ?: 240f, 60f..500f, "%", reset = 240f) { prefs.put(PreferenceKeys.ARROW_PERCENT, it.toString()) }
         SToggle(prefs, L.t("Headlight beam at night"), PreferenceKeys.BEAM, true, L.t("A soft cone of light on the road ahead of you after dark, while you're moving"))
+    }
+    SGroup(L.t("Where your arrow sits")) {
+        SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
+        SToggle(prefs, L.t("Keep the arrow to the side"), PreferenceKeys.ARROW_SIDE, false, L.t("When the cards fold away, instead of moving to the middle"))
     }
     SGroup(L.t("Route line")) {
         SToggle(prefs, L.t("3D flags"), PreferenceKeys.FLAGS_3D, true, L.t("A tall flag at where you're going, and smaller amber ones at your stops, standing above the buildings so you can see them from a distance"))
@@ -759,8 +765,6 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         ) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
         SToggle(prefs, L.t("Zoom in on lanes before a junction"), "laneview", true)
         SToggle(prefs, L.t("Junction close-up"), "junctionview", true, L.t("At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m"))
-        SToggle(prefs, L.t("Flatten the map to 2D at turns"), "turn2d", true)
-        SToggle(prefs, L.t("Tilt with speed"), "speedtilt", true, L.t("Flatter when slow, a longer view at speed"))
     }
     SGroup(L.t("Trip card")) {
         SToggle(prefs, L.t("Route bar on the trip card"), "routebar", true, L.t("Traffic, cameras, services and stops, with your progress"))
@@ -1332,8 +1336,6 @@ private fun WhileDrivingSection(prefs: Prefs) {
     SGroup(L.t("While driving")) {
         SToggle(prefs, L.t("Road name when driving without a route"), "cruise", true)
         if (prefs.b("cruise", true)) SToggle(prefs, L.t("Heading next to the road name"), PreferenceKeys.CRUISE_HEADING, true, L.t("\"Heading E\" after the road. Off shows just the road"))
-        SToggle(prefs, L.t("Keep the arrow on the road with no route"), "snaproad", true)
-        SToggle(prefs, L.t("Keep the arrow to the side"), PreferenceKeys.ARROW_SIDE, false, L.t("When the cards fold away, instead of moving to the middle"))
         SToggle(prefs, L.t("Dim the map in tunnels"), "tunneldim", true)
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
@@ -1457,6 +1459,10 @@ private fun PerformanceSection(prefs: Prefs) {
     }
     SGroup(L.t("Demo")) {
         SToggle(prefs, L.t("Demo drive button"), "demo", false, L.t("Plays a route back so you can try the guidance while parked"))
+    }
+    SGroup(L.t("Diagnostics")) {
+        SToggle(prefs, L.t("Show lane data diagnostics"), PreferenceKeys.HD_LANE_DIAGNOSTICS, false,
+            L.t("Only shown in Demo mode; does not affect lane guidance."))
     }
 }
 
