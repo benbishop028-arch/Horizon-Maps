@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Your own map colours on TomTom and OpenStreetMap: Settings › Map › Colours now offers Horizon, Twilight and Custom on those maps too, so you can pick your own ground, water, parks, road and building colours, day and night (thanks to desko1973, #355)
 - Chargers along your route: with a route active, the Chargers button now shows the same overview as "Add a stop": every charger along the route pinned on the map and listed with the detour it adds, using your provider, speed and detour settings, with an Add as stop button (thanks to Seali7Aut, #343)
 - Turn card colour: Settings › Map look › Turn card colour lets you choose green, black, dark grey, navy or purple behind the next turn, with white writing (thanks to the Android Auto testers)
 - Search as I type: Settings › Search › Search as I type can be switched off, so results only appear when you press the keyboard's search key and you can type the whole address first (thanks to the testers)

@@ -340,9 +340,12 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             SFieldItem(L.t("Day starts at"), prefs.s(PreferenceKeys.DAY_FROM, "07:00"), L.t("24-hour clock, for example 06:45"), placeholder = "07:00") { prefs.put(PreferenceKeys.DAY_FROM, it.trim()) }
         }
     }
-    if (prefs.mapSource() == "mapbox") SGroup(L.t("Colours and lettering")) {
-        MapColoursPicker(prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")) { picked ->
-            val now = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox")
+    val mapboxMap = prefs.mapSource() == "mapbox"
+    SGroup(L.t("Colours and lettering")) {
+        // TomTom and OpenStreetMap: Horizon, Twilight or your own colours
+        val shown = prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox").let { if (!mapboxMap && it !in setOf("horizon", "twilight", "custom")) "horizon" else it }
+        MapColoursPicker(shown, only = if (mapboxMap) null else setOf("horizon", "twilight", "custom")) { picked ->
+            val now = shown
             // Custom starts as exactly the theme you had (nothing changes until you change something)
             if (picked == "custom" && now != "custom") {
                 prefs.put(PreferenceKeys.CUSTOM_BASE, now)
@@ -364,10 +367,10 @@ private fun MapStyleSection(prefs: Prefs, engine: NavEngine) {
             SPercent(L.t("How strong"), L.t("How much of the colour the map takes"), prefs, PreferenceKeys.CAR_TINT_STR, 10, 100, 40)
         }
         // (karthikeyansr: Mapbox's own lettering is narrow, and hard to read at a glance; these are wider and heavier)
-        SChoice(L.t("Font"), listOf("" to L.t("Standard")) + com.headunit.launcher.MAP_FONTS.map { it to it }, prefs.s(PreferenceKeys.MAP_FONT, ""),
+        if (mapboxMap) SChoice(L.t("Font"), listOf("" to L.t("Standard")) + com.headunit.launcher.MAP_FONTS.map { it to it }, prefs.s(PreferenceKeys.MAP_FONT, ""),
             L.t("The lettering for road and place names on the map"), wrap = true) { prefs.put(PreferenceKeys.MAP_FONT, it) }
     }
-    if (prefs.mapSource() == "mapbox" && prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
+    if (prefs.s(PreferenceKeys.MAP_COLOURS, "mapbox") == "custom") CustomThemeGroup(prefs, engine)
     if (prefs.mapSource() == "mapbox") SavedThemesGroup(prefs)
     SGroup(L.t("The map")) {
         // only the choices that work here: the free Play version is always OpenStreetMap (no choice at all), Plus can't show
@@ -1798,7 +1801,7 @@ private fun LanguageRequestDialog(engine: NavEngine, onClose: () -> Unit) {
  * Day colours are shown; each one has its night version.
  */
 @Composable
-private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
+private fun MapColoursPicker(value: String, only: Set<String>? = null, onPick: (String) -> Unit) {
     val c = LocalVw.current
     // land, water, park, road, building
     val sets = listOf(
@@ -1821,7 +1824,7 @@ private fun MapColoursPicker(value: String, onPick: (String) -> Unit) {
     Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         SItem(L.t("Colours"), L.t("Horizon: Mapbox's map in the app's own soft colours, slate blue at night. Twilight: the same with a deeper purple night. Mono Night: greys, with only the route and warnings in colour. Match my car: a hint of your car's interior lighting colour. Custom: your own colours. Day colours shown (Match my car at night); each has a night version"))
         Row(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            for ((id, name, cols) in sets) {
+            for ((id, name, cols) in sets.filter { only == null || it.first in only }) {
                 val sel = id == value
                 Column(
                     Modifier.width(124.dp).clip(RoundedCornerShape(14.dp)).background(c.tile)

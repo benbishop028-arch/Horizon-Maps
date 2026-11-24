@@ -517,8 +517,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val d = CustomLook.parse(dayJson); val n = CustomLook.parse(nightJson)
         val k = (if (on) widthPct.coerceIn(60, 180) else 100) / 100f
         if (on == customOn && d == customDay && n == customNight && k == customRouteK) return
+        val wasOn = customOn
         val reload = on != customOn || k != customRouteK || (on && (d.route != customDay.route || n.route != customNight.route))
         customOn = on; customDay = d; customNight = n; customRouteK = k
+        // TomTom and OpenStreetMap: recoloured in place while Custom stays on, otherwise the map is loaded again (with or without the colours)
+        if (!isMapboxStyle(wantedStyle)) {
+            val st = style
+            if (on && wasOn && st != null) { try { recolourClassic(st) } catch (e: Throwable) { } }
+            else if (st != null && wantedStyle != null && !slotsOn) { loadedStyle = null; setStyleUrl(wantedStyle!!) }
+            return
+        }
         if (reload) { if (isMapboxStyle(wantedStyle) && style != null) { loadedStyle = null; setStyleUrl(baseStyle()) } }
         else applyCustom()
     }
@@ -2556,7 +2564,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val dayLook = !nightStyle
         bubImgs.clear(); laneImgs.clear()
         // the classic map in the Horizon colours
-        if (!slotsOn && (hzFamily() || recolourBase)) try { recolourClassic(st) } catch (e: Throwable) { }
+        if (!slotsOn && (hzFamily() || recolourBase || (customOn && !isMapboxStyle(wantedStyle)))) try { recolourClassic(st) } catch (e: Throwable) { }
         // Standard's newer settings are set once it's loaded (so a style that doesn't know one can't stop the map loading)
         if (!satellite) {
             setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
@@ -2979,14 +2987,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      */
     private fun recolourClassic(st: Style) {
         val dark = nightStyle
-        val land = if (dark) "#2D3358" else "#F4F2EE"
-        val water = if (dark) "#2A6682" else "#AADAF5"
-        val park = if (dark) "#2E5C5E" else "#CDEBC4"
-        val bld = if (dark) "#454C78" else "#E7E5E1"
+        // Custom colours (Settings > Map) on the TomTom and OpenStreetMap maps: the parts picked there replace the Horizon colours
+        val own = if (isMapboxStyle(wantedStyle)) emptyMap() else customSpec()?.colours ?: emptyMap()
+        val land = own["land"] ?: if (dark) "#2D3358" else "#F4F2EE"
+        val water = own["water"] ?: if (dark) "#2A6682" else "#AADAF5"
+        val park = own["green"] ?: if (dark) "#2E5C5E" else "#CDEBC4"
+        val bld = own["buildings"] ?: if (dark) "#454C78" else "#E7E5E1"
         // (by day the original made road fills 20% darker after painting them white: #CCCCCC)
-        val roadFill = if (dark) "#464E7C" else "#CCCCCC"
+        val roadFill = own["roads"] ?: if (dark) "#464E7C" else "#CCCCCC"
         val roadCase = if (dark) "#262B4B" else "#DCDAD5"
-        val hwyFill = if (dark) "#5E67A0" else "#CCCCCC"
+        val hwyFill = own["main"] ?: if (dark) "#5E67A0" else "#CCCCCC"
         val hwyCase = if (dark) "#2B3052" else "#CFCCC6"
         val rail = if (dark) "#454C70" else "#D2D0CB"
         val text = if (dark) "#C9CEE8" else "#5F6368"
