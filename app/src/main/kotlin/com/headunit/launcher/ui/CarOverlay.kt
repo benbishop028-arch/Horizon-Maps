@@ -72,6 +72,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -404,6 +405,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         var aboveH by remember { mutableStateOf(0) }
         var bottomColH by remember { mutableStateOf(0) }
         var tripColH by remember { mutableStateOf(0) }
+        var optionalColH by remember { mutableStateOf(0) }
         var topBlockH by remember { mutableStateOf(0) }
 
         // where the cards are, for placing your arrow the way the app does: on wide screens it moves sideways clear of the cards on
@@ -480,7 +482,8 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         var speedUnderH by remember { mutableStateOf(0) }
         // (worked out here: the screen's height can't be read from inside the column below)
-        val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (tripCol) tripColH else 0) + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
+        val optionalRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (tripCol) tripColH else 0) + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
+        val laneRoom = (optionalRoom - with(dens) { (if (tripCol) optionalColH else 0).toDp() }).coerceAtLeast(0.dp)
         // the lines along the bottom of the turn card (average speed check, services, parking...: they were cards of their own
         // under it): as many as leave the turn card clear of what's at the bottom of the screen (the trip card, the speed), one
         // taken away when it would reach them and one given back when there's room again (with a margin, so it can't flicker)
@@ -528,17 +531,16 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 }
               }
                 // Speed position "Under the turn card": in the left-hand column the app's own cards already keep clear
-                if (speedUnderTurn && !tripCol) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
+                if (speedUnderTurn) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                 }
                 if (tripCol) Box(Modifier.onSizeChanged { tripColH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripColumn(engine, showEnd = !tile) }
                 }
-                if (speedUnderTurn && tripCol) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
-                    CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
-                }
-                if (!tile && tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
+                if (!tile && tripCol) Box(Modifier.heightIn(max = optionalRoom).clipToBounds().onSizeChanged { optionalColH = it.height }) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
+                    }
                 }
                 // Leave the remaining space to the close-up, after the trip card and its controls.
                 if (!small) JunctionCloseup(engine, maxH = laneRoom)
