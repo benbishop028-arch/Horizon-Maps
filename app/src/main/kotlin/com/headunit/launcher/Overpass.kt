@@ -40,10 +40,35 @@ object Overpass {
     /** Runs a query for other parts of the app (route extras, zones). */
     fun query(q: String, connectMs: Int = 10000, readMs: Int = 30000, tries: Int = endpoints.size): JSONArray = run(q, connectMs, readMs, tries)
 
+    /** When each server last failed (elapsedRealtime ms, 0 = not lately). */
+    private val failedAt = java.util.concurrent.atomic.AtomicLongArray(endpoints.size)
+    /** A server that has just failed is tried after the others for this long. */
+    private const val COOL_MS = 3 * 60_000L
+
+    /** A short name for the settings page and reports (kumi and private.coffee both start "overpass.", which read as overpass-api.de). */
+    private fun label(host: String): String = when {
+        host.startsWith("overpass-api.") -> "overpass-api"
+        host.endsWith("kumi.systems") -> "kumi"
+        host.endsWith("private.coffee") -> "private.coffee"
+        host.endsWith("mail.ru") -> "mail.ru"
+        else -> host.removePrefix("www.").substringBefore('.')
+    }
+
+    /**
+     * The servers in the order to try: the one that answered last first, then the rest, with any that failed in the last few minutes
+     * at the back (longest ago first, so each search moves on to others). A search with two tries only ever asked the same two
+     * servers, so with those two down every search failed and the other two were never asked (GitHub #271).
+     */
+    internal fun order(preferred: Int, failedAt: LongArray, now: Long): List<Int> {
+        val all = failedAt.indices.map { (preferred + it) % failedAt.size }
+        val (cool, fresh) = all.partition { failedAt[it] != 0L && now - failedAt[it] < COOL_MS }
+        return fresh + cool.sortedBy { failedAt[it] }
+    }
+
     private fun run(query: String, connectMs: Int = 8000, readMs: Int = 18000, tries: Int = endpoints.size): JSONArray {
         val errors = ArrayList<String>()
-        for (n in 0 until minOf(tries, endpoints.size)) {
-            val idx = (preferred + n) % endpoints.size
+        val order = order(preferred, LongArray(endpoints.size) { failedAt.get(it) }, android.os.SystemClock.elapsedRealtime())
+        for (idx in order.take(minOf(tries, endpoints.size))) {
             val ep = endpoints[idx]
             val host = ep.removePrefix("https://").substringBefore('/')
             try {
@@ -65,9 +90,13 @@ object Overpass {
                     throw IOException("busy (" + remark.take(50) + ")")
                 val els = j.optJSONArray("elements") ?: JSONArray()
                 preferred = idx
-                lastNote = host.removePrefix("www.").substringBefore('.') + " ok"
+                failedAt.set(idx, 0L)
+                lastNote = label(host) + " ok"
                 return els
-            } catch (e: Exception) { errors += host.removePrefix("www.").substringBefore('.') + ": " + (e.message ?: e.javaClass.simpleName) }
+            } catch (e: Exception) {
+                failedAt.set(idx, android.os.SystemClock.elapsedRealtime())
+                errors += label(host) + ": " + (e.message ?: e.javaClass.simpleName)
+            }
         }
         lastNote = errors.joinToString("; ")
         throw IOException(errors.joinToString("; "))

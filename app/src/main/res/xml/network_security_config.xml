@@ -7,4 +7,14 @@
         <domain includeSubdomains="false">127.0.0.1</domain>
         <domain includeSubdomains="false">localhost</domain>
     </domain-config>
+    <!-- The maps.mail.ru Overpass mirror is signed by HARICA TLS RSA Root CA 2021, which only newer Android versions carry: on
+         Android 10 every request to it failed with "Trust anchor for certification path not found" (GitHub #271). That one root
+         is added for that one host only, next to the phone's own ones (SHA-256 D9:5D:0E:8E:...:EC:CB:7B:1D, valid to 2045). -->
+    <domain-config>
+        <domain includeSubdomains="false">maps.mail.ru</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/harica_tls_rsa_root_2021" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>
