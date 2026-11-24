@@ -56,6 +56,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
 
 ### Fixed
+- Road numbers on TomTom routes: the road number (such as E39) shows beside the street name on the turn card again when your route comes from TomTom, as it does for Mapbox routes (thanks to desko1973, #371)
 - Voice prompts: the same prompt is no longer spoken twice within a few seconds, which stops prompts repeating in a loop (thanks to the testers)
 - Speed limit: on a road with different limits each way, when the direction isn't known the lower one is shown (thanks to the testers)
 - Sun in its real place: the sun's light and shadows now fade out at sunset instead of staying on all evening (thanks to ILDEMONICO, #335)

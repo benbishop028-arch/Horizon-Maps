@@ -723,6 +723,8 @@ object TomTomRest {
                 man, street,
                 i.optString("message").ifBlank { i.optString("instructionMessage") },
                 rx, i.optString("exitNumber"), i.optString("signpostText"),
+                // the road number (E39, 169) beside the name, as on Mapbox's routes (desko1973, #371)
+                ref = i.optJSONArray("roadNumbers")?.optString(0).orEmpty().trim().let { n -> if (street.isNotBlank() && !n.equals(street, true) && n.length <= 8) n else "" },
             )
         }
         val laneSecs = ArrayList<LaneSec>()
