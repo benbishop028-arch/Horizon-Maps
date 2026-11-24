@@ -2356,6 +2356,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun openStopSearch(q: String, title: String? = null, category: Boolean = false) {
         val r = route ?: return
         if (dest == null || q.isBlank()) return
+        val chargers = category && q == "EV charging station"
+        val evDetourMin = if (chargers) prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0) else 0
         chainQuery = q
         chainJob?.cancel()
         chainBusy = true
@@ -2370,7 +2372,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (ahead.lastOrNull() != r.pts.last()) ahead += r.pts.last()
             val found: List<Pair<Place, Int>> = withContext(Dispatchers.IO) {
                 val all = ArrayList<Pair<Place, Int>>()
-                if (hasKey && online()) try { all += TomTomRest.alongText(apiKey, q, ahead) } catch (e: Exception) { }
+                if (hasKey && online()) try { all += TomTomRest.alongText(apiKey, q, ahead, if (evDetourMin > 0) evDetourMin * 60 else 1200) } catch (e: Exception) { }
                 if (all.isEmpty()) {
                     // no TomTom: the usual search near a few points along the way (and what's already been found)
                     val probes = listOf(0.15, 0.4, 0.65, 0.9).map { f -> ahead[((ahead.size - 1) * f).toInt()] }
@@ -2399,12 +2401,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val detour = if (t >= 0) t.toDouble() else best * 2.6 / 13.0
                 ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
             }
+            // chargers: only the providers and speeds chosen in Settings, and none further off than the Charger detour (#343)
+            val spots1 = if (chargers) spots0.filter { s -> chargerPlaceOk(s.place) && (evDetourMin <= 0 || s.detour < 0 || s.detour <= evDetourMin * 60.0) } else spots0
             // petrol stations: each one's price for your fuel, from the price service the app already uses (and any priced station
             // the search missed); everything else as it was
             val spots = if (fuelList) {
                 val priced = try { withContext(Dispatchers.Default) { priceFuelSpots(r, prog, from, spots0) } } catch (e: Exception) { spots0 }
                 priced.sortedBy { it.detour }.take(40)
-            } else spots0.sortedBy { it.detour }.take(25)
+            } else spots1.sortedBy { it.detour }.take(25)
             if (spots.isEmpty()) { chainBusy = false; toast(L.t("Nothing found along the route ahead"), 3000); return@launch }
             withContext(Dispatchers.IO) { spots.mapNotNull { Logos.domainFor(it.place) }.distinct().take(6).forEach { Logos.load(ctx, it) } }
             val domain = spots.asSequence().mapNotNull { Logos.domainFor(it.place) }.firstOrNull()
@@ -4079,6 +4083,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Drops chargers known to be slower than the wanted speed, or from other providers. A charger whose speed isn't known stays. */
+    /** The Settings charger filter (providers, speed) for a place in the along-the-route list; unknown speeds stay in. */
+    private fun chargerPlaceOk(p: Place): Boolean {
+        val minKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
+        val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        val text = (p.name + " " + p.sub).lowercase()
+        val kw = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE).find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+        return (minKw <= 0 || kw == null || kw >= minKw) && (names.isEmpty() || names.any { it in text })
+    }
+
+    /** The Chargers button: on a route, the overview of chargers along it (pins on the whole route, with the detour each adds); otherwise the nearby list. */
+    fun showChargers() {
+        if (route != null && dest != null && !previewing) openStopSearch("EV charging station", title = L.t("Charger"), category = true)
+        else loadNearby("charging", false)
+    }
+
     private fun filterChargers(l: List<Nearby>): List<Nearby> {
         val minKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
         val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }

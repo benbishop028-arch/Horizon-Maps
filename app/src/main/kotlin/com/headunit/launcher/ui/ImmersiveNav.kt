@@ -1120,7 +1120,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     // (voice and sound moved off the card: sound is a big button at the top right, voice is in Map options > This trip)
                     // add a stop (or see the stops) on the way
                     ImmCircle({ engine.stopsEditor = true }, 44.dp) { Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(22.dp)) }
-                    if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 44.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(22.dp)) }
+                    if (evPct != null) ImmCircle({ engine.showChargers() }, 44.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(22.dp)) }
                     Box(Modifier.size(44.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(23.dp))
                     }
@@ -1151,7 +1151,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                         Row(m, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             if (canShare) ImmCircle({ share() }, 40.dp) { Icon(Icons.Rounded.Send, L.t("Send arrival time"), tint = c.accent, modifier = Modifier.size(19.dp)) }
                             ImmCircle({ engine.stopsEditor = true }, 40.dp) { Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(20.dp)) }
-                            if (evPct != null) ImmCircle({ engine.loadNearby("charging", false) }, 40.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(20.dp)) }
+                            if (evPct != null) ImmCircle({ engine.showChargers() }, 40.dp) { Icon(Icons.Rounded.EvStation, L.t("Chargers ahead"), tint = Good, modifier = Modifier.size(20.dp)) }
                             Box(Modifier.size(40.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(Bad).pressClick { engine.endRoute() }, contentAlignment = Alignment.Center) {
                                 Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(21.dp))
                             }
@@ -1682,7 +1682,7 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                     act(Icons.Rounded.Route, L.t("Overview"), c.accent) { engine.overview(); open = false }
                     act(Icons.Rounded.Campaign, L.t("Report"), Warn) { open = false; onReport() }
                     act(Icons.Rounded.Layers, L.t("Map options"), c.text) { open = false; onOptions() }
-                    if (evPct != null) act(Icons.Rounded.EvStation, L.t("Chargers ahead"), Good) { engine.loadNearby("charging", false); open = false }
+                    if (evPct != null) act(Icons.Rounded.EvStation, L.t("Chargers ahead"), Good) { engine.showChargers(); open = false }
                 }
                 // the next few turns
                 val rows = engine.itinerary().take(4)
