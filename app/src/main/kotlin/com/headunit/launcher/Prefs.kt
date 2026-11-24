@@ -129,6 +129,8 @@ internal object PreferenceKeys {
     const val LIMIT_SOUNDS = "limitsounds"
     /** Says "Slow down" after the beep for going over the limit (Dotancom #345). */
     const val SAY_SLOW_DOWN = "sayslowdown"
+    /** The sound of the over-the-limit and top-speed alerts: "double" (the usual beep), "siren" or "buzz" (ILDEMONICO, #335). */
+    const val SPEED_ALERT_SOUND = "speedalertsound"
     /** A top speed of your own (km/h, or mph in miles): a beep and "Slow down" when you reach it, whatever the limit. "0" is off (Dotancom #345). */
     const val ALERT_TOP_SPEED = "topspeed"
     /** The pop-up banner when the limit changes (karthikeyansr #328): off leaves the sign itself (it pulses) and the one on the route. */
@@ -190,6 +192,8 @@ internal object PreferenceKeys {
     const val DRIVELOCK = "drivelock"
     /** The media bar on the driving screen (Reddit, mrEnmi). */
     const val MEDIA_BAR = "media_bar"
+    /** The Clean view button on the map: 0 everything, 1 minimal (turn card, speed, trip), 2 the map only (#358). */
+    const val CLEAN_VIEW = "cleanview"
     const val DRIVESIMPLE = "drivesimple"
     const val EVMPK = "evmpk"
     const val EVPPK = "evppk"

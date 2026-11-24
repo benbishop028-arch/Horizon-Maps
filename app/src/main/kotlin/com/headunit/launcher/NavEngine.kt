@@ -1525,6 +1525,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** A sample beep, at the chime volume just set (Settings). */
     fun testChime() { if (soundMode != 2) guidanceBeep(false) }
+    fun testSpeedAlert(kind: String) { if (soundMode != 2) guidanceBeep(true, kind) }
     /** A short line said as the voice is turned up, so the new level can be heard. */
     fun testVoice() { if (soundMode != 2) speak(L.t("You have arrived"), true) }
 
@@ -1541,6 +1542,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the strength set by "Chime volume"
         guidanceBeep(tone == android.media.ToneGenerator.TONE_PROP_BEEP2)
     }
+
+    /** The over-the-limit and top-speed alert, in the sound chosen in Settings › Alerts › Speed alert sound (ILDEMONICO, #335). */
+    private fun speedChime() {
+        if (soundMode == 2 || quiet()) return
+        guidanceBeep(true, prefs.s(PreferenceKeys.SPEED_ALERT_SOUND, "double"))
+    }
+
+    // the speed alert's other sounds: a rising three-note siren, or a low double buzz, clearly unlike the camera and hazard beeps
+    private fun alertPcm(kind: String): ShortArray {
+        val rate = 22050
+        val notes = if (kind == "siren") listOf(700.0 to 120, 1000.0 to 120, 1400.0 to 160) else listOf(330.0 to 200, 330.0 to 200)
+        val gap = rate * 50 / 1000
+        val total = notes.sumOf { rate * it.second / 1000 } + gap * (notes.size - 1)
+        val out = ShortArray(total)
+        var at = 0
+        for ((i, nt) in notes.withIndex()) {
+            val len = rate * nt.second / 1000
+            for (j in 0 until len) {
+                val env = minOf(1.0, minOf(j, len - j).toDouble() / (rate * 0.008))
+                val x = Math.sin(2.0 * Math.PI * nt.first * j / rate)
+                // (the buzz is a squared-off wave so it sounds harsher)
+                val w = if (kind == "siren") x else Math.signum(x) * 0.8 + x * 0.2
+                out[at + j] = (w * env * 0.55 * Short.MAX_VALUE).toInt().toShort()
+            }
+            at += len + (if (i < notes.size - 1) gap else 0)
+        }
+        return out
+    }
+    private val alertSiren by lazy { alertPcm("siren") }
+    private val alertBuzz by lazy { alertPcm("buzz") }
 
     // the beep's sound, made once: a short 1 kHz tone (twice for a warning), faded in and out so it doesn't click
     private fun beepPcm(double: Boolean): ShortArray {
@@ -1562,14 +1593,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Volatile private var beepBusy = false
 
     /** A beep on the voice's channel (navigation, or media if chosen), with the music lowered for it. */
-    private fun guidanceBeep(double: Boolean) {
+    private fun guidanceBeep(double: Boolean, kind: String = "double") {
         if (beepBusy) return
         beepBusy = true
         scope.launch(Dispatchers.Default) {
             var tr: android.media.AudioTrack? = null
             var fr: android.media.AudioFocusRequest? = null
             try {
-                val pcm = if (double) beepDouble else beepSingle
+                val pcm = when { kind == "siren" -> alertSiren; kind == "buzz" -> alertBuzz; double -> beepDouble; else -> beepSingle }
                 val attrs = android.media.AudioAttributes.Builder()
                     .setUsage(voiceUsage)
                     .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
@@ -3500,7 +3531,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (lim == null || p.speed <= lim || lim != beepLim) { beepArmed = true; beepLim = lim }
             if (over && beepArmed && soundMode != 2 && prefs.b(PreferenceKeys.LIMIT_SOUNDS, true) && now - lastBeep > 9000) {
                 lastBeep = now; beepArmed = false
-                chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+                speedChime()
                 // Settings › Alerts › Say "Slow down": the words after the beep, for those who find a beep alone easy to ignore (#345)
                 if (prefs.b(PreferenceKeys.SAY_SLOW_DOWN, false)) scope.launch { delay(450); speak(L.t("Slow down"), true) }
             }
@@ -3511,7 +3542,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (p.speed < top - (if (imperial) 2.2 else 1.4)) topArmed = true
                 else if (p.speed >= top && topArmed && soundMode != 2 && now - lastBeep > 4000) {
                     topArmed = false; lastBeep = now
-                    chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+                    speedChime()
                     scope.launch { delay(450); speak(L.t("Slow down"), true) }
                     raiseAlert("limit", L.t("Top speed {0} reached", prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0")))
                 }

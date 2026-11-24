@@ -86,6 +86,8 @@ import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Flag
 import androidx.compose.material.icons.rounded.Campaign
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.LocalParking
@@ -248,6 +250,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val routing = engine.route != null && !engine.previewing
     val previewing = engine.previewing
     val simple by remember { derivedStateOf { engine.driving && engine.prefs.b(PreferenceKeys.DRIVESIMPLE, true) } }
+    // the Clean view button (#358): while on a route, 1 hides the extra cards and the media bar, 2 leaves just the map and the buttons
+    var cleanView by remember { mutableStateOf(engine.prefs.i(PreferenceKeys.CLEAN_VIEW, 0).coerceIn(0, 2)) }
+    val hudMin = routing && !previewing && cleanView >= 1
+    val hudOff = routing && !previewing && cleanView == 2
 
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
         // portrait (or any narrow window): cards use the full width, the round buttons stack down the right-hand side,
@@ -348,7 +354,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var turnExtraMax by remember { mutableStateOf(3) }
         var boxTopPx by remember { mutableStateOf(0f) }
         var railHPx by remember { mutableStateOf(0) }
-        val railBelow = narrow && routing && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
+        val railBelow = narrow && routing && !hudOff && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
         // Settings › sizes › Turn card width (ZarulOfficial #317): the card size slider scales what's in the cards, this how wide they are
         val turnWK = engine.prefs.i(PreferenceKeys.TURN_WIDTH, 100).coerceIn(60, 130) / 100f
@@ -392,7 +398,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                 }
               }
             }
-            if (routing) {
+            if (routing && !hudOff) {
                 if (engine.results.isNotEmpty()) ImmResults(engine, q) { q = "" }
                 else {
                     val curTurn = engine.turn
@@ -431,12 +437,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
-                                            if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = false)
+                                            if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, parking = false)
                                         })
                                         // the next services: a card of its own under the turn card again, not joined to it
-                                        if (!altFocus) ServicesCard(engine)
+                                        if (!altFocus && !hudMin) ServicesCard(engine)
                                         // car parks near the end: their own card again (the portrait sheet has them in the sheet)
-                                        if (!altFocus && !routeSheet) ParkingCard(engine)
+                                        if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
                                     }
                                     // warnings (a camera, a limit, rain...) pop up just under the turn card, joined to it
                                     if (routeSheet) {
@@ -458,7 +464,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                         // (the advice, a lorry's limit ahead, the average speed check, services and parking are lines of the
                         // turn card now)
                         // (the portrait route layout: the lanes are in the turn card's own strip, no separate picture under it)
-                        if (!routeSheet) JunctionCloseup(engine)
+                        if (!routeSheet && !hudMin) JunctionCloseup(engine)
                     }
                 }
             }
@@ -489,6 +495,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             })
             // navigating: other ways to go, any time (as in Google Maps): shown in grey on the map with how they compare, tap one to switch
             if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = L.t("Other routes")) })
+            // Clean view (#358): full, then minimal, then the map only; remembered for the next trip
+            if (routing && !previewing) railItems.add(@Composable {
+                val label = when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }
+                ImmIcon(if (cleanView == 0) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff, {
+                    cleanView = (cleanView + 1) % 3
+                    engine.prefs.put(PreferenceKeys.CLEAN_VIEW, cleanView)
+                    engine.toast(when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }, 1500)
+                }, active = cleanView != 0, desc = label)
+            })
             // the demo drive: play to start it; while it plays, its speed (tap for 1x / 2x / 4x), skip to the next turn, and stop
             if (engine.simMode != 0) {
                 railItems.add(@Composable {
@@ -637,7 +652,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val besideButtons = with(dens) { buttonsWPx.toDp() } + 26.dp
         // (Card positions: on the other side if chosen, and lifted above the trip card when they share a corner)
         val speedShareTrip = !narrow && tripPx > 0 && tripAt == speedAt
-        if (!previewing && !altFocus) Box(
+        if (!previewing && !altFocus && !hudOff) Box(
             when {
                 // (the portrait route layout: bottom left, above the trip sheet)
                 routeSheet -> Modifier.align(side(Alignment.BottomStart)).sides(start = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
@@ -657,7 +672,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // ---- bottom left: hazards and the trip card (not while the "all locations" / add-a-stop panel is open: it's in the same
         // corner and the panel lets the map show through, so the trip card's figures showed through it)
-        if (!previewing && !altFocus && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
+        if (!previewing && !altFocus && !hudOff && engine.arrival == null && engine.chain == null && !engine.chainBusy) {
             val tripBaseDensity = LocalDensity.current
             val tripCardScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
             val tripAlign = when (tripAt) { "centre" -> Alignment.BottomCenter; "right" -> Alignment.BottomEnd; "left" -> Alignment.BottomStart; else -> side(Alignment.BottomStart) }
@@ -687,7 +702,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val mediaOn = engine.prefs.b(PreferenceKeys.MEDIA_BAR, false)
         FollowMedia(mediaOn)
         val mediaShow = mediaOn && com.headunit.launcher.MediaNow.showing() && !previewing && engine.arrival == null && engine.here == null &&
-            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus && !homeSheetUp && !routeSheet
+            engine.chain == null && !engine.chainBusy && !engine.itineraryOpen && !altFocus && !homeSheetUp && !routeSheet && !hudMin
         val tripW = with(dens) { tripWPx.toDp() }
         val speedW = with(dens) { speedWPx.toDp() }
         val mediaMax = 360.dp

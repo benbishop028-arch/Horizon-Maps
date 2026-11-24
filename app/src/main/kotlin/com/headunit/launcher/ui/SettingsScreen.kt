@@ -817,6 +817,8 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         }
         SToggle(prefs, L.t("Speed limit sounds"), PreferenceKeys.LIMIT_SOUNDS, true, L.t("The beep when you go over the limit and the beep or voice when it changes. Off keeps them quiet while cameras, hazards and other alerts still sound"))
         SToggle(prefs, L.t("Say \"Slow down\""), PreferenceKeys.SAY_SLOW_DOWN, false, L.t("The words \"Slow down\" after the beep when you go over the limit, instead of a beep alone"))
+        SChoice(L.t("Speed alert sound"), listOf("double" to L.t("Double beep"), "siren" to L.t("Siren"), "buzz" to L.t("Low buzz")), prefs.s(PreferenceKeys.SPEED_ALERT_SOUND, "double"),
+            L.t("The sound for going over the limit or the top speed, so it can't be mistaken for the camera and hazard beeps")) { prefs.put(PreferenceKeys.SPEED_ALERT_SOUND, it); engine.testSpeedAlert(it) }
         SChoice(L.t("Top speed alert"), (if (engine.imperial) listOf("0", "60", "70", "80", "90") else listOf("0", "90", "100", "110", "120", "130", "140")).map { it to (if (it == "0") L.t("Off") else it + if (engine.imperial) " mph" else " km/h") },
             prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0"), L.t("A beep and \"Slow down\" when you reach this speed, whatever the limit is")) { prefs.put(PreferenceKeys.ALERT_TOP_SPEED, it) }
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)

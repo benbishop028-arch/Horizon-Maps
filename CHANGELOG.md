@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Clean view: a new eye button on the map while you navigate. Tap it to switch between everything, a minimal view (turn card, speed and trip card only) and just the map. It remembers your choice (thanks to jorgesanz6, #358)
+- Speed alert sound: choose a double beep, a rising siren or a low buzz for going over the limit or your top speed, so it can't be mistaken for the camera and hazard beeps. Settings › Alerts (thanks to ILDEMONICO, #335)
 - Charger filter: Settings › Your electric car now has Charger speed (Any, 22, 50 or 150 kW+) and Only these providers (e.g. Ionity, Tesla). The Chargers list on the phone, head unit and Android Auto then only shows the ones that match, with a "Filter" bar on the phone and head unit to remind you. Chargers whose speed isn't known are still shown. How many are free already shows with a TomTom key (thanks to Seali7Aut, #343)
 - Park here: when no parking spot is saved, the "Your car" card on the phone now has a Park here button that saves where you are right now, so Walk back can take you to your car even when you didn't use Android Auto (thanks to joel941703-hash, #359)
 - Report a traffic jam: a Traffic jam button in Report here (phone, head unit and Android Auto, and by voice: "report traffic"). It puts a red queue badge on your map for an hour, and warns you when you come up to it, like the other reports. Reports are kept on your own device, so other drivers don't see them (thanks to Dotancom, #352)
