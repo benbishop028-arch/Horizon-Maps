@@ -523,16 +523,22 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
                 // ...and car parks near the end, a card of their own too, as they were before they joined the turn card
-                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                if (!tile && !tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
                 }
               }
                 // Speed position "Under the turn card": in the left-hand column the app's own cards already keep clear
-                if (speedUnderTurn) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
+                if (speedUnderTurn && !tripCol) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                 }
                 if (tripCol) Box(Modifier.onSizeChanged { tripColH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripColumn(engine, showEnd = !tile) }
+                }
+                if (speedUnderTurn && tripCol) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
+                }
+                if (!tile && tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
                 }
                 // Leave the remaining space to the close-up, after the trip card and its controls.
                 if (!small) JunctionCloseup(engine, maxH = laneRoom)

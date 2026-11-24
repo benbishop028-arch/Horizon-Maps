@@ -789,6 +789,7 @@ class MapScreen(carContext: CarContext, private val holder: CarHolder) : Screen(
             strip.addAction(Action.Builder().setTitle(L.t("Switch −{0} min", fr.savedMin)).setOnClickListener { e?.acceptFaster(); invalidate() }.build())
             strip.addAction(Action.Builder().setTitle(L.t("Keep")).setOnClickListener { e?.dismissFaster(); invalidate() }.build())
             strip.addAction(sound)
+            if (!stopOnCard(e)) strip.addAction(Action.Builder().setTitle(L.t("Stop")).setOnClickListener { e?.endRoute(); invalidate() }.build())
         } else if (guiding) {
             // only four fit: Settings stays while navigating (2D / 3D is the first row in it)
             // the demo drive (for trying it out parked; only with Demo switched on in Settings, as in the app): starts it, speeds it
