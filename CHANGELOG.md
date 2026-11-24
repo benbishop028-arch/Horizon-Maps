@@ -45,6 +45,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
+- Longer offline routes: planning a longer trip from a big downloaded map (like all of England) now uses less memory, and if the phone still runs short it says the route couldn't be planned instead of closing the app (thanks to squirrel_blocks on Reddit)
 - Search results: the address under a place name can now use two lines, so more of the street and town can be read (thanks to the testers)
 - Battery: if you park for 30 minutes with a route or the background speed alert left running and the app out of sight, the background service and GPS now rest by themselves, and start again when you open the app (thanks to the Reddit report)
 - Speed limit announcements: Warnings only mode no longer announces limit changes, and a limit that flips back to the one you just left within a short stretch (50, 30, 50) isn't announced again (thanks to the testers)

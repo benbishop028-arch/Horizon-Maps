@@ -248,6 +248,8 @@ object OfflineRouter {
         m.put("tile_dir", File(d, "tiles").absolutePath)
         m.put("admin", File(d, "admins.sqlite").absolutePath)
         m.remove("timezone")
+        // a big pack (all of England is 3.8 GB) mustn't be allowed to fill the phone's memory while it plans a longer route
+        if (m.optLong("max_cache_size", 1L shl 30) > (192L shl 20)) m.put("max_cache_size", 192L shl 20)
         val out = File(d, "valhalla_device.json")
         out.writeText(j.toString())
         return out.absolutePath
@@ -792,8 +794,16 @@ object OfflineRouter {
 
     /** Routes on the device with no network. Blocking: call it off the main thread. */
     @Synchronized
-    fun routes(ctx: Context, from: LL, to: LL, via: List<LL> = emptyList(), headingDeg: Double = -1.0): List<Route> =
-        routesTagged(ctx, from, to, via, headingDeg).also { rs -> if (Vehicle.lorry) for (r in rs) r.lorry = "full" }
+    fun routes(ctx: Context, from: LL, to: LL, via: List<LL> = emptyList(), headingDeg: Double = -1.0): List<Route> {
+        // running out of memory on a long route is an Error, not an Exception: it used to go straight past every "route failed" message
+        // and close the app. The router is reset and the trip reported as failed instead
+        val rs = try { routesTagged(ctx, from, to, via, headingDeg) } catch (e: OutOfMemoryError) {
+            try { closeEngine() } catch (x: Throwable) { }
+            throw IllegalStateException("The phone ran out of memory planning this route offline", e)
+        }
+        if (Vehicle.lorry) for (r in rs) r.lorry = "full"
+        return rs
+    }
 
     private fun routesTagged(ctx: Context, from: LL, to: LL, via: List<LL>, headingDeg: Double): List<Route> {
         endsShort = false
