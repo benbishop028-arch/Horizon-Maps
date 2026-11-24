@@ -592,18 +592,30 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
 /**
  * Keeps the app clear of the camera notch, and of the status and navigation bars when Full screen is off. Android 15 and newer
  * draw every app behind them (for apps targeting Android 15 and up); before, Android kept the app clear by itself. This keeps
- * it looking exactly as it did, with the gap filled black. (On older Android these gaps already come back as nothing.)
+ * it looking exactly as it did, with the gap filled black. (On older Android these gaps already come back as nothing, except the
+ * notch's on Android 9 to 14 in full screen: see NotchUi.)
  */
 @Composable
 internal fun SafeArea(prefs: Prefs, content: @Composable () -> Unit) {
     // (the cards, buttons and screens stay clear of the camera; the map itself reaches round it in full screen: see bleedCutout)
     val full = prefs.b(PreferenceKeys.FULLSCREEN, true)
-    val ins = if (full) WindowInsets.displayCutout else WindowInsets.displayCutout.union(WindowInsets.systemBars)
+    val ins = if (full) notchInsets() else notchInsets().union(WindowInsets.systemBars)
     androidx.compose.foundation.layout.Box(
         Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black).windowInsetsPadding(ins),
     ) { content() }
 }
 
+
+/** Set by MainActivity on Android 9 to 14 while the window reaches into the camera notch's strip. */
+internal object NotchUi { var reach by androidx.compose.runtime.mutableStateOf(false) }
+
+/**
+ * The camera notch's gap. Before Android 15 it only counts while the window reaches into it: otherwise Android keeps the app clear
+ * by itself, and the last gap from full screen would stay (a second black strip when Full screen was switched off).
+ */
+@Composable
+private fun notchInsets(): WindowInsets =
+    if (android.os.Build.VERSION.SDK_INT >= 35 || NotchUi.reach) WindowInsets.displayCutout else WindowInsets(0, 0, 0, 0)
 
 /**
  * Lets the map run under the camera notch in full screen: the screen's contents are kept clear of the notch, and this stretches the
@@ -612,7 +624,7 @@ internal fun SafeArea(prefs: Prefs, content: @Composable () -> Unit) {
 @Composable
 internal fun Modifier.bleedCutout(on: Boolean): Modifier {
     if (!on) return this
-    val ins = WindowInsets.displayCutout
+    val ins = notchInsets()
     val d = androidx.compose.ui.platform.LocalDensity.current
     val dir = androidx.compose.ui.platform.LocalLayoutDirection.current
     val l = ins.getLeft(d, dir); val t = ins.getTop(d); val rr = ins.getRight(d, dir); val b = ins.getBottom(d)

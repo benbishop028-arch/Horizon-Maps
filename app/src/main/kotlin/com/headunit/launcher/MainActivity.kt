@@ -192,6 +192,7 @@ class MainActivity : ComponentActivity() {
         try {
             window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             WindowCompat.setDecorFitsSystemWindows(window, false)
+            cutoutMode(true)
             WindowInsetsControllerCompat(window, window.decorView).apply {
                 hide(WindowInsetsCompat.Type.systemBars())
                 systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -264,12 +265,27 @@ class MainActivity : ComponentActivity() {
         try {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             WindowCompat.setDecorFitsSystemWindows(window, true)
+            cutoutMode(false)
             WindowInsetsControllerCompat(window, window.decorView).show(WindowInsetsCompat.Type.systemBars())
             if (Build.VERSION.SDK_INT < 30) {
                 @Suppress("DEPRECATION")
                 window.decorView.systemUiVisibility = android.view.View.SYSTEM_UI_FLAG_VISIBLE
             }
         } catch (e: Exception) { }
+    }
+
+    /**
+     * Full screen reaches into the camera notch's strip. Android 15 does this by itself; from Android 9 to 14 a full-screen window
+     * stops short of it unless asked, so the map sat under a black band (Huawei P30 Pro, GitHub #271). SafeArea keeps the cards clear.
+     */
+    private fun cutoutMode(reach: Boolean) {
+        if (Build.VERSION.SDK_INT < 28) return
+        com.headunit.launcher.ui.NotchUi.reach = reach
+        val mode = if (reach) WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            else WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT
+        // (only when it changes: setting it lays the window out again, and this runs every time the bars are hidden)
+        if (window.attributes.layoutInDisplayCutoutMode == mode) return
+        window.attributes = window.attributes.apply { layoutInDisplayCutoutMode = mode }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
