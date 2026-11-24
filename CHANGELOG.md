@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Charger detour: Settings › Your electric car › Charger detour (5, 10 or 15 minutes) sets how far off your route a charger can be and still be listed, so chargers a few minutes from the main road show up too (thanks to Seali7Aut, #343)
 - Keep the screen on without a route: Settings › Screen › Keep the screen on without a route stops a phone's screen switching off while you just watch the map and traffic. It's off by default, as it uses more battery (thanks to sprice17, #369)
 - Map buttons: Settings › Map buttons lets you choose which buttons show on the map (compass, report, sound, other routes, clean view, overview). There is also a new Overview button, off until you turn it on, that shows the whole route for a few seconds and then goes back to following you (thanks to ILDEMONICO, #335)
 - Compass: the red mark on the map's N button now moves round the edge and always points to real north, so you can see which way the map is turned (thanks to ILDEMONICO, #335)

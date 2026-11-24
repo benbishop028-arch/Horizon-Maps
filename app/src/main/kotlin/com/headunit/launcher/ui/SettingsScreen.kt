@@ -1242,6 +1242,8 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         // the charger list: only fast enough ones, and only the providers you use (Seali7Aut, #343)
         SChoice(L.t("Charger speed"), listOf("0" to L.t("Any"), "22" to "22 kW+", "50" to "50 kW+", "150" to "150 kW+"), prefs.i(PreferenceKeys.EV_MIN_KW, 0).toString(),
             L.t("Hide chargers slower than this. Chargers whose speed isn't known are still shown")) { prefs.put(PreferenceKeys.EV_MIN_KW, it.toIntOrNull() ?: 0) }
+        SChoice(L.t("Charger detour"), listOf("0" to L.t("Usual"), "5" to L.t("{0} min", 5), "10" to L.t("{0} min", 10), "15" to L.t("{0} min", 15)), prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0).toString(),
+            L.t("On a route, how many minutes off it a charger can be and still be listed. Bigger finds chargers further from the road")) { prefs.put(PreferenceKeys.EV_DETOUR_MIN, it.toIntOrNull() ?: 0) }
         SFieldItem(L.t("Only these providers"), prefs.s(PreferenceKeys.EV_PROVIDERS, ""), L.t("Names separated by commas. Blank shows all"), placeholder = "Ionity, Tesla, Fastned") { prefs.put(PreferenceKeys.EV_PROVIDERS, it.take(120)) }
         if (mi) SFieldItem(L.t("Efficiency (miles per kWh)"), prefs.s(PreferenceKeys.EVMPK, ""), placeholder = L.t("e.g. 3.5"), number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
         else SFieldItem(L.t("Efficiency (km per kWh)"), prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = L.t("e.g. 5.6"), number = true) { s ->

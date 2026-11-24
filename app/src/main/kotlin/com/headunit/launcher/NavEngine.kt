@@ -3755,6 +3755,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val rt = route
         val alongRoute = rt != null && !nearDest && kind != "parking"
         val progress = if (rt != null && !previewing) curProgress else 0.0
+        // chargers: how far off the route to look (Settings › Your electric car › Charger detour, #343): minutes of detour, 0 = as before
+        val evDetour = if (kind == "charging" && alongRoute) prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0) else 0
+        val evOffM = if (evDetour > 0) (evDetour - 1) * 330.0 else 0.0
         val radius = if (nearDest) 900 else if (kind == "parking") 2000 else if (kind == "toilets" || kind == "coffee") 3000 else 6000
         val fuelType = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
         // (Fuel Finder has no E85 prices, and its station list would show every station rather than ones selling it)
@@ -3837,7 +3840,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         val tt = try {
                             if (alongRoute && rt != null && provider == "tomtom") {
                                 val line = RouteExtras.line(rt, progress, progress + 80_000.0, 600.0, 140)
-                                TomTomRest.poiAlong(apiKey, kind, line).mapNotNull { (n, secs) ->
+                                TomTomRest.poiAlong(apiKey, kind, line, if (evDetour > 0) evDetour * 60 else 900).mapNotNull { (n, secs) ->
                                     val pr = RouteExtras.project(rt, n.place.pos, 3000.0, progress) ?: return@mapNotNull null
                                     if (pr.first < progress - 100) null
                                     else n.copy(dist = pr.first - progress, detourMin = if (secs >= 0) Math.round(secs / 60.0).toInt() else detour(pr.second), ahead = true)
@@ -3851,10 +3854,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         val line = RouteExtras.line(rt, progress, progress + 60_000.0, 1500.0, 45)
                         // Mapbox first (a few points along the next 40 km, asked all at once: a second or two); the free OpenStreetMap
                         // servers only when it finds nothing or there's no Mapbox key (they're often busy and can take a long time)
-                        val fromMapbox = if (mbToken.isNotBlank() && online()) (try { mapboxAlong(kind, line) } catch (e: Exception) { emptyList() }) else emptyList()
-                        val raw = fromMapbox.ifEmpty { Overpass.nearbyAlong(kind, line, if (kind == "services") 400 else 900) }
+                        val fromMapbox = if (mbToken.isNotBlank() && online()) (try { mapboxAlong(kind, line, evOffM) } catch (e: Exception) { emptyList() }) else emptyList()
+                        val raw = fromMapbox.ifEmpty { Overpass.nearbyAlong(kind, line, if (evOffM > 900.0) evOffM.toInt() else if (kind == "services") 400 else 900) }
                         raw.mapNotNull { n ->
-                            val pr = RouteExtras.project(rt, n.place.pos, 1200.0, progress) ?: return@mapNotNull null
+                            val pr = RouteExtras.project(rt, n.place.pos, maxOf(1200.0, evOffM), progress) ?: return@mapNotNull null
                             if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
                         }
                     } else Overpass.nearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
@@ -3880,11 +3883,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Places along the route ahead from Mapbox: its category search round a point every 8 km or so (at most 5, asked together). */
-    private suspend fun mapboxAlong(kind: String, line: List<LL>): List<Nearby> {
+    private suspend fun mapboxAlong(kind: String, line: List<LL>, offM: Double = 0.0): List<Nearby> {
+        // (a wider search to the side asks more often along the line, so there are no gaps between the circles)
+        val radius = maxOf(2500, (offM + 500.0).toInt())
+        val gap = minOf(8000.0, radius * 1.5)
         val pts = ArrayList<LL>(); var last: LL? = null
-        for (q in line) if (last == null || Geo.dist(last, q) > 8000.0) { pts += q; last = q }
+        for (q in line) if (last == null || Geo.dist(last, q) > gap) { pts += q; last = q }
         val found = kotlinx.coroutines.coroutineScope {
-            pts.take(5).map { q -> async(Dispatchers.IO) { try { MapboxRest.poiNearby(mbToken, kind, q, 2500) } catch (e: Exception) { emptyList() } } }.map { it.await() }
+            pts.take(if (offM > 0) 8 else 5).map { q -> async(Dispatchers.IO) { try { MapboxRest.poiNearby(mbToken, kind, q, radius) } catch (e: Exception) { emptyList() } } }.map { it.await() }
         }
         val seen = HashSet<String>(); val out = ArrayList<Nearby>()
         for (l in found) for (n in l) if (seen.add(String.format(java.util.Locale.US, "%.4f,%.4f", n.place.pos.lat, n.place.pos.lon))) out += n
@@ -4066,13 +4072,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun filterChargers(l: List<Nearby>): List<Nearby> {
         val minKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
         val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
-        if (minKw <= 0 && names.isEmpty()) return l
+        val maxDetour = prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0)
+        if (minKw <= 0 && names.isEmpty() && maxDetour <= 0) return l
         val kwRe = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE)
         return l.filter { n ->
             val kw = kwRe.find(n.extra)?.groupValues?.get(1)?.toDoubleOrNull()
             val fastEnough = minKw <= 0 || kw == null || kw >= minKw
             val text = (n.place.name + " " + n.place.sub + " " + n.extra).lowercase()
-            fastEnough && (names.isEmpty() || names.any { it in text })
+            val closeEnough = maxDetour <= 0 || !n.ahead || n.detourMin < 0 || n.detourMin <= maxDetour
+            fastEnough && closeEnough && (names.isEmpty() || names.any { it in text })
         }
     }
 

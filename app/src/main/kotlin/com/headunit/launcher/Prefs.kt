@@ -461,6 +461,8 @@ internal object PreferenceKeys {
     const val EV_MIN_ARRIVE = "evminarr"
     const val EV_MIN_KW = "evminkw"
     const val EV_PROVIDERS = "evproviders"
+    /** Chargers along a route: the most minutes of detour to show, 0 for the usual (#343). */
+    const val EV_DETOUR_MIN = "evdetourmin"
 }
 
 /**
