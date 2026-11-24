@@ -175,6 +175,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             mapView.gestures.rotateEnabled = true
             mapView.gestures.pitchEnabled = true
         } catch (e: Throwable) { }
+        // two fingers moved up or down tilt the map even when they aren't held level: Mapbox only counts it as a tilt within 20
+        // degrees of level, so most tries moved the map instead (ILDEMONICO, GitHub #335)
+        try { mapView.gestures.getGesturesManager().shoveGestureDetector.setMaxShoveAngle(40f) } catch (e: Throwable) { }
         // counted all the time: the automatic frame rate compares frames drawn with camera moves asked for
         subs += mbMap.subscribeRenderFrameStarted { PerfStats.renders++ }
         subs += mbMap.subscribeMapLoadingError { e ->

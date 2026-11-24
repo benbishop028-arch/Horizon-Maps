@@ -1079,6 +1079,17 @@ object MapboxRest {
         (bestOrd ?: bestBig)?.first
     } catch (e: Exception) { null }
 
+    /**
+     * The two-letter country of a point, from Mapbox, for units with no Geocoder of their own (most head units): without it the
+     * country was never known outside Britain, so roundabouts were drawn the British way round in the Netherlands (GitHub #285).
+     */
+    fun countryAt(token: String, p: LL): String? = try {
+        val body = get("$API/search/geocode/v6/reverse?longitude=${p.lon}&latitude=${p.lat}&types=country&access_token=${enc(token)}", 6000, 8000)
+        val f = JSONObject(body).optJSONArray("features")?.optJSONObject(0)?.optJSONObject("properties")
+        (f?.optJSONObject("context")?.optJSONObject("country")?.optString("country_code").orEmpty().ifBlank { f?.optString("short_code").orEmpty() })
+            .takeIf { it.length == 2 }?.uppercase()
+    } catch (e: Exception) { null }
+
     fun speedLimit(token: String, trail: List<LL>): Double? {
         if (trail.size < 2) return null
         val coords = trail.joinToString(";") { String.format(java.util.Locale.US, "%.6f,%.6f", it.lon, it.lat) }

@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Bigger 3D models for your arrow: a .glb over 8 MB (as models made with AI tools like Meshy often are) has its pictures made smaller as it's picked, so it fits; the shape isn't changed. Up to 48 MB can be picked (thanks to HukarStudio, Reddit)
 - "Slow down" in words: Settings › Alerts › Say "Slow down" speaks it after the beep when you go over the limit, and Top speed alert gives a speed of your own (say 120 km/h) that beeps and says "Slow down" once as you reach it, whatever the limit is. Both are off by default (thanks to Dotancom, #345)
 - Pause the music for the voice: Settings › Sound & voice › Pause the music for the voice stops the music while the directions are spoken and carries on after, for when lowering it isn't enough. How far the music drops when lowered is up to your music app (thanks to bluelions25, #338)
 - Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
@@ -27,6 +28,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Roundabouts on head units outside Britain: the turn card's roundabout picture went the British way round (clockwise) in the Netherlands and other countries that drive on the right. Most head units can't look up which country they're in, so it was never known; it's now asked of Mapbox when the unit can't tell (thanks to Dixet, #285)
+- Two-finger tilt works more often: moving two fingers up or down tilts the map even when they aren't held quite level, instead of moving the map (thanks to ILDEMONICO, #335)
 - The trip card's End and Add stop buttons are always on the screen. On a wide screen with large text, the time, arrival and distance pushed them off the right edge, so there was no way to end the route (thanks to neilch0111, #341)
 - Android Auto: the trip card starts with just Add stop and End, so it stays small and clear of your arrow; add Search, Report and the others under Settings › Android Auto › Buttons on the trip card (thanks to robertoflorez76-gif, #350)
 - The traffic colours on the trip card's route bar can be seen: a short patch of traffic on a long trip was averaged away into the blue, so the bar looked clear while the map showed amber. Patches now show in their own colour on a thicker bar, with the blending only at their edges (thanks to bijindas, #336)

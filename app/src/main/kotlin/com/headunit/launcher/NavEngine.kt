@@ -1049,7 +1049,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     android.location.Geocoder(ctx, Locale.UK).getFromLocation(lat, lon, 1)?.firstOrNull()?.countryCode
                 } catch (e: Exception) { null }
                 // no geocoder on this unit (or no signal): a rough outline of Great Britain and Northern Ireland
-                g ?: if (lat in 49.85..60.9 && lon in -8.2..1.8 && !(lon < -5.45 && lat < 54.05) && !(lat < 51.0 && lon > 1.0)) "GB" else null
+                g ?: (if (lat in 49.85..60.9 && lon in -8.2..1.8 && !(lon < -5.45 && lat < 54.05) && !(lat < 51.0 && lon > 1.0)) "GB" else null)
+                    // (then Mapbox, if there's a token: head units mostly have no geocoder, so the country stayed unknown outside Britain
+                    // and roundabouts were drawn the British way round in the Netherlands, GitHub #285)
+                    ?: (if (mbToken.isNotBlank() && online()) MapboxRest.countryAt(mbToken, LL(lat, lon)) else null)
             }
             if (cc == null) { countryChecked = false; return@launch }
             val up = cc.uppercase()

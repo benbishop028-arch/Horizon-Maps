@@ -524,7 +524,8 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
         val own = OwnModel.info(prefs)
         val pickModel = rememberModelPicker(prefs) { why ->
             if (why == null) prefs.put(PreferenceKeys.MODEL_SHAPE, "own")
-            else android.widget.Toast.makeText(ctx, L.t("That file isn't a .glb 3D model (or it's over 8 MB)"), android.widget.Toast.LENGTH_LONG).show()
+            else android.widget.Toast.makeText(ctx, if (why == "too big") L.t("That model is too big, even with its pictures made smaller. Lower its polygon count (in the app that made it, or Blender's Decimate) and try again")
+                else L.t("That file isn't a .glb 3D model"), android.widget.Toast.LENGTH_LONG).show()
         }
         fun chooseModel() { if (!pickModel()) android.widget.Toast.makeText(ctx, L.t("No app on this unit can pick a file (try installing a file manager)"), android.widget.Toast.LENGTH_LONG).show() }
         if (loc == "model") {
@@ -533,7 +534,7 @@ private fun ArrowSection(prefs: Prefs, engine: NavEngine) {
             }
             if (prefs.s(PreferenceKeys.MODEL_SHAPE, "arrow") == "own" && own != null) {
                 SItem(L.t("3D model file"), own.first + " · " + String.format(java.util.Locale.UK, "%.1f MB", own.second / (1024.0 * 1024.0))) { SButton(L.t("Change")) { chooseModel() } }
-                SNote(L.t("A .glb up to 8 MB. Point it the way you drive with Turn; over 3 MB it may stutter on slower head units"))
+                SNote(L.t("A .glb model. Over 8 MB, its pictures are made smaller so it fits. Point it the way you drive with Turn; over 3 MB it may stutter on slower head units"))
                 if (engine.map.ownFailed) SNote(L.t("Your 3D model couldn't be shown, so the built-in car is used"))
                 SSlider(L.t("Turn"), prefs.s(PreferenceKeys.MODEL_TURN, "0").toFloatOrNull() ?: 0f, 0f..345f, "°", steps = 22, reset = 0f) { prefs.put(PreferenceKeys.MODEL_TURN, it.toString()) }
             }
