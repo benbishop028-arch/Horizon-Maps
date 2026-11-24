@@ -131,6 +131,8 @@ internal object PreferenceKeys {
     const val SAY_SLOW_DOWN = "sayslowdown"
     /** The sound of the over-the-limit and top-speed alerts: "double" (the usual beep), "siren" or "buzz" (ILDEMONICO, #335). */
     const val SPEED_ALERT_SOUND = "speedalertsound"
+    /** Keeps the speed alert going with the app in the background, with or without a route (ILDEMONICO, #335). */
+    const val BG_SPEED_ALERT = "bgspeedalert"
     /** A top speed of your own (km/h, or mph in miles): a beep and "Slow down" when you reach it, whatever the limit. "0" is off (Dotancom #345). */
     const val ALERT_TOP_SPEED = "topspeed"
     /** The pop-up banner when the limit changes (karthikeyansr #328): off leaves the sign itself (it pulses) and the one on the route. */

@@ -118,10 +118,11 @@ class MainActivity : ComponentActivity() {
 
         // while a route runs, a foreground service keeps GPS and voice going in the background; it stops when the route ends
         lifecycleScope.launch {
-            snapshotFlow { if (guiding()) (engine.dest?.name ?: "your destination") else null }
+            // (Settings › Alerts › Speed alert in the background: with no route, "" keeps the service and GPS going just for the alert)
+            snapshotFlow { if (guiding()) (engine.dest?.name ?: "your destination") else if (engine.prefs.b(PreferenceKeys.BG_SPEED_ALERT, false)) "" else null }
                 .distinctUntilChanged()
                 .collect { to ->
-                    if (to != null && hasLocation()) NavService.start(applicationContext, "Navigating to $to")
+                    if (to != null && hasLocation()) NavService.start(applicationContext, if (to.isEmpty()) "Speed alert on" else "Navigating to $to")
                     else if (to == null && !RouteSync.carConnected()) {
                         // (not while Android Auto is showing the map: its location service is the same one, and stays on)
                         NavService.stop(applicationContext)
@@ -301,7 +302,7 @@ class MainActivity : ComponentActivity() {
         if (!::engine.isInitialized) return
         engine.appVisible = false
         // with no route there is nothing to guide, so GPS is switched off while the app is in the background
-        if (!guiding()) engine.stopLocation()
+        if (!guiding() && !engine.prefs.b(PreferenceKeys.BG_SPEED_ALERT, false)) engine.stopLocation()
     }
 
     override fun onDestroy() {
