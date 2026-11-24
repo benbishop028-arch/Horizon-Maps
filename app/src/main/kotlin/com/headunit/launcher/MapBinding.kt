@@ -3271,6 +3271,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (board == "us" || board == "ca") {
             val w = (44f * d).toInt(); val h = (54f * d).toInt(); val m = 3f * d
             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            bmp.density = mapView.resources.displayMetrics.densityDpi
             val c = Canvas(bmp)
             c.drawRoundRect(RectF(m, m + 1.5f * d, w - m, h - m + 1.5f * d), 7f * d, 7f * d, p(0x55000000))
             c.drawRoundRect(RectF(0f, 0f, w.toFloat(), h - 1.5f * d), 8f * d, 8f * d, p(0xFFFFFFFF.toInt()))
@@ -3284,7 +3285,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             return bmp
         }
         val size = (54f * d).toInt()
+        // marked with the map's own screen density, as it's drawn at it: left unmarked it took the phone's, so on the car screen (a
+        // lower density) the sign came out a fraction of its size (as the "what's here" card did, #240)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        bmp.density = mapView.resources.displayMetrics.densityDpi
         val c = Canvas(bmp)
         val cx = size / 2f; val cy = size / 2f - 1f * d
         val halo = size / 2f - 1.5f * d
