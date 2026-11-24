@@ -368,7 +368,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
             AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, showFold = !sheetMode)
                 // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
                 val tucked = engine.homeTucked
                 if (!tucked && !sheetMode) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
@@ -1876,7 +1876,7 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOffline:
 }
 
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: (() -> Unit)? = null) { TextSides {
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: (() -> Unit)? = null, showFold: Boolean = true) { TextSides {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -1893,7 +1893,7 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                     // (the portrait sheet: Settings here instead, the places being in the sheet at the bottom)
                     if (onSettings != null) Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable { onSettings() }, contentAlignment = Alignment.Center) {
                         Icon(Icons.Rounded.Settings, L.t("Settings"), tint = c.sub, modifier = Modifier.size(24.dp))
-                    } else Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable {
+                    } else if (showFold) Box(Modifier.padding(end = 4.dp).size(40.dp).clip(CircleShape).clickable {
                         if (engine.homeTucked) { engine.homeTucked = false; engine.prefs.put(PreferenceKeys.QUICKLIST, true) }
                         else engine.prefs.put(PreferenceKeys.QUICKLIST, !open)
                     }, contentAlignment = Alignment.Center) {
