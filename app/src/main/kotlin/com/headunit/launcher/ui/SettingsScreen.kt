@@ -815,6 +815,9 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
             SChoice(L.t("Outside towns"), listOf("5", "10", "15", "20").map { it to it + unit }, prefs.s(PreferenceKeys.FLASH_OUT, "15")) { prefs.put(PreferenceKeys.FLASH_OUT, it) }
         }
         SToggle(prefs, L.t("Speed limit sounds"), PreferenceKeys.LIMIT_SOUNDS, true, L.t("The beep when you go over the limit and the beep or voice when it changes. Off keeps them quiet while cameras, hazards and other alerts still sound"))
+        SToggle(prefs, L.t("Say \"Slow down\""), PreferenceKeys.SAY_SLOW_DOWN, false, L.t("The words \"Slow down\" after the beep when you go over the limit, instead of a beep alone"))
+        SChoice(L.t("Top speed alert"), (if (engine.imperial) listOf("0", "60", "70", "80", "90") else listOf("0", "90", "100", "110", "120", "130", "140")).map { it to (if (it == "0") L.t("Off") else it + if (engine.imperial) " mph" else " km/h") },
+            prefs.s(PreferenceKeys.TOP_SPEED, "0"), L.t("A beep and \"Slow down\" when you reach this speed, whatever the limit is")) { prefs.put(PreferenceKeys.TOP_SPEED, it) }
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
@@ -874,6 +877,7 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
             L.t("If you hear the beeps but not the spoken directions, choose Media: some head units don't play the navigation channel. If the voice shares the music's volume, try Notification, Alarm or Ringtone (some units call one of these Broadcast)"), wrap = true) { prefs.put(PreferenceKeys.VOICE_CHANNEL, it) }
         if (android.os.Build.VERSION.SDK_INT >= 28 && !engine.isCar) SChoice(L.t("Voice comes out of"), listOf("auto" to L.t("Automatic"), "phone" to L.t("Phone speaker")), prefs.s(PreferenceKeys.VOICE_OUT, "auto"),
             L.t("Phone speaker keeps the directions and chimes on the phone while music plays over Bluetooth. Not for Android Auto, which uses the car's speakers")) { prefs.put(PreferenceKeys.VOICE_OUT, it) }
+        SToggle(prefs, L.t("Pause the music for the voice"), PreferenceKeys.VOICE_PAUSES_MUSIC, false, L.t("Stops the music while the directions are spoken and carries on after, instead of just lowering it. For when lowering isn't enough: how far the music drops is up to your music app"))
         SToggle(prefs, L.t("Play the voice like the chimes"), PreferenceKeys.VOICE_VIA_APP, false, L.t("Turn on if the music is lowered for the beeps but not for the spoken directions: some head units only lower it for sound the app plays itself"))
         SItem(L.t("Voice and language"), L.t("Uses the system text-to-speech voice")) { SButton(L.t("Open")) { openSystemSettings(ctx, "com.android.settings.TTS_SETTINGS") } }
         SItem(L.t("Volume")) { SButton(L.t("Open")) { openSystemSettings(ctx, Settings.ACTION_SOUND_SETTINGS) } }

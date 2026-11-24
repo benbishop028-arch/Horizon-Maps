@@ -166,7 +166,7 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
     val smooth = remember(levels, blend) {
         FloatArray(bins) { b -> if (!blend) levels[b].toFloat() else {
             var sum = 0f; var wsum = 0f
-            for (k in -3..3) { val i = b + k; if (i !in 0 until bins) continue; val w = 4f - kotlin.math.abs(k); sum += levels[i] * w; wsum += w }
+            for (k in -2..2) { val i = b + k; if (i !in 0 until bins) continue; val w = 3f - kotlin.math.abs(k); sum += levels[i] * w; wsum += w }
             sum / wsum } }
     }
     val accent = c.accent
@@ -181,7 +181,8 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
         val w = maxWidth
         // the track, with the part already driven greyed out, and the arrow
         Canvas(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (thin) 18.dp else 26.dp)) {
-            val th = (if (thin) 4.dp else 8.dp).toPx()
+            // (thicker, so the traffic colours can be told apart: the thin bar was hard to read, GitHub #336)
+            val th = (if (thin) 6.dp else 11.dp).toPx()
             val y0 = (size.height - th) / 2f
             val bw = size.width / bins
             drawRoundRect(Color.Black.copy(alpha = 0.45f), Offset(0f, y0 - 1.5f), Size(size.width, th + 3f), CornerRadius(th))

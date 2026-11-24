@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- "Slow down" in words: Settings › Alerts › Say "Slow down" speaks it after the beep when you go over the limit, and Top speed alert gives a speed of your own (say 120 km/h) that beeps and says "Slow down" once as you reach it, whatever the limit is. Both are off by default (thanks to Dotancom, #345)
+- Pause the music for the voice: Settings › Sound & voice › Pause the music for the voice stops the music while the directions are spoken and carries on after, for when lowering it isn't enough. How far the music drops when lowered is up to your music app (thanks to bluelions25, #338)
 - Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
 - Pop-up when the limit changes can be switched off (Settings › Alerts): the sign by your speedometer still pulses, and the sign on the route ahead still shows (thanks to karthikeyansr, #328)
 - My routes: save the way you drove. When you arrive, "Save as my route" on the arrival card keeps the roads you really took (on the phone you can name it; on Android Auto it's saved with a name like "Home → Work"). Next time you go from near the same start to the same place, it's in the route choice as "Your route", first and picked, with how it compares with the fastest ("+2 min", "3 min faster"). Save more than one for the same trip and the one driven nearest this time of day comes first, so a morning and an evening way each come up at their own time. Driving it, a reroute brings you back onto it, and there are no "Faster route found" prompts. Settings › Places & trips › My routes lists them, to show on the map, rename or delete, and to choose whether a saved route is offered, started on straight away or not offered. They're in backups too (thanks to igalshe-ai, #321)
@@ -25,6 +27,11 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- The trip card's End and Add stop buttons are always on the screen. On a wide screen with large text, the time, arrival and distance pushed them off the right edge, so there was no way to end the route (thanks to neilch0111, #341)
+- Android Auto: the trip card starts with just Add stop and End, so it stays small and clear of your arrow; add Search, Report and the others under Settings › Android Auto › Buttons on the trip card (thanks to robertoflorez76-gif, #350)
+- The traffic colours on the trip card's route bar are easier to tell apart: a thicker bar, with the colours running into each other less (thanks to bijindas, #336)
+- Car parks near the end of a route: if the first look finds none (the map service didn't answer), it's tried again a few times instead of giving up for the whole trip (thanks to Dotancom, #324)
+- Germany: speed limits outside towns. Roads marked "no limit" that aren't motorways, and those marked rural, now show 100 km/h, instead of keeping the 70 or showing nothing (thanks to TheHairforce, #351)
 - The speed limit sign on the route, and the lorry height and weight signs, never showed on the map: Mapbox refused the layer they're drawn on because of how its size was written, so it was never added. Now it is (thanks to SonicBjork)
 - Portrait, on a route: a warning (traffic jam, camera…) now shows under the turn card instead of on top of it, where it hid the turn and the distance
 - Dim the screen at night now really dims: it's half of what the screen is at, never brighter. It used to set a fixed 50%, which is brighter than most screens at night (testers' group)

@@ -304,7 +304,12 @@ object Overpass {
             val road = if (major && ref.isNotBlank()) ref else nm.ifBlank { ref }
             val names = (listOf(nm) + t.optString("ref").split(";").map { it.trim() }).filter { it.isNotBlank() }
             val sure = bDist <= 18.0 && bAligned
+            // Germany: "no limit" (maxspeed=none) on a road that isn't a motorway is the 100 km/h of the open road, not "no limit": without
+            // this the 70 before the sign stayed up, or nothing showed (TheHairforce, GitHub #351)
+            val deOpen = if (posted == null && country == "DE" && t.optString("maxspeed").trim().lowercase() == "none" &&
+                t.optString("highway") !in setOf("motorway", "motorway_link", "trunk", "trunk_link")) 100.0 / 3.6 else null
             if (posted != null) Limit(posted, false, road, w.id, names, sure)
+            else if (deOpen != null) Limit(deOpen, false, road, w.id, names, sure)
             else estimate(t, country)?.let { Limit(if (country == "GB") snapGb(it) else it, true, road, w.id, names, sure) }
                 ?: Limit(-1.0, true, road, w.id, names, sure)
         }
@@ -321,6 +326,8 @@ object Overpass {
             "urban" -> 50.0 / 3.6
             "living_street" -> 20.0 / 3.6
             "motorway" -> when (country) { "DE" -> null; else -> 130.0 / 3.6 }
+            // (Germany: outside towns the limit for cars is 100 km/h, which is what "DE:rural" and the end-of-all-limits sign mean on an ordinary road, GitHub #351)
+            "rural" -> if (country == "DE") 100.0 / 3.6 else null
             else -> null      // "rural" differs too much between countries to guess
         }
     }
