@@ -430,10 +430,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
-                                            if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = !routeSheet)
+                                            if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = false)
                                         })
                                         // the next services: a card of its own under the turn card again, not joined to it
                                         if (!altFocus) ServicesCard(engine)
+                                        // car parks near the end: their own card again (the portrait sheet has them in the sheet)
+                                        if (!altFocus && !routeSheet) ParkingCard(engine)
                                     }
                                     // warnings (a camera, a limit, rain...) pop up just under the turn card, joined to it
                                     if (routeSheet) {

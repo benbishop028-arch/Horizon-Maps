@@ -518,11 +518,15 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                             }
                             // a lorry's limit ahead, an average speed check (magnazan, #177), the next services, car parks near the
                             // end and advice for the conditions, as lines of the card instead of cards stacked under it
-                            TurnCardExtras(engine, extraMax, advice = !small)
+                            // (car parks are their own card again, under it: liked better that way)
+                            TurnCardExtras(engine, extraMax, advice = !small, parking = false)
                         })
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
-                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { ServicesCard(engine) }
+                // ...and car parks near the end, a card of their own too, as they were before they joined the turn card
+                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
+                }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
