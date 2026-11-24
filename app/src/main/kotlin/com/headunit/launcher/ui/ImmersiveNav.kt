@@ -437,10 +437,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
-                                            if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, parking = false)
+                                            // (portrait: the advice line lives in the trip sheet, and the services only appear here once they are close)
+                                            if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, advice = !routeSheet, parking = false)
                                         })
                                         // the next services: a card of its own under the turn card again, not joined to it
-                                        if (!altFocus && !hudMin) ServicesCard(engine)
+                                        if (!altFocus && !hudMin) { if (routeSheet) NearServicesPill(engine) else ServicesCard(engine) }
                                         // car parks near the end: their own card again (the portrait sheet has them in the sheet)
                                         if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
                                     }
@@ -1625,6 +1626,7 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         }
         // what the trip has cost so far (#316)
         LiveFuelLine(engine, Modifier.padding(start = 22.dp, end = 18.dp, bottom = 10.dp))
+        SheetChips(engine)
         // arriving: the side of the road, and car parks near the destination (tap one to go there instead)
         if (arriving) {
             val side = remember(engine.route) { engine.destSide() }
@@ -1688,6 +1690,51 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                     }
                 }
                 if (media) MediaBar()
+            }
+        }
+    }
+}
+
+/** The next services are worth a line on the map only once they are close; further off they are a chip in the trip sheet. */
+private const val SERVICES_NEAR_M = 5000.0
+
+private fun servicesShown(engine: NavEngine) = engine.servicesAhead.isNotEmpty() && engine.avgInfo == null && engine.prefs.b(PreferenceKeys.SERVICESCARD, true)
+
+/** Portrait route: one slim line under the turn card when the next services are close (it fades away again after them). */
+@Composable
+private fun NearServicesPill(engine: NavEngine) {
+    val s = engine.servicesAhead.firstOrNull() ?: return
+    if (!servicesShown(engine) || s.dist > SERVICES_NEAR_M) return
+    val c = LocalVw.current
+    Row(Modifier.fillMaxWidth().panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(24.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF4C8DFF)), contentAlignment = Alignment.Center) {
+            Icon(Icons.Rounded.LocalCafe, null, tint = Color.White, modifier = Modifier.size(15.dp))
+        }
+        Text(s.name + (if (s.fuel.isNotBlank()) " · " + s.fuel else ""), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+            overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(start = 10.dp))
+        Text(Geo.fmtDist(s.dist, engine.imperial), color = c.text, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+    }
+}
+
+/** The trip sheet's resting row of chips: the next services (while still far off) and the advice for the conditions. Nothing when there's neither. */
+@Composable
+private fun SheetChips(engine: NavEngine) {
+    val c = LocalVw.current
+    val svc = engine.servicesAhead.firstOrNull()?.takeIf { servicesShown(engine) && it.dist > SERVICES_NEAR_M }
+    val advice = engine.advice
+    if (svc == null && advice == null) return
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        svc?.let { s ->
+            Row(Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(c.tile).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.LocalCafe, null, tint = Color(0xFF4C8DFF), modifier = Modifier.size(18.dp))
+                Text(s.name + " · " + Geo.fmtDist(s.dist, engine.imperial), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp).widthIn(max = 230.dp))
+            }
+        }
+        advice?.let { a ->
+            Row(Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(c.tile).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.WaterDrop, null, tint = Color(0xFF7FB2FF), modifier = Modifier.size(18.dp))
+                Text(a, color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp).widthIn(max = 230.dp))
             }
         }
     }

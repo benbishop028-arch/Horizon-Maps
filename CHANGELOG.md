@@ -39,6 +39,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
+- Roomier map in portrait while navigating: the next services now appear as a slim line under the turn card only when they are within about 5 km, and further off they are a chip in the trip sheet along with the weather advice, so nothing needs hiding with Clean view to see the map
 - Android Auto on small screens: on small, low-resolution car screens (such as 7" 1024×600) the cards and text are now smaller and the position arrow scales down with the screen, so more of the map is visible (thanks to qpkqkma, #367)
 - The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
 
