@@ -478,25 +478,27 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             // are on the trip card while navigating, Settings is beside these when you're not (and in map options' header when you are)
             val railItems = ArrayList<@Composable () -> Unit>()
             // (the portrait route layout: compass, report and map options are in the trip sheet, only sound and other routes stay here)
+            // Settings > Map buttons: which of these show (Map options always does, it's the way to everything else) (#335)
+            val railHidden = engine.prefs.s(PreferenceKeys.RAIL_HIDDEN, "overview").split(",")
             if (!routeSheet) {
-            railItems.add(@Composable { ImmCompass(engine) })
+            if ("compass" !in railHidden) railItems.add(@Composable { ImmCompass(engine) })
             // #275: keep one-tap reports on the map itself, rather than making drivers open Map options first.
-            railItems.add(@Composable { ImmIcon(Icons.Rounded.Campaign, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
+            if ("report" !in railHidden) railItems.add(@Composable { ImmIcon(Icons.Rounded.Campaign, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             }
             // (the portrait route layout: map options stays, above sound)
             if (routeSheet) railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             // navigating: sound in one big button with the others (voice, alerts only, mute), as in Google Maps. It used to be a small
             // button on the trip card, close to the others and hard to hit while driving (GitHub, magnazan)
-            if (routing) railItems.add(@Composable {
+            if (routing && "sound" !in railHidden) railItems.add(@Composable {
                 ImmCircle({ engine.cycleSound() }, 52.dp) {
                     Icon(soundIcon(engine.soundMode), L.t("Sound"), tint = if (engine.soundMode == 2) Bad else c.text, modifier = Modifier.size(24.dp))
                 }
             })
             // navigating: other ways to go, any time (as in Google Maps): shown in grey on the map with how they compare, tap one to switch
-            if (routing) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = L.t("Other routes")) })
+            if (routing && "routes" !in railHidden) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = L.t("Other routes")) })
             // Clean view (#358): full, then minimal, then the map only; remembered for the next trip
-            if (routing && !previewing) railItems.add(@Composable {
+            if (routing && !previewing && "clean" !in railHidden) railItems.add(@Composable {
                 val label = when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }
                 ImmIcon(if (cleanView == 0) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff, {
                     cleanView = (cleanView + 1) % 3
@@ -504,6 +506,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                     engine.toast(when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }, 1500)
                 }, active = cleanView != 0, desc = label)
             })
+            // the whole route on screen for a few seconds, then back to following you (off unless chosen in Settings > Map buttons)
+            if (routing && !previewing && "overview" !in railHidden) railItems.add(@Composable { ImmIcon(Icons.Rounded.Route, { engine.overview() }, desc = L.t("Overview")) })
             // the demo drive: play to start it; while it plays, its speed (tap for 1x / 2x / 4x), skip to the next turn, and stop
             if (engine.simMode != 0) {
                 railItems.add(@Composable {
@@ -1174,10 +1178,10 @@ private fun ImmCompass(engine: NavEngine) {
         (if (LocalInRail.current) Modifier.size(52.dp) else Modifier.size(52.dp).panel(6.dp, CircleShape, c.surface)).pressClick { engine.toggleNorthUp() },
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(width = 4.dp, height = 8.dp).clip(RoundedCornerShape(2.dp)).background(Bad))
-            Text("N", color = if (engine.northUp) c.accent else c.text, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-        }
+        Text("N", color = if (engine.northUp) c.accent else c.text, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        // the red mark rides round the edge and always points at real north
+        val a = Math.toRadians(-engine.compassDeg)
+        Box(Modifier.offset(x = (20 * kotlin.math.sin(a)).dp, y = (-20 * kotlin.math.cos(a)).dp).size(8.dp).clip(CircleShape).background(Bad))
     }
 }
 

@@ -61,6 +61,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     var busy by mutableStateOf(false)
     var previewing by mutableStateOf(false)
     var northUp by mutableStateOf(false)
+    /** The way the map is turned (0 = north at the top), for the compass button. */
+    var compassDeg by mutableStateOf(0.0)
     var results by mutableStateOf<List<Place>>(emptyList())
     var alternatives by mutableStateOf(false)
     /** The current weather: shared by the phone's engine and Android Auto's (each has its own NavEngine), so a refresh in either
@@ -3304,7 +3306,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         northUp = !northUp
         // remembered for next time, on the phone / head unit and Android Auto separately (GitHub #27)
         try { prefs.put(if (isCar) PreferenceKeys.NORTH_UP_CAR else PreferenceKeys.NORTH_UP, northUp) } catch (e: Exception) { }
-        if (northUp) map.resetNorth() else fix?.let { onPosition(it, true) }
+        if (northUp) { compassDeg = 0.0; map.resetNorth() } else fix?.let { onPosition(it, true) }
     }
 
     fun toggleTilt() {
@@ -4369,6 +4371,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         val gp = gPos ?: return
         map.setMe(gp, gHead, 0)
+        val facing = if (northUp || !following) 0.0 else lookB
+        if (abs(angDiff(compassDeg, facing)) >= 3.0) compassDeg = facing
         if (glideOnRoute && r != null && !previewing) {
             if (now - gDoneAt >= (if (following) 350L else 1500L)) { gDoneAt = now; updateDone(r, gProg) }
         } else if (doneShown) { map.setDone(emptyList()); doneShown = false }

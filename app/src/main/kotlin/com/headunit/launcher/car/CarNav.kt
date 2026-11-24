@@ -68,6 +68,7 @@ import com.headunit.launcher.KEEP_LEFT
 import com.headunit.launcher.MapBinding
 import com.headunit.launcher.MapboxRest
 import com.headunit.launcher.carArrowScale
+import com.headunit.launcher.carScreenFit
 import com.headunit.launcher.locatorSpec
 import com.headunit.launcher.mapDetail
 import com.headunit.launcher.NavEngine
@@ -453,8 +454,14 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
         // not inflate buttons/cards. Only allow a small adjustment for unusually compact surfaces.
         // a narrow part of the screen (Android Auto's split screen) can go smaller still, so the cards fit beside the map
         val narrow = width < 760 || width < height
-        val perUnit = (short / 1050f).coerceIn(dens * (if (narrow) 0.52f else 0.68f), dens * 0.98f)
+        // a small, low-resolution screen (7" 1024x600, 800x480) gets smaller cards, text and arrow so the map stays usable (#367)
+        val perUnit = (short / 1050f).coerceIn(dens * (if (narrow) 0.45f else 0.5f), dens * 0.98f)
         uiScale.value = perUnit / dens
+        val fit = (short / 900f).coerceIn(0.55f, 1f)
+        if (fit != carScreenFit) {
+            carScreenFit = fit
+            try { map?.setArrowScale(Prefs(carContext.applicationContext).carArrowScale()) } catch (_: Exception) { }
+        }
     }
 
     override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) {

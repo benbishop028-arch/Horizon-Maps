@@ -404,6 +404,15 @@ private fun LightSection(prefs: Prefs) {
         SToggle(prefs, L.t("Sun in its real place"), PreferenceKeys.SUN_REAL, false, L.t("Light and shadows come from where the sun really is right now, and at night from the moon"))
         // (Overcast light is in Settings > Weather, with everything else the weather changes)
     }
+    SGroup(L.t("Map buttons"), footer = L.t("Map options is always there. Overview shows the whole route for a few seconds, then goes back to following you")) {
+        val hidden = prefs.s(PreferenceKeys.RAIL_HIDDEN, "overview").split(",").filter { it.isNotBlank() }
+        listOf("compass" to L.t("Compass"), "report" to L.t("Report"), "sound" to L.t("Sound (while navigating)"), "routes" to L.t("Other routes (while navigating)"),
+            "clean" to L.t("Clean view (while navigating)"), "overview" to L.t("Overview (while navigating)")).forEach { (id, name) ->
+            val on = id !in hidden
+            val set = { v: Boolean -> prefs.put(PreferenceKeys.RAIL_HIDDEN, (if (v) hidden - id else (hidden + id).distinct()).joinToString(",").ifEmpty { "none" }) }
+            SItem(name, onClick = { set(!on) }) { Switch(on, { set(it) }) }
+        }
+    }
     // everything that sets the map's angle in one place (the switches below were in Turn card & lanes and On the map, where the
     // flat view when stopped wasn't found: bluelions25, #312)
     SGroup(L.t("Map view"), footer = L.t("Tilt: 30° to 65°. Auto is the app's own choice (54°, or 52° with a lighter map). Tilt with speed and flattening at turns still work on top.")) {

@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Map buttons: Settings › Map buttons lets you choose which buttons show on the map (compass, report, sound, other routes, clean view, overview). There is also a new Overview button, off until you turn it on, that shows the whole route for a few seconds and then goes back to following you (thanks to ILDEMONICO, #335)
+- Compass: the red mark on the map's N button now moves round the edge and always points to real north, so you can see which way the map is turned (thanks to ILDEMONICO, #335)
 - Clean view: a new eye button on the map while you navigate. Tap it to switch between everything, a minimal view (turn card, speed and trip card only) and just the map. It remembers your choice (thanks to jorgesanz6, #358)
 - Speed alert in the background: Settings › Alerts › Speed alert in the background keeps the alert going while another app is in front, with or without a route (thanks to ILDEMONICO, #335)
 - Speed alert sound: choose a double beep, a rising siren or a low buzz for going over the limit or your top speed, so it can't be mistaken for the camera and hazard beeps. Settings › Alerts (thanks to ILDEMONICO, #335)
@@ -36,6 +38,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
+- Android Auto on small screens: on small, low-resolution car screens (such as 7" 1024×600) the cards and text are now smaller and the position arrow scales down with the screen, so more of the map is visible (thanks to qpkqkma, #367)
 - The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
 
 ### Fixed

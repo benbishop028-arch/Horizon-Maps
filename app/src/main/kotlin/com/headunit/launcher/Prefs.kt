@@ -196,6 +196,8 @@ internal object PreferenceKeys {
     const val MEDIA_BAR = "media_bar"
     /** The Clean view button on the map: 0 everything, 1 minimal (turn card, speed, trip), 2 the map only (#358). */
     const val CLEAN_VIEW = "cleanview"
+    /** Map buttons switched off in Settings > Map buttons, comma separated (compass, report, sound, routes, clean, overview). Overview starts off. */
+    const val RAIL_HIDDEN = "rail_hidden"
     const val DRIVESIMPLE = "drivesimple"
     const val EVMPK = "evmpk"
     const val EVPPK = "evppk"
@@ -606,12 +608,15 @@ fun Prefs.locatorSpec(): Pair<String, String> {
     }
 }
 
+/** Android Auto: how much smaller the arrow goes on a small screen, 1 on a big one (#367). Set by CarNav when the screen size is known. */
+@Volatile var carScreenFit: Float = 1f
+
 /**
  * The arrow's size on the Android Auto map: the app's arrow size, normalised for the smaller car surface (so the 240% main-app
  * default doesn't make an enormous arrow there), times the car screen's own "Navigation arrow size".
  */
 fun Prefs.carArrowScale(): Float =
-    ((s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(0.6f, 5f) * 0.9f * (i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180) / 100f)
+    carScreenFit * ((s(PreferenceKeys.ARROW_PERCENT, "240").toIntOrNull() ?: 240) / 100f).coerceIn(0.6f, 5f) * 0.9f * (i(PreferenceKeys.CAR_ARROW_SIZE, 100).coerceIn(30, 180) / 100f)
 
 /** Settings > Map > Map detail: "full", "lite" or "lightest" (the old "Light map" switch counts as lite). */
 fun Prefs.mapDetail(): String = s(PreferenceKeys.MAP_DETAIL, if (b(PreferenceKeys.MAP_LITE, false)) "lite" else "full")
