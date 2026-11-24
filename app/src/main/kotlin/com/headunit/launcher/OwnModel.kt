@@ -7,11 +7,13 @@ import java.io.File
 
 /**
  * Your own 3D model for the arrow (Settings > Your arrow > Real 3D model > Your model): a .glb file, checked when it's picked
- * (a real glTF 2.0 binary, no bigger than 8 MB), copied into the app's own storage and measured, so a model built at any scale
+ * (a real glTF 2.0 binary, no bigger than 8 MB once its pictures have been made smaller if need be), copied into the app's own storage and measured, so a model built at any scale
  * comes out about the size of the built-in car before the size slider is applied.
  */
 object OwnModel {
     const val MAX_BYTES = 8L * 1024 * 1024
+    /** The biggest file taken when picking: one over [MAX_BYTES] has its pictures (textures) made smaller until it fits. */
+    const val MAX_PICK_BYTES = 48L * 1024 * 1024
     /** Over this a warning is shown: big models can make the map stutter on slower head units. */
     const val HEAVY_BYTES = 3L * 1024 * 1024
     private const val PREFIX = "own_model_"
@@ -32,6 +34,7 @@ object OwnModel {
             cr.query(src, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
         } catch (e: Exception) { null } ?: "model.glb"
         val tmp = File(ctx.filesDir, "own_model.tmp")
+        val small = File(ctx.filesDir, "ownmodel_small.tmp")
         var total = 0L
         try {
             (cr.openInputStream(src) ?: return "unreadable").use { input ->
@@ -41,15 +44,26 @@ object OwnModel {
                         val n = input.read(buf)
                         if (n < 0) break
                         total += n
-                        if (total > MAX_BYTES) return "too big"
+                        if (total > MAX_PICK_BYTES) return "too big"
                         out.write(buf, 0, n)
                     }
                 }
             }
             val extent = measure(tmp) ?: return "not a glb"
+            // over 8 MB (models made with AI tools such as Meshy are mostly large pictures): the pictures are made smaller, 1024
+            // pixels across, then 512, until it fits. The shape itself isn't changed (HukarStudio, Reddit: an 18 MB model)
+            var use = tmp
+            if (total > MAX_BYTES) {
+                for (side in intArrayOf(1024, 512)) {
+                    small.delete()
+                    if (shrinkPictures(tmp, small, side) && small.length() in 1..MAX_BYTES && measure(small) != null) { use = small; break }
+                }
+                if (use === tmp) return "too big"
+                total = small.length()
+            }
             val stamp = System.currentTimeMillis()
             val dest = File(ctx.filesDir, "$PREFIX$stamp.glb")
-            if (!tmp.renameTo(dest)) { tmp.copyTo(dest, true) }
+            if (!use.renameTo(dest)) { use.copyTo(dest, true) }
             // the older copies go
             ctx.filesDir.listFiles()?.filter { it.name.startsWith(PREFIX) && it.name.endsWith(".glb") && it != dest }?.forEach { it.delete() }
             prefs.put(PreferenceKeys.OWN_MODEL, "$stamp|$total|$extent|$name")
@@ -59,8 +73,88 @@ object OwnModel {
             return e.message ?: "failed"
         } finally {
             try { tmp.delete() } catch (e: Exception) { }
+            try { small.delete() } catch (e: Exception) { }
         }
     }
+
+    /**
+     * Writes [src] to [dst] with every picture inside it (base colour, normal map…) no more than [maxSide] pixels across: JPEG
+     * where it has no see-through parts, PNG where it has. The rest of the file is copied as it is. False when there was nothing
+     * to make smaller, or the file is laid out in a way that can't safely be rewritten (pictures kept in separate files,
+     * meshopt compression).
+     */
+    private fun shrinkPictures(src: File, dst: File, maxSide: Int): Boolean = try {
+        val all = src.readBytes()
+        val bb = java.nio.ByteBuffer.wrap(all).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        if (all.size < 28 || bb.getInt(0) != 0x46546C67 || bb.getInt(4) != 2) throw IllegalStateException("not glb")
+        val jsonLen = bb.getInt(12)
+        if (bb.getInt(16) != 0x4E4F534A || jsonLen <= 0 || 20L + jsonLen > all.size) throw IllegalStateException("no json")
+        val j = JSONObject(String(all, 20, jsonLen, Charsets.UTF_8))
+        val c1 = 20 + jsonLen
+        var binAt = 0; var binLen = 0
+        if (c1 + 8 <= all.size && bb.getInt(c1 + 4) == 0x004E4942) {
+            binLen = bb.getInt(c1); binAt = c1 + 8
+            if (binLen < 0 || binAt.toLong() + binLen > all.size) throw IllegalStateException("bad bin")
+        }
+        val used = j.optJSONArray("extensionsUsed")
+        if (used != null) for (i in 0 until used.length()) if (used.optString(i).startsWith("EXT_meshopt")) throw IllegalStateException("meshopt")
+        val buffers = j.optJSONArray("buffers")
+        val views = j.optJSONArray("bufferViews")
+        val images = j.optJSONArray("images")
+        if (buffers == null || buffers.length() != 1 || buffers.optJSONObject(0)?.has("uri") == true || views == null || images == null) throw IllegalStateException("layout")
+        val fresh = HashMap<Int, ByteArray>()
+        for (i in 0 until images.length()) {
+            val im = images.optJSONObject(i) ?: continue
+            val vi = im.optInt("bufferView", -1)
+            val v = views.optJSONObject(vi) ?: continue
+            val off = v.optInt("byteOffset", 0); val len = v.optInt("byteLength", 0)
+            if (off < 0 || len <= 0 || off.toLong() + len > binLen) continue
+            val o = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeByteArray(all, binAt + off, len, o)
+            // (a picture Android can't read, a KTX2 one say, is left as it is)
+            if (o.outWidth <= 0 || o.outHeight <= 0) continue
+            val big = maxOf(o.outWidth, o.outHeight)
+            if (big <= maxSide) continue
+            var sample = 1
+            while (big / (sample * 2) >= maxSide) sample *= 2
+            val bmp = android.graphics.BitmapFactory.decodeByteArray(all, binAt + off, len, android.graphics.BitmapFactory.Options().apply { inSampleSize = sample }) ?: continue
+            val k = maxSide.toFloat() / maxOf(bmp.width, bmp.height)
+            val sm = if (k < 1f) android.graphics.Bitmap.createScaledBitmap(bmp, maxOf(1, Math.round(bmp.width * k)), maxOf(1, Math.round(bmp.height * k)), true) else bmp
+            val clear = sm.hasAlpha() && im.optString("mimeType") != "image/jpeg"
+            val out = java.io.ByteArrayOutputStream()
+            sm.compress(if (clear) android.graphics.Bitmap.CompressFormat.PNG else android.graphics.Bitmap.CompressFormat.JPEG, 88, out)
+            if (sm !== bmp) sm.recycle()
+            bmp.recycle()
+            fresh[vi] = out.toByteArray()
+            im.put("mimeType", if (clear) "image/png" else "image/jpeg")
+        }
+        if (fresh.isEmpty()) throw IllegalStateException("nothing to shrink")
+        // the binary part again, view by view, each starting on a 4-byte boundary as glTF asks
+        val nb = java.io.ByteArrayOutputStream()
+        for (vi in 0 until views.length()) {
+            val v = views.getJSONObject(vi)
+            while (nb.size() % 4 != 0) nb.write(0)
+            val start = nb.size()
+            val data = fresh[vi]
+            if (data != null) { nb.write(data); v.put("byteLength", data.size) }
+            else {
+                val off = v.optInt("byteOffset", 0); val len = v.optInt("byteLength", 0)
+                if (off < 0 || len < 0 || off.toLong() + len > binLen) throw IllegalStateException("bad view")
+                nb.write(all, binAt + off, len)
+            }
+            v.put("byteOffset", start)
+        }
+        while (nb.size() % 4 != 0) nb.write(0)
+        buffers.getJSONObject(0).put("byteLength", nb.size())
+        var jb = j.toString().toByteArray(Charsets.UTF_8)
+        if (jb.size % 4 != 0) jb += ByteArray(4 - jb.size % 4) { 0x20.toByte() }
+        val bin = nb.toByteArray()
+        val head = java.nio.ByteBuffer.allocate(20).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        head.putInt(0x46546C67).putInt(2).putInt(12 + 8 + jb.size + 8 + bin.size).putInt(jb.size).putInt(0x4E4F534A)
+        val binHead = java.nio.ByteBuffer.allocate(8).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(bin.size).putInt(0x004E4942)
+        dst.outputStream().use { it.write(head.array()); it.write(jb); it.write(binHead.array()); it.write(bin) }
+        true
+    } catch (e: Throwable) { false }
 
     /** What was saved: (shown name, size in bytes, longest side in model units). */
     fun info(prefs: Prefs): Triple<String, Long, Double>? {

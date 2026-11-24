@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Bigger 3D models for your arrow: a .glb over 8 MB (as models made with AI tools like Meshy often are) has its pictures made smaller as it's picked, so it fits; the shape isn't changed. Up to 48 MB can be picked (thanks to HukarStudio, Reddit)
+- "Slow down" in words: Settings › Alerts › Say "Slow down" speaks it after the beep when you go over the limit, and Top speed alert gives a speed of your own (say 120 km/h) that beeps and says "Slow down" once as you reach it, whatever the limit is. Both are off by default (thanks to Dotancom, #345)
+- Pause the music for the voice: Settings › Sound & voice › Pause the music for the voice stops the music while the directions are spoken and carries on after, for when lowering it isn't enough. How far the music drops when lowered is up to your music app (thanks to bluelions25, #338)
 - Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
 - Pop-up when the limit changes can be switched off (Settings › Alerts): the sign by your speedometer still pulses, and the sign on the route ahead still shows (thanks to karthikeyansr, #328)
 - My routes: save the way you drove. When you arrive, "Save as my route" on the arrival card keeps the roads you really took (on the phone you can name it; on Android Auto it's saved with a name like "Home → Work"). Next time you go from near the same start to the same place, it's in the route choice as "Your route", first and picked, with how it compares with the fastest ("+2 min", "3 min faster"). Save more than one for the same trip and the one driven nearest this time of day comes first, so a morning and an evening way each come up at their own time. Driving it, a reroute brings you back onto it, and there are no "Faster route found" prompts. Settings › Places & trips › My routes lists them, to show on the map, rename or delete, and to choose whether a saved route is offered, started on straight away or not offered. They're in backups too (thanks to igalshe-ai, #321)
@@ -25,6 +28,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Roundabouts on head units outside Britain: the turn card's roundabout picture went the British way round (clockwise) in the Netherlands and other countries that drive on the right. Most head units can't look up which country they're in, so it was never known; it's now asked of Mapbox when the unit can't tell (thanks to Dixet, #285)
+- Two-finger tilt works more often: moving two fingers up or down tilts the map even when they aren't held quite level, instead of moving the map (thanks to ILDEMONICO, #335)
+- The trip card's End and Add stop buttons are always on the screen. On a wide screen with large text, the time, arrival and distance pushed them off the right edge, so there was no way to end the route (thanks to neilch0111, #341)
+- Android Auto: the trip card starts with just Add stop and End, so it stays small and clear of your arrow; add Search, Report and the others under Settings › Android Auto › Buttons on the trip card (thanks to robertoflorez76-gif, #350)
+- The traffic colours on the trip card's route bar can be seen: a short patch of traffic on a long trip was averaged away into the blue, so the bar looked clear while the map showed amber. Patches now show in their own colour on a thicker bar, with the blending only at their edges (thanks to bijindas, #336)
+- Car parks near the end of a route are back, as their own card under the turn card again (phone, head unit and Android Auto) instead of lines of the turn card, where a fix for them opening and closing over and over had taken them away for good. If the first look finds no car parks (the map service didn't answer), it's tried again a few times (thanks to Dotancom, #324)
+- Germany: speed limits outside towns. Roads marked "no limit" that aren't motorways, and those marked rural, now show 100 km/h, instead of keeping the 70 or showing nothing (thanks to TheHairforce, #351)
 - The speed limit sign on the route, and the lorry height and weight signs, never showed on the map: Mapbox refused the layer they're drawn on because of how its size was written, so it was never added. Now it is, at the right size on Android Auto too (thanks to SonicBjork)
 - Portrait, on a route: a warning (traffic jam, camera…) now shows under the turn card instead of on top of it, where it hid the turn and the distance
 - Dim the screen at night now really dims: it's half of what the screen is at, never brighter. It used to set a fixed 50%, which is brighter than most screens at night (testers' group)
@@ -803,6 +813,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Default zoom: set your own normal zoom for when you're not on a route. Zoom with + and − on the map and tap "Make this my default", or use the slider in Settings > Map style, where Reset puts it back. Auto zoom still pulls out at speed and moves in at junctions, round your setting.
 
 ### Improved
+- More accurate arrival times: the map now uses the actual time for each remaining road segment instead of spreading the whole journey time evenly by distance. Live incident delays are added only when they are not already included in the route's traffic estimate.
+- Android Auto voice search keeps a recognised destination when the speech service reports an error after returning partial text, and also submits usable text if listening times out.
+- Mapbox is now notified when Android reports low memory, giving it a chance to release native map resources and reduce the risk of freezes.
 - Settings reorganised: Map look is split into Map style (colours, day and night, map detail) and Light & 3D (light and weather, 3D, tilt, sky), Glass panels and the Mapbox logo position move to Screen & sizes, and Feedback has its own group at the top of About & backup. Settings search finds everything in its new place, and settings open where you left them.
 - Live map preview in settings: the map style, light, on-the-map and arrow pages show the real map at the top, so changes show as you make them, with Day / Night buttons to check the night look in daylight.
 - Pictures in settings: the lane styles, where the speed display sits, and the arrow styles are shown as small pictures to pick from.

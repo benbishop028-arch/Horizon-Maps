@@ -127,6 +127,10 @@ internal object PreferenceKeys {
     const val FLASH_OVER = "flashover"
     /** The speed limit's beeps and voice (over the limit, and when it changes) on or off on their own, the other alerts kept (testers). */
     const val LIMIT_SOUNDS = "limitsounds"
+    /** Says "Slow down" after the beep for going over the limit (Dotancom #345). */
+    const val SAY_SLOW_DOWN = "sayslowdown"
+    /** A top speed of your own (km/h, or mph in miles): a beep and "Slow down" when you reach it, whatever the limit. "0" is off (Dotancom #345). */
+    const val ALERT_TOP_SPEED = "topspeed"
     /** The pop-up banner when the limit changes (karthikeyansr #328): off leaves the sign itself (it pulses) and the one on the route. */
     const val LIMIT_POPUP = "limitpopup"
     const val FLASH_TOWN = "flashtown"
@@ -413,6 +417,8 @@ internal object PreferenceKeys {
     const val ZONEWARN = "zonewarn"
     const val TT_MAP_FIX = "ttmapfix"
     const val VOICE_CHANNEL = "voicechan"
+    /** The music is paused while the voice speaks, instead of lowered (bluelions25 #338: lowered, but not low enough). */
+    const val VOICE_PAUSES_MUSIC = "voicepausesmusic"
     /** The voice is made into a sound file and played by the app itself, like the chimes (bluelions25 #331). */
     const val VOICE_VIA_APP = "voiceviaapp"
     /** Where the voice and chimes come out: "auto" (wherever Android sends them) or "phone" (the phone's own speaker; benkkwok #314). */

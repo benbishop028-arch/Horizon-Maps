@@ -5,6 +5,8 @@ import kotlin.math.max
 import kotlin.math.min
 import java.util.Locale
 import android.content.Context
+import android.content.ComponentCallbacks2
+import android.content.res.Configuration
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import android.graphics.Bitmap
@@ -98,7 +100,7 @@ import com.mapbox.android.gestures.StandardScaleGestureDetector
  * - Asking the map what is on screen is asynchronous in Mapbox and never blocks the app; each question also has a time limit,
  *   so a map that isn't drawing (hidden, in the background) can't leave anything waiting.
  */
-class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1f, ratio: Float = 0f) : DefaultLifecycleObserver {
+class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1f, ratio: Float = 0f) : DefaultLifecycleObserver, ComponentCallbacks2 {
     val mapView: MapView
     private val mbMap: MapboxMap get() = mapView.mapboxMap
     private val prefs = Prefs(ctx)
@@ -173,6 +175,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             mapView.gestures.rotateEnabled = true
             mapView.gestures.pitchEnabled = true
         } catch (e: Throwable) { }
+        // two fingers moved up or down tilt the map even when they aren't held level: Mapbox only counts it as a tilt within 20
+        // degrees of level, so most tries moved the map instead (ILDEMONICO, GitHub #335)
+        try { mapView.gestures.getGesturesManager().shoveGestureDetector.setMaxShoveAngle(40f) } catch (e: Throwable) { }
         // counted all the time: the automatic frame rate compares frames drawn with camera moves asked for
         subs += mbMap.subscribeRenderFrameStarted { PerfStats.renders++ }
         subs += mbMap.subscribeMapLoadingError { e ->
@@ -229,6 +234,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
         subs += mbMap.subscribeMapIdle { placeAltCards(true); refreshLamps(); refreshSignals(); refreshRoads() }
         installTapSelect()
+        // Mapbox must receive Android's memory-pressure callbacks; otherwise native/GPU tile caches
+        // can retain memory after the system has started reclaiming it.
+        try { ctx.applicationContext.registerComponentCallbacks(this) } catch (e: Exception) { }
     }
 
     /** This map is the car screen's (Android Auto): no app top bar there to keep the logo clear of. */
@@ -289,12 +297,25 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     fun carResume() { if (started) return; try { mapView.onStart() } catch (e: Throwable) { }; started = true; try { flowAnim?.resume() } catch (e: Exception) { } }
     override fun onDestroy(owner: LifecycleOwner) = destroy()
 
+    override fun onConfigurationChanged(newConfig: Configuration) { }
+
+    override fun onLowMemory() {
+        if (!destroyed) try { mapView.onLowMemory() } catch (e: Throwable) {
+            android.util.Log.w("MapBinding", "Mapbox low-memory trim failed", e)
+        }
+    }
+
+    override fun onTrimMemory(level: Int) {
+        if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) onLowMemory()
+    }
+
     /** Stops everything and frees the map (the car screen calls this when it goes away). */
     @Synchronized
     fun destroy() {
         if (destroyed) return
         destroyed = true
         started = false
+        try { ctx.applicationContext.unregisterComponentCallbacks(this) } catch (e: Exception) { }
         try { lightHandler.removeCallbacksAndMessages(null) } catch (e: Throwable) { }
         try { lampExec.shutdownNow() } catch (e: Throwable) { }
         try { signalExec.shutdownNow() } catch (e: Throwable) { }

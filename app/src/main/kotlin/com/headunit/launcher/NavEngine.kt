@@ -296,6 +296,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var lastBeep = 0L
     /** The over-the-limit chime can sound (it has once since you went over), and the limit it was for. */
     private var beepArmed = true
+    private var topArmed = true
     private var beepLim: Double? = null
     private var breakNext = 7200L
     private var tripPts = ArrayList<LL>()
@@ -918,7 +919,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // held far too long (a "give back" was lost): start again from nothing
             if (focusHolds > 0 && now - focusSince > 90_000) { forceGiveBack("held over 90 s"); }
             if (focusHolds++ == 0) {
-                val req = if (voiceChan != "nav") android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                // (Android lets the music app decide how far it drops, so it can't be lowered further from here: "pause" asks it to stop
+                // for the voice and carry on after, GitHub #338. Only for the voice, not the beeps)
+                val pause = why == "voice" && prefs.b(PreferenceKeys.VOICE_PAUSES_MUSIC, false)
+                val req = if (pause) android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                    .setAudioAttributes(if (voiceChan != "nav") speechAttrs else focusOne.audioAttributes).setOnAudioFocusChangeListener { }.build()
+                else if (voiceChan != "nav") android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
                     .setAudioAttributes(speechAttrs).setOnAudioFocusChangeListener { }.build() else focusOne
                 focusHeld = req; focusSince = now
                 val r = try { audioMgr.requestAudioFocus(req) } catch (e: Exception) { -1 }
@@ -1043,7 +1049,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     android.location.Geocoder(ctx, Locale.UK).getFromLocation(lat, lon, 1)?.firstOrNull()?.countryCode
                 } catch (e: Exception) { null }
                 // no geocoder on this unit (or no signal): a rough outline of Great Britain and Northern Ireland
-                g ?: if (lat in 49.85..60.9 && lon in -8.2..1.8 && !(lon < -5.45 && lat < 54.05) && !(lat < 51.0 && lon > 1.0)) "GB" else null
+                g ?: (if (lat in 49.85..60.9 && lon in -8.2..1.8 && !(lon < -5.45 && lat < 54.05) && !(lat < 51.0 && lon > 1.0)) "GB" else null)
+                    // (then Mapbox, if there's a token: head units mostly have no geocoder, so the country stayed unknown outside Britain
+                    // and roundabouts were drawn the British way round in the Netherlands, GitHub #285)
+                    ?: (if (mbToken.isNotBlank() && online()) MapboxRest.countryAt(mbToken, LL(lat, lon)) else null)
             }
             if (cc == null) { countryChecked = false; return@launch }
             val up = cc.uppercase()
@@ -1734,11 +1743,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** A few car parks close to where you're going, offered about a mile before you arrive. */
     var parkingNear by mutableStateOf<List<Nearby>>(emptyList())
     private var parkingFor: Route? = null
+    // (a look that found nothing, because the map service didn't answer, is tried again, up to 3 times about 40 seconds apart: it used to
+    // be tried once per route, so one failed look meant no car parks for the rest of the trip, Dotancom #324)
+    private var parkingTries = 0
+    private var parkingTriesRoute: Route? = null
+    private var parkingTryAt = 0L
 
     private fun checkParking(r: Route, rem: Double) {
         if (parkingFor === r || rem > 1700.0 || rem < 150.0 || r.len < 3000.0 || previewing || !prefs.b(PreferenceKeys.PARKPROMPT, true)) return
+        if (parkingTriesRoute !== r) { parkingTriesRoute = r; parkingTries = 0 }
+        if (System.currentTimeMillis() - parkingTryAt < 40_000L) return
         val d = dest ?: return
         parkingFor = r
+        parkingTries++; parkingTryAt = System.currentTimeMillis()
         // going to a car park already: nothing to offer
         val nm = d.name.lowercase()
         if (nm.contains("parking") || nm.contains("car park") || nm.contains("multi-storey") || nm.contains("multistorey")) return
@@ -1749,7 +1766,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 (osm.takeIf { it.isNotEmpty() } ?: (if (hasOnline && online()) try { netPoiNearby("parking", d.pos, 700) } catch (e: Exception) { null } else null) ?: emptyList())
                     .map { it.copy(dist = Geo.dist(d.pos, it.place.pos)) }.filter { it.dist < 800.0 }.sortedBy { it.dist }.take(3)
             }
-            if (route === r && dest === d) parkingNear = list
+            if (route === r && dest === d) {
+                parkingNear = list
+                // nothing found: let the next check have another go (after the pause above), a few times at most
+                if (list.isEmpty() && parkingTries < 3 && parkingFor === r) parkingFor = null
+            }
         }
     }
 
@@ -3478,6 +3499,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (over && beepArmed && soundMode != 2 && prefs.b(PreferenceKeys.LIMIT_SOUNDS, true) && now - lastBeep > 9000) {
                 lastBeep = now; beepArmed = false
                 chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+                // Settings › Alerts › Say "Slow down": the words after the beep, for those who find a beep alone easy to ignore (#345)
+                if (prefs.b(PreferenceKeys.SAY_SLOW_DOWN, false)) scope.launch { delay(450); speak(L.t("Slow down"), true) }
+            }
+            // a top speed of your own (Settings › Alerts › Top speed): a beep and "Slow down" once as you reach it, again after you've
+            // dropped 5 below it, whatever the limit says
+            val top = (prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0").toIntOrNull() ?: 0) * (if (imperial) 0.44704 else 0.27778)
+            if (top > 0) {
+                if (p.speed < top - (if (imperial) 2.2 else 1.4)) topArmed = true
+                else if (p.speed >= top && topArmed && soundMode != 2 && now - lastBeep > 4000) {
+                    topArmed = false; lastBeep = now
+                    chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+                    scope.launch { delay(450); speak(L.t("Slow down"), true) }
+                    raiseAlert("limit", L.t("Top speed {0} reached", prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0")))
+                }
             }
         }
         try { refreshRoad() } catch (e: Exception) { }
@@ -6163,7 +6198,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val span = max(1.0, d.end - d.off)
             d.secs * ((d.end - max(p, d.off)) / span).coerceIn(0.0, 1.0)
         }
-        return r.freeFlow * frac + ahead
+        return NavigationPolicy.remainingSegmentTime(r.cum, r.segmentTimes, p) ?: (r.freeFlow * frac + ahead)
     }
 
     private var etaSmoothSecs = -1.0
@@ -6198,7 +6233,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 d.secs * ((d.end - max(progress, d.off)) / span).coerceIn(0.0, 1.0)
             }
             val ahead2 = ahead + incAhead
-            var secs = r.freeFlow * frac + ahead2
+            // Mapbox supplies a duration for each road segment. Sum the time still ahead on those segments rather than
+            // spreading the whole route's free-flow time evenly by distance (which made ETA wrong on mixed-speed roads).
+            // Those segment durations already include traffic, so add only separately detected incident delays here.
+            val segmentRemaining = NavigationPolicy.remainingSegmentTime(r.cum, r.segmentTimes, progress)
+            var secs = (segmentRemaining ?: (r.freeFlow * frac + ahead)) + incAhead
+            // Keep the delay figure separate from travel time; it is the traffic delay still ahead, not a second addition.
             var delayMin = Math.round(ahead2 / 60.0).toInt()
             // TomTom's own timing of this road (a Mapbox route with a TomTom key): the longer of the two is used
             ttTiming?.takeIf { it.route === r && it.span > 0 }?.let { t ->

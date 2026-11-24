@@ -35,7 +35,11 @@ class CarVoice(private val carContext: CarContext, private val onNoMic: () -> Un
     private var car: CarAudioRecord? = null
     @Volatile private var pumping = false
     private var focus: AudioFocusRequest? = null
-    private val giveUp = Runnable { Log.i(TAG, "voice: nothing after 15 s"); finish(L.t("Didn't catch that")) }
+    private val giveUp = Runnable {
+        val heard = CarSearch.heard.trim()
+        Log.i(TAG, "voice: listening timed out; partial result=${heard.isNotBlank()}")
+        if (heard.isNotBlank()) { finish(""); onText(heard) } else finish(L.t("Didn't catch that"))
+    }
 
     /** The microphone button: starts listening, or stops when it already is. */
     fun toggle() { if (CarSearch.listening) finish("") else start() }
@@ -102,8 +106,12 @@ class CarVoice(private val carContext: CarContext, private val onNoMic: () -> Un
         rec = r
         r.setRecognitionListener(object : RecognitionListener {
             private fun first(b: Bundle?) = b?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull().orEmpty()
-            override fun onPartialResults(partialResults: Bundle?) { first(partialResults).let { if (it.isNotBlank()) CarSearch.heard = it } }
+            override fun onPartialResults(partialResults: Bundle?) {
+                if (rec !== r) return
+                first(partialResults).let { if (it.isNotBlank()) CarSearch.heard = it }
+            }
             override fun onResults(results: Bundle?) {
+                if (rec !== r) return
                 val text = first(results).ifBlank { CarSearch.heard }.trim()
                 Log.i(TAG, "voice: heard \"$text\"")
                 finish(if (text.isBlank()) L.t("Didn't catch that") else "")
@@ -112,7 +120,16 @@ class CarVoice(private val carContext: CarContext, private val onNoMic: () -> Un
             override fun onError(error: Int) {
                 Log.i(TAG, "voice: recogniser error $error (car microphone: $usingCar)")
                 if (rec !== r) return
-                // the recogniser couldn't use the sound it was given: once more with the phone's own microphone
+                // Some recognisers report a final error after already returning a usable partial result.
+                // Keep that destination instead of discarding it or starting a second listening session.
+                val heard = CarSearch.heard.trim()
+                if (heard.isNotBlank()) {
+                    Log.i(TAG, "voice: using partial result after error $error: \"$heard\"")
+                    finish("")
+                    onText(heard)
+                    return
+                }
+                // The car microphone can fail before it produces any text; in that case try the phone microphone.
                 val heardNothing = error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT
                 if (usingCar && !heardNothing) begin(false) else finish(L.t("Didn't catch that"))
             }

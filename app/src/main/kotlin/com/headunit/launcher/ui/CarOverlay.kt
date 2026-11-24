@@ -493,11 +493,14 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
         val grownH = remember(extraWhat) { intArrayOf(0) }
         val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (speedUnderTurn) speedUnderH else 0)
-        androidx.compose.runtime.SideEffect {
+        // (judged a moment after each change, once the card has been laid out again: judged straight away, the card's height was
+        // still the old, taller one, so every line was taken away in one go and the car parks never came back, Dotancom #324)
+        androidx.compose.runtime.LaunchedEffect(extraMax, extraCap, extraWhat, extraFreePx.toInt()) {
+            kotlinx.coroutines.delay(150)
             val step = with(dens) { 48.dp.toPx() }
             val need = if (grownH[0] > aboveH) (grownH[0] - aboveH) + with(dens) { 8.dp.toPx() } else step
             if (extraMax > extraCap) extraMax = extraCap
-            else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = aboveH; extraMax -= 1 }
+            else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = maxOf(grownH[0], aboveH); extraMax -= 1 }
             else if (extraFreePx > need && extraMax < extraCap) extraMax += 1
         }
         if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
@@ -515,11 +518,15 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                             }
                             // a lorry's limit ahead, an average speed check (magnazan, #177), the next services, car parks near the
                             // end and advice for the conditions, as lines of the card instead of cards stacked under it
-                            TurnCardExtras(engine, extraMax, advice = !small)
+                            // (car parks are their own card again, under it: liked better that way)
+                            TurnCardExtras(engine, extraMax, advice = !small, parking = false)
                         })
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
-                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { ServicesCard(engine) }
+                // ...and car parks near the end, a card of their own too, as they were before they joined the turn card
+                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
+                }
               }
                 // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
                 // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then

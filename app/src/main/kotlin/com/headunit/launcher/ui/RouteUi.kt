@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.ExpandLess
 import com.headunit.launcher.L
+import com.headunit.launcher.NavigationPolicy
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -154,18 +155,23 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
         val out = IntArray(bins)
         for (i in r.sev.indices) {
             if (i + 1 >= r.cum.size) break
-            val b = ((r.cum[i] / len) * bins).toInt().coerceIn(0, bins - 1)
-            if (r.sev[i] > out[b]) out[b] = r.sev[i]
+            // (every bin the stretch reaches into, not just the one it starts in)
+            val b0 = ((r.cum[i] / len) * bins).toInt().coerceIn(0, bins - 1)
+            val b1 = ((r.cum[i + 1] / len) * bins).toInt().coerceIn(b0, bins - 1)
+            for (b in b0..b1) if (r.sev[i] > out[b]) out[b] = r.sev[i]
         }
         out
     }
     // (blended: each bin's level is averaged with the bins a little either side, so the colours run into each other where the
     // traffic changes instead of stepping, #334; the same colours as before)
     val blend = engine.prefs.b(com.headunit.launcher.PreferenceKeys.BLEND_TRAFFIC, true)
+    // (each patch of traffic is first made a little wider, so a short one on a long trip, under a bin's width of the bar, still shows
+    // in its own colour and isn't averaged away into the blue, GitHub #336; the blending is then only at its edges)
     val smooth = remember(levels, blend) {
-        FloatArray(bins) { b -> if (!blend) levels[b].toFloat() else {
+        val wide = IntArray(bins) { b -> var m = 0; for (k in -2..2) { val i = b + k; if (i in 0 until bins && levels[i] > m) m = levels[i] }; m }
+        FloatArray(bins) { b -> if (!blend) wide[b].toFloat() else {
             var sum = 0f; var wsum = 0f
-            for (k in -3..3) { val i = b + k; if (i !in 0 until bins) continue; val w = 4f - kotlin.math.abs(k); sum += levels[i] * w; wsum += w }
+            for (k in -1..1) { val i = b + k; if (i !in 0 until bins) continue; val w = 2f - kotlin.math.abs(k); sum += wide[i] * w; wsum += w }
             sum / wsum } }
     }
     val accent = c.accent
@@ -180,7 +186,8 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
         val w = maxWidth
         // the track, with the part already driven greyed out, and the arrow
         Canvas(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(if (thin) 18.dp else 26.dp)) {
-            val th = (if (thin) 4.dp else 8.dp).toPx()
+            // (thicker, so the traffic colours can be told apart: the thin bar was hard to read, GitHub #336)
+            val th = (if (thin) 6.dp else 11.dp).toPx()
             val y0 = (size.height - th) / 2f
             val bw = size.width / bins
             drawRoundRect(Color.Black.copy(alpha = 0.45f), Offset(0f, y0 - 1.5f), Size(size.width, th + 3f), CornerRadius(th))
@@ -1109,11 +1116,9 @@ fun RoundaboutView(engine: NavEngine, t: com.headunit.launcher.TurnInfo, modifie
             leg(180.0, blue, sw * 0.75f)
             leg(exitA, blue, sw * 0.75f)
             // the ring from the entry (bottom) to the exit, the way traffic goes
-            val startCanvas = 90f   // drawArc angles: 0 = right, 90 = bottom (clockwise on screen)
-            val exitCanvas = ((exitA - 90.0) % 360.0 + 360.0).toFloat() % 360f
-            // (on screen a positive sweep goes clockwise: bottom, then left, then top, then right)
-            val sweep = if (clockwise) (exitCanvas - startCanvas + 360f) % 360f else -((startCanvas - exitCanvas + 360f) % 360f)
-            drawArc(blue, startCanvas, sweep, false, topLeft = Offset(cx - r, cy - r), size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = Stroke(sw * 0.75f, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            val sweep = NavigationPolicy.roundaboutSweep(exitA, clockwise)
+            // A positive canvas sweep follows the clockwise roundabout used where traffic keeps left.
+            drawArc(blue, 90f, sweep, false, topLeft = Offset(cx - r, cy - r), size = androidx.compose.ui.geometry.Size(r * 2, r * 2), style = Stroke(sw * 0.75f, cap = androidx.compose.ui.graphics.StrokeCap.Round))
         }
     }
 }

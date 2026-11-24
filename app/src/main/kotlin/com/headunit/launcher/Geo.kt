@@ -47,6 +47,8 @@ class Route(
     @Volatile var delays: List<DelaySeg> = emptyList()
     /** Seconds the whole route takes with no traffic at all. */
     @Volatile var freeFlow: Double = max(0.0, time - delay)
+    /** Actual Mapbox duration for each route segment (point i to i+1), including traffic and vehicle speed caps. */
+    @Volatile var segmentTimes: DoubleArray = DoubleArray(0)
     /** Stretches of the route in tunnels, as (from, to) metres along it (from Mapbox's junction data; empty when not known). */
     @Volatile var tunnels: List<Pair<Double, Double>> = emptyList()
     /** Posted speed limits along the route from TomTom's road data (empty when the route came without them, e.g. offline). */
@@ -71,7 +73,7 @@ class Route(
     /** The same route taking [secs] (no live traffic), with everything else kept. */
     fun withTime(secs: Double): Route {
         val n = Route(pts, cum, steps, len, secs, 0.0, lanes, sev)
-        n.delays = delays; n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
+        n.delays = delays; n.segmentTimes = segmentTimes.copyOf(); n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
         n.baseTime = if (baseTime > 0) baseTime else time
         return n
     }

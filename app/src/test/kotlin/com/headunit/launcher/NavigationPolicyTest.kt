@@ -89,6 +89,31 @@ class NavigationPolicyTest {
         assertTrue(NavigationPolicy.gpsReliableForReroute(Double.POSITIVE_INFINITY))
     }
 
+    @Test fun remainingSegmentTimeUsesActualRoadDurationsAndCurrentProgress() {
+        val cumulative = doubleArrayOf(0.0, 100.0, 300.0, 400.0)
+        val seconds = doubleArrayOf(60.0, 300.0, 30.0)
+        assertEquals(390.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 0.0)!!, 0.001)
+        assertEquals(285.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 150.0)!!, 0.001)
+        assertEquals(15.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 350.0)!!, 0.001)
+        assertEquals(0.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 450.0)!!, 0.001)
+    }
+
+    @Test fun remainingSegmentTimeRejectsMismatchedOrInvalidAnnotations() {
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(), 0.0) == null)
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, 100.0), doubleArrayOf(-1.0), 0.0) == null)
+        assertTrue(NavigationPolicy.remainingSegmentTime(doubleArrayOf(0.0, Double.NaN), doubleArrayOf(10.0), 0.0) == null)
+    }
+
+    @Test fun roundaboutSweepFollowsLocalTrafficSide() {
+        // First exit: left-hand traffic takes the clockwise arc; right-hand traffic takes the anticlockwise arc.
+        assertEquals(90f, NavigationPolicy.roundaboutSweep(270.0, true), 0.001f)
+        assertEquals(-90f, NavigationPolicy.roundaboutSweep(90.0, false), 0.001f)
+        // Straight ahead is a half-turn in either direction; invalid bearings draw no misleading arc.
+        assertEquals(180f, NavigationPolicy.roundaboutSweep(0.0, true), 0.001f)
+        assertEquals(-180f, NavigationPolicy.roundaboutSweep(0.0, false), 0.001f)
+        assertEquals(0f, NavigationPolicy.roundaboutSweep(Double.NaN, true), 0.001f)
+    }
+
     @Test fun mapFrameLimitHonoursConfiguredRateAndClampsInvalidValues() {
         assertEquals(20, NavigationPolicy.mapFrameLimit(20))
         assertEquals(30, NavigationPolicy.mapFrameLimit(30))

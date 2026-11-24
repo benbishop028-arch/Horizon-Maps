@@ -131,6 +131,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
@@ -429,10 +430,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         ImmTurnCard(engine, t, slim = altFocus || (routeSheet && slimHold[0]), footer = {
                                             if (routeSheet && !altFocus) RouteHazardLines(engine)
-                                            if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = !routeSheet)
+                                            if (!altFocus) TurnCardExtras(engine, turnExtraMax, parking = false)
                                         })
                                         // the next services: a card of its own under the turn card again, not joined to it
                                         if (!altFocus) ServicesCard(engine)
+                                        // car parks near the end: their own card again (the portrait sheet has them in the sheet)
+                                        if (!altFocus && !routeSheet) ParkingCard(engine)
                                     }
                                     // warnings (a camera, a limit, rain...) pop up just under the turn card, joined to it
                                     if (routeSheet) {
@@ -1581,10 +1584,13 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         if (engine.showRouteBar) RouteBar(engine, Modifier.fillMaxWidth().padding(start = 22.dp, end = 22.dp, top = 6.dp, bottom = 2.dp))
         Row(Modifier.fillMaxWidth().padding(start = 22.dp, end = 18.dp, top = 8.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) L.t("+{0} min", e.delayMin) else L.t("time left"), dc, compact = true)
-            ImmStat(e.arrive, "arrival", c.text)
-            ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text, compact = true)
-            Box(Modifier.weight(1f))
+            // (the figures take what room is left and are clipped if the screen is too narrow or its text too large, so the buttons
+            // after them are never pushed off the edge: End went missing that way on a wide, large-text screen, GitHub #341)
+            Row(Modifier.weight(1f).clipToBounds(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                ImmStat(Geo.fmtDur(e.secs), if (e.delayMin >= 1) L.t("+{0} min", e.delayMin) else L.t("time left"), dc, compact = true)
+                ImmStat(e.arrive, "arrival", c.text)
+                ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text, compact = true)
+            }
             // add a stop, then End: both big enough to hit while driving
             Box(Modifier.size(50.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(c.tile).pressClick { engine.stopsEditor = true; open = false },
                 contentAlignment = Alignment.Center) {

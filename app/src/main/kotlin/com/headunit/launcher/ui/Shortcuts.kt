@@ -190,7 +190,8 @@ internal fun carTripButtonsOn(prefs: com.headunit.launcher.Prefs): Set<String> {
     // (and Search: a stop on the way, or somewhere else to go, while navigating)
     // (and Report: police, a crash or a hazard with one tap, GitHub #290)
     // (and Add stop: the stops card, with fuel, charging, food and coffee along the route a tap away, as the phone's pin button)
-    return if (raw == "*") setOf("stop", "search", "report", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
+    // (the default is just Add stop and End, so the card stays small; the rest can be added in Settings, GitHub #350)
+    return if (raw == "*") setOf("stop", "end") else raw.split(',').filter { it.isNotBlank() }.toSet()
 }
 
 /** Settings > Android Auto: which buttons the trip card has, and how big they are (a narrower card leaves more of the map clear). */
