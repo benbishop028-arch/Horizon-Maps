@@ -3501,14 +3501,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             // a top speed of your own (Settings › Alerts › Top speed): a beep and "Slow down" once as you reach it, again after you've
             // dropped 5 below it, whatever the limit says
-            val top = (prefs.s(PreferenceKeys.TOP_SPEED, "0").toIntOrNull() ?: 0) * (if (imperial) 0.44704 else 0.27778)
+            val top = (prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0").toIntOrNull() ?: 0) * (if (imperial) 0.44704 else 0.27778)
             if (top > 0) {
                 if (p.speed < top - (if (imperial) 2.2 else 1.4)) topArmed = true
                 else if (p.speed >= top && topArmed && soundMode != 2 && now - lastBeep > 4000) {
                     topArmed = false; lastBeep = now
                     chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
                     scope.launch { delay(450); speak(L.t("Slow down"), true) }
-                    raiseAlert("limit", L.t("Top speed {0} reached", prefs.s(PreferenceKeys.TOP_SPEED, "0")))
+                    raiseAlert("limit", L.t("Top speed {0} reached", prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0")))
                 }
             }
         }

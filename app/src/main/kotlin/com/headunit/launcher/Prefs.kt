@@ -130,7 +130,7 @@ internal object PreferenceKeys {
     /** Says "Slow down" after the beep for going over the limit (Dotancom #345). */
     const val SAY_SLOW_DOWN = "sayslowdown"
     /** A top speed of your own (km/h, or mph in miles): a beep and "Slow down" when you reach it, whatever the limit. "0" is off (Dotancom #345). */
-    const val TOP_SPEED = "topspeed"
+    const val ALERT_TOP_SPEED = "topspeed"
     /** The pop-up banner when the limit changes (karthikeyansr #328): off leaves the sign itself (it pulses) and the one on the route. */
     const val LIMIT_POPUP = "limitpopup"
     const val FLASH_TOWN = "flashtown"
