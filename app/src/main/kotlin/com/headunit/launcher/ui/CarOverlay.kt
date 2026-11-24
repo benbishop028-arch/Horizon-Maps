@@ -29,7 +29,7 @@ import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.rounded.History
@@ -72,6 +72,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -403,6 +404,8 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // picture gets the room left between them
         var aboveH by remember { mutableStateOf(0) }
         var bottomColH by remember { mutableStateOf(0) }
+        var tripColH by remember { mutableStateOf(0) }
+        var optionalColH by remember { mutableStateOf(0) }
         var topBlockH by remember { mutableStateOf(0) }
 
         // where the cards are, for placing your arrow the way the app does: on wide screens it moves sideways clear of the cards on
@@ -432,11 +435,6 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             if (!colShown) engine.setPanel(1, 0f, 0f, 0f, 0f)
             if (!stackShown) engine.bottomCover = 0.0
         }
-
-        // the trip card's red button ends the route: with it there (the tile leaves the buttons off), Android Auto's own Stop
-        // button is left out (see MapScreen.stopOnCard)
-        val endOnCard = guiding && !arriving && !tile && "end" in carTripButtonsOn(engine.prefs)
-        androidx.compose.runtime.SideEffect { com.headunit.launcher.car.CarLayout.endOnCard = endOnCard }
 
         // the turn card, top left (as in the app)
         val t = engine.turn
@@ -471,6 +469,9 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // Android Auto's split screen, with Settings › Android Auto › Trip card in split screen on "Column on the left": the trip
         // card is a narrow column under the turn card instead of a bar along the bottom, leaving the road ahead of the car clear
         val tripCol = splitView && guiding && showTurn && !portrait && engine.prefs.s(PreferenceKeys.CAR_SPLIT_TRIP, "bar") == "column"
+        // Keep Android Auto's Stop available for the column, which can be clipped on a short split screen.
+        val endOnCard = guiding && !arriving && !tile && !tripCol && "end" in carTripButtonsOn(engine.prefs)
+        androidx.compose.runtime.SideEffect { com.headunit.launcher.car.CarLayout.endOnCard = endOnCard }
         val speedTopRight = carSpeedPos == "top" && topRightFits && !speedCorner
         var stripShown by remember { mutableStateOf(true) }
         LaunchedEffect(CarButtons.shownAt) { stripShown = true; kotlinx.coroutines.delay(11_000L); stripShown = false }
@@ -481,7 +482,8 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         var speedUnderH by remember { mutableStateOf(0) }
         // (worked out here: the screen's height can't be read from inside the column below)
-        val laneRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
+        val optionalRoom = (maxHeight - top - bottom - with(dens) { (aboveH + bottomColH + (if (tripCol) tripColH else 0) + (if (speedUnderTurn) speedUnderH else 0)).toDp() } - 28.dp - (if (speedUnderTurn) 8.dp else 0.dp)).coerceAtLeast(0.dp)
+        val laneRoom = (optionalRoom - with(dens) { (if (tripCol) optionalColH else 0).toDp() }).coerceAtLeast(0.dp)
         // the lines along the bottom of the turn card (average speed check, services, parking...: they were cards of their own
         // under it): as many as leave the turn card clear of what's at the bottom of the screen (the trip card, the speed), one
         // taken away when it would reach them and one given back when there's room again (with a margin, so it can't flicker)
@@ -492,7 +494,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // #324). Forgotten when the lines themselves change
         val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
         val grownH = remember(extraWhat) { intArrayOf(0) }
-        val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (speedUnderTurn) speedUnderH else 0)
+        val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (tripCol) tripColH else 0) - (if (speedUnderTurn) speedUnderH else 0)
         // (judged a moment after each change, once the card has been laid out again: judged straight away, the card's height was
         // still the old, taller one, so every line was taken away in one go and the car parks never came back, Dotancom #324)
         androidx.compose.runtime.LaunchedEffect(extraMax, extraCap, extraWhat, extraFreePx.toInt()) {
@@ -524,19 +526,24 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
                 // ...and car parks near the end, a card of their own too, as they were before they joined the turn card
-                if (!tile) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                if (!tile && !tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
                 }
               }
-                // sized to the gap down to the trip card (it used to run on underneath it on a short car screen), or left out
-                // when even a small one wouldn't fit: the turn card's lane strip still shows the lanes then
-                // (not on a short screen or a tile: the lanes are in the turn card's own strip there)
-                if (!small) JunctionCloseup(engine, maxH = laneRoom)
                 // Speed position "Under the turn card": in the left-hand column the app's own cards already keep clear
                 if (speedUnderTurn) Box(Modifier.onSizeChanged { speedUnderH = it.height }) {
                     CompositionLocalProvider(LocalDensity provides Density(dens.density * speedScale, dens.fontScale)) { ImmSpeed(engine) }
                 }
-                if (tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripColumn(engine, showEnd = !tile) }
+                if (tripCol) Box(Modifier.onSizeChanged { tripColH = it.height }) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) { TripColumn(engine, showEnd = !tile) }
+                }
+                if (!tile && tripCol) Box(Modifier.heightIn(max = optionalRoom).clipToBounds().onSizeChanged { optionalColH = it.height }) {
+                    CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
+                    }
+                }
+                // Leave the remaining space to the close-up, after the trip card and its controls.
+                if (!small) JunctionCloseup(engine, maxH = laneRoom)
             }
         }
 
@@ -860,6 +867,7 @@ private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
         Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        LiveFuelLine(engine, column = true)
         if (showEnd && "end" in carTripButtonsOn(engine.prefs)) {
             val sz = 34.dp * carButtonScale(engine)
             Box(Modifier.padding(top = 6.dp).size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
@@ -974,7 +982,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
                     if ("sound" in on) sound(sz)
                     if ("stop" in on) small(androidx.compose.material.icons.Icons.Rounded.AddLocationAlt, "tripstop", { actions.stops() }, sz)
                     if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
-                    if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
+                    if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Campaign, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
                     if ("end" in on) end(sz)
                 }
             }
@@ -990,7 +998,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
             if ("stop" in on) small(androidx.compose.material.icons.Icons.Rounded.AddLocationAlt, "tripstop", { actions.stops() }, sz)
             // search while navigating: a stop on the way, or somewhere else to go
             if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
-            if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
+            if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Campaign, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
             if ("end" in on) end(sz)
         }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -856,17 +856,30 @@ internal fun DemoChoiceBtn(engine: NavEngine, modifier: Modifier = Modifier, hei
  * (Settings › Places and trips › Live fuel cost, ZarulOfficial #316). Nothing when it's off or no economy and price are set.
  */
 @Composable
-internal fun LiveFuelLine(engine: NavEngine, modifier: Modifier = Modifier) {
+internal fun LiveFuelLine(engine: NavEngine, modifier: Modifier = Modifier, column: Boolean = false) {
     if (!engine.liveFuelOn()) return
     // (to the nearest 100 m: the line doesn't need redrawing for every metre)
     val driven = Math.round(engine.drivenThisRoute / 100.0) * 100.0
     val cost = engine.fuelCostOf(driven) ?: return
     val c = LocalVw.current
     val ev = engine.prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV"
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+    val costText = L.t("{0} so far", formatMoney(engine.prefs, cost))
+    val distanceText = L.t("{0} driven", Geo.fmtDist(driven, engine.imperial))
+    if (column) {
+        Column(modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Box(Modifier.width(100.dp).height(1.dp).background(c.line))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(14.dp))
+                Text(costText, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp))
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.DirectionsCar, null, tint = c.sub, modifier = Modifier.size(14.dp))
+                Text(distanceText, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp))
+            }
+        }
+    } else Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Icon(if (ev) Icons.Rounded.EvStation else Icons.Rounded.LocalGasStation, null, tint = c.sub, modifier = Modifier.size(14.dp))
-        Text(L.t("{0} so far", formatMoney(engine.prefs, cost)) + " · " + L.t("{0} driven", Geo.fmtDist(driven, engine.imperial)),
-            color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp))
+        Text("$costText · $distanceText", color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp))
     }
 }
 
