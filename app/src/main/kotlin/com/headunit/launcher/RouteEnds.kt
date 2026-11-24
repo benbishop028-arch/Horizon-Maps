@@ -9,7 +9,7 @@ import android.content.Context
 object RouteEnds {
     private const val KEY = "route_ends"
 
-    fun note(ctx: Context, screen: String, dest: String) {
+    fun note(ctx: Context, screen: String, dest: String, why: String = "") {
         val frames = Throwable().stackTrace
             .filter { it.className.startsWith("com.headunit.launcher") && !it.className.startsWith("com.headunit.launcher.RouteEnds") }
             .drop(1).take(4)
@@ -17,7 +17,7 @@ object RouteEnds {
         val t = java.text.SimpleDateFormat("dd MMM HH:mm:ss", java.util.Locale.UK).format(java.util.Date())
         val sp = ctx.getSharedPreferences("diag", Context.MODE_PRIVATE)
         val old = sp.getString(KEY, "").orEmpty().lines().filter { it.isNotBlank() }
-        val line = "$t · $screen · $dest · $frames"
+        val line = "$t · $screen · $dest · $frames" + (if (why.isNotEmpty()) " · $why" else "")
         sp.edit().putString(KEY, (old + line).takeLast(5).joinToString("\n")).apply()
     }
 

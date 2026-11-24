@@ -631,13 +631,15 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                     val wet = o.weatherLight && (raining() || snowing())
                     lightJson(if (wet) "#DCE0E6" else "#F2F4F7", (if (wet) 0.86 else 0.92) * kd, "#FFFFFF", 0.08 * kd, 180.0, 30.0, false, 0.0)
                 } else {
-                    var az = 180.0; var polar = 30.0
+                    var az = 180.0; var polar = 30.0; var sunUp = 1.0
                     if (o.sunReal) try {
                         val c = mbMap.cameraState.center
                         val (a, el) = Sun.position(c.latitude(), c.longitude(), System.currentTimeMillis())
                         az = a; polar = (90.0 - el).coerceIn(15.0, 75.0)
+                        // after sunset the sun's light and shadows fade out over the last few degrees, instead of staying on all evening (ILDEMONICO, #335)
+                        sunUp = (el / 8.0).coerceIn(0.0, 1.0)
                     } catch (e: Throwable) { }
-                    lightJson("#FFFFFF", 0.8 * kd, "#FFFFFF", 0.2 * kd, az, polar, o.shadows, 0.3)
+                    lightJson("#FFFFFF", 0.8 * kd, "#FFFFFF", 0.2 * kd * sunUp, az, polar, o.shadows && sunUp > 0.0, 0.3 * sunUp)
                 }
             }
             else -> null

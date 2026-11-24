@@ -3185,7 +3185,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // (what ended a trip under way, for the problem report: a route that ends by itself, as on carlb051's Home button, #226)
         if (route != null && !previewing) try { RouteEnds.note(ctx, if (isCar) "car" else "phone", dest?.let { d ->
             // (which kind of place only: the report never carries places)
-            when { places.slot("home")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "home"; places.slot("work")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "work"; else -> "other" } }.orEmpty()) } catch (e: Throwable) { }
+            when { places.slot("home")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "home"; places.slot("work")?.let { Geo.dist(it.pos, d.pos) < 60.0 } == true -> "work"; else -> "other" } }.orEmpty(), arrivedWhy); arrivedWhy = "" } catch (e: Throwable) { }
         stopTrackDrive()
         shortRoute = false
         demoNext = false
@@ -6434,6 +6434,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val atEnd = nearEnd || parked || (atDoor && nowP - atDoorSince > 15_000L)
         if (atEnd && said.add("end")) {
             toast(L.t("You have arrived"), 5000)
+            // (why it counted as arrived, for the problem report: distances only, never places; carlb051, #360)
+            arrivedWhy = "arrived: " + listOf(if (nearEnd) "end of route" else "", if (parked) "parked near" else "", if (atDoor) "stopped at the door" else "").filter { it.isNotEmpty() }.joinToString("+") +
+                " · route " + Math.round(r.len) + " m, " + Math.round(rem) + " m left, " + (f0?.let { Math.round(Geo.dist(it.pos, dest?.pos ?: r.pts.last())).toString() + " m from the destination" } ?: "no GPS fix") +
+                ", started " + (if (navStartMs > 0) ((System.currentTimeMillis() - navStartMs) / 1000).toString() + " s ago" else "unknown")
             if (navStartMs > 0) {
                 val secsT = (System.currentTimeMillis() - navStartMs) / 1000.0
                 val dd = max(0.0, tripDist - navStartDist)
@@ -6464,6 +6468,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** When you stopped near the destination (0 = not stopped there), for arriving in a big car park. */
     private var parkedSince = 0L
     private var atDoorSince = 0L
+    /** What made the last arrival count, kept for the problem report's list of how trips ended. */
+    private var arrivedWhy = ""
 
     // ---- live rain radar ----
     private var radarJob: Job? = null

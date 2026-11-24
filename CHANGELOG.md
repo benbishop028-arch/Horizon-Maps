@@ -33,6 +33,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Fixed
+- Sun in its real place: the sun's light and shadows now fade out at sunset instead of staying on all evening (thanks to ILDEMONICO, #335)
+- Problem reports now show why a trip counted as arrived, to help track down routes that cancel themselves (thanks to carlb051, #360)
 - The 3D buildings setting is reapplied when the map finishes loading, so a change made during loading isn't lost (#358)
 - Traffic colours no longer cover the white arrow at the next turn (#356)
 - The report button uses a megaphone instead of a flag, so it is easier to distinguish from a destination (#335)
