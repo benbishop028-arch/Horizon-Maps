@@ -155,18 +155,23 @@ fun RouteBar(engine: NavEngine, modifier: Modifier = Modifier, thin: Boolean = f
         val out = IntArray(bins)
         for (i in r.sev.indices) {
             if (i + 1 >= r.cum.size) break
-            val b = ((r.cum[i] / len) * bins).toInt().coerceIn(0, bins - 1)
-            if (r.sev[i] > out[b]) out[b] = r.sev[i]
+            // (every bin the stretch reaches into, not just the one it starts in)
+            val b0 = ((r.cum[i] / len) * bins).toInt().coerceIn(0, bins - 1)
+            val b1 = ((r.cum[i + 1] / len) * bins).toInt().coerceIn(b0, bins - 1)
+            for (b in b0..b1) if (r.sev[i] > out[b]) out[b] = r.sev[i]
         }
         out
     }
     // (blended: each bin's level is averaged with the bins a little either side, so the colours run into each other where the
     // traffic changes instead of stepping, #334; the same colours as before)
     val blend = engine.prefs.b(com.headunit.launcher.PreferenceKeys.BLEND_TRAFFIC, true)
+    // (each patch of traffic is first made a little wider, so a short one on a long trip, under a bin's width of the bar, still shows
+    // in its own colour and isn't averaged away into the blue, GitHub #336; the blending is then only at its edges)
     val smooth = remember(levels, blend) {
-        FloatArray(bins) { b -> if (!blend) levels[b].toFloat() else {
+        val wide = IntArray(bins) { b -> var m = 0; for (k in -2..2) { val i = b + k; if (i in 0 until bins && levels[i] > m) m = levels[i] }; m }
+        FloatArray(bins) { b -> if (!blend) wide[b].toFloat() else {
             var sum = 0f; var wsum = 0f
-            for (k in -2..2) { val i = b + k; if (i !in 0 until bins) continue; val w = 3f - kotlin.math.abs(k); sum += levels[i] * w; wsum += w }
+            for (k in -1..1) { val i = b + k; if (i !in 0 until bins) continue; val w = 2f - kotlin.math.abs(k); sum += wide[i] * w; wsum += w }
             sum / wsum } }
     }
     val accent = c.accent

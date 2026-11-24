@@ -493,11 +493,14 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
         val grownH = remember(extraWhat) { intArrayOf(0) }
         val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (speedUnderTurn) speedUnderH else 0)
-        androidx.compose.runtime.SideEffect {
+        // (judged a moment after each change, once the card has been laid out again: judged straight away, the card's height was
+        // still the old, taller one, so every line was taken away in one go and the car parks never came back, Dotancom #324)
+        androidx.compose.runtime.LaunchedEffect(extraMax, extraCap, extraWhat, extraFreePx.toInt()) {
+            kotlinx.coroutines.delay(150)
             val step = with(dens) { 48.dp.toPx() }
             val need = if (grownH[0] > aboveH) (grownH[0] - aboveH) + with(dens) { 8.dp.toPx() } else step
             if (extraMax > extraCap) extraMax = extraCap
-            else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = aboveH; extraMax -= 1 }
+            else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = maxOf(grownH[0], aboveH); extraMax -= 1 }
             else if (extraFreePx > need && extraMax < extraCap) extraMax += 1
         }
         if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
