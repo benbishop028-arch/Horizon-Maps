@@ -199,7 +199,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         mapView.gestures.addOnMapLongClickListener { p -> onLongPress?.invoke(LL(p.latitude(), p.longitude())); true }
         mapView.gestures.addOnMapClickListener { p ->
             main0.postDelayed({ tapClears() }, 150L)
-            try { val s = mbMap.pixelForCoordinate(p); tapAt(android.graphics.PointF(s.x.toFloat(), s.y.toFloat())) } catch (e: Throwable) { false }
+            try {
+                val s = mbMap.pixelForCoordinate(p)
+                val pt = android.graphics.PointF(s.x.toFloat(), s.y.toFloat())
+                val handled = tapAt(pt)
+                if (!handled) classicPoiTap(pt)
+                handled
+            } catch (e: Throwable) { false }
         }
         // any touch that moves the map (drag, pinch, twist, two-finger tilt) stops the follow camera
         mapView.gestures.addOnMoveListener(object : OnMoveListener {
@@ -1758,6 +1764,29 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             mbMap.resetFeatureStates(com.mapbox.maps.interactions.standard.generated.StandardBuildings())
             mbMap.resetFeatureStates(com.mapbox.maps.interactions.standard.generated.StandardPoi())
         } catch (e: Throwable) { }
+    }
+
+    /** A shop or place tapped on the TomTom or OpenStreetMap map (Mapbox's own map reports these itself): the same place card. */
+    private fun classicPoiTap(sp: android.graphics.PointF) {
+        if (!tapSelectOn || isMapboxStyle(wantedStyle) || wantedStyle == null) return
+        val st = style ?: return
+        val ids = try { st.styleLayers.filter { it.type == "symbol" && it.id.lowercase().contains("poi") }.map { it.id } } catch (e: Throwable) { emptyList() }
+        if (ids.isEmpty()) return
+        val r = 22f * mapView.resources.displayMetrics.density
+        query(RectF(sp.x - r, sp.y - r, sp.x + r, sp.y + r), ids, 1500L) { list ->
+            // (the first one with a name: nameless places are ignored)
+            for (f in list ?: return@query) {
+                var n: String? = null
+                for (k in listOf("name:latin", "name", "name_en")) {
+                    val v = try { f.getStringProperty(k) } catch (e: Throwable) { null }
+                    if (!v.isNullOrBlank()) { n = v; break }
+                }
+                if (n == null) continue
+                val g = f.geometry() as? com.mapbox.geojson.Point ?: continue
+                onPoiTap?.invoke(n, LL(g.latitude(), g.longitude()))
+                return@query
+            }
+        }
     }
 
     private fun installTapSelect() {
