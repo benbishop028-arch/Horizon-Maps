@@ -423,6 +423,10 @@ private fun LightSection(prefs: Prefs) {
         SToggle(prefs, L.t("Tilt with speed"), "speedtilt", true, L.t("Flatter when slow, a longer view at speed"))
         SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
     }
+    SGroup(L.t("Turn card")) {
+        SChoice(L.t("Turn card colour"), listOf("green" to L.t("Green"), "black" to L.t("Black"), "grey" to L.t("Dark grey"), "navy" to L.t("Navy"), "purple" to L.t("Purple")),
+            prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green"), L.t("The colour behind the next turn. The writing stays white")) { prefs.put(PreferenceKeys.TURN_CARD_COLOUR, it) }
+    }
     SGroup("3D") {
         SToggle(prefs, L.t("Hill shading"), PreferenceKeys.HILLSHADE, false, L.t("Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills"))
         SToggle(prefs, L.t("3D buildings"), "buildings3d", true)
@@ -831,7 +835,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Speed alert in the background"), PreferenceKeys.BG_SPEED_ALERT, false, L.t("Keeps the speed alert going while another app is in front, even with no route. Uses more battery and shows a notification"))
         SChoice(L.t("Top speed alert"), (if (engine.imperial) listOf("0", "60", "70", "80", "90") else listOf("0", "90", "100", "110", "120", "130", "140")).map { it to (if (it == "0") L.t("Off") else it + if (engine.imperial) " mph" else " km/h") },
             prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0"), L.t("A beep and \"Slow down\" when you reach this speed, whatever the limit is")) { prefs.put(PreferenceKeys.ALERT_TOP_SPEED, it) }
-        SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true)
+        SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true, L.t("Not said in Warnings only mode, and not again when the limit goes back to the one you just left within a short stretch"))
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SToggle(prefs, L.t("Pop-up when the limit changes"), PreferenceKeys.LIMIT_POPUP, true, L.t("The banner with the new limit. Off leaves just the sign by your speedometer, which pulses, and the sign on the route ahead"))
@@ -1477,6 +1481,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
             SSlider(L.t("Turn card width"), prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).toFloat(), 60f..130f, "%", sub = L.t("How far the turn card reaches across the map"), steps = 13, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_WIDTH, it) }
             SSlider(L.t("Turn card height"), prefs.i(PreferenceKeys.CAR_TURN_HEIGHT, 100).toFloat(), 70f..130f, "%", sub = L.t("The room above and below the writing"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_HEIGHT, it) }
             SSlider(L.t("Button size"), prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Round controls and tappable buttons"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
+            SSlider(L.t("Bar height"), prefs.i(PreferenceKeys.CAR_BAR_HEIGHT, 100).toFloat(), 70f..100f, "%", sub = L.t("The search bar at the top, slimmer to leave more map"), steps = 5, reset = 100f) { prefs.put(PreferenceKeys.CAR_BAR_HEIGHT, it) }
             SSlider(L.t("Text size"), prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent of card and button sizing"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
             SSlider(L.t("Navigation arrow size"), prefs.i(PreferenceKeys.CAR_ARROW_SIZE, 100).toFloat(), 30f..180f, "%", reset = 100f) { prefs.put(PreferenceKeys.CAR_ARROW_SIZE, it) }
             SSlider(L.t("Road name size"), prefs.i(PreferenceKeys.CAR_ROAD_NAME_SIZE, 100).toFloat(), 70f..200f, "%", sub = L.t("The name of the road you're on, under your arrow"), steps = 12, reset = 100f) { prefs.put(PreferenceKeys.CAR_ROAD_NAME_SIZE, it) }
@@ -1534,6 +1539,7 @@ private fun PerformanceSection(prefs: Prefs) {
 private fun KeysSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Search")) {
         SChoice(L.t("Search results"), searchCountryOptions(engine), searchCountryValue(prefs)) { prefs.put(PreferenceKeys.COUNTRY, it) }
+        SToggle(prefs, L.t("Search as I type"), PreferenceKeys.SEARCH_AS_TYPE, true, L.t("Shows results while you type. Off waits until you press the search key on the keyboard, so you can type the whole address first"))
         if (!engine.hasKey) SNote(L.t("For the most accurate address search, add a free TomTom key below."))
     }
     // Weather (shown in every edition, Plus included: the Met Office key is always your own)

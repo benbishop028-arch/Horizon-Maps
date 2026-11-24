@@ -589,7 +589,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         else if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth().height(if (small) 48.dp else 60.dp).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
+            Row(Modifier.fillMaxWidth().height((if (small) 48.dp else 60.dp) * (engine.prefs.i(PreferenceKeys.CAR_BAR_HEIGHT, 100).coerceIn(70, 100) / 100f)).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 // the bar opens the search; the arrow folds Home / Work, the round buttons and Saved & recent away and back (as in the app),
                 // so it has a tap area of its own

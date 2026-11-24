@@ -295,6 +295,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var limitCandidate = -1
     private var candidateHits = 0
     private var announcedLimit = -1
+    private var prevAnnouncedLimit = -1
+    private var announcedLimitAt = 0L
+    private var lastSpoken = ""
+    private var lastSpokenAt = 0L
     private var lastBeep = 0L
     /** The over-the-limit chime can sound (it has once since you went over), and the limit it was for. */
     private var beepArmed = true
@@ -1636,7 +1640,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (n == announcedLimit) { candidateHits = 0; limitCandidate = -1; return }
         if (n == limitCandidate) candidateHits++ else { limitCandidate = n; candidateHits = 1 }
         if (candidateHits >= 2 && (fix?.speed ?: 0.0) > 3.0) {
+            val now = System.currentTimeMillis()
+            // back to the limit just left within 40 s (50 to 30 to 50 in a short stretch): the sign changes, but it isn't announced again
+            val flicker = n == prevAnnouncedLimit && now - announcedLimitAt < 40_000
+            prevAnnouncedLimit = announcedLimit; announcedLimitAt = now
             announcedLimit = n; candidateHits = 0; limitCandidate = -1
+            // "Warnings only" (sound mode 1) is for warnings, so a plain limit change isn't spoken or chimed in it
+            if (flicker || soundMode != 0) { limitPulse = true; scope.launch { delay(3500); limitPulse = false }; return }
             // Settings > Alerts > When the limit changes: chime and voice, the voice alone, or the chime alone
             // (Settings › Alerts › Speed limit sounds off: no beep or voice for it, the other alerts as they are; Pop-up when the limit
             // changes off: no banner, the sign by the speedometer still pulses)
@@ -7687,6 +7697,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (quiet()) return
         val m = soundMode
         if (m == 2 || (m == 1 && !alert) || !ttsReady) return
+        // the same words twice within 6 s are one prompt said once (a prompt asked for again and again used to loop)
+        val nowMs = System.currentTimeMillis()
+        if (text == lastSpoken && nowMs - lastSpokenAt < 6000) return
+        lastSpoken = text; lastSpokenAt = nowMs
         val ch = prefs.s(PreferenceKeys.VOICE_CHANNEL, "nav")
         if (ch != voiceChan) { voiceChan = ch; try { tts?.setAudioAttributes(speechAttrs) } catch (e: Exception) { } }
         duck()

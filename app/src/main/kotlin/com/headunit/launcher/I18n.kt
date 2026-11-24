@@ -788,6 +788,7 @@ object L {
         for (code in m.keys) addOwn(m, code, I18nMapButtons.rows(code))
         for (code in m.keys) addOwn(m, code, I18nKeepOn.rows(code))
         for (code in m.keys) addOwn(m, code, I18nChargerDetour.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nSearchCard.rows(code))
         // Brazilian Portuguese: everything Portuguese has, in Brazil's words, then the whole-phrase fixes
         m["ptbr"]?.let { br -> for ((en, eu) in m["pt"].orEmpty()) br[en] = try { I18nPtBr.convert(eu) } catch (e: Throwable) { eu } }
         addOwn(m, "ptbr", I18nPtBr.fixes())

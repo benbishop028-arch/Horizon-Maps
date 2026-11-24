@@ -247,6 +247,12 @@ internal object PreferenceKeys {
     const val POLICEREP = "policerep"
     const val PREDICT = "predict"
     const val QUICKLIST = "quicklist"
+    /** Turn card colour: green (usual), black, grey, navy, purple. */
+    const val TURN_CARD_COLOUR = "turncardcolour"
+    /** Android Auto: search bar height, 70 to 100 per cent. */
+    const val CAR_BAR_HEIGHT = "carbarheight"
+    /** Search as you type (on), or only when you press the keyboard's search key (off). */
+    const val SEARCH_AS_TYPE = "searchastype"
     /** The largest Overall size (%) the car screen last seen fits without a cramped layout (written by the car, shown in the setting). */
     const val CARSCALE_MAX = "carscale_max"
     /** Android Auto: the search bar, Home / Work and shortcuts drawn on the map (off for rotary-knob cars that can't tap them, #222). */

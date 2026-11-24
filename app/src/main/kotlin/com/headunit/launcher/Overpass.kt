@@ -293,7 +293,9 @@ object Overpass {
             val t = w.tags
             // a limit that differs by direction: forward is the way the road is drawn
             val dirKey = if (heading >= 0 && bDiff > 90.0) "maxspeed:backward" else "maxspeed:forward"
-            val posted = parseSpeed(t.optString(dirKey), country)
+            // heading not known: if the two directions differ, the lower is the safer one to show
+            val bothWays = if (heading < 0) listOfNotNull(parseSpeed(t.optString("maxspeed:forward"), country), parseSpeed(t.optString("maxspeed:backward"), country)).minOrNull() else null
+            val posted = bothWays ?: parseSpeed(t.optString(dirKey), country)
                 ?: parseSpeed(t.optString("maxspeed"), country)
                 ?: parseSpeed(t.optString("maxspeed:type"), country)
                 ?: parseSpeed(t.optString("source:maxspeed"), country)

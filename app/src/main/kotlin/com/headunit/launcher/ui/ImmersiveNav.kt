@@ -241,7 +241,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val typingLocked by remember { derivedStateOf { (engine.fix?.speed ?: 0.0) > 3.0 && engine.prefs.b(PreferenceKeys.DRIVELOCK, true) } }
     val focus = remember { FocusRequester() }
     LaunchedEffect(q) {
-        if (q.length >= 3) { delay(500); engine.search(q, typed = true) } else if (q.isEmpty()) engine.results = emptyList()
+        if (q.length >= 3 && engine.prefs.b(PreferenceKeys.SEARCH_AS_TYPE, true)) { delay(700); engine.search(q, typed = true) } else if (q.isEmpty()) engine.results = emptyList()
     }
     // text shared from another app goes into the search box
     LaunchedEffect(engine.externalQuery) { engine.externalQuery?.let { q = it; engine.externalQuery = null } }
@@ -1472,6 +1472,14 @@ internal fun ImmTurnCard(
     // is above and below the writing (70% is a tight card, 130% a roomy one)
     val arrowK = engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_ARROW else PreferenceKeys.TURN_ARROW, 100).coerceIn(80, 200) / 100f
     val padK = (1f + (engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_HEIGHT else PreferenceKeys.TURN_HEIGHT, 100).coerceIn(70, 130) / 100f - 1f) * 2.5f).coerceIn(0.25f, 1.75f)
+    // Settings › Map look › Turn card colour: all with white writing
+    val (Teal, TealDeep) = when (engine.prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green")) {
+        "black" -> Color(0xFF0A0A0A) to Color(0xFF000000)
+        "grey" -> Color(0xFF373A40) to Color(0xFF26282C)
+        "navy" -> Color(0xFF142864) to Color(0xFF0C1A44)
+        "purple" -> Color(0xFF462870) to Color(0xFF2E1A4C)
+        else -> GmGreen to GmGreenDeep
+    }
     Column(
         Modifier.fillMaxWidth()
             // (grows from its top middle, evenly both ways: grown from its left edge, a card the full width of an upright phone went off
@@ -1996,7 +2004,7 @@ private fun ImmResults(engine: NavEngine, q: String, onPicked: () -> Unit) {
                 }
                 Column(Modifier.padding(start = 14.dp).weight(1f)) {
                     Text(p.name, color = c.text, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(p.sub, color = c.sub, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
                 if (here != null) Text(Geo.fmtDist(Geo.dist(here, p.pos), engine.imperial), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 8.dp))
             }

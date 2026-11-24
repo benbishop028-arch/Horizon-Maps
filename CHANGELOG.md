@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Turn card colour: Settings › Map look › Turn card colour lets you choose green, black, dark grey, navy or purple behind the next turn, with white writing (thanks to the Android Auto testers)
+- Search as I type: Settings › Search › Search as I type can be switched off, so results only appear when you press the keyboard's search key and you can type the whole address first (thanks to the testers)
+- Bar height: Settings › Sizes on the car screen › Bar height makes the Android Auto search bar slimmer to leave more map (thanks to the testers)
 - Charger detour: Settings › Your electric car › Charger detour (5, 10 or 15 minutes) sets how far off your route a charger can be and still be listed, so chargers a few minutes from the main road show up too (thanks to Seali7Aut, #343)
 - Keep the screen on without a route: Settings › Screen › Keep the screen on without a route stops a phone's screen switching off while you just watch the map and traffic. It's off by default, as it uses more battery (thanks to sprice17, #369)
 - Map buttons: Settings › Map buttons lets you choose which buttons show on the map (compass, report, sound, other routes, clean view, overview). There is also a new Overview button, off until you turn it on, that shows the whole route for a few seconds and then goes back to following you (thanks to ILDEMONICO, #335)
@@ -40,11 +43,16 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
+- Search results: the address under a place name can now use two lines, so more of the street and town can be read (thanks to the testers)
+- Battery: if you park for 30 minutes with a route or the background speed alert left running and the app out of sight, the background service and GPS now rest by themselves, and start again when you open the app (thanks to the Reddit report)
+- Speed limit announcements: Warnings only mode no longer announces limit changes, and a limit that flips back to the one you just left within a short stretch (50, 30, 50) isn't announced again (thanks to the testers)
 - Roomier map in portrait while navigating: the next services now appear as a slim line under the turn card only when they are within about 5 km, and further off they are a chip in the trip sheet along with the weather advice, so nothing needs hiding with Clean view to see the map
 - Android Auto on small screens: on small, low-resolution car screens (such as 7" 1024×600) the cards and text are now smaller and the position arrow scales down with the screen, so more of the map is visible (thanks to qpkqkma, #367)
 - The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
 
 ### Fixed
+- Voice prompts: the same prompt is no longer spoken twice within a few seconds, which stops prompts repeating in a loop (thanks to the testers)
+- Speed limit: on a road with different limits each way, when the direction isn't known the lower one is shown (thanks to the testers)
 - Sun in its real place: the sun's light and shadows now fade out at sunset instead of staying on all evening (thanks to ILDEMONICO, #335)
 - Problem reports now show why a trip counted as arrived, to help track down routes that cancel themselves (thanks to carlb051, #360)
 - The 3D buildings setting is reapplied when the map finishes loading, so a change made during loading isn't lost (#358)
