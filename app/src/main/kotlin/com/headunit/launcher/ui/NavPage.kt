@@ -577,6 +577,10 @@ internal fun NearbyCard(engine: NavEngine) {
             if (engine.nearbyBusy) CircularProgressIndicator(Modifier.size(18.dp), color = c.accent, strokeWidth = 2.dp)
             Icon(Icons.Rounded.Close, L.t("Close"), tint = c.sub, modifier = Modifier.padding(start = 12.dp).size(22.dp).clickable { engine.clearNearby() })
         }
+        if (engine.nearbyKind == "charging") engine.chargerFilterText().takeIf { it.isNotEmpty() }?.let { ft ->
+            Text(L.t("Filter: {0}", ft), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 8.dp).fillMaxWidth().clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.55f)).padding(horizontal = 12.dp, vertical = 6.dp))
+        }
         if (hasPrices) Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Pill(if (along) L.t("Soonest") else L.t("Nearest"), engine.nearbySort != "cheap", { engine.changeNearbySort("near") })
             Pill(L.t("Cheapest"), engine.nearbySort == "cheap", { engine.changeNearbySort("cheap") })

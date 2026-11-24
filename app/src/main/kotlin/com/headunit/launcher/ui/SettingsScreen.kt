@@ -1227,6 +1227,10 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
     if (prefs.s(PreferenceKeys.FUEL_TYPE, "E10") == "EV") SGroup(L.t("Your electric car"), footer = L.t("With the efficiency and price filled in, each route shows roughly what it will cost to charge for. The efficiency and battery size also give the battery estimate on the trip card and the charging stop suggestions (set your battery level on the route options).")) {
         SToggle(prefs, L.t("Battery estimate on the trip card"), PreferenceKeys.EV_PCT_CARD, true, L.t("Roughly how much battery you'll arrive with, on the phone and Android Auto. It's worked out from your settings, not read from the car"))
         SToggle(prefs, L.t("Show petrol stations too"), PreferenceKeys.EV_SHOW_FUEL, false, L.t("The Fuel button on the map page (on the phone and Android Auto). Off: Charging takes its place"))
+        // the charger list: only fast enough ones, and only the providers you use (Seali7Aut, #343)
+        SChoice(L.t("Charger speed"), listOf("0" to L.t("Any"), "22" to "22 kW+", "50" to "50 kW+", "150" to "150 kW+"), prefs.i(PreferenceKeys.EV_MIN_KW, 0).toString(),
+            L.t("Hide chargers slower than this. Chargers whose speed isn't known are still shown")) { prefs.put(PreferenceKeys.EV_MIN_KW, it.toIntOrNull() ?: 0) }
+        SFieldItem(L.t("Only these providers"), prefs.s(PreferenceKeys.EV_PROVIDERS, ""), L.t("Names separated by commas. Blank shows all"), placeholder = "Ionity, Tesla, Fastned") { prefs.put(PreferenceKeys.EV_PROVIDERS, it.take(120)) }
         if (mi) SFieldItem(L.t("Efficiency (miles per kWh)"), prefs.s(PreferenceKeys.EVMPK, ""), placeholder = L.t("e.g. 3.5"), number = true) { s -> prefs.put(PreferenceKeys.EVMPK, num(s).take(5)) }
         else SFieldItem(L.t("Efficiency (km per kWh)"), prefs.s(PreferenceKeys.EVMPK, "").toDoubleOrNull()?.let { fmt1(it * 1.609344) } ?: "", placeholder = L.t("e.g. 5.6"), number = true) { s ->
             prefs.put(PreferenceKeys.EVMPK, num(s).toDoubleOrNull()?.takeIf { it > 0 }?.let { String.format(java.util.Locale.US, "%.3f", it / 1.609344) } ?: "")

@@ -449,6 +449,8 @@ internal object PreferenceKeys {
     const val EV_PCT_CARD = "evpctcard"
     const val EV_CHARGE_PCT = "evcharge"
     const val EV_MIN_ARRIVE = "evminarr"
+    const val EV_MIN_KW = "evminkw"
+    const val EV_PROVIDERS = "evproviders"
 }
 
 /**

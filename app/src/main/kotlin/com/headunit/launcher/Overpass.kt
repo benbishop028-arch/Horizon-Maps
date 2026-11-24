@@ -583,15 +583,22 @@ object Overpass {
                 }
                 "charging" -> {
                     val sockets = ArrayList<String>()
+                    var maxKw = 0.0
                     val it2 = tags.keys()
                     while (it2.hasNext()) {
                         val k = it2.next()
+                        // the speed where it's mapped ("socket:type2_combo:output" = "150 kW"), for the charger speed filter
+                        if (k.startsWith("socket:") && k.endsWith(":output")) Regex("(\\d+(?:\\.\\d+)?)\\s*(kW|W)?", RegexOption.IGNORE_CASE).find(tags.optString(k))?.let { m ->
+                            val v = m.groupValues[1].toDoubleOrNull() ?: 0.0
+                            maxKw = kotlin.math.max(maxKw, if (m.groupValues[2].equals("W", true)) v / 1000.0 else v)
+                        }
                         if (k.startsWith("socket:") && k.count { ch -> ch == ':' } == 1) {
                             val nice = k.removePrefix("socket:").replace("_", " ")
                             val cnt = tags.optString(k)
                             sockets += if (cnt.toIntOrNull() != null) "$nice ×$cnt" else nice
                         }
                     }
+                    if (maxKw > 0) extra += "${Math.round(maxKw)} kW"
                     if (sockets.isNotEmpty()) extra += sockets.take(3).joinToString(", ")
                     tags.optString("capacity").takeIf { it.isNotBlank() }?.let { extra += "$it points" }
                     tags.optString("operator").takeIf { it.isNotBlank() && it != name }?.let { extra += it }

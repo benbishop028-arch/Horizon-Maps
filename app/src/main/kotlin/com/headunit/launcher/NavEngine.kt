@@ -3826,7 +3826,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         }
                     } else Overpass.nearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                 }
-                val list = kotlinx.coroutines.withTimeoutOrNull(30_000L) { work.await() }
+                val found = kotlinx.coroutines.withTimeoutOrNull(30_000L) { work.await() }
+                val list = if (kind == "charging") found?.let { filterChargers(it) } else found
                 if (list == null) { work.cancel(); toast(L.t("Search took too long. Check the signal and try again."), 4000); clearNearby(); return@launch }
                 if (pickBest) {
                     val ahead = list.filter { it.ahead || route == null }
@@ -4020,6 +4021,27 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Rough extra minutes to call somewhere [off] metres from the route: there and back at town speed, plus a minute. */
     private fun detour(off: Double): Int = Math.round((2.0 * off / 11.0 + 60.0) / 60.0).toInt()
+
+    /** The charger filter from Settings, as one line for the list ("50 kW+ · Ionity, Tesla"), or empty when none is set (Seali7Aut, #343). */
+    fun chargerFilterText(): String {
+        val kw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
+        val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim() }.filter { it.isNotEmpty() }
+        return listOfNotNull(if (kw > 0) "$kw kW+" else null, if (names.isNotEmpty()) names.joinToString(", ") else null).joinToString(" · ")
+    }
+
+    /** Drops chargers known to be slower than the wanted speed, or from other providers. A charger whose speed isn't known stays. */
+    private fun filterChargers(l: List<Nearby>): List<Nearby> {
+        val minKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
+        val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+        if (minKw <= 0 && names.isEmpty()) return l
+        val kwRe = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE)
+        return l.filter { n ->
+            val kw = kwRe.find(n.extra)?.groupValues?.get(1)?.toDoubleOrNull()
+            val fastEnough = minKw <= 0 || kw == null || kw >= minKw
+            val text = (n.place.name + " " + n.place.sub + " " + n.extra).lowercase()
+            fastEnough && (names.isEmpty() || names.any { it in text })
+        }
+    }
 
     private fun sortNearby(l: List<Nearby>): List<Nearby> =
         if (nearbySort == "cheap" && l.any { it.price != null }) l.sortedWith(compareBy<Nearby> { it.price ?: 9999.0 }.thenBy { it.dist }) else l.sortedBy { it.dist }
