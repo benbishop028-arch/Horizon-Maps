@@ -789,6 +789,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (prefs.b(PreferenceKeys.WHATS_HERE, true)) showHere(place)
             else if (route != null && !previewing && dest != null) addStop(place) else startRoute(place)
         }
+        map.onBearing = { b -> if (abs(angDiff(compassDeg, b)) >= 1.5) compassDeg = b }
         map.onAlprTap = { who -> toast(L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), 3500) }
         map.onReportTap = { p -> reportAt(p)?.let { r -> showReportCard(r) } }
         // a shop or business tapped on the map: its preview card (it used to only say to hold on it)
@@ -4408,8 +4409,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         val gp = gPos ?: return
         map.setMe(gp, gHead, 0)
-        val facing = if (northUp || !following) 0.0 else lookB
-        if (abs(angDiff(compassDeg, facing)) >= 3.0) compassDeg = facing
         if (glideOnRoute && r != null && !previewing) {
             if (now - gDoneAt >= (if (following) 350L else 1500L)) { gDoneAt = now; updateDone(r, gProg) }
         } else if (doneShown) { map.setDone(emptyList()); doneShown = false }

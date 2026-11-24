@@ -116,6 +116,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var meHeading = 0.0
 
     var onLongPress: ((LL) -> Unit)? = null
+    /** The map's turn from north, in degrees, whenever the camera moves. */
+    var onBearing: ((Double) -> Unit)? = null
     var onUserGesture: (() -> Unit)? = null
     var onStyleLoaded: (() -> Unit)? = null
 
@@ -232,6 +234,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // zooming across the level where the turn arrow appears or goes: put the route back together (or cut it for the arrow)
             if (turnCut != null && cutZoomOk() != cutActive) try { setLine(main) } catch (e: Exception) { }
             placeAltCards(false)
+            // the compass on the side follows the map's real turn, however it was turned (your heading, your fingers, north up)
+            try { onBearing?.invoke(mbMap.cameraState.bearing) } catch (e: Throwable) { }
             refreshLamps(); refreshSignals(); sizeFurniture()
             // (while you drive the map never stops moving, so the roads on screen are read on the move too, every few seconds)
             refreshRoads()
