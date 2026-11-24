@@ -3454,8 +3454,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     /** The route's badges' size by zoom, times each one's own scale ("sc": the camera size setting for speed cameras, 1 for the rest). */
     private val HAZ_SIZE = "[\"interpolate\",[\"linear\"],[\"zoom\"]," +
         listOf(11 to 0.45, 15 to 0.75, 18 to 1.0).joinToString(",") { (z, v) -> "$z,[\"*\",$v,[\"coalesce\",[\"get\",\"sc\"],1]]" } + "]"
-    /** Map icons by kind: camera, roadworks, closure, police, accident, hazard, breakdown, mobile camera. */
-    private val hazardNames = arrayOf("dl-hz-cam", "dl-hz-work", "dl-hz-closed", "dl-hz-police", "dl-hz-accident", "dl-hz-hazard", "dl-hz-breakdown", "dl-hz-mobilecam")
+    /** Map icons by kind: camera, roadworks, closure, police, accident, hazard, breakdown, mobile camera, traffic jam. */
+    private val hazardNames = arrayOf("dl-hz-cam", "dl-hz-work", "dl-hz-closed", "dl-hz-police", "dl-hz-accident", "dl-hz-hazard", "dl-hz-breakdown", "dl-hz-mobilecam", "dl-hz-traffic")
 
     /** Icons for speed cameras (0), roadworks (1) and closures (2) along the route. */
     fun setHazards(list: List<Pair<LL, Int>>) { hazards = list; pushHazards() }
@@ -3549,6 +3549,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 c.drawRoundRect(android.graphics.RectF(cx - 11f, cx - 13f, cx + 11f, cx - 2f), 5f, 5f, p(0xFFFFFFFF.toInt()))
                 c.drawCircle(cx - 10f, cx + 11f, 4.5f, p(0xFF37474F.toInt()))
                 c.drawCircle(cx + 10f, cx + 11f, 4.5f, p(0xFF37474F.toInt()))
+            }
+            8 -> {
+                badge(0xFF7F1020.toInt(), 0xFFC62839.toInt(), "")
+                // a queue: three cars nose to tail
+                for (dx in floatArrayOf(-20f, -3f, 14f)) c.drawRoundRect(android.graphics.RectF(cx + dx - 6f, cx - 8f, cx + dx + 6f, cx + 9f), 3f, 3f, p(0xFFFFFFFF.toInt()))
             }
             7 -> {
                 c.drawCircle(cx, cx + 2f, 38f, p(0x55000000))

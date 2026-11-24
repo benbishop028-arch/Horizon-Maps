@@ -421,6 +421,8 @@ internal object PreferenceKeys {
     const val VOICE_PAUSES_MUSIC = "voicepausesmusic"
     /** The voice is made into a sound file and played by the app itself, like the chimes (bluelions25 #331). */
     const val VOICE_VIA_APP = "voiceviaapp"
+    /** How much louder the voice the app plays itself is made, in dB (0 to 18; Mirrrik #362). */
+    const val VOICE_GAIN = "voicegain"
     /** Where the voice and chimes come out: "auto" (wherever Android sends them) or "phone" (the phone's own speaker; benkkwok #314). */
     const val VOICE_OUT = "voiceout"
     const val APP_LANG = "applang"

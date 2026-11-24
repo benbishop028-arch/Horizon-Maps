@@ -1293,6 +1293,7 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             Triple("accident", L.t("Crash"), R.drawable.ic_car_crash to 0xFFF28B82.toInt()),
             Triple("hazard", L.t("Hazard"), R.drawable.ic_car_report to 0xFFFBBC04.toInt()),
             Triple("breakdown", L.t("Broken down"), R.drawable.ic_car_breakdown to 0xFFFCAD70.toInt()),
+            Triple("traffic", L.t("Traffic jam"), R.drawable.ic_car_traffic to 0xFFF28B82.toInt()),
             Triple("mobilecam", L.t("Mobile camera"), R.drawable.ic_car_mobilecam to 0xFF8AB4F8.toInt()),
         )
         val list = ItemList.Builder()

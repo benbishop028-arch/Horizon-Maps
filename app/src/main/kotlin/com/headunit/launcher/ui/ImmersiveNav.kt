@@ -831,8 +831,9 @@ private fun QuickReportPanel(engine: NavEngine, close: () -> Unit) {
             TileSpec(Icons.Rounded.PriorityHigh, L.t("Hazard"), Warn, { engine.report("hazard"); close() }),
             TileSpec(Icons.Rounded.Build, L.t("Broken down"), Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
         ), compact = true)
-        WideTiles(1, listOf(
+        WideTiles(2, listOf(
             TileSpec(Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
+            TileSpec(Icons.Rounded.Traffic, L.t("Traffic jam"), Color(0xFFB01C2E), { engine.report("traffic"); close() }),
         ), compact = true)
     }
 }
@@ -916,12 +917,13 @@ private fun OptionsSheet(engine: NavEngine, shareEta: () -> Unit, wide: Boolean 
         val restPart: @Composable () -> Unit = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SheetHeading(L.t("Report here"))
-                WideTiles(5, listOf(
+                WideTiles(3, listOf(
                     TileSpec(Icons.Rounded.LocalPolice, L.t("Police"), Color(0xFF1E66F5), { engine.report("police"); close() }),
                     TileSpec(Icons.Rounded.CarCrash, L.t("Crash"), Bad, { engine.report("accident"); close() }),
                     TileSpec(Icons.Rounded.PriorityHigh, L.t("Hazard"), Warn, { engine.report("hazard"); close() }),
                     TileSpec(Icons.Rounded.Build, L.t("Broken down"), Color(0xFFFB8C00), { engine.report("breakdown"); close() }),
                     TileSpec(Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), { engine.report("mobilecam"); close() }),
+                    TileSpec(Icons.Rounded.Traffic, L.t("Traffic jam"), Color(0xFFB01C2E), { engine.report("traffic"); close() }),
                 ), compact = true)
                 // with no route the map page already has fuel, charging, food, coffee and parking, so only the rest are here
                 fun find(kind: String): () -> Unit = { engine.loadNearby(kind, false); close() }

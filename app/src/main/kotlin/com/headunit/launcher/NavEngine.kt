@@ -1525,6 +1525,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** A sample beep, at the chime volume just set (Settings). */
     fun testChime() { if (soundMode != 2) guidanceBeep(false) }
+    /** A short line said as the voice is turned up, so the new level can be heard. */
+    fun testVoice() { if (soundMode != 2) speak(L.t("You have arrived"), true) }
 
     // one tone generator, kept and reused: making a new one for every beep leaked audio resources and caused hiccups over time
     private var toneGen: android.media.ToneGenerator? = null
@@ -5080,9 +5082,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     class Report(val kind: String, val pos: LL, val t: Long)
 
     /** How long each kind of report lasts, its map icon, and what is said when you come up to it. */
-    private fun reportLife(k: String) = when (k) { "hazard" -> 3_600_000L; "accident", "breakdown" -> 2 * 3_600_000L; "mobilecam" -> 4 * 3_600_000L; else -> 3 * 3_600_000L }
-    private fun reportIcon(k: String) = when (k) { "accident" -> 4; "hazard" -> 5; "breakdown" -> 6; "mobilecam" -> 7; else -> 3 }
-    fun reportName(k: String) = when (k) { "accident" -> "Accident"; "hazard" -> "Hazard"; "breakdown" -> "Broken-down vehicle"; "mobilecam" -> "Mobile speed camera"; else -> "Police" }
+    private fun reportLife(k: String) = when (k) { "hazard", "traffic" -> 3_600_000L; "accident", "breakdown" -> 2 * 3_600_000L; "mobilecam" -> 4 * 3_600_000L; else -> 3 * 3_600_000L }
+    private fun reportIcon(k: String) = when (k) { "accident" -> 4; "hazard" -> 5; "breakdown" -> 6; "mobilecam" -> 7; "traffic" -> 8; else -> 3 }
+    fun reportName(k: String) = when (k) { "accident" -> "Accident"; "hazard" -> "Hazard"; "breakdown" -> "Broken-down vehicle"; "mobilecam" -> "Mobile speed camera"; "traffic" -> "Traffic jam"; else -> "Police" }
 
     /** Reports still in force (older police-only reports are read too). */
     fun reportsActive(): List<Report> {
@@ -7047,7 +7049,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // reports
         if (t.startsWith("report")) {
-            val k = when { has("police", "cop") -> "police"; has("accident", "crash") -> "accident"; has("breakdown", "broken") -> "breakdown"; has("camera") -> "mobilecam"; else -> "hazard" }
+            val k = when { has("police", "cop") -> "police"; has("accident", "crash") -> "accident"; has("breakdown", "broken") -> "breakdown"; has("camera") -> "mobilecam"; has("traffic", "jam") -> "traffic"; else -> "hazard" }
             report(k); return ""
         }
         // finding things
@@ -7506,6 +7508,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private class ViaItem(val id: String, val file: java.io.File, var ready: Boolean = false, var failed: Boolean = false, val text: String)
     private val viaQueue = java.util.ArrayDeque<ViaItem>()
     private var viaPlayer: android.media.MediaPlayer? = null
+    private var viaGain: android.media.audiofx.LoudnessEnhancer? = null
     private var viaSeq = 0
     /** The app is making or playing a spoken line (counts as speaking for giving the music back). */
     @Volatile private var viaBusy = false
@@ -7561,8 +7564,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             mp.setOnCompletionListener { finishVia(it, item.file) }
             mp.setOnErrorListener { m, _, _ -> finishVia(m, item.file); true }
             mp.prepare()
+            // Settings › Sound & voice › Voice boost: louder than the audio's own level, for voices that come out quietly. The
+            // enhancer limits the peaks rather than letting them clip
+            val gainDb = prefs.i(PreferenceKeys.VOICE_GAIN, 0).coerceIn(0, 18)
+            if (gainDb > 0) try { viaGain = android.media.audiofx.LoudnessEnhancer(mp.audioSessionId).apply { setTargetGain(gainDb * 100); setEnabled(true) } } catch (e: Throwable) { }
             mp.start()
         } catch (e: Exception) {
+            releaseViaGain()
             viaPlayer?.let { try { it.release() } catch (x: Exception) { } }
             viaPlayer = null
             try { item.file.delete() } catch (x: Exception) { }
@@ -7570,7 +7578,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    private fun releaseViaGain() { try { viaGain?.release() } catch (e: Throwable) { }; viaGain = null }
+
     private fun finishVia(mp: android.media.MediaPlayer, file: java.io.File) {
+        releaseViaGain()
         try { mp.release() } catch (e: Exception) { }
         if (viaPlayer === mp) viaPlayer = null
         try { file.delete() } catch (e: Exception) { }
@@ -7596,6 +7607,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun stopViaPlayer() {
         val mp = viaPlayer ?: return
         viaPlayer = null
+        releaseViaGain()
         try { mp.stop() } catch (e: Exception) { }
         try { mp.release() } catch (e: Exception) { }
     }

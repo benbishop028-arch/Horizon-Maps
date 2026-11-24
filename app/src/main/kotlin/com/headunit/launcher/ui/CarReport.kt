@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.CarCrash
 import androidx.compose.material.icons.rounded.LocalPolice
 import androidx.compose.material.icons.rounded.PriorityHigh
+import androidx.compose.material.icons.rounded.Traffic
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -76,6 +77,9 @@ internal fun CarReportPanel(engine: NavEngine, modifier: Modifier = Modifier) {
             tile("hazard", Icons.Rounded.PriorityHigh, L.t("Hazard"), Color(0xFFE6A21A), Color(0xFF2A1C00), Modifier.weight(1f))
             tile("breakdown", Icons.Rounded.Build, L.t("Broken down"), Color(0xFFFB8C00), Color(0xFF2A1600), Modifier.weight(1f))
         }
-        tile("mobilecam", Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), Color.White, Modifier.fillMaxWidth())
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            tile("traffic", Icons.Rounded.Traffic, L.t("Traffic jam"), Color(0xFFB01C2E), Color.White, Modifier.weight(1f))
+            tile("mobilecam", Icons.Rounded.CameraAlt, L.t("Mobile camera"), Color(0xFF1E66F5), Color.White, Modifier.weight(1f))
+        }
     }
 }

@@ -885,6 +885,13 @@ private fun SoundSection(prefs: Prefs, engine: NavEngine) {
         SSlider(L.t("Chime volume"), prefs.i(PreferenceKeys.CHIME_VOL, 70).coerceIn(5, 100).toFloat(), 5f..100f, "%",
             sub = L.t("The beeps for speeding, limit changes and cameras, compared with the voice. Your head unit's volume, turned while it speaks, changes both"),
             reset = 70f) { prefs.put(PreferenceKeys.CHIME_VOL, it.toInt()); engine.testChime() }
+        SSlider(L.t("Voice boost"), prefs.i(PreferenceKeys.VOICE_GAIN, 0).coerceIn(0, 18).toFloat(), 0f..18f, " dB",
+            sub = L.t("Makes the spoken directions louder than the music. Very high settings can sound distorted, so turn it up a little at a time. It plays the voice like the chimes, so moving it up turns that switch on"),
+            steps = 17, reset = 0f) {
+            prefs.put(PreferenceKeys.VOICE_GAIN, it)
+            if (it > 0) prefs.put(PreferenceKeys.VOICE_VIA_APP, true)
+            engine.testVoice()
+        }
     }
 }
 

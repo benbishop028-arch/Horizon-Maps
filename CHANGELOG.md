@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Report a traffic jam: a Traffic jam button in Report here (phone, head unit and Android Auto, and by voice: "report traffic"). It puts a red queue badge on your map for an hour, and warns you when you come up to it, like the other reports. Reports are kept on your own device, so other drivers don't see them (thanks to Dotancom, #352)
+- Voice boost: Settings › Sound & voice › Voice and volume › Voice boost makes the spoken directions up to 18 dB louder, for when they are too quiet next to the music over Android Auto or Bluetooth. Moving it up turns on "Play the voice like the chimes", which it needs. Off (0 dB) by default (thanks to Mirrrik, #362)
 - Android Auto: the left-column trip card now shows live fuel cost and distance driven when Live fuel cost is enabled, as the bottom bar does (thanks to ZarulOfficial, #353)
 - Bigger 3D models for your arrow: a .glb over 8 MB (as models made with AI tools like Meshy often are) has its pictures made smaller as it's picked, so it fits; the shape isn't changed. Up to 48 MB can be picked (thanks to HukarStudio, Reddit)
 - "Slow down" in words: Settings › Alerts › Say "Slow down" speaks it after the beep when you go over the limit, and Top speed alert gives a speed of your own (say 120 km/h) that beeps and says "Slow down" once as you reach it, whatever the limit is. Both are off by default (thanks to Dotancom, #345)
