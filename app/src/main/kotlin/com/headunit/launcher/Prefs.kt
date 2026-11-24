@@ -216,6 +216,8 @@ internal object PreferenceKeys {
     const val HAZARDRADAR = "hazardradar"
     const val INCIDENTS = "incidents"
     const val KEEPON = "keepon"
+    /** Phone: keep the screen on with no route too, for watching the traffic on the map (#369). */
+    const val KEEPON_NOROUTE = "keepon_noroute"
     const val LAMPGAP = "lampgap"
     const val LANDMARKS3D = "landmarks3d"
     const val LANEMAP = "lanemap"

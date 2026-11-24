@@ -1309,6 +1309,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SSlider(L.t("Brightness"), prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = L.t("100% leaves it to the system"), live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, L.t("Dim the screen at night"), "dimnight", false)
         SToggle(prefs, L.t("Keep the screen on"), "keepon", true)
+        SToggle(prefs, L.t("Keep the screen on without a route"), PreferenceKeys.KEEPON_NOROUTE, false, L.t("On a phone the screen stays on only while you navigate. Turn this on to keep it on while you just watch the map and traffic. Uses more battery"))
         SToggle(prefs, L.t("Glass panels"), "glass", true, L.t("See-through cards tinted by the map. Off gives solid cards"))
         SToggle(prefs, L.t("New portrait layout"), PreferenceKeys.PORTRAIT_SHEET, true, L.t("On an upright screen with no route: just the search bar at the top, and your places, music and notices in a sheet along the bottom"))
         SChoice(L.t("Mapbox logo position"), listOf("tl" to L.t("Top left"), "tr" to L.t("Top right"), "bl" to L.t("Bottom left"), "br" to L.t("Bottom right")), prefs.s(PreferenceKeys.MAPBOX_LOGO, "tr"),

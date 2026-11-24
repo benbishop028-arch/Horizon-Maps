@@ -169,7 +169,7 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     // goes off as usual (it was kept on whenever the app was open, a big battery drain on a phone left with the app open).
     // A head unit keeps it on all the time
     val onPhone = remember { engine.onPhone() }
-    val keepOn = prefs.b(PreferenceKeys.KEEPON, true) && (!onPhone || (engine.route != null && !engine.previewing))
+    val keepOn = prefs.b(PreferenceKeys.KEEPON, true) && (!onPhone || (engine.route != null && !engine.previewing) || prefs.b(PreferenceKeys.KEEPON_NOROUTE, false))
     LaunchedEffect(bright, dimNight, dark, keepOn) {
         val win = findActivity(hostCtx)?.window ?: return@LaunchedEffect
         val dim = dimNight && dark
