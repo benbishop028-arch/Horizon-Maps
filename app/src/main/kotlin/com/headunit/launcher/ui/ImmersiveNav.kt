@@ -85,6 +85,7 @@ import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.ZoomIn
 import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.LocalCafe
 import androidx.compose.material.icons.rounded.LocalGasStation
 import androidx.compose.material.icons.rounded.LocalParking
@@ -474,7 +475,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             if (!routeSheet) {
             railItems.add(@Composable { ImmCompass(engine) })
             // #275: keep one-tap reports on the map itself, rather than making drivers open Map options first.
-            railItems.add(@Composable { ImmIcon(Icons.Rounded.Flag, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
+            railItems.add(@Composable { ImmIcon(Icons.Rounded.Campaign, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
             }
             // (the portrait route layout: map options stays, above sound)
@@ -1648,7 +1649,7 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                         }
                     }
                     act(Icons.Rounded.Route, L.t("Overview"), c.accent) { engine.overview(); open = false }
-                    act(Icons.Rounded.Flag, L.t("Report"), Warn) { open = false; onReport() }
+                    act(Icons.Rounded.Campaign, L.t("Report"), Warn) { open = false; onReport() }
                     act(Icons.Rounded.Layers, L.t("Map options"), c.text) { open = false; onOptions() }
                     if (evPct != null) act(Icons.Rounded.EvStation, L.t("Chargers ahead"), Good) { engine.loadNearby("charging", false); open = false }
                 }

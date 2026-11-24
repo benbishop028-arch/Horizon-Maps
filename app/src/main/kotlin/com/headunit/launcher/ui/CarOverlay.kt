@@ -29,7 +29,7 @@ import androidx.compose.material.icons.rounded.ZoomOutMap
 import androidx.compose.material.icons.rounded.AltRoute
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.AddLocationAlt
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.rounded.History
@@ -860,6 +860,7 @@ private fun TripColumn(engine: NavEngine, showEnd: Boolean = true) {
         Text(Geo.fmtDur(e.secs), color = dc, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         Text(e.arrive, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
         Text(Geo.fmtDist(e.dist, engine.imperial), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        LiveFuelLine(engine, column = true)
         if (showEnd && "end" in carTripButtonsOn(engine.prefs)) {
             val sz = 34.dp * carButtonScale(engine)
             Box(Modifier.padding(top = 6.dp).size(sz).clip(androidx.compose.foundation.shape.CircleShape).background(Bad).carTap("end") { engine.endRoute() }, contentAlignment = Alignment.Center) {
@@ -974,7 +975,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
                     if ("sound" in on) sound(sz)
                     if ("stop" in on) small(androidx.compose.material.icons.Icons.Rounded.AddLocationAlt, "tripstop", { actions.stops() }, sz)
                     if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
-                    if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
+                    if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Campaign, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
                     if ("end" in on) end(sz)
                 }
             }
@@ -990,7 +991,7 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
             if ("stop" in on) small(androidx.compose.material.icons.Icons.Rounded.AddLocationAlt, "tripstop", { actions.stops() }, sz)
             // search while navigating: a stop on the way, or somewhere else to go
             if ("search" in on) small(androidx.compose.material.icons.Icons.Rounded.Search, "tripsearch", { actions.search() }, sz)
-            if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Flag, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
+            if ("report" in on) small(androidx.compose.material.icons.Icons.Rounded.Campaign, "tripreport", { CarReportCard.open = !CarReportCard.open }, sz)
             if ("end" in on) end(sz)
         }
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {

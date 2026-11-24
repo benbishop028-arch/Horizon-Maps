@@ -2557,6 +2557,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         if (!slotsOn && (hzFamily() || recolourBase)) try { recolourClassic(st) } catch (e: Throwable) { }
         // Standard's newer settings are set once it's loaded (so a style that doesn't know one can't stop the map loading)
         if (!satellite) {
+            setBase("show3dObjects", Value.valueOf(buildings3d && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
             setBase("show3dTrees", Value.valueOf(treesOn)); setBase("showLandmarkIcons", Value.valueOf(!lite))
             // lane markings, turn arrows, stop lines and 3D overpasses where Mapbox has them (Full 3D only)
             setBase("showHdRoads", Value.valueOf(hdRoadsOn && MapStylePolicy.supportsFullDetailFeatures(mapDetail)))
@@ -2605,7 +2606,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // lane bands: each lane drawn as a strip along the road before a junction, the lane(s) you need lit, the others dimmed, with dashed dividers
         addS(st, GeoJsonSource.Builder("dl-lane-bands").featureCollection(empty()).build())
         addS(st, GeoJsonSource.Builder("dl-lane-divs").featureCollection(empty()).build())
-        fun ln(id: String, src: String) = LineLayer(id, src).inSlot(MID).lineEmissiveStrength(1.0).lineCap(LineCap.ROUND).lineJoin(LineJoin.ROUND)
+        fun ln(id: String, src: String, slot: String = MID) = LineLayer(id, src).inSlot(slot).lineEmissiveStrength(1.0).lineCap(LineCap.ROUND).lineJoin(LineJoin.ROUND)
         // average speed zones on the route: the stretch between the cameras shaded yellow, with dashed yellow edges (under the route)
         addS(st, GeoJsonSource.Builder("dl-avg").featureCollection(FeatureCollection.fromFeatures(avgZoneLines.filter { it.size >= 2 }.map { line(it) })).build())
         val bandW = zoomed(2.0, 12 to 8.0, 16 to 30.0, 20 to 480.0)
@@ -2679,19 +2680,6 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconOpacity(0.75).iconEmissiveStrength(1.0)
             .iconSize(zoomed(1.0, 15 to 0.28, 18 to 0.5, 20 to 0.7))
             .minZoom(15.0).visibility(vis(chevOn)))
-        // the turn arrow: (by day) a soft dark halo so it stands out on the light map, a dark edge, a white shaft and a white head
-        if (dayLook) addL(st, ln("dl-turn-soft", "dl-turn").lineColor("#16467A").lineWidth(routeW(1.62f)).lineBlur(routeW(0.3f)).lineOpacity(0.35).minZoom(13.0))
-        addL(st, ln("dl-turn-case", "dl-turn").lineColor("#16467A").lineWidth(routeW(1.28f)).minZoom(13.0))
-        addL(st, ln("dl-turn-line", "dl-turn").lineColor("#FFFFFF").lineWidth(routeW(1.08f)).minZoom(13.0))
-        addImg(st, "dl-turn-head-img", turnHeadBitmap(dayLook))
-        addL(st, SymbolLayer("dl-turn-head", "dl-turn-head").inSlot(MID)
-            .iconImage("dl-turn-head-img").iconRotate(Expression.get("b"))
-            .iconRotationAlignment(IconRotationAlignment.MAP).iconPitchAlignment(IconPitchAlignment.MAP)
-            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
-            // the head's base sits exactly on the end of the shaft, and grows with the zoom the same way the line does
-            .iconAnchor(IconAnchor.BOTTOM)
-            .iconSize(zoomed(1.7, 10 to headSize(3f), 13 to headSize(6.5f), 15 to headSize(10f), 17 to headSize(16f), 19 to headSize(24f)))
-            .minZoom(13.0))
         // the part of the route you have already driven turns grey, drawn over the blue
         addL(st, ln("dl-done-casing", "dl-done").lineColor(if (im) "#B4B9CE" else "#C3C8D8").lineWidth(routeW(if (im) 1.5f else 1.25f)).lineOpacity(0.9).lineCap(LineCap.BUTT))
         addL(st, ln("dl-done-line", "dl-done").lineColor(if (im) "#7E849F" else "#8C92AC").lineWidth(routeW(if (im) 1.0f else 0.85f)).lineCap(LineCap.BUTT))
@@ -2722,6 +2710,19 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             addL(st, l)
             if (on == 1) lanesOnLayer = l
         }
+        // Keep the entire turn arrow above the route x-ray (in Standard's top slot) and lane overlays; classic uses insertion order.
+        if (dayLook) addL(st, ln("dl-turn-soft", "dl-turn", TOP).lineColor("#16467A").lineWidth(routeW(1.62f)).lineBlur(routeW(0.3f)).lineOpacity(0.35).minZoom(13.0))
+        addL(st, ln("dl-turn-case", "dl-turn", TOP).lineColor("#16467A").lineWidth(routeW(1.28f)).minZoom(13.0))
+        addL(st, ln("dl-turn-line", "dl-turn", TOP).lineColor("#FFFFFF").lineWidth(routeW(1.08f)).minZoom(13.0))
+        addImg(st, "dl-turn-head-img", turnHeadBitmap(dayLook))
+        addL(st, SymbolLayer("dl-turn-head", "dl-turn-head").inSlot(TOP)
+            .iconImage("dl-turn-head-img").iconRotate(Expression.get("b"))
+            .iconRotationAlignment(IconRotationAlignment.MAP).iconPitchAlignment(IconPitchAlignment.MAP)
+            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
+            // the head's base sits exactly on the end of the shaft, and grows with the zoom the same way the line does
+            .iconAnchor(IconAnchor.BOTTOM)
+            .iconSize(zoomed(1.7, 10 to headSize(3f), 13 to headSize(6.5f), 15 to headSize(10f), 17 to headSize(16f), 19 to headSize(24f)))
+            .minZoom(13.0))
         // street lamps (3D models, see StreetLamps below); and the road data used for lamps and road snapping
         installLamps(st)
         installRoadData(st)
