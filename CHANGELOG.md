@@ -107,6 +107,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - The speed limit sign on the map now shows where the limit changes even when the route has no limit for the stretch you're on (common with Mapbox's data); it used to appear only rarely (thanks to SonicBjork, #257)
 - Android Auto search waits for you to finish typing: it searched half a second after the third letter, and the results replaced the keyboard on some cars long before the name was finished. It now waits for a longer pause and keeps the keyboard up (thanks to joebGer19, #293)
 - Android Auto no longer gets stuck in night mode after a run of tunnels or underpasses: day and night now settle for a second before the map changes, and the car screen checks every 20 seconds that it matches what the car says (thanks to joebGer19, #292)
+- Traffic lights, speed limits and other OpenStreetMap look-ups: a server that has just failed is now tried after the others for a few minutes, so two servers being down no longer stops every search, and the maps.mail.ru server works on Android 10 (#271)
 
 ### New
 - Multi-stop journey history: remember the destination and every stop as soon as the route is planned, so it can be previewed again with the same stops and fresh traffic
