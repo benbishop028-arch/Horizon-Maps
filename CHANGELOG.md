@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Park here: when no parking spot is saved, the "Your car" card on the phone now has a Park here button that saves where you are right now, so Walk back can take you to your car even when you didn't use Android Auto (thanks to joel941703-hash, #359)
 - Report a traffic jam: a Traffic jam button in Report here (phone, head unit and Android Auto, and by voice: "report traffic"). It puts a red queue badge on your map for an hour, and warns you when you come up to it, like the other reports. Reports are kept on your own device, so other drivers don't see them (thanks to Dotancom, #352)
 - Voice boost: Settings › Sound & voice › Voice and volume › Voice boost makes the spoken directions up to 18 dB louder, for when they are too quiet next to the music over Android Auto or Bluetooth. Moving it up turns on "Play the voice like the chimes", which it needs. Off (0 dB) by default (thanks to Mirrrik, #362)
 - Android Auto: the left-column trip card now shows live fuel cost and distance driven when Live fuel cost is enabled, as the bottom bar does (thanks to ZarulOfficial, #353)

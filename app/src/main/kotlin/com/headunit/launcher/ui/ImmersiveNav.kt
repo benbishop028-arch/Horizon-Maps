@@ -2092,12 +2092,32 @@ private fun ParkedCard(engine: NavEngine) {
     val c = LocalVw.current
     val raw = engine.prefs.s(PreferenceKeys.PARKED_SPOT, "")
     val parts = raw.split(',')
-    val spot = parts.getOrNull(0)?.toDoubleOrNull()?.let { la -> parts.getOrNull(1)?.toDoubleOrNull()?.let { lo -> LL(la, lo) } } ?: return
-    val at = parts.getOrNull(2)?.toLongOrNull() ?: return
-    val ageMin = ((System.currentTimeMillis() - at) / 60_000L).coerceAtLeast(0L)
-    if (ageMin > 48 * 60) return
+    val spot = parts.getOrNull(0)?.toDoubleOrNull()?.let { la -> parts.getOrNull(1)?.toDoubleOrNull()?.let { lo -> LL(la, lo) } }
+    val at = parts.getOrNull(2)?.toLongOrNull()
+    val ageMin = if (at != null) ((System.currentTimeMillis() - at) / 60_000L).coerceAtLeast(0L) else 0L
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val here = engine.fix?.pos
+    if (spot == null || at == null || ageMin > 48 * 60) {
+        // nothing saved (or too old): a button to save where you are now (joel941703-hash, #359)
+        if (here == null) return
+        Row(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(start = 14.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(Modifier.size(38.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.DirectionsCar, null, tint = c.accent, modifier = Modifier.size(21.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text(L.t("Your car"), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(L.t("Not saved yet"), color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            ImmPill(L.t("Park here"), {
+                engine.fix?.pos?.let { p ->
+                    engine.prefs.put(PreferenceKeys.PARKED_SPOT, String.format(java.util.Locale.US, "%.6f,%.6f,%d", p.lat, p.lon, System.currentTimeMillis()))
+                    engine.toast(L.t("Saved where you parked"), 2500)
+                }
+            }, filled = true)
+        }
+        return
+    }
     // (not while you're still at the car)
     if (here != null && Geo.dist(here, spot) < 80.0) return
     val ago = when { ageMin < 1 -> L.t("just now"); ageMin < 60 -> L.t("{0} min ago", ageMin); ageMin < 24 * 60 -> L.t("{0} h ago", ageMin / 60); else -> "yesterday" }
