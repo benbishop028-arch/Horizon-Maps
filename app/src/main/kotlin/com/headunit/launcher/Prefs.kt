@@ -129,6 +129,8 @@ internal object PreferenceKeys {
     const val LIMIT_SOUNDS = "limitsounds"
     /** Says "Slow down" after the beep for going over the limit (Dotancom #345). */
     const val SAY_SLOW_DOWN = "sayslowdown"
+    /** Says "Slow down" when the driver's chosen top speed is reached (#345). */
+    const val SAY_TOP_SPEED = "saytopspeed"
     /** The sound of the over-the-limit and top-speed alerts: "double" (the usual beep), "siren" or "buzz" (ILDEMONICO, #335). */
     const val SPEED_ALERT_SOUND = "speedalertsound"
     /** Keeps the speed alert going with the app in the background, with or without a route (ILDEMONICO, #335). */
