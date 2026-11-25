@@ -78,6 +78,7 @@ class I18nCoreCoverageTest {
         "You have the latest version",
         "Version {0} is available",
         "No signal, and nothing saved or downloaded matches",
+        "No signal: showing saved places and offline towns",
         "No signal. Download the offline pack or place names in Settings > Offline maps to search with no signal",
         "Search failed: weak or no signal",
         "Mapbox returned no turn instructions for this route",
