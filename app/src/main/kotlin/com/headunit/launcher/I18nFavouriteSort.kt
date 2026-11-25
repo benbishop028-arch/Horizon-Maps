@@ -47,7 +47,13 @@ internal object I18nFavouriteSort {
             "esar" to "Más cercanos",
             "esmx" to "Más cercanos"
         )
-        return listOf("Sort favourites" to when (code) {
+        return listOf(
+            "Saved" to if (code == "pl") "Zapisane" else "Saved",
+            "Recent" to if (code == "pl") "Ostatnie" else "Recent",
+            "Name" to if (code == "pl") "Nazwa" else "Name",
+            "Distance" to if (code == "pl") "Odległość" else "Distance",
+            "A–Z" to "A–Z",
+            "Sort favourites" to when (code) {
             "nl" -> "Favorieten sorteren"; "de" -> "Favoriten sortieren"; "fr" -> "Trier les favoris"; "es", "esar", "esmx" -> "Ordenar favoritos"
             "it" -> "Ordina preferiti"; "pt" -> "Ordenar favoritos"; "pl" -> "Sortuj ulubione"; "th" -> "เรียงรายการโปรด"; "ja" -> "お気に入りを並べ替え"
             "id" -> "Urutkan favorit"; "bg" -> "Сортиране на любимите"; "sl" -> "Razvrsti priljubljene"; "ro" -> "Sortează favoritele"
