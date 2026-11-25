@@ -3,6 +3,7 @@
 Everything that has changed in Horizon Nav, newest first. Each version lists what's new, what's improved and what's fixed. Changes that are ready but not published yet are under Unreleased.
 
 ## Unreleased
+- Localise offline area picker group names and free-space text, use the selected language for offline-pack dates, and translate Android Auto route arrival labels. Add short-pack regression coverage.
 
 ### Improved
 - Localise sound modes, map-provider fallback notices, update-check results, offline-search messages, missing route-instruction notices, alternative-route status, nearby-search results and rerouting warnings in Catalan, Korean, Tamil and Telugu; add regression coverage.
