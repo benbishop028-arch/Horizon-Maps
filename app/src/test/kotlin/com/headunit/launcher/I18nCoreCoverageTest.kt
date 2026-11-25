@@ -13,6 +13,13 @@ class I18nCoreCoverageTest {
         "Fuel prices", "Avoid toll roads", "Avoid motorways", "Avoid ferries",
         "Add stop", "Save place", "Search for a place", "Map style", "Satellite",
         "This head unit can't draw the Mapbox map", "Horizon Nav keeps closing while it starts",
+        "Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one.",
+        "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup",
+        "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed",
+        "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed",
+        "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style",
+        "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map",
+        "step", "steps",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it."
     )
 

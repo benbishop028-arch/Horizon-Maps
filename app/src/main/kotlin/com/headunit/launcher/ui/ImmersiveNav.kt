@@ -2405,7 +2405,7 @@ private fun ItineraryCard(engine: NavEngine) {
             Column(Modifier.weight(1f)) {
                 Text(L.t("Your route"), color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 val e = engine.eta
-                Text("${rows.size} ${if (rows.size == 1) "step" else "steps"}" + (if (e != null) " · " + Geo.fmtDist(e.dist, engine.imperial) + L.t(" · arrive ") + e.arrive else ""),
+                Text("${rows.size} " + L.t(if (rows.size == 1) "step" else "steps") + (if (e != null) " · " + Geo.fmtDist(e.dist, engine.imperial) + L.t(" · arrive ") + e.arrive else ""),
                     color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp)
             }
             Box(Modifier.size(44.dp).clip(CircleShape).background(TealDeep).clickable { engine.closeItinerary() }, contentAlignment = Alignment.Center) {

@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
         SessionWatch.speed = { try { engine.fix?.speed ?: 0.0 } catch (e: Throwable) { 0.0 } }
         SessionWatch.perf = { try { engine.perfLine } catch (e: Throwable) { "" } }
         SessionWatch.resumed(applicationContext)
-        if (sessionStep > 0) window.decorView.postDelayed({ try { engine.toast(SessionWatch.message(sessionStep), 12_000) } catch (e: Throwable) { } }, 5000L)
+        if (sessionStep > 0) window.decorView.postDelayed({ try { engine.toast(L.t(SessionWatch.message(sessionStep)), 12_000) } catch (e: Throwable) { } }, 5000L)
         if (safeLevel > 0) window.decorView.postDelayed({
             try { engine.toast(L.t(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map"), 10_000) } catch (e: Throwable) { }
         }, 4000L)

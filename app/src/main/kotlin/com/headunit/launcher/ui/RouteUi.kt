@@ -1085,14 +1085,7 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
                     Text(t.exitNo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
-            shieldItems.forEach { shield ->
-                when {
-                    shield.reference.startsWith("https://") && mapboxToken.isNotBlank() -> MapboxRoadShieldImage(shield, mapboxToken)
-                    t.shieldAtlasUrl.isNotBlank() && shield.reference.isNotBlank() -> RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
-                    else -> RoadShieldBadge((shield.content + if (shield.affixes.isNotEmpty()) " " + shield.affixes.joinToString(" ") else "").ifBlank { t.ref }, shield.reference)
-                }
-            }
-            refs.forEach { RoadShieldBadge(it, "") }
+            // Road shields are already shown in the manoeuvre header; don't repeat them in the larger destination panel.
             Spacer(Modifier.weight(1f))
             Text(arrow, color = ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         }

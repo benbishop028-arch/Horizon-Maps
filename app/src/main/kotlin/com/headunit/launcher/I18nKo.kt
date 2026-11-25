@@ -125,6 +125,14 @@ object I18nKo {
         "Horizon Nav keeps closing while it starts" to "Horizon Nav가 시작 중 계속 종료됩니다",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "불편을 드려 죄송합니다. 아래 보고서를 보내 주시면 이 차량용 기기의 문제를 해결하는 데 도움이 됩니다. 개인 정보는 포함되지 않습니다.",
         "No browser on this unit: use Copy instead" to "이 기기에 브라우저가 없습니다. 대신 복사를 사용하세요",
-        "Copied: paste it into a message or a Reddit comment" to "복사했습니다. 메시지나 Reddit 댓글에 붙여넣으세요"
+        "Copied: paste it into a message or a Reddit comment" to "복사했습니다. 메시지나 Reddit 댓글에 붙여넣으세요",
+        "step" to "단계",
+        "steps" to "단계",
+        "Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one." to "Horizon Nav를 실행하려면 OpenGL ES 3.0 그래픽이 필요하지만 이 기기는 {0} 버전입니다. 이전 Mapbox 지도 버전의 Horizon Nav가 있다면 구형 그래픽에서도 작동합니다.",
+        "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup" to "Horizon Nav가 예기치 않게 멈추거나 종료되었습니다. 안전을 위해 이제 지도는 초당 30프레임으로 더 가볍게 그려지고 무거운 3D 효과는 꺼집니다. 다시 발생하면 설정 > 정보 및 백업에서 피드백 보고서를 보내 주세요.",
+        "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav가 다시 멈추거나 종료되어 지도가 낮은 선명도의 Lite 모드로 전환되었습니다. 이 기기의 문제를 해결할 수 있도록 설정 > 정보 및 백업에서 피드백 보고서를 보내 주세요.",
+        "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav가 계속 멈추거나 종료되어 지도가 가장 가벼운 설정으로 전환되었습니다. 이 기기의 문제를 해결할 수 있도록 설정 > 정보 및 백업에서 피드백 보고서를 보내 주세요.",
+        "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav 시작에 문제가 있어 지도가 가장 가벼운 모드로 설정되었습니다. 설정 > 지도 스타일에서 변경할 수 있습니다.",
+        "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav 시작에 문제가 있어 무거운 3D 지도 효과가 꺼졌습니다. 설정 > 밝기 및 3D > 지도 화면에서 다시 켤 수 있습니다.",
     )
 }

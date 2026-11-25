@@ -171,6 +171,10 @@ jobs:
           cp "$CHANGE_NOTES" "$PROJECT_DIR/app/src/main/assets/whatsnew.md"
           echo "Notes for ${VERSION}:"; cat "$CHANGE_NOTES"
 
+      - name: Run public release unit tests
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: gradle :app:testPublicReleaseUnitTest
+
       - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
         env:

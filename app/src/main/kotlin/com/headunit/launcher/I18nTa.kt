@@ -125,6 +125,14 @@ object I18nTa {
         "Horizon Nav keeps closing while it starts" to "Horizon Nav தொடங்கும்போது தொடர்ந்து மூடப்படுகிறது",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "மன்னிக்கவும். கீழே உள்ள அறிக்கையை அனுப்பினால் இந்த ஹெட் யூனிட்டுக்கான சிக்கலைச் சரிசெய்ய உதவும். இதில் தனிப்பட்ட தகவல்கள் இல்லை.",
         "No browser on this unit: use Copy instead" to "இந்த யூனிட்டில் உலாவி இல்லை: அதற்குப் பதிலாக நகலெடுக்கவும்",
-        "Copied: paste it into a message or a Reddit comment" to "நகலெடுக்கப்பட்டது: இதைச் செய்தியிலோ Reddit கருத்திலோ ஒட்டவும்"
+        "Copied: paste it into a message or a Reddit comment" to "நகலெடுக்கப்பட்டது: இதைச் செய்தியிலோ Reddit கருத்திலோ ஒட்டவும்",
+        "step" to "படி",
+        "steps" to "படிகள்",
+        "Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one." to "Horizon Nav இயங்க OpenGL ES 3.0 கிராபிக்ஸ் தேவை; இந்த யூனிட்டில் {0} பதிப்பு உள்ளது. Mapbox வரைபடத்திற்கு முந்தைய Horizon Nav பதிப்புகள் பழைய கிராபிக்ஸிலும் இயங்கும், அது இன்னும் உங்களிடம் இருந்தால்.",
+        "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup" to "Horizon Nav எதிர்பாராத விதமாக உறைந்தது அல்லது மூடப்பட்டது. பாதுகாப்பிற்காக, இப்போது வரைபடம் வினாடிக்கு 30 பிரேம்களில் இலகுவாக வரையப்படுகிறது; அதிக சுமையுள்ள 3D அம்சங்கள் முடக்கப்பட்டுள்ளன. மீண்டும் நடந்தால், அமைப்புகள் > அறிமுகம் மற்றும் காப்புப்பிரதி பகுதியில் கருத்தறிக்கை அனுப்பவும்.",
+        "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav மீண்டும் உறைந்தது அல்லது மூடப்பட்டது. எனவே வரைபடம் குறைந்த தெளிவுத்திறனுடன் Lite முறைக்கு மாற்றப்பட்டுள்ளது. இந்த யூனிட்டின் சிக்கலைச் சரிசெய்ய, அமைப்புகள் > அறிமுகம் மற்றும் காப்புப்பிரதி பகுதியில் கருத்தறிக்கை அனுப்பவும்.",
+        "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav தொடர்ந்து உறைவதால் அல்லது மூடப்படுவதால், வரைபடம் மிக இலகுவான அமைப்புக்கு மாற்றப்பட்டுள்ளது. இந்த யூனிட்டின் சிக்கலைச் சரிசெய்ய, அமைப்புகள் > அறிமுகம் மற்றும் காப்புப்பிரதி பகுதியில் கருத்தறிக்கை அனுப்பவும்.",
+        "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav தொடங்குவதில் சிக்கல் ஏற்பட்டதால், வரைபடம் மிக இலகுவான முறையில் உள்ளது. அமைப்புகள் > வரைபட பாணியில் இதை மாற்றலாம்.",
+        "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav தொடங்குவதில் சிக்கல் ஏற்பட்டதால், அதிக சுமையுள்ள 3D வரைபட அம்சங்கள் முடக்கப்பட்டுள்ளன. அமைப்புகள் > ஒளி மற்றும் 3D > வரைபடத்தில் மீண்டும் இயக்கலாம்.",
     )
 }

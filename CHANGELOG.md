@@ -5,6 +5,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Remove the repeated road-shield badge from the larger junction sign in the turn card, keeping the destination names and direction arrow.
+- Translate route-overview step counts and startup recovery/graphics compatibility messages in Catalan, Korean, Tamil and Telugu.
+- Run the public release unit tests in GitHub Actions as part of the normal build.
+
+
+### Improved
 - Add everyday interface translations to Catalan, Korean, Tamil and Telugu, and use the selected app language on startup recovery and graphics-compatibility screens.
 - Check the four expanded language packs for duplicate keys, empty translations and altered placeholders.
 

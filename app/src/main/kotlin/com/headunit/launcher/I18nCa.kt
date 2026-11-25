@@ -132,6 +132,14 @@ object I18nCa {
         "Horizon Nav keeps closing while it starts" to "Horizon Nav es tanca repetidament durant l'inici",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "Ho sentim. Envia l'informe següent perquè es pugui solucionar en aquesta unitat. No conté informació personal.",
         "No browser on this unit: use Copy instead" to "Aquesta unitat no té navegador: fes servir Copia",
-        "Copied: paste it into a message or a Reddit comment" to "S'ha copiat: enganxa-ho en un missatge o comentari de Reddit"
+        "Copied: paste it into a message or a Reddit comment" to "S'ha copiat: enganxa-ho en un missatge o comentari de Reddit",
+        "step" to "pas",
+        "steps" to "passos",
+        "Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one." to "Horizon Nav necessita gràfics OpenGL ES 3.0, i aquesta unitat té la versió {0}. Les versions de Horizon Nav anteriors al mapa de Mapbox funcionen amb gràfics més antics, si encara en tens una.",
+        "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup" to "Horizon Nav s’ha bloquejat o s’ha tancat inesperadament. Per seguretat, ara el mapa es dibuixa de manera més lleugera, a 30 fotogrames per segon i sense els efectes 3D més exigents. Si torna a passar, envia un informe des de Configuració > Quant a i còpies de seguretat",
+        "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav s’ha tornat a bloquejar o tancar, així que el mapa ara està en mode Lite amb menys nitidesa. Envia un informe des de Configuració > Quant a i còpies de seguretat perquè es pugui solucionar el problema d’aquesta unitat",
+        "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav continua bloquejant-se o tancant-se, així que el mapa ara està en la configuració més lleugera. Envia un informe des de Configuració > Quant a i còpies de seguretat perquè es pugui solucionar el problema d’aquesta unitat",
+        "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav ha tingut problemes per iniciar-se, així que el mapa està en el mode més lleuger. Pots canviar-ho a Configuració > Estil del mapa",
+        "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav ha tingut problemes per iniciar-se, així que els efectes 3D més exigents estan desactivats. Pots tornar-los a activar a Configuració > Llum i 3D i Al mapa",
     )
 }

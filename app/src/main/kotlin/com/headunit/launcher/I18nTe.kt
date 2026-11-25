@@ -125,6 +125,14 @@ object I18nTe {
         "Horizon Nav keeps closing while it starts" to "Horizon Nav ప్రారంభమవుతున్నప్పుడు పదేపదే మూసుకుపోతోంది",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "క్షమించండి. దిగువ నివేదికను పంపితే ఈ హెడ్ యూనిట్‌లోని సమస్యను పరిష్కరించవచ్చు. ఇందులో వ్యక్తిగత సమాచారం ఏదీ లేదు.",
         "No browser on this unit: use Copy instead" to "ఈ యూనిట్‌లో బ్రౌజర్ లేదు: బదులుగా కాపీని ఉపయోగించండి",
-        "Copied: paste it into a message or a Reddit comment" to "కాపీ చేయబడింది: సందేశంలో లేదా Reddit వ్యాఖ్యలో అతికించండి"
+        "Copied: paste it into a message or a Reddit comment" to "కాపీ చేయబడింది: సందేశంలో లేదా Reddit వ్యాఖ్యలో అతికించండి",
+        "step" to "దశ",
+        "steps" to "దశలు",
+        "Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one." to "Horizon Nav పనిచేయడానికి OpenGL ES 3.0 గ్రాఫిక్స్ అవసరం; ఈ యూనిట్‌లో {0} వెర్షన్ ఉంది. Mapbox మ్యాప్‌కు ముందు వచ్చిన Horizon Nav వెర్షన్లు పాత గ్రాఫిక్స్‌పై పనిచేస్తాయి, అవి ఇంకా మీ వద్ద ఉంటే.",
+        "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup" to "Horizon Nav అనుకోకుండా నిలిచిపోయింది లేదా మూసుకుపోయింది. భద్రత కోసం ఇప్పుడు మ్యాప్ సెకనుకు 30 ఫ్రేమ్‌లతో తక్కువ భారంగా చూపబడుతుంది; భారీ 3D అదనపు అంశాలు నిలిపివేయబడ్డాయి. మళ్లీ జరిగితే Settings > About & backup నుంచి అభిప్రాయ నివేదిక పంపండి.",
+        "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav మళ్లీ నిలిచిపోయింది లేదా మూసుకుపోయింది, కాబట్టి మ్యాప్ తక్కువ స్పష్టతతో Lite మోడ్‌లో ఉంది. ఈ యూనిట్ సమస్యను పరిష్కరించేందుకు Settings > About & backup నుంచి అభిప్రాయ నివేదిక పంపండి.",
+        "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav పదేపదే నిలిచిపోవడం లేదా మూసుకుపోవడం వల్ల మ్యాప్ ఇప్పుడు అత్యంత తేలికైన సెట్టింగ్‌లో ఉంది. ఈ యూనిట్ సమస్యను పరిష్కరించేందుకు Settings > About & backup నుంచి అభిప్రాయ నివేదిక పంపండి.",
+        "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav ప్రారంభించడంలో సమస్య ఏర్పడింది, అందువల్ల మ్యాప్ అత్యంత తేలికైన మోడ్‌లో ఉంది. Settings > Map styleలో మార్చవచ్చు.",
+        "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav ప్రారంభించడంలో సమస్య ఏర్పడింది, అందువల్ల భారీ 3D మ్యాప్ ఫీచర్లు ఆఫ్ చేయబడ్డాయి. Settings > Light & 3D మరియు On the mapలో మళ్లీ ఆన్ చేయవచ్చు.",
     )
 }
