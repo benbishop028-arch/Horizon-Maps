@@ -7,7 +7,9 @@ import org.junit.Test
 class I18nCoreCoverageTest {
     private val coreKeys = listOf(
         "Offline maps", "Download", "Delete", "Edit", "Done", "Yes", "No",
-        "Route", "Routes", "left", "Send on GitHub", "Copy", "Try again"
+        "Route", "Routes", "left", "Send on GitHub", "Copy", "Try again",
+        "Couldn't open that file", "That isn't a GPX file", "That file has no track in it",
+        "Low bridge", "Weight limit", "Width limit", "Length limit"
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {

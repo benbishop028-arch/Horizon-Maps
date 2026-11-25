@@ -113,6 +113,13 @@ object I18nTe {
         "left" to "మిగిలి ఉంది",
         "Send on GitHub" to "GitHubకు పంపండి",
         "Copy" to "కాపీ చేయండి",
-        "Try again" to "మళ్లీ ప్రయత్నించండి"
+        "Try again" to "మళ్లీ ప్రయత్నించండి",
+        "Couldn't open that file" to "ఆ ఫైల్‌ను తెరవలేకపోయాం",
+        "That isn't a GPX file" to "ఇది GPX ఫైల్ కాదు",
+        "That file has no track in it" to "ఆ ఫైల్‌లో ట్రాక్ లేదు",
+        "Low bridge" to "తక్కువ ఎత్తు వంతెన",
+        "Weight limit" to "బరువు పరిమితి",
+        "Width limit" to "వెడల్పు పరిమితి",
+        "Length limit" to "పొడవు పరిమితి"
     )
 }

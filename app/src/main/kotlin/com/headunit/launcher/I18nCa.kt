@@ -120,6 +120,13 @@ object I18nCa {
         "left" to "restant",
         "Send on GitHub" to "Envia a GitHub",
         "Copy" to "Copia",
-        "Try again" to "Torna-ho a provar"
+        "Try again" to "Torna-ho a provar",
+        "Couldn't open that file" to "No s'ha pogut obrir aquest fitxer",
+        "That isn't a GPX file" to "Aquest fitxer no és un fitxer GPX",
+        "That file has no track in it" to "Aquest fitxer no conté cap traça",
+        "Low bridge" to "Pont baix",
+        "Weight limit" to "Límit de pes",
+        "Width limit" to "Límit d'amplada",
+        "Length limit" to "Límit de longitud"
     )
 }

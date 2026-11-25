@@ -113,6 +113,13 @@ object I18nTa {
         "left" to "மீதம்",
         "Send on GitHub" to "GitHub-இல் அனுப்பு",
         "Copy" to "நகலெடு",
-        "Try again" to "மீண்டும் முயற்சிக்கவும்"
+        "Try again" to "மீண்டும் முயற்சிக்கவும்",
+        "Couldn't open that file" to "அந்தக் கோப்பைத் திறக்க முடியவில்லை",
+        "That isn't a GPX file" to "இது GPX கோப்பு அல்ல",
+        "That file has no track in it" to "அந்தக் கோப்பில் தடம் இல்லை",
+        "Low bridge" to "குறைந்த உயரப் பாலம்",
+        "Weight limit" to "எடை வரம்பு",
+        "Width limit" to "அகல வரம்பு",
+        "Length limit" to "நீள வரம்பு"
     )
 }

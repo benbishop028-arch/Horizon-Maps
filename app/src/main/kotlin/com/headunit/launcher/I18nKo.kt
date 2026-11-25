@@ -113,6 +113,13 @@ object I18nKo {
         "left" to "남음",
         "Send on GitHub" to "GitHub에 보내기",
         "Copy" to "복사",
-        "Try again" to "다시 시도"
+        "Try again" to "다시 시도",
+        "Couldn't open that file" to "파일을 열 수 없습니다",
+        "That isn't a GPX file" to "GPX 파일이 아닙니다",
+        "That file has no track in it" to "파일에 트랙이 없습니다",
+        "Low bridge" to "낮은 교량",
+        "Weight limit" to "중량 제한",
+        "Width limit" to "너비 제한",
+        "Length limit" to "길이 제한"
     )
 }

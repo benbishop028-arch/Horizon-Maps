@@ -42,7 +42,7 @@ object LorryLimits {
         else -> fmt(l.value) + "m"
     }
 
-    fun title(kind: String): String = when (kind) { "height" -> "Low bridge"; "weight" -> "Weight limit"; "width" -> "Width limit"; else -> "Length limit" }
+    fun title(kind: String): String = L.t(when (kind) { "height" -> "Low bridge"; "weight" -> "Weight limit"; "width" -> "Width limit"; else -> "Length limit" })
 
     private fun fmt(v: Double): String = if (v % 1.0 == 0.0) v.toInt().toString() else String.format(Locale.US, "%.1f", v)
 
