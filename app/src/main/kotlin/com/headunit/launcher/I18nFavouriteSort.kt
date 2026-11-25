@@ -44,6 +44,9 @@ internal object I18nFavouriteSort {
             "vi" to "Gần nhất",
             "ml" to "ഏറ്റവും അടുത്തത്",
             "ta" to "அருகிலுள்ளது",
+            "ca" to "Més propers",
+            "ko" to "가까운 순",
+            "te" to "దగ్గరలో ఉన్నవి",
             "esar" to "Más cercanos",
             "esmx" to "Más cercanos"
         )
@@ -65,6 +68,7 @@ internal object I18nFavouriteSort {
             "he" -> "מיון מועדפים"; "ur" -> "پسندیدہ ترتیب دیں"; "sv" -> "Sortera favoriter"; "kn" -> "ಮೆಚ್ಚಿನವುಗಳನ್ನು ವಿಂಗಡಿಸಿ"
             "mr" -> "आवडी क्रमाने लावा"; "nb" -> "Sorter favoritter"; "ru" -> "Сортировать избранное"; "uk" -> "Сортувати обране"
             "vi" -> "Sắp xếp mục yêu thích"; "ml" -> "പ്രിയപ്പെട്ടവ ക്രമീകരിക്കുക"; "ta" -> "பிடித்தவற்றை வரிசைப்படுத்து"
+            "ca" -> "Ordena els preferits"; "ko" -> "즐겨찾기 정렬"; "te" -> "ఇష్టమైన వాటిని క్రమబద్ధీకరించు"
             else -> "Sort favourites"
         }) + listOf("Nearest" to (nearest[code] ?: "Nearest"))
     }
