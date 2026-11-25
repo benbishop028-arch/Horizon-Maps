@@ -149,7 +149,7 @@ object RouteExtras {
             "(node(around:14,$pl)[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"];" +
             "node(around:90,$pl)[\"amenity\"=\"school\"];way(around:90,$pl)[\"amenity\"=\"school\"];)->.a;.a out center tags 300;" +
             "node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"]->.c;.c out body 400;" +
-            "node(around:12,$pl)[\"highway\"=\"stop\"]->.s;.s out body 300;way(bn.s)[\"highway\"]->.sw;.sw out body geom 600;" +
+            "node(around:12,$pl)[\"highway\"~\"^(stop|give_way)$\"]->.s;.s out body 300;way(bn.s)[\"highway\"]->.sw;.sw out body geom 600;" +
             "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;"
         // (average speed checks are no longer part of this big request: they have their own, see avgZones, so a slow or failed
         // search for bumps and schools can't take them down with it, GitHub #135)
@@ -158,20 +158,19 @@ object RouteExtras {
         // (crossings come from their own set, so they never crowd out the bumps and schools)
         val nodes = HashMap<Long, LL>()
         val rels = ArrayList<JSONObject>()
-        // stop signs and the roads they're on, to keep only the ones for the way you're going (dubrava4ever, #178)
-        val stopWays = ArrayList<JSONObject>()
-        val stops = ArrayList<Triple<Long, LL, JSONObject>>()
+        // STOP and Give Way signs share the same road/direction check, so side-road signs are not shown on this route.
+        val signWays = ArrayList<JSONObject>()
+        val signs = ArrayList<Triple<Long, LL, JSONObject>>()
         for (i in 0 until els.length()) {
             val e = els.getJSONObject(i)
             when (e.optString("type")) {
                 "relation" -> rels += e
-                "way" -> if (e.has("geometry") && e.has("nodes")) stopWays += e
+                "way" -> if (e.has("geometry") && e.has("nodes")) signWays += e
                 else -> {
-                    val pos = if (e.has("lat")) LL(e.getDouble("lat"), e.getDouble("lon")) else e.optJSONObject("center")?.let { LL(it.getDouble("lat"), it.getDouble("lon")) }
-                    if (pos != null && e.optString("type") == "node") nodes[e.optLong("id")] = pos
+                    val pos = if (e.has("lat")) LL(e.getDouble("lat"), e.getDouble("lon")) else e.optJSONObject("center")?.let { LL(it.getDouble("lat"), it.getDouble("lon")) } ?: continue
+                    if (e.optString("type") == "node") nodes[e.optLong("id")] = pos
                     val t = e.optJSONObject("tags") ?: continue
-                    if (pos == null) continue
-                    if (t.optString("highway") == "stop") stops += Triple(e.optLong("id"), pos, t)
+                    if (t.optString("highway") == "stop" || t.optString("highway") == "give_way") signs += Triple(e.optLong("id"), pos, t)
                     else if (t.optString("railway") == "level_crossing") pois += RoutePoi("rail", "Level crossing", pos)
                     else if (t.optString("ford") == "yes") pois += RoutePoi("ford", "Ford", pos)
                     else if (t.optString("highway") == "crossing") pois += RoutePoi("crossing", t.optString("crossing"), pos)
@@ -180,8 +179,11 @@ object RouteExtras {
                 }
             }
         }
-        // #280: missing or malformed road geometry is not evidence that a stop sign controls this route.
-        for ((id, pos, t) in stops) if (try { stopForRoute(id, pos, t, stopWays, line) } catch (x: Exception) { false }) pois += RoutePoi("stop", "Stop", pos)
+        // #280: missing or malformed road geometry is not evidence that a sign controls this route.
+        for ((id, pos, t) in signs) if (try { stopForRoute(id, pos, t, signWays, line) } catch (x: Exception) { false }) {
+            if (t.optString("highway") == "give_way") pois += RoutePoi("give_way", "Give Way", pos)
+            else pois += RoutePoi("stop", "Stop", pos)
+        }
         return pois to parseAvgs(rels, nodes)
     }
 
