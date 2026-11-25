@@ -224,5 +224,11 @@ object I18nCa {
         "Reroute failed ({0}), trying again…" to "Ha fallat el nou càlcul ({0}); es tornarà a provar…",
         "Nothing found along the route ahead" to "No s'ha trobat res més endavant a la ruta",
         "Nothing found nearby" to "No s'ha trobat res a prop",
+        "{0} saved: {1}" to "{0} desat: {1}",
+        "Switched: about {0} min quicker" to "Canviat: uns {0} min més ràpid",
+        "Switched: about {0} min longer" to "Canviat: uns {0} min més lent",
+        "Switched route" to "Ruta canviada",
+        "Leave now to arrive by {0}" to "Surt ara per arribar abans de les {0}",
+        "Leave by {0} to arrive by {1}. I'll remind you." to "Surt a les {0} per arribar a les {1}. T'ho recordaré.",
     )
 }
