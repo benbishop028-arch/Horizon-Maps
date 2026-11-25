@@ -196,5 +196,7 @@ object I18nCa {
         "No offline route" to "No hi ha cap ruta sense connexió",
         "No offline route found" to "No s'ha trobat cap ruta sense connexió",
         "No offline route found. Check both places are inside your downloaded maps" to "No s'ha trobat cap ruta sense connexió. Comprova que tots dos llocs siguin dins dels mapes baixats",
+        "speed limits" to "límits de velocitat",
+        "speed cameras" to "càmeres de velocitat",
     )
 }
