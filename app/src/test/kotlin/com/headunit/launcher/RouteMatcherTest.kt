@@ -29,6 +29,15 @@ class RouteMatcherTest {
         assertEquals(0.0, result.dist, 0.01)
     }
 
+    @Test fun headingChoosesTheCorrectDirectionOnOverlappingRoadGeometry() {
+        val west = LL(50.0, -0.99)
+        val east = LL(50.0, -1.0)
+        val r = route(listOf(west, east, west))
+        val result = RouteMatcher.snap(r, LL(50.0, -0.995), 0, 90.0)
+        assertEquals(1, result.segmentIndex)
+        assertTrue(result.dist < 1.0)
+    }
+
     @Test fun degenerateSegmentDoesNotDivideByZero() {
         val r = route(listOf(LL(50.0, -1.0), LL(50.0, -1.0), LL(50.0, -0.99)))
         val result = RouteMatcher.snap(r, LL(50.0, -1.0), 0)
