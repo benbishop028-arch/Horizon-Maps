@@ -1471,7 +1471,9 @@ private fun AndroidAutoSection(prefs: Prefs) {
         val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { ok = carOk() }
         SGroup(L.t("Car data"), footer = L.t("Lets Android Auto pass on the car's speed, battery level and position. Without it the app uses GPS and the battery % you set.")) {
             SItem(L.t("Speed, battery and position"), if (ok) L.t("Allowed") else L.t("Not allowed")) {
-                if (!ok) SButton(L.t("Allow"), primary = true) { ask.launch(carPerms.filter { ctx.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }.toTypedArray()) }
+                if (!ok) SButton(L.t("Allow"), primary = true) { ask.launch(carPerms.filter { ctx.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }
+                    // Android 12+ ignores a request for fine location without coarse location in the same request
+                    .let { if (android.Manifest.permission.ACCESS_FINE_LOCATION in it) it + android.Manifest.permission.ACCESS_COARSE_LOCATION else it }.toTypedArray()) }
             }
         }
     }

@@ -160,7 +160,8 @@ class CarNavSession : Session() {
                     val first = com.headunit.launcher.CarData.soc == null
                     com.headunit.launcher.CarData.soc = pct?.let { Math.round(it).coerceIn(0, 100) }
                     // only the first reading looks for a charging stop again: every 1 % would search again all the way
-                    if (first && pct != null) holder.engine?.refreshEvPlan()
+                    // (and only when automatic charging stops are on, like the search at the route's start)
+                    if (first && pct != null) holder.engine?.let { e -> if (e.prefs.b(PreferenceKeys.SMARTFUEL, true)) e.refreshEvPlan() }
                 }
             }
             hw.carInfo.addEnergyLevelListener(exec, l)
