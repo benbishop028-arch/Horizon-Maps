@@ -762,7 +762,7 @@ private fun SStep(title: String, sub: String, prefs: Prefs, key: String, def: In
 private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
     val mi = engine.imperial
     SGroup(L.t("Turn card")) {
-        SToggle(prefs, L.t("UK road signs on the turn card"), "uksigns", true)
+        SToggle(prefs, L.t("Road signs on the turn card"), "uksigns", true)
         SToggle(prefs, L.t("Living turn card"), "livecard", true, L.t("Grows and glows as the turn gets close"))
         SToggle(prefs, L.t("Lane guidance on the turn card"), "lanestrip", true)
         if (prefs.b(PreferenceKeys.LANE_STRIP, true)) SChoice(L.t("Lane guidance style"), listOf("hero" to L.t("Lane hero view"), "classic" to L.t("Classic strip")), prefs.s(PreferenceKeys.LANE_STYLE, "hero"),
