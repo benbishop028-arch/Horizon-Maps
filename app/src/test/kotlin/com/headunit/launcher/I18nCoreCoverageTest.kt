@@ -21,6 +21,8 @@ class I18nCoreCoverageTest {
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map",
         "step", "steps",
         "Couldn't read a place from that", "{0} ahead",
+        "Town / city", "Village / area", " · offline", "Postcode", "Address",
+        "Show lane data diagnostics", "Only shown in Demo mode; does not affect lane guidance.",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it."
     )
 
@@ -51,6 +53,26 @@ class I18nCoreCoverageTest {
                 assertTrue("$code has an empty translation for '$source'", translated.isNotBlank())
                 assertTrue("$code changed placeholders in '$source'", placeholder.findAll(source).map { it.value }.toSet() == placeholder.findAll(translated).map { it.value }.toSet())
             }
+        }
+    }
+
+    @Test fun supplementalShortPackLabelsAreTranslated() {
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in listOf("Sort favourites", "Nearest", "Show lane data diagnostics",
+                    "Only shown in Demo mode; does not affect lane guidance.")) {
+                    assertNotEquals("$code still falls back for '$key'", key, L.t(key))
+                }
+                val diagnostics = I18nMapDiagnostics.rows(code).toMap()
+                assertTrue("$code is missing lane diagnostics", diagnostics["Show lane data diagnostics"].orEmpty().isNotBlank())
+                assertTrue("$code is missing lane diagnostics explanation", diagnostics["Only shown in Demo mode; does not affect lane guidance."].orEmpty().isNotBlank())
+                val favourites = I18nFavouriteSort.rows(code).toMap()
+                assertNotEquals("$code favourite sort label falls back", "Sort favourites", favourites["Sort favourites"])
+                assertNotEquals("$code nearest label falls back", "Nearest", favourites["Nearest"])
+            }
+        } finally {
+            L.set("en")
         }
     }
 
