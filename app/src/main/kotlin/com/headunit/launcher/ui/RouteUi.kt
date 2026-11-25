@@ -1051,7 +1051,7 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
  * box), green for main roads (yellow road numbers), the roads it leads to and the places on the sign. Only when the route has them.
  */
 @Composable
-fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier) {
+fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier, mapboxToken: String = "") {
     if (t.dist > 3200.0) return
     val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
     val shieldItems = t.shields.take(4)
@@ -1083,8 +1083,11 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
                 }
             }
             shieldItems.forEach { shield ->
-                if (t.shieldAtlasUrl.isNotBlank() && shield.reference.isNotBlank()) RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
-                else RoadShieldBadge((shield.content + if (shield.affixes.isNotEmpty()) " " + shield.affixes.joinToString(" ") else "").ifBlank { t.ref }, shield.reference)
+                when {
+                    shield.reference.startsWith("https://") && mapboxToken.isNotBlank() -> MapboxRoadShieldImage(shield, mapboxToken)
+                    t.shieldAtlasUrl.isNotBlank() && shield.reference.isNotBlank() -> RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
+                    else -> RoadShieldBadge((shield.content + if (shield.affixes.isNotEmpty()) " " + shield.affixes.joinToString(" ") else "").ifBlank { t.ref }, shield.reference)
+                }
             }
             refs.forEach { RoadShieldBadge(it, "") }
             Spacer(Modifier.weight(1f))
@@ -1095,6 +1098,18 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
             Text(t.sign.take(90), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
+}
+
+@Composable
+private fun MapboxRoadShieldImage(shield: com.headunit.launcher.RoadShield, token: String) {
+    val url = shield.reference.trimEnd('/') + "@2x.png"
+    var bitmap by remember(url) { mutableStateOf(JunctionPics.cached(url)) }
+    if (bitmap == null) {
+        LaunchedEffect(url, token) { bitmap = JunctionPics.load(url, token) }
+    }
+    if (bitmap != null) Image(bitmap!!.asImageBitmap(), contentDescription = shield.content,
+        modifier = Modifier.height(25.dp).widthIn(max = 66.dp), contentScale = ContentScale.Fit)
+    else RoadShieldBadge(shield.content, "mapbox")
 }
 
 @Composable
