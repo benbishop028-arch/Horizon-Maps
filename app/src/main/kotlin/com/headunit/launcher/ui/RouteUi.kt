@@ -1063,7 +1063,7 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
         .map { it.trim().trim('-', '–').trim() }
         .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) }
         .distinct().take(3)
-    if (refs.isEmpty() && places.isEmpty() && t.exitNo.isBlank()) return
+    if (shieldItems.isEmpty() && refs.isEmpty() && places.isEmpty() && t.exitNo.isBlank()) return
     val motorway = t.exitNo.isNotBlank() || t.shields.any { it.reference.contains("highway", true) || it.reference.contains("motorway", true) } ||
         refs.any { it.startsWith("M") || it.endsWith("(M)") }
     val bg = if (motorway) Color(0xFF07569A) else Color(0xFF087044)
