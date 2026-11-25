@@ -78,7 +78,7 @@ internal fun PackPickerDialog(current: PackRegion, onPick: (PackRegion) -> Unit,
                     }
                 }
             }
-            if (q.isBlank()) Segmented(PackRegions.groups.map { it to it }, group) { group = it }
+            if (q.isBlank()) Segmented(PackRegions.groups.map { it to L.t(it) }, group) { group = it }
             LazyColumn(Modifier.heightIn(max = 340.dp)) {
                 for (r in shown) {
                     val regions = if (q.isBlank()) PackRegions.regionsOf(r.id) else emptyList()
