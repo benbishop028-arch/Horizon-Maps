@@ -315,7 +315,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun cycleSound() {
         val n = (soundMode + 1) % 3
         prefs.put(PreferenceKeys.SOUND_MODE, n)
-        toast(listOf("Sound: all", "Sound: alerts only", "Sound: off")[n], 1800)
+        toast(listOf(L.t("Sound: all"), L.t("Sound: alerts only"), L.t("Sound: off"))[n], 1800)
     }
 
     /** Miles in the UK and US (and the few others that use them), kilometres everywhere else; before the country is known, miles. */
@@ -1397,7 +1397,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     map.recolourBase = true
                     map.setStyleUrl(TomTomRest.styleUrl(apiKey, dark, prefs.b(PreferenceKeys.TRAFFIC, true)))
                 } else {
-                    toast(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Keys & accounts for TomTom's map. Showing Mapbox's map", 5000)
+                    toast(L.t(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Keys & accounts for TomTom's map. Showing Mapbox's map"), 5000)
                     map.setStyleUrl(map.baseStyle())
                 }
             }
@@ -2009,12 +2009,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             lastAutoUpdateCheck = now
         }
         updateCheckInFlight = true
-        if (manual) updateStatus = "Checking…"
+        if (manual) updateStatus = L.t("Checking…")
         scope.launch {
-            val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = "Couldn't check: no connection"; return@launch } finally { updateCheckInFlight = false }
+            val u = try { withContext(Dispatchers.IO) { Updater.check() } } catch (e: Exception) { if (manual) updateStatus = L.t("Couldn't check: no connection"); return@launch } finally { updateCheckInFlight = false }
             prefs.put(PreferenceKeys.UPDATE_LAST_CHECK, now.toString())
-            if (u == null) { if (manual) updateStatus = "You have the latest version"; return@launch }
-            if (manual) updateStatus = "Version ${u.version} is available"
+            if (u == null) { if (manual) updateStatus = L.t("You have the latest version"); return@launch }
+            if (manual) updateStatus = L.t("Version {0} is available", u.version)
             // "later" keeps the card away for a few days, unless you check by hand
             val snoozed = (prefs.s(PreferenceKeys.UPDSNOOZE, "0").toLongOrNull() ?: 0L) > now
             if (manual || !snoozed) appUpdate = u
@@ -2206,7 +2206,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (!online()) {
                 val local = offlineMatches(q, near)
                 results = local
-                if (local.isEmpty()) toast(if (OfflinePlaces.installed(ctx) || OfflineRouter.hasPlaces(ctx) || OfflineRouter.hasAddresses(ctx)) "No signal, and nothing saved or downloaded matches" else "No signal. Download the offline pack or place names in Settings > Offline maps to search with no signal", 4500)
+                if (local.isEmpty()) toast(L.t(if (OfflinePlaces.installed(ctx) || OfflineRouter.hasPlaces(ctx) || OfflineRouter.hasAddresses(ctx)) "No signal, and nothing saved or downloaded matches" else "No signal. Download the offline pack or place names in Settings > Offline maps to search with no signal"), 4500)
                 if (NetHealth.clockLooksWrong()) toast(L.t("The head unit's date and time look wrong. Set them right in its settings: until then, maps, search and routes can't connect even with signal."), 8000)
                 else toast(L.t("No signal: showing saved places and offline towns"), 3000)
                 return@launch
@@ -2219,7 +2219,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed, gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
                 val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
                 results = merged
-                if (merged.isEmpty() && !typed) toast(if (net == null) "Search failed: weak or no signal" else "No matches. Try adding a town or postcode.", 3500)
+                if (merged.isEmpty() && !typed) toast(if (net == null) L.t("Search failed: weak or no signal") else L.t("No matches. Try adding a town or postcode."), 3500)
                 return@launch
             }
             // the online search and the saved / downloaded places run at the same time, and their results are merged
@@ -2235,7 +2235,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
             results = merged
-            if (merged.isEmpty()) toast(if (net == null) "Search failed: weak or no signal" else "No matches. Try adding a town or postcode.", 3500)
+            if (merged.isEmpty()) toast(if (net == null) L.t("Search failed: weak or no signal") else L.t("No matches. Try adding a town or postcode."), 3500)
             else if (net == null) toast(L.t("Weak signal: showing saved places and offline towns"), 3500)
         }
     }
@@ -2995,7 +2995,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 shortRoute = usedOffline && OfflineRouter.endsShort
                 if (shortRoute) toast(L.t("Your downloaded map ends before {0}: the route goes to the edge of it for now, and the rest is planned as soon as there's signal", to.name), 8000)
                 else if (usedOffline && !Plus.free) toast(L.t("Offline route: no traffic or live data"), 4000)
-                if (rs[0].steps.isEmpty()) toast(if (provider == "mapbox") "Mapbox returned no turn instructions for this route" else "This key returned no turn instructions. Check it has TomTom Routing API access", 6000)
+                if (rs[0].steps.isEmpty()) toast(L.t(if (provider == "mapbox") "Mapbox returned no turn instructions for this route" else "This key returned no turn instructions. Check it has TomTom Routing API access"), 6000)
                 if (departInMin > 0 && !usedOffline && !departApplied) toast(L.t("Departure time not supported here: showing live traffic"), 4000)
                 departMin = departInMin
                 departAtMs = if (!usedOffline && departApplied) departMs else 0L
@@ -3217,7 +3217,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun toggleAlternatives() {
         alternatives = !alternatives
-        toast(if (alternatives) "Alternative routes on" else "Alternative routes off", 2500)
+        toast(L.t(if (alternatives) "Alternative routes on" else "Alternative routes off"), 2500)
         val d = dest
         if (d != null) startRoute(d, 0, true)
     }
@@ -3341,7 +3341,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             } finally { rerouting = false; lastReroute = System.currentTimeMillis() }
             // it keeps trying on its own while you are still off the route, so this is only a heads-up
-            if (err != null) toast(if (err.contains("signal")) "Rerouting: weak signal, still trying…" + NetHealth.clockHint() else "Reroute failed ($err), trying again…", 3500)
+            if (err != null) toast(if (err.contains("signal")) L.t("Rerouting: weak signal, still trying…") + NetHealth.clockHint() else L.t("Reroute failed ({0}), trying again…", err), 3500)
         }
     }
 
