@@ -95,6 +95,9 @@ class I18nCoreCoverageTest {
         "Switched route",
         "Leave now to arrive by {0}",
         "Leave by {0} to arrive by {1}. I'll remind you.",
+        "UK & Ireland", "Europe", "United States", "Canada",
+        "Mexico & Central America", "South America", "Asia", "Africa", "Oceania",
+        "Free space: {0}", "arrive {0}",
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {
@@ -141,6 +144,26 @@ class I18nCoreCoverageTest {
                 val favourites = I18nFavouriteSort.rows(code).toMap()
                 assertNotEquals("$code favourite sort label falls back", "Sort favourites", favourites["Sort favourites"])
                 assertNotEquals("$code nearest label falls back", "Nearest", favourites["Nearest"])
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
+    @Test fun offlinePickerAndCarArrivalLabelsAreTranslated() {
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in listOf("UK & Ireland", "Europe", "United States", "Canada",
+                    "Mexico & Central America", "South America", "Asia", "Africa", "Oceania")) {
+                    assertNotEquals("$code group label falls back", key, L.t(key))
+                }
+                val free = L.t("Free space: {0}", "2 GB")
+                assertTrue("$code lost the free-space value", free.contains("2 GB"))
+                assertNotEquals("$code free-space label falls back", "Free space: 2 GB", free)
+                val arrival = L.t("arrive {0}", "18:30")
+                assertTrue("$code lost the arrival time", arrival.contains("18:30"))
+                assertNotEquals("$code car arrival label falls back", "arrive 18:30", arrival)
             }
         } finally {
             L.set("en")
