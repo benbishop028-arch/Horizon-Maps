@@ -2683,6 +2683,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         MapboxRest.avoidPoints = closedPts.take(25)
         MapboxRest.curbSide = prefs.b(PreferenceKeys.ARRIVE_SIDE, true)
         MapboxRest.junctionPics = prefs.b(PreferenceKeys.JUNCTION_PICS, false)
+        MapboxRest.roadShields = prefs.b(PreferenceKeys.UKSIGNS, true)
         if (prefs.b(PreferenceKeys.AVOIDZONES, false)) {
             for (z in Zones.all(ctx)) {
                 if ((from != null && Zones.inside(z, from)) || (to != null && Zones.inside(z, to))) continue
