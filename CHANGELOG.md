@@ -5,7 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
-- Catalan navigation prompts now translate road-closure distances, road connectors and arrival instructions instead of falling back to English (#408).
+- Fill missing arrival instructions across all supported languages, and add the missing road-closure, distance and rerouting prompts for Korean, Tamil and Telugu. Existing translations are kept, including Catalan's corrected wording (#408).
 
 ### New
 - Junction signage: request TomTom's country-specific road-shield references and use its cached sprite atlas for the actual shield artwork where available. The turn card can also show a compact overhead-style direction sign with exit numbers, road numbers, destinations and direction. Missing provider data falls back to text and the normal turn guidance (#403, #407).
