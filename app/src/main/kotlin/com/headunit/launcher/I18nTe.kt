@@ -144,6 +144,13 @@ object I18nTe {
         "Map style" to "మ్యాప్ శైలి",
         "Satellite" to "ఉపగ్రహం",
         "Couldn't read a place from that" to "ఆ సమాచారంలో నుంచి స్థలాన్ని గుర్తించలేకపోయాం",
+        "Town / city" to "పట్టణం / నగరం",
+        "Village / area" to "గ్రామం / ప్రాంతం",
+        " · offline" to " · ఆఫ్‌లైన్",
+        "Postcode" to "పిన్‌కోడ్",
+        "Address" to "చిరునామా",
+        "Show lane data diagnostics" to "లేన్ డేటా నిర్ధారణను చూపించు",
+        "Only shown in Demo mode; does not affect lane guidance." to "డెమో మోడ్‌లో మాత్రమే చూపబడుతుంది; లేన్ మార్గదర్శకత్వంపై ప్రభావం ఉండదు.",
         "{0} ahead" to "{0} ముందు",
     )
 }
