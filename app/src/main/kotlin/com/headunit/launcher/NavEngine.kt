@@ -1042,14 +1042,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The country you're in (from the GPS), remembered between drives; blank until it's known. */
     var detectedCountry by mutableStateOf(prefs.s(PreferenceKeys.COUNTRYDETECTED, "").also { Overpass.knownCountry = it.uppercase() })
         private set
-    private var countryChecked = false
     private var countryTryAt = 0L
+    /** The first successful lookup establishes where this session started; it isn't announced as a border crossing. */
+    private var countryInitialised = false
 
-    private fun detectCountry(lat: Double, lon: Double) {
+    private fun detectCountry(lat: Double, lon: Double, speedMps: Double) {
         val now = android.os.SystemClock.elapsedRealtime()
-        // once per app start; if it couldn't tell (no signal), try again a couple of minutes later
-        if (countryChecked || (countryTryAt != 0L && now - countryTryAt < 120_000L)) return
-        countryChecked = true; countryTryAt = now
+        // Recheck periodically while GPS is moving: the old one-shot lookup never noticed a border crossed later in the drive.
+        if (countryTryAt != 0L && now - countryTryAt < 120_000L) return
+        countryTryAt = now
         scope.launch {
             val cc = withContext(Dispatchers.IO) {
                 val g = try {
@@ -1062,10 +1063,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     // and roundabouts were drawn the British way round in the Netherlands, GitHub #285)
                     ?: (if (mbToken.isNotBlank() && online()) MapboxRest.countryAt(mbToken, LL(lat, lon)) else null)
             }
-            if (cc == null) { countryChecked = false; return@launch }
+            if (cc == null) { countryTryAt = now - 90_000L; return@launch }
             val up = cc.uppercase()
+            val previous = detectedCountry.uppercase()
             Overpass.knownCountry = up
-            if (up != detectedCountry) { detectedCountry = up; prefs.put(PreferenceKeys.COUNTRYDETECTED, up) }
+            if (up != previous) {
+                detectedCountry = up
+                prefs.put(PreferenceKeys.COUNTRYDETECTED, up)
+                // Don't announce the country already occupied when the app starts, or GPS drift while parked.
+                if (countryInitialised && previous.isNotBlank() && speedMps >= 2.0) {
+                    BorderDrivingInfo.forCountry(up)?.let { BorderCrossingNotifier.show(ctx, it) }
+                }
+            }
+            countryInitialised = true
         }
     }
 
@@ -1454,7 +1464,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         if (simMode != 0) return
-        detectCountry(l.latitude, l.longitude)
+        detectCountry(l.latitude, l.longitude, if (l.hasSpeed()) l.speed.toDouble() else 0.0)
         val now = System.currentTimeMillis()
         // (a remembered position more than 2 minutes old, shown while the GPS starts up, isn't taken for a live GPS fix: it used to
         // be, and the phone's network positions were then turned away for 10 s, or 2 minutes on a route, so standing still at the

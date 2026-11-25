@@ -97,6 +97,10 @@ import com.headunit.launcher.mapSource
  * summary. [scale] makes them the same size on the car screen as in the app (car screens have few pixels per inch for their size).
  * Nothing here can be tapped (Android Auto only lets its own buttons take touches), so the matching buttons are Android Auto's.
  */
+/** Keep Android Auto's home/search shortcuts readable over every map colour without changing phone glass panels. */
+private fun carQuickSurface(c: Vw): Color = c.surface.copy(alpha = maxOf(c.surface.alpha, 0.92f))
+private fun carQuickTile(c: Vw): Color = c.tile.copy(alpha = maxOf(c.tile.alpha, 0.92f))
+
 @Composable
 fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: State<Boolean>, scale: State<Float>, actions: CarActions, onCover: (Int) -> Unit = {}) {
     val base = LocalDensity.current
@@ -589,7 +593,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         else if (engine.route == null && !arriving && !covered && mapUi) Column(Modifier.padding(start = left, top = top).width(topW).onSizeChanged { topBlockH = it.height }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) },
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth().height((if (small) 48.dp else 60.dp) * (engine.prefs.i(PreferenceKeys.CAR_BAR_HEIGHT, 100).coerceIn(70, 100) / 100f)).panel(10.dp, RoundedCornerShape(30.dp), c.surface).padding(end = 8.dp),
+            Row(Modifier.fillMaxWidth().height((if (small) 48.dp else 60.dp) * (engine.prefs.i(PreferenceKeys.CAR_BAR_HEIGHT, 100).coerceIn(70, 100) / 100f)).panel(10.dp, RoundedCornerShape(30.dp), carQuickSurface(c)).padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 // the bar opens the search; the arrow folds Home / Work, the round buttons and Saved & recent away and back (as in the app),
                 // so it has a tap area of its own
@@ -1258,7 +1262,7 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
     val bs = carButtonScale(engine).coerceAtMost(1.25f)
     LaunchedEffect(Unit) { while (true) { engine.refreshSlotTimes(); kotlinx.coroutines.delay(60_000) } }
     @Composable fun pill(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, label: String, place: com.headunit.launcher.Place?, mins: Int?) {
-        Row(Modifier.height(38.dp).panel(6.dp, RoundedCornerShape(19.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
+        Row(Modifier.height(38.dp).panel(6.dp, RoundedCornerShape(19.dp), carQuickSurface(c)).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
             .padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
             Text(if (place == null) L.t(if (id == "work") "Set work" else "Set home") else label, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold,
@@ -1267,7 +1271,7 @@ private fun CarChipsCompact(engine: NavEngine, actions: CarActions) {
         }
     }
     @Composable fun round(id: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, act: () -> Unit) {
-        Box(Modifier.size(40.dp * bs).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap(id, act), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(40.dp * bs).panel(6.dp, androidx.compose.foundation.shape.CircleShape, carQuickSurface(c)).carTap(id, act), contentAlignment = Alignment.Center) {
             androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp * bs))
         }
     }
@@ -1301,7 +1305,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.co
             here != null -> Geo.fmtDist(Geo.dist(here, place.pos), engine.imperial)
             else -> place.sub
         }
-        Row(m.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
+        Row(m.height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), carQuickSurface(c)).carTap(id) { if (place != null) engine.startRoute(place) else { engine.pendingSave = id; actions.search() } }
             .padding(horizontal = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(36.dp).clip(androidx.compose.foundation.shape.CircleShape).background(tint.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {
                 androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(20.dp))
@@ -1313,7 +1317,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.co
         }
     }
     @Composable fun find(kind: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color, sz: androidx.compose.ui.unit.Dp) {
-        Box(Modifier.size(sz).panel(6.dp, androidx.compose.foundation.shape.CircleShape, c.surface).carTap("n-$kind") { actions.nearby(kind) }, contentAlignment = Alignment.Center) {
+        Box(Modifier.size(sz).panel(6.dp, androidx.compose.foundation.shape.CircleShape, carQuickSurface(c)).carTap("n-$kind") { actions.nearby(kind) }, contentAlignment = Alignment.Center) {
             androidx.compose.material3.Icon(icon, null, tint = tint, modifier = Modifier.size(sz * 0.48f))
         }
     }
@@ -1346,7 +1350,7 @@ private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.co
                 if (showHome) tile("home", androidx.compose.material.icons.Icons.Rounded.Home, Color(0xFF4C8DFF), L.t("Home"), home, engine.slotMins["home"], Modifier.weight(1f))
                 if (showWork) tile("work", androidx.compose.material.icons.Icons.Rounded.Work, Color(0xFFF29900), L.t("Work"), work, engine.slotMins["work"], Modifier.weight(1f))
                 for ((i, sp) in shownSaved.withIndex()) tile("row-$i", androidx.compose.material.icons.Icons.Rounded.Star, Warn, sp.first, sp.second, null, Modifier.weight(1f))
-                if (savedRow.size > shownSaved.size) Box(Modifier.width(allW).height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), c.surface).carTap("row-all") { actions.places() },
+                if (savedRow.size > shownSaved.size) Box(Modifier.width(allW).height(58.dp).panel(6.dp, RoundedCornerShape(20.dp), carQuickSurface(c)).carTap("row-all") { actions.places() },
                     contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.MoreHoriz, null, tint = c.accent, modifier = Modifier.size(22.dp))
@@ -1401,14 +1405,14 @@ private fun CarChips(engine: NavEngine, actions: CarActions, budget: androidx.co
         }
         val listRows = fitRows
         // (folded away with the arrow in the search bar)
-        if (engine.prefs.b(PreferenceKeys.QUICKLIST, true) && recents.isNotEmpty() && listRows > 0) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), c.surface).padding(vertical = 2.dp)) {
+        if (engine.prefs.b(PreferenceKeys.QUICKLIST, true) && recents.isNotEmpty() && listRows > 0) Column(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(24.dp), carQuickSurface(c)).padding(vertical = 2.dp)) {
             Row(Modifier.fillMaxWidth().carTap("saved") { actions.places() }.padding(start = 16.dp, end = 14.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(L.t("Recent").uppercase(), color = c.sub, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp, modifier = Modifier.weight(1f))
                 Text(L.t("Open"), color = c.accent, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
             for ((i, p) in recents.take(listRows).withIndex()) {
                 Row(Modifier.fillMaxWidth().carTap("saved-$i") { engine.startRoute(p) }.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(c.tile), contentAlignment = Alignment.Center) {
+                    Box(Modifier.size(38.dp).clip(androidx.compose.foundation.shape.CircleShape).background(carQuickTile(c)), contentAlignment = Alignment.Center) {
                         androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Rounded.History, null, tint = c.sub, modifier = Modifier.size(20.dp))
                     }
                     Column(Modifier.padding(start = 12.dp).weight(1f)) {

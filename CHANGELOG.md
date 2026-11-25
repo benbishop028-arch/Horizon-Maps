@@ -4,6 +4,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
+
+### Improved
+- Android Auto search and quick-access cards: make the search bar, Home, Work, saved and Recent place backgrounds more opaque over the map (#390).
+
 ### Improved
 - Road-closure routing: only avoid full-road closures matched to the active route, use short segment-sized avoidance areas rather than broad bounding boxes, and keep nearby lane closures and unrelated incidents from forcing detours.
 
