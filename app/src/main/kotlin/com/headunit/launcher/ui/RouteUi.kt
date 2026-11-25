@@ -1050,33 +1050,66 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
  */
 @Composable
 fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier) {
-    if (t.sign.isBlank() || t.dist > 3200.0) return
-    val refRx = Regex("\\b([MAB][0-9]{1,4}(?:\\(M\\))?)\\b")
-    val refs = refRx.findAll(t.sign).map { it.groupValues[1] }.distinct().take(2).toList()
-    val places = refRx.replace(t.sign, " ").split(',', ';', ':', '/').map { it.trim().trim('-', '–').trim() }
-        .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) }.distinct().take(3)
-    if (refs.isEmpty() && places.isEmpty()) return
-    val motorway = t.exitNo.isNotBlank() || refs.any { it.startsWith("M") || it.endsWith("(M)") }
-    val bg = if (motorway) Color(0xFF1554A8) else Color(0xFF0D6B3A)
-    val shape = RoundedCornerShape(14.dp)
-    val left = t.maneuver.uppercase().contains("LEFT")
-    Column(modifier.widthIn(max = 380.dp).shadow(8.dp, shape).clip(shape).background(Color.White).padding(3.dp).clip(RoundedCornerShape(11.dp)).background(bg)
-        .padding(horizontal = 12.dp, vertical = 9.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    if (t.dist > 3200.0) return
+    val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
+    val refs = (t.shields.map { it.text } + refRx.findAll(t.sign).map { it.groupValues[1] } +
+        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).distinct().take(4)
+    val places = refRx.replace(t.sign, " ").split(',', ';', ':', '/')
+        .map { it.trim().trim('-', '–').trim() }
+        .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) }
+        .distinct().take(3)
+    if (refs.isEmpty() && places.isEmpty() && t.exitNo.isBlank()) return
+    val motorway = t.exitNo.isNotBlank() || t.shields.any { it.type.contains("motorway", true) || it.type.contains("interstate", true) } ||
+        refs.any { it.startsWith("M") || it.endsWith("(M)") }
+    val bg = if (motorway) Color(0xFF07569A) else Color(0xFF087044)
+    val shape = RoundedCornerShape(9.dp)
+    val arrow = when {
+        t.maneuver.contains("LEFT", true) -> "↖"
+        t.maneuver.contains("RIGHT", true) -> "↗"
+        else -> "↑"
+    }
+    Column(modifier.fillMaxWidth().widthIn(max = 440.dp).shadow(7.dp, shape)
+        .clip(shape).background(Color.White).padding(2.dp).clip(RoundedCornerShape(7.dp))
+        .background(bg).padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             if (t.exitNo.isNotBlank()) {
-                Box(Modifier.clip(RoundedCornerShape(4.dp)).background(Color.White).padding(1.5.dp).clip(RoundedCornerShape(3.dp)).background(Color.Black)
-                    .padding(horizontal = 7.dp, vertical = 1.dp)) { Text(t.exitNo, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold) }
-                Spacer(Modifier.width(6.dp))
+                Box(Modifier.clip(RoundedCornerShape(3.dp)).background(Color.Black).padding(horizontal = 8.dp, vertical = 2.dp)) {
+                    Text(t.exitNo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
+                }
             }
-            refs.forEach { r ->
-                if (motorway) Box(Modifier.padding(end = 6.dp).border(1.5.dp, Color.White, RoundedCornerShape(3.dp)).padding(horizontal = 6.dp, vertical = 1.dp)) {
-                    Text(r, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
-                } else Text(r, color = Color(0xFFFFD200), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(end = 8.dp))
-            }
+            refs.forEach { r -> RoadShieldBadge(r, t.shields.firstOrNull { it.text == r }?.type.orEmpty()) }
             Spacer(Modifier.weight(1f))
-            Text(if (left) "↖" else "↗", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(arrow, color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         }
-        places.forEach { p -> Text(p, color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        places.forEach { p -> Text(p, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        if (places.isEmpty() && t.sign.isNotBlank() && refs.isEmpty()) {
+            Text(t.sign.take(90), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
+/** Compact shield treatment; provider shield type selects a recognisable national road-sign family. */
+@Composable
+private fun RoadShieldBadge(text: String, type: String) {
+    val k = type.lowercase()
+    val bg = when {
+        "interstate" in k || "motorway" in k -> Color(0xFF07569A)
+        "europe" in k -> Color(0xFF1554A8)
+        "primary" in k || "trunk" in k -> Color(0xFF087044)
+        "national" in k -> Color(0xFFB52B27)
+        "county" in k -> Color(0xFF28633B)
+        else -> Color.White
+    }
+    val fg = if (bg == Color.White) Color(0xFF171717) else Color.White
+    val shape = when {
+        "europe" in k -> CircleShape
+        "interstate" in k -> RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 3.dp, bottomEnd = 3.dp)
+        else -> RoundedCornerShape(5.dp)
+    }
+    Box(Modifier.padding(end = 3.dp).clip(shape).background(bg)
+        .border(1.dp, if (bg == Color.White) Color(0xFF222222) else Color.White, shape)
+        .padding(horizontal = 6.dp, vertical = 2.dp)) {
+        Text(text, color = fg, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
     }
 }
 
