@@ -223,5 +223,16 @@ object I18nTe {
         "Switched route" to "మార్గం మార్చబడింది",
         "Leave now to arrive by {0}" to "{0} లోపు చేరుకోవడానికి ఇప్పుడే బయలుదేరండి",
         "Leave by {0} to arrive by {1}. I'll remind you." to "{1} కు చేరుకోవడానికి {0} కు బయలుదేరండి. నేను గుర్తు చేస్తాను.",
+        "UK & Ireland" to "యూకే మరియు ఐర్లాండ్",
+        "Europe" to "యూరప్",
+        "United States" to "అమెరికా",
+        "Canada" to "కెనడా",
+        "Mexico & Central America" to "మెక్సికో మరియు మధ్య అమెరికా",
+        "South America" to "దక్షిణ అమెరికా",
+        "Asia" to "ఆసియా",
+        "Africa" to "ఆఫ్రికా",
+        "Oceania" to "ఓషియానియా",
+        "Free space: {0}" to "ఖాళీ స్థలం: {0}",
+        "arrive {0}" to "చేరుకునే సమయం {0}",
     )
 }
