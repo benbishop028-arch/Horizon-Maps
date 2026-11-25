@@ -748,7 +748,7 @@ object TomTomRest {
                 rx, i.optString("exitNumber"), i.optString("signpostText"),
                 // the road number (E39, 169) beside the name, as on Mapbox's routes (desko1973, #371)
                 ref = i.optJSONArray("roadNumbers")?.optString(0).orEmpty().trim().let { n -> if (street.isNotBlank() && !n.equals(street, true) && n.length <= 8) n else "" },
-                shields = shields.distinctBy { it.type + "|" + it.text },
+                shields = shields.distinctBy { it.reference + "|" + it.content },
             )
         }
         val laneSecs = ArrayList<LaneSec>()
