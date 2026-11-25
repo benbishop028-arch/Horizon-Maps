@@ -321,6 +321,8 @@ object MapboxRest {
     @Volatile var curbSide = true
     /** Ask for Mapbox's junction pictures (banner instructions). */
     @Volatile var junctionPics = false
+    /** Ask for banner components when road shields are enabled, independently of junction-picture display. */
+    @Volatile var roadShields = true
 
     fun routes(token: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(),
                headingDeg: Double = -1.0, quick: Boolean = false, leftHand: Boolean = false): List<Route> {
@@ -354,7 +356,7 @@ object MapboxRest {
         // arrive on your side of the road (the destination on the kerb side), the other points as Mapbox likes
         if (curbSide) base += "&approaches=" + enc((List(pts.size - 1) { "" } + listOf("curb")).joinToString(";"))
         // pictures of motorway junctions, when Mapbox has them for this account
-        if (junctionPics) base += "&banner_instructions=true"
+        if (junctionPics || roadShields) base += "&banner_instructions=true"
         val dep = if (departAtMs > 0) "&depart_at=" + enc(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).format(java.util.Date(departAtMs))) else ""
         val attempts = ArrayList<String>()
         if (dep.isNotEmpty() && !quick) { if (ex.isNotEmpty()) attempts += "$base&exclude=$ex$dep"; attempts += "$base$dep" }
