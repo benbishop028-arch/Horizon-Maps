@@ -62,7 +62,7 @@ class I18nCoreCoverageTest {
         "No offline route found",
         "No offline route found. Check both places are inside your downloaded maps",
         "speed limits",
-        "speed cameras"
+        "speed cameras",
         "Couldn't join your two offline map areas at their border. Try updating both",
         "This offline map area needs downloading again",
         "The destination is outside your offline maps",
