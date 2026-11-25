@@ -774,7 +774,6 @@ object L {
         addOwn(m, "ml", I18nMl.rows())
         addOwn(m, "ta", I18nTa.rows())
         addOwn(m, "ko", I18nKo.rows())
-        addOwn(m, "te", I18nTe.rows())
         addOwn(m, "ca", I18nCa.rows())
         addOwn(m, "te", I18nTe.rows())
         addOwn(m, "esar", I18nEsAr.rows())
