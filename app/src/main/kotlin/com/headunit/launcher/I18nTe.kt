@@ -189,5 +189,7 @@ object I18nTe {
         "No offline route" to "ఆఫ్‌లైన్ మార్గం లేదు",
         "No offline route found" to "ఆఫ్‌లైన్ మార్గం కనుగొనలేకపోయాం",
         "No offline route found. Check both places are inside your downloaded maps" to "ఆఫ్‌లైన్ మార్గం కనుగొనలేకపోయాం. రెండు ప్రదేశాలూ డౌన్‌లోడ్ చేసిన మ్యాప్‌లలో ఉన్నాయో తనిఖీ చేయండి",
+        "speed limits" to "వేగ పరిమితులు",
+        "speed cameras" to "వేగ నియంత్రణ కెమెరాలు",
     )
 }
