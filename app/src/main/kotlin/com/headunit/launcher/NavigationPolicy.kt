@@ -48,6 +48,10 @@ internal object NavigationPolicy {
     fun gpsReliableForReroute(accuracyMeters: Double): Boolean =
         !accuracyMeters.isFinite() || accuracyMeters <= 0.0 || accuracyMeters <= 45.0
 
+    /** Reject uncertain network positions while following a route, regardless of how long GPS has been absent. */
+    fun shouldRejectNetworkPositionOnRoute(accuracyMeters: Double?): Boolean =
+        accuracyMeters == null || !accuracyMeters.isFinite() || accuracyMeters <= 0.0 || accuracyMeters > 30.0
+
     /** Distance from the route tolerated before a credible GPS fix counts as off-route. */
     fun offRouteLimit(accuracyMeters: Double): Double {
         val usableAccuracy = if (accuracyMeters.isFinite() && accuracyMeters > 0.0) accuracyMeters else 8.0

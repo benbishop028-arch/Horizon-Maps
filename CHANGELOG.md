@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Tunnel positioning: while following an active route, ignore network-location fixes with missing or worse-than-30-metre accuracy even after GPS has been unavailable for two minutes. Keep the existing two-minute dead-reckoning limit so the locator does not assume constant movement indefinitely (#391).
+
 ### New
 - Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
 
