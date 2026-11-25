@@ -6,7 +6,8 @@ object I18nHr {
         "Import Google Maps" to "Uvezi iz Google Mapsa",
         "Choose a Saved Places.json file from Google Takeout" to "Odaberite datoteku Saved Places.json iz Google Takeouta",
         "Imported {0} · already saved {1}" to "Uvezeno {0} · {1} već spremljeno",
-        "No saved places found in that file" to "U ovoj datoteci nisu pronađena spremljena mjesta"
+        "No saved places found in that file" to "U ovoj datoteci nisu pronađena spremljena mjesta",
+        "Arrive at {0}" to "Dolazak do {0}"
     )
 
     private fun p0(): List<Pair<String, String>> = listOf(

@@ -495,7 +495,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** The turns a driver actually makes on [r]: every step but "carry on", the start and the end. */
-    private fun turnCount(r: Route): Int = r.steps.count { s ->
+    private fun turnCount(r: Route): Int = RouteGuidancePolicy.guidanceSteps(r.steps, r.mine.isNotBlank()).count { s ->
         val m = s.maneuver.uppercase()
         !(m == "STRAIGHT" || m == "FOLLOW" || m.startsWith("DEPART") || m.startsWith("ARRIVE"))
     }
@@ -1854,12 +1854,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val fmt = Clock.format()
         val now = System.currentTimeMillis()
         val out = ArrayList<ItinRow>()
-        r.steps.forEachIndexed { i, s ->
+        val steps = RouteGuidancePolicy.guidanceSteps(r.steps, r.mine.isNotBlank() || drivingMine.isNotBlank())
+        steps.forEachIndexed { i, s ->
             if (s.off <= prog + 4) return@forEachIndexed
             val arriving = s.maneuver.uppercase().startsWith("ARRIVE")
             val road = s.street.ifBlank { s.sign }
-            val text = if (arriving) "Arrive at " + (dest?.name ?: "your destination")
-                       else Geo.maneuverText(s.maneuver, s.roundExit).replaceFirstChar { it.uppercase() } + (if (road.isNotBlank()) " onto $road" else "")
+            val text = if (arriving) L.t("Arrive at {0}", dest?.name ?: L.t("your destination"))
+                       else Geo.maneuverText(s.maneuver, s.roundExit).replaceFirstChar { it.uppercase() } + (if (road.isNotBlank()) L.t(" onto {0}", road) else "")
             val d = s.off - prog
             out += ItinRow(i, s.maneuver, text, Geo.stepTag(s), d, fmt.format(Date(now + (secs * d / left * 1000).toLong())), s.off, if (arriving) "" else road, s.roundExit)
         }
@@ -6440,7 +6441,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
 
         if (!light && !shadow()) try { routeExtrasTick(r, progress) } catch (e: Exception) { android.util.Log.w("NavEngine", "route extras failed", e) }
-        val ins = r.steps
+        val ins = RouteGuidancePolicy.guidanceSteps(r.steps, r.mine.isNotBlank() || drivingMine.isNotBlank())
         var k = ins.indexOfFirst { it.off > progress + 4 }
         if (k < 0) k = ins.size - 1
         if (k >= 0) {
@@ -6448,7 +6449,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // a turn at the end of a slip road (the route data puts it where the slip road meets the next road): until you're on
             // the slip road, the card, the voice and the lanes are for leaving the main road where the slip road splits off, so the
             // countdown runs to there (the start of the slip road), not to the far end of it. The turn itself comes after.
-            val split = slipSplit(r, k, realCur, progress)
+            val split = slipSplit(r, k, realCur, progress, ins)
             val onApproach = split != null && progress < split - 3.0
             val cur = if (onApproach) realCur.copy(off = split!!, maneuver = if (splitLeft) "MOTORWAY_EXIT_LEFT" else "MOTORWAY_EXIT_RIGHT", roundExit = 0, exitNo = "") else realCur
             // (its own keys, so the turn at the end of the slip road still gets its spoken call-outs and arrow afterwards)
@@ -6737,7 +6738,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * a slip road) along the route, looking back from the turn. Null when it isn't one, or the map hasn't shown it yet (asked again
      * every 2 seconds while the turn is within a kilometre).
      */
-    private fun slipSplit(r: Route, k: Int, cur: Step, progress: Double): Double? {
+    private fun slipSplit(r: Route, k: Int, cur: Step, progress: Double, steps: List<Step>): Double? {
         if (splitFor != cur.off) { splitFor = cur.off; splitAt = null; splitDone = false }
         if (splitDone) return splitAt
         val m = cur.maneuver.uppercase()
@@ -6756,7 +6757,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // just before the turn the route has to be on a slip road; if the map says it isn't, it's an ordinary turn
         val last = cls(cur.off - 25.0) ?: return null
         if (!last.endsWith("_link")) { splitDone = true; return null }
-        val prevOff = r.steps.getOrNull(k - 1)?.off ?: 0.0
+        val prevOff = steps.getOrNull(k - 1)?.off ?: 0.0
         val stopAt = max(prevOff + 5.0, max(progress - 50.0, cur.off - 700.0))
         var o = cur.off - 25.0
         var start: Double? = null

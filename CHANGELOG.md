@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Saved My routes: ignore provider-generated “waypoint reached/left” shaping-point instructions in turn guidance and spoken navigation, while retaining normal turns and real saved stops (#400).
+- Upcoming turns: translate the arrival wording and road-connection text instead of displaying English fragments in Croatian, Bosnian and Serbian (#401).
+
+### Fixed
 - Arrival locator: when dismissing the arrival card, discard stale route-glide and camera anchors and recenter on the latest GPS fix, so the arrow returns to the car rather than remaining at the destination view.
 
 ### Fixed
