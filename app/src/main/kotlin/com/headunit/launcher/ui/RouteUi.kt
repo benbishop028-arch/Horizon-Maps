@@ -1105,11 +1105,18 @@ private fun RoadShieldAtlasImage(shield: com.headunit.launcher.RoadShield, atlas
             bitmap = com.headunit.launcher.RoadShieldAtlas.load(context, atlas, shield.reference)
         }
     }
-    val label = shield.affixes.joinToString("") + shield.content
+    val label = shield.content.ifBlank { shield.affixes.joinToString("") }
     if (bitmap != null) {
-        Image(bitmap!!.asImageBitmap(), contentDescription = label,
-            modifier = Modifier.height(25.dp).widthIn(max = 66.dp), contentScale = ContentScale.Fit)
-    } else RoadShieldBadge(label.ifBlank { "Road" }, shield.reference)
+        val ink = if (shield.reference.contains("white", true) || shield.reference.contains("nld", true)) Color(0xFF171717) else Color.White
+        Box(Modifier.height(27.dp).widthIn(min = 34.dp, max = 66.dp), contentAlignment = Alignment.Center) {
+            Image(bitmap!!.asImageBitmap(), contentDescription = label,
+                modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                if (label.isNotBlank()) Text(label, color = ink, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                if (shield.affixes.isNotEmpty() && shield.content.isNotBlank()) Text(shield.affixes.joinToString(" "), color = ink, fontSize = 6.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            }
+        }
+    } else RoadShieldBadge((label + if (shield.affixes.isNotEmpty()) " " + shield.affixes.joinToString(" ") else "").ifBlank { "Road" }, shield.reference)
 }
 
 /** Text fallback used when the provider atlas has no matching sprite or cannot be downloaded. */
