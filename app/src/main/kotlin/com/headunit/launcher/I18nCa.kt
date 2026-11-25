@@ -198,5 +198,10 @@ object I18nCa {
         "No offline route found. Check both places are inside your downloaded maps" to "No s'ha trobat cap ruta sense connexió. Comprova que tots dos llocs siguin dins dels mapes baixats",
         "speed limits" to "límits de velocitat",
         "speed cameras" to "càmeres de velocitat",
+        "Couldn't join your two offline map areas at their border. Try updating both" to "No s'han pogut unir les dues àrees de mapes sense connexió a la frontera. Prova d'actualitzar-les totes dues",
+        "This offline map area needs downloading again" to "Cal tornar a baixar aquesta àrea de mapes sense connexió",
+        "The destination is outside your offline maps" to "La destinació és fora dels mapes sense connexió",
+        "The destination is outside your offline maps, and no road towards it was found in them" to "La destinació és fora dels mapes sense connexió i no s'hi ha trobat cap carretera",
+        "No road found near the start or the destination in your offline maps" to "No s'ha trobat cap carretera a prop de l'inici o de la destinació als mapes sense connexió",
     )
 }
