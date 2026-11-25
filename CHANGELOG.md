@@ -5,6 +5,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Alternative routes: keep the locator matched to the car's position and direction when switching routes, preserve continuous trip progress, anchor map cards at the branch point, and switch routes with one tap on a map card while retaining two-tap confirmation in the routes list.
+
+
+### Fixed
 - Polish saved-place menus: translate the saved, recent, name and distance labels instead of leaving them in English (#380)
 - Speed limits: avoid borrowing a nearby crossing or one-way road's limit when the car is travelling along a different road (#381)
 - Traffic lights and locator: recognise lights mapped slightly off the road centreline, avoid hiding the next light at a junction, and treat motorway carriageways as one-way when snapping the arrow (#378)
