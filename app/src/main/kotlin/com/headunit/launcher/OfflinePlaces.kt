@@ -51,7 +51,7 @@ object OfflinePlaces {
             // names that start with what you typed come first, then bigger places, then closer ones
             starts * 1e9 - e.pop.toDouble() * 10.0 + far
         }.take(8).map { e ->
-            Place(e.name, (if (e.kind == "PPLC" || e.kind.startsWith("PPLA")) "Town / city" else "Village / area") + " · offline", e.pos)
+            Place(e.name, L.t(if (e.kind == "PPLC" || e.kind.startsWith("PPLA")) "Town / city" else "Village / area") + L.t(" · offline"), e.pos)
         }
     }
 
