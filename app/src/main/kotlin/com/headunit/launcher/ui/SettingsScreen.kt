@@ -837,7 +837,9 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
             L.t("The sound for going over the limit or the top speed, so it can't be mistaken for the camera and hazard beeps")) { prefs.put(PreferenceKeys.SPEED_ALERT_SOUND, it); engine.testSpeedAlert(it) }
         SToggle(prefs, L.t("Speed alert in the background"), PreferenceKeys.BG_SPEED_ALERT, false, L.t("Keeps the speed alert going while another app is in front, even with no route. Uses more battery and shows a notification"))
         SChoice(L.t("Top speed alert"), (if (engine.imperial) listOf("0", "60", "70", "80", "90") else listOf("0", "90", "100", "110", "120", "130", "140")).map { it to (if (it == "0") L.t("Off") else it + if (engine.imperial) " mph" else " km/h") },
-            prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0"), L.t("A beep and \"Slow down\" when you reach this speed, whatever the limit is")) { prefs.put(PreferenceKeys.ALERT_TOP_SPEED, it) }
+            prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0"), L.t("A beep when you reach this speed, whatever the limit is")) { prefs.put(PreferenceKeys.ALERT_TOP_SPEED, it) }
+        if (prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0") != "0") SToggle(prefs, L.t("Say \"Slow down\" at top speed"), PreferenceKeys.SAY_TOP_SPEED, true,
+            L.t("Speak \"Slow down\" only when you reach your chosen top speed, not whenever you go over a road's speed limit"))
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true, L.t("Not said in Warnings only mode, and not again when the limit goes back to the one you just left within a short stretch"))
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
             prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
