@@ -620,17 +620,26 @@ object MapboxRest {
                     val exit = if (man.startsWith("ROUNDABOUT")) m.optInt("exit", 0) else 0
                     // Mapbox's picture of the junction (from its banner instructions, when asked for and it has one)
                     var pic = ""
+                    val shields = ArrayList<RoadShield>()
                     s.optJSONArray("bannerInstructions")?.let { bi ->
                         for (k in 0 until bi.length()) {
                             val comps = bi.optJSONObject(k)?.optJSONObject("view")?.optJSONArray("components") ?: continue
-                            for (q in 0 until comps.length()) { val u = comps.optJSONObject(q)?.optString("imageURL").orEmpty(); if (u.startsWith("https://")) { pic = u; break } }
-                            if (pic.isNotEmpty()) break
+                            for (q in 0 until comps.length()) {
+                                val component = comps.optJSONObject(q) ?: continue
+                                val u = component.optString("imageURL").orEmpty()
+                                if (u.startsWith("https://")) pic = u
+                                // Mapbox banner components may expose a shield image base plus its label.
+                                val imageBase = component.optString("imageBaseURL")
+                                val text = component.optString("text")
+                                if (imageBase.isNotBlank() && text.isNotBlank()) shields += RoadShield("mapbox", text)
+                            }
                         }
                     }
                     // traffic lights or a stop sign at the turn itself (the step's first junction), for "At the traffic lights, turn right"
                     val j0 = s.optJSONArray("intersections")?.optJSONObject(0)
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
+                        shields = shields.distinctBy { it.text },
                         lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay,
                         sides = sideRoads(j0), ref = if (name.isNotBlank() && type != "off ramp") ref else "")
                     sigOnWay = sigHere
