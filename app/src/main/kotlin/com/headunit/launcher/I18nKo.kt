@@ -191,5 +191,10 @@ object I18nKo {
         "No offline route found. Check both places are inside your downloaded maps" to "오프라인 경로를 찾을 수 없습니다. 두 위치가 모두 다운로드한 지도 안에 있는지 확인하세요",
         "speed limits" to "속도 제한",
         "speed cameras" to "과속 단속 카메라",
+        "Couldn't join your two offline map areas at their border. Try updating both" to "두 오프라인 지도 영역을 경계에서 연결하지 못했습니다. 두 영역을 업데이트해 보세요",
+        "This offline map area needs downloading again" to "이 오프라인 지도 영역을 다시 다운로드해야 합니다",
+        "The destination is outside your offline maps" to "목적지가 오프라인 지도 영역 밖에 있습니다",
+        "The destination is outside your offline maps, and no road towards it was found in them" to "목적지가 오프라인 지도 영역 밖에 있으며 그쪽으로 이어지는 도로를 찾지 못했습니다",
+        "No road found near the start or the destination in your offline maps" to "오프라인 지도에서 출발지 또는 목적지 근처의 도로를 찾을 수 없습니다",
     )
 }
