@@ -189,5 +189,7 @@ object I18nTa {
         "No offline route" to "ஆஃப்லைன் வழி இல்லை",
         "No offline route found" to "ஆஃப்லைன் வழி கிடைக்கவில்லை",
         "No offline route found. Check both places are inside your downloaded maps" to "ஆஃப்லைன் வழி கிடைக்கவில்லை. இரு இடங்களும் பதிவிறக்கிய வரைபடங்களுக்குள் உள்ளனவா எனச் சரிபார்க்கவும்",
+        "speed limits" to "வேக வரம்புகள்",
+        "speed cameras" to "வேகக் கண்காணிப்பு கேமராக்கள்",
     )
 }
