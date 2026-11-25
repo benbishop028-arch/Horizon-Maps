@@ -12,7 +12,7 @@ import kotlin.math.*
 
 data class LL(val lat: Double, val lon: Double)
 /** Provider-supplied road-shield identity and text for a route instruction. */
-data class RoadShield(val type: String, val text: String)
+data class RoadShield(val reference: String, val content: String, val affixes: List<String> = emptyList())
 data class Step(val off: Double, val maneuver: String, val street: String, val msg: String, val roundExit: Int = 0, val exitNo: String = "", val sign: String = "",
     /** Mapbox's picture of this junction (a motorway junction with the lanes marked), when there is one; "" otherwise. */
     val junctionPic: String = "",
@@ -73,12 +73,15 @@ class Route(
     @Volatile var simpler: Boolean = false
     /** An offline route's own time before the usual-traffic estimate ([JourneyTimes]) was added; 0 for other routes. */
     @Volatile var baseTime: Double = 0.0
+    /** TomTom road-shield sprite atlas base URL for this route, if supplied. */
+    @Volatile var shieldAtlasUrl: String = ""
 
     /** The same route taking [secs] (no live traffic), with everything else kept. */
     fun withTime(secs: Double): Route {
         val n = Route(pts, cum, steps, len, secs, 0.0, lanes, sev)
         n.delays = delays; n.segmentTimes = segmentTimes.copyOf(); n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
         n.baseTime = if (baseTime > 0) baseTime else time
+        n.shieldAtlasUrl = shieldAtlasUrl
         return n
     }
 }
@@ -519,8 +522,10 @@ object TomTomRest {
             val explained = m.startsWith("TomTom didn't accept") || m.startsWith("This TomTom key")
             throw IOException(if (explained) m else if (!m.startsWith("HTTP")) "no signal" else if (m.startsWith("HTTP 429")) "too many requests, try again in a moment" else m.ifBlank { "Routing failed" })
         }
-        val arr = JSONObject(body).optJSONArray("routes") ?: JSONArray()
-        return (0 until arr.length()).map { parse(arr.getJSONObject(it)) }
+        val response = JSONObject(body)
+        val arr = response.optJSONArray("routes") ?: JSONArray()
+        val atlas = response.optString("roadShieldAtlasReference")
+        return (0 until arr.length()).map { parse(arr.getJSONObject(it), atlas) }
     }
 
     /** What to ask TomTom's search for each kind of place. */
@@ -701,7 +706,7 @@ object TomTomRest {
         if (o.has("longitude")) o.getDouble("longitude") else if (o.has("lon")) o.getDouble("lon") else o.getDouble("lng"),
     )
 
-    private fun parse(r: JSONObject): Route {
+    private fun parse(r: JSONObject, shieldAtlasUrl: String = ""): Route {
         val pts = ArrayList<LL>()
         val legs = r.optJSONArray("legs") ?: JSONArray()
         for (i in 0 until legs.length()) {
@@ -719,9 +724,11 @@ object TomTomRest {
                 val refs = i.optJSONArray(key) ?: continue
                 for (ri in 0 until refs.length()) {
                     val shield = refs.optJSONObject(ri) ?: continue
-                    val type = shield.optString("shieldType").ifBlank { shield.optString("type") }
-                    val text = shield.optString("shieldText").ifBlank { shield.optString("roadNumber").ifBlank { shield.optString("text") } }
-                    if (text.isNotBlank()) shields += RoadShield(type, text)
+                    val reference = shield.optString("reference")
+                    val content = shield.optString("shieldContent")
+                    val affixArray = shield.optJSONArray("affixes")
+                    val affixes = if (affixArray == null) emptyList() else (0 until affixArray.length()).map { affixArray.optString(it) }.filter { it.isNotBlank() }
+                    if (reference.isNotBlank() || content.isNotBlank()) shields += RoadShield(reference, content, affixes)
                 }
             }
             val street = i.optString("street").ifBlank {
@@ -806,7 +813,7 @@ object TomTomRest {
         } catch (e: Exception) { /* speed limits are optional */ }
         val s = r.optJSONObject("summary")
         val len = s?.optDouble("lengthInMeters", 0.0)?.takeIf { it > 0 } ?: cum.lastOrNull() ?: 0.0
-        return Route(pts, cum, steps, len, s?.optDouble("travelTimeInSeconds", 0.0) ?: 0.0, s?.optDouble("trafficDelayInSeconds", 0.0) ?: 0.0, laneSecs, sev).also { it.delays = delays; it.limits = limits }
+        return Route(pts, cum, steps, len, s?.optDouble("travelTimeInSeconds", 0.0) ?: 0.0, s?.optDouble("trafficDelayInSeconds", 0.0) ?: 0.0, laneSecs, sev).also { it.delays = delays; it.limits = limits; it.shieldAtlasUrl = shieldAtlasUrl }
     }
 }
 
