@@ -5240,7 +5240,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             var againstNear = false
             for (rp in list) {
                 val pts = rp.pts
-                val oneway = rp.oneway == true
+                // Mapbox may omit the explicit flag on motorway features; those carriageways and their links are one-way regardless.
+                val oneway = rp.oneway == true || rp.cls == "motorway" || rp.cls == "motorway_link"
                 for (i in 0 until pts.size - 1) {
                     val ax = (pts[i].longitude() - p.lon) * k; val ay = (pts[i].latitude() - p.lat) * k2
                     val bx = (pts[i + 1].longitude() - p.lon) * k; val by = (pts[i + 1].latitude() - p.lat) * k2
