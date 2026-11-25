@@ -60,7 +60,9 @@ class I18nCoreCoverageTest {
         "No offline pack installed",
         "No offline route",
         "No offline route found",
-        "No offline route found. Check both places are inside your downloaded maps"
+        "No offline route found. Check both places are inside your downloaded maps",
+        "speed limits",
+        "speed cameras"
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {
