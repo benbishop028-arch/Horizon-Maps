@@ -156,6 +156,7 @@ class I18nCoreCoverageTest {
                 L.set(code)
                 for (key in listOf("UK & Ireland", "Europe", "United States", "Canada",
                     "Mexico & Central America", "South America", "Asia", "Africa", "Oceania")) {
+                    println("I18N_DEBUG $code [$key] -> [${L.t(key)}]")
                     assertNotEquals("$code group label falls back", key, L.t(key))
                 }
                 val free = L.t("Free space: {0}", "2 GB")
