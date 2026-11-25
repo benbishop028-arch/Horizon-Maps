@@ -144,6 +144,13 @@ object I18nTa {
         "Map style" to "வரைபடத் தோற்றம்",
         "Satellite" to "செயற்கைக்கோள்",
         "Couldn't read a place from that" to "அந்தத் தகவலிலிருந்து இடத்தைப் படிக்க முடியவில்லை",
+        "Town / city" to "நகரம்",
+        "Village / area" to "கிராமம் / பகுதி",
+        " · offline" to " · இணையமின்றி",
+        "Postcode" to "அஞ்சல் குறியீடு",
+        "Address" to "முகவரி",
+        "Show lane data diagnostics" to "வழித்தடத் தரவு கண்டறிதலைக் காட்டு",
+        "Only shown in Demo mode; does not affect lane guidance." to "செயல்விளக்கப் பயன்முறையில் மட்டுமே காட்டப்படும்; வழித்தட வழிகாட்டுதலைப் பாதிக்காது.",
         "{0} ahead" to "{0} முன்னால்",
     )
 }
