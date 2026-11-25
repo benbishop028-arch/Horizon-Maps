@@ -4,6 +4,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Improved
+- Road-closure routing: only avoid full-road closures matched to the active route, use short segment-sized avoidance areas rather than broad bounding boxes, and keep nearby lane closures and unrelated incidents from forcing detours.
+
+### Fixed
+- Route-line alignment: ignore lane-marking geometry running against the direction of travel so nearby opposing carriageways cannot pull the guidance line off the correct road (#386).
+- Speed-bump warning: keep the warning visible for 5 seconds instead of 3.5 seconds (#387).
+
 ### New
 - Give Way signs: show mapped Give Way signs on the active route alongside STOP signs, using the existing route-sign setting and filtering out signs that cannot be matched confidently to the road being followed (#385). School warning signs are not included because available map data cannot reliably distinguish actual roadside signs from nearby school locations.
 
