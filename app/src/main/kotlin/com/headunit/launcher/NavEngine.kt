@@ -2303,13 +2303,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- "See all locations": every branch of a shop or chain near you, on the map and in a list ----
     /** One branch: [secs]/[road] from the matrix service (or -1 when it couldn't be timed), [detour] extra seconds on the route. */
-    class ChainSpot(val place: Place, val dist: Double, val secs: Double, val road: Double, val detour: Double,
+    data class ChainSpot(val place: Place, val dist: Double, val secs: Double, val road: Double, val detour: Double,
                     /** Adding a stop: how far along the route ahead it is, and how far off the route (metres; -1 not known). */
                     val ahead: Double = -1.0, val off: Double = -1.0,
                     /** Petrol stations: the price of your fuel there (pence or cents a litre, in [unit]), or null when not known. */
-                    val price: Double? = null, val unit: String = "p")
+                    val price: Double? = null, val unit: String = "p",
+                    val chargerExtra: String = "", val chargerId: String = "", val chargerFree: String = "")
     /** The list on show: [name] as searched, [domain] for its logo, [radius] metres looked within. */
-    class ChainView(val name: String, val domain: String?, val spots: List<ChainSpot>, val radius: Int, val centre: LL,
+    data class ChainView(val name: String, val domain: String?, val spots: List<ChainSpot>, val radius: Int, val centre: LL,
                     /** Picking a stop to add along the route (the list is about the detour, and the only button is Add as a stop). */
                     val forStop: Boolean = false)
     var chain by mutableStateOf<ChainView?>(null)
@@ -2402,6 +2403,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             var i = i0
             while (i < r.pts.size) { ahead += r.pts[i]; i += step }
             if (ahead.lastOrNull() != r.pts.last()) ahead += r.pts.last()
+            val chargerData = java.util.concurrent.ConcurrentHashMap<String, Nearby>()
+            fun chargerKey(p: Place) = String.format(Locale.US, "%.5f,%.5f", p.pos.lat, p.pos.lon)
             val found: List<Pair<Place, Int>> = withContext(Dispatchers.IO) {
                 val all = ArrayList<Pair<Place, Int>>()
                 if (hasKey && online()) {
@@ -2425,8 +2428,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val maxDetourS = if (evDetourMin > 0) evDetourMin * 60 else 1200
                     for (batch in chunks.chunked(3)) {
                         kotlinx.coroutines.coroutineScope {
-                            batch.map { part -> async { try { TomTomRest.alongText(apiKey, q, part, maxDetourS) } catch (e: Exception) { emptyList() } } }
-                                .forEach { all += it.await() }
+                            batch.map { part -> async {
+                                try {
+                                    if (chargers) TomTomRest.poiAlong(apiKey, "charging", part, maxDetourS).map { (n, seconds) -> chargerData[chargerKey(n.place)] = n; n.place to seconds }
+                                    else TomTomRest.alongText(apiKey, q, part, maxDetourS)
+                                } catch (e: Exception) { emptyList() }
+                            } }.forEach { all += it.await() }
                         }
                     }
                 }
@@ -2462,11 +2469,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 while (j < r.pts.size) { val d = Geo.dist(r.pts[j], p.pos); if (d < best) { best = d; at = j }; j += st }
                 if (at < 0 || best > (if (chargers && evDetourMin > 0) evDetourMin * 60.0 * 13.0 / 2.6 else 6000.0)) return@mapNotNull null
                 val detour = if (t >= 0) t.toDouble() else best * 2.6 / 13.0
-                ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
+                val charger = if (chargers) chargerData[chargerKey(p)] else null
+                ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best,
+                    chargerExtra = charger?.extra.orEmpty(), chargerId = charger?.chargeId.orEmpty())
             }
             // chargers: only the providers and speeds chosen in Settings, and none further off than the Charger detour (#343)
             val evKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0); val evNames = chargerNames()
-            val spots1 = if (chargers) spots0.filter { s -> chargerPlaceOk(s.place, evKw, evNames) && (evDetourMin <= 0 || s.detour < 0 || s.detour <= evDetourMin * 60.0) } else spots0
+            val spots1 = if (chargers) spots0.filter { s -> chargerPlaceOk(s.place, evKw, evNames, s.chargerExtra) && (evDetourMin <= 0 || s.detour < 0 || s.detour <= evDetourMin * 60.0) } else spots0
             // petrol stations: each one's price for your fuel, from the price service the app already uses (and any priced station
             // the search missed); everything else as it was
             val spots = if (fuelList) {
@@ -2477,14 +2486,34 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             withContext(Dispatchers.IO) { spots.mapNotNull { Logos.domainFor(it.place) }.distinct().take(6).forEach { Logos.load(ctx, it) } }
             val domain = spots.asSequence().mapNotNull { Logos.domainFor(it.place) }.firstOrNull()
             val n = spots.first().place.name
-            chain = ChainView(title ?: if (Logos.norm(n).startsWith(Logos.norm(q)) && n.length <= q.length + 14) n else q.replaceFirstChar { it.uppercase() },
+            val view = ChainView(title ?: if (Logos.norm(n).startsWith(Logos.norm(q)) && n.length <= q.length + 14) n else q.replaceFirstChar { it.uppercase() },
                 domain, spots, 0, from, forStop = true)
+            chain = view
             chainSort = "route"
             chainSel = chainSorted().firstOrNull()
             chainMoved = false
             chainBusy = false
             following = false
             drawChain()
+            if (chargers && hasKey && online()) {
+                val ids = spots.map { it.chargerId }.filter { it.isNotBlank() }.distinct()
+                if (ids.isNotEmpty()) scope.launch {
+                    val live = withContext(Dispatchers.IO) {
+                        val out = LinkedHashMap<String, Pair<Int, Int>?>()
+                        for (batch in ids.chunked(3)) {
+                            batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { (id, value) -> out[id] = value }
+                        }
+                        out
+                    }
+                    if (chain !== view) return@launch
+                    val updated = view.spots.map { s ->
+                        if (s.chargerId.isBlank()) s else s.copy(chargerFree = live[s.chargerId]?.let { (free, total) -> "$free of $total free" } ?: "No live info")
+                    }
+                    chain = view.copy(spots = updated)
+                    chainSel = chainSel?.let { selected -> updated.firstOrNull { it.place.pos == selected.place.pos } } ?: updated.firstOrNull()
+                    drawChain(fit = false)
+                }
+            }
         }
     }
 
@@ -4182,8 +4211,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Drops chargers known to be slower than the wanted speed, or from other providers. A charger whose speed isn't known stays. */
     /** The Settings charger filter (providers, speed) for a place in the along-the-route list; unknown speeds stay in. */
-    private fun chargerPlaceOk(p: Place, minKw: Int = prefs.i(PreferenceKeys.EV_MIN_KW, 0), names: List<String> = chargerNames()): Boolean {
-        val text = (p.name + " " + p.sub).lowercase()
+    private fun chargerPlaceOk(p: Place, minKw: Int = prefs.i(PreferenceKeys.EV_MIN_KW, 0), names: List<String> = chargerNames(), extra: String = ""): Boolean {
+        val text = (p.name + " " + p.sub + " " + extra).lowercase()
         val kw = if (minKw > 0) kwRe.find(text)?.groupValues?.get(1)?.toDoubleOrNull() else null
         return (minKw <= 0 || kw == null || kw >= minKw) && (names.isEmpty() || names.any { it in text })
     }
@@ -4213,17 +4242,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun sortNearby(l: List<Nearby>): List<Nearby> =
         if (nearbySort == "cheap" && l.any { it.price != null }) l.sortedWith(compareBy<Nearby> { it.price ?: 9999.0 }.thenBy { it.dist }) else l.sortedBy { it.dist }
 
-    /**
-     * Live availability for the chargers in the list ("8 of 12 free"), asked of TomTom for the first 10 that have it, all at once in
-     * the background. The list shows straight away and the counts appear as they come; a charger without live data says so.
-     */
+    /** Live connector counts, with no more than three TomTom requests in flight at once. */
     private fun fillChargerAvailability() {
         val list = nearby
         if (!hasKey || !online() || list.none { it.chargeId.isNotBlank() }) return
         scope.launch {
-            val ids = list.map { it.chargeId }.filter { it.isNotBlank() }.distinct().take(10)
+            val ids = list.map { it.chargeId }.filter { it.isNotBlank() }.distinct()
             val got = withContext(Dispatchers.IO) {
-                ids.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.map { it.await() }.toMap()
+                val out = LinkedHashMap<String, Pair<Int, Int>?>()
+                for (batch in ids.chunked(3)) {
+                    batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { (id, value) -> out[id] = value }
+                }
+                out
             }
             if (nearbyKind != "charging" || nearby !== list) return@launch
             nearby = list.map { n -> if (n.chargeId in got) n.copy(free = got[n.chargeId]?.let { (f, t) -> "$f of $t free" } ?: "No live info") else n }

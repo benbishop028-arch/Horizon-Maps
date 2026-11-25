@@ -188,6 +188,8 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                             Column(Modifier.padding(start = 12.dp).weight(1f)) {
                                 Text(s.place.name, color = c.text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(where, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (s.chargerExtra.isNotBlank()) Text(s.chargerExtra, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (s.chargerFree.isNotBlank()) Text(s.chargerFree, color = if (s.chargerFree.startsWith("0 of")) Color(0xFFF2C2BF) else Color(0xFF9BE3B0), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                             }
                             // a price: the price, with the detour small under it; no price: the detour as before
                             val pr = s.price
@@ -218,6 +220,8 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                             Column(Modifier.weight(1f)) {
                                 Text(road, color = c.text, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 if (area.isNotEmpty()) Text(area, color = c.sub, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (s.chargerExtra.isNotBlank()) Text(s.chargerExtra, color = c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                if (s.chargerFree.isNotBlank()) Text(s.chargerFree, color = if (s.chargerFree.startsWith("0 of")) Color(0xFFF2C2BF) else Color(0xFF9BE3B0), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(extra ?: time ?: dist, color = c.text, fontSize = 20.sp, fontWeight = FontWeight.Bold)

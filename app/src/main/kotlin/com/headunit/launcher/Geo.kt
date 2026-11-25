@@ -558,7 +558,7 @@ object TomTomRest {
                     kw = max(kw, cn.optDouble("ratedPowerKW", 0.0))
                     plugName(cn.optString("connectorType"))?.let { types += it }
                 }
-                extra.clear()
+                // Preserve the provider/brand collected above for the EV provider filter.
                 if (kw > 0) extra += "${Math.round(kw)} kW"
                 if (types.isNotEmpty()) extra += types.take(3).joinToString(", ")
             }
