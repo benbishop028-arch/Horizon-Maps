@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Localise sound modes, map-provider fallback notices, update-check results, offline-search messages, missing route-instruction notices, alternative-route status, nearby-search results and rerouting warnings in Catalan, Korean, Tamil and Telugu; add regression coverage.
+
+### Improved
 - Localise Mapbox offline-save progress and errors, downloaded-pack progress and availability messages, and offline-routing failures; add coverage for Catalan, Korean, Tamil and Telugu.
 
 ### Improved
