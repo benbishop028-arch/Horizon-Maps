@@ -89,6 +89,12 @@ class I18nCoreCoverageTest {
         "Reroute failed ({0}), trying again…",
         "Nothing found along the route ahead",
         "Nothing found nearby",
+        "{0} saved: {1}",
+        "Switched: about {0} min quicker",
+        "Switched: about {0} min longer",
+        "Switched route",
+        "Leave now to arrive by {0}",
+        "Leave by {0} to arrive by {1}. I'll remind you.",
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {
