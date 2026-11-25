@@ -4,59 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### Fixed
-- Closed roads stay avoided: once a route had gone round a closure, the next reroute or faster-route check could send you straight back into it. Closures you've been routed round are now kept off for the rest of the trip
-- Long closed roads are avoided along their whole length, not just their first 600 m or so
-- Head units with weak GPS: after a minute with no GPS, the phone network's rougher position is used again on a route, so the arrow doesn't stay frozen on an estimate
-- Speed limits no longer disappear in slow traffic and at junctions, where a shaky heading meant no road matched; roads crossing yours are still never used
-- Offline route messages are short and plain, and no longer show the exact coordinates of where you are and where you're going
-- Saved My routes: ignore provider-generated “waypoint reached/left” shaping-point instructions in turn guidance and spoken navigation, while retaining normal turns and real saved stops (#400).
-- Upcoming turns: translate the arrival wording and road-connection text instead of displaying English fragments in Croatian, Bosnian and Serbian (#401).
-
-### Fixed
-- Arrival locator: when dismissing the arrival card, discard stale route-glide and camera anchors and recenter on the latest GPS fix, so the arrow returns to the car rather than remaining at the destination view.
-
-### Fixed
-- Offline cross-country routing: check downloaded road coverage before calling Valhalla, route safely to the edge when the destination is outside downloaded areas, join supported legs across multiple downloaded areas (including intermediate stops), and give clearer errors when the starting point or a road is not covered (#396).
-### Fixed
-- Android Auto overall size: apply the saved car-screen scale to the actual UI density while retaining the screen-fit cap, so changing Overall size visibly resizes the interface again (#397).
-
-### Fixed
-- Tunnel positioning: while following an active route, ignore network-location fixes with missing or worse-than-30-metre accuracy even after GPS has been unavailable for two minutes. Keep the existing two-minute dead-reckoning limit so the locator does not assume constant movement indefinitely (#391).
-
 ### New
 - Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
-
-### Improved
-- Chargers along long routes are found about three times faster
-- Fewer map lookups: the country you're in is checked again only after driving 15 km, not every 2 minutes, which saves data on head units
-- Planning offline towards a place outside your downloaded maps gives up after about 10 seconds instead of trying for minutes on slow head units
-- Android Auto search and quick-access cards: make the search bar, Home, Work, saved and Recent place backgrounds more opaque over the map (#390).
-
-### Improved
-- Road-closure routing: only avoid full-road closures matched to the active route, use short segment-sized avoidance areas rather than broad bounding boxes, and keep nearby lane closures and unrelated incidents from forcing detours.
-
-### Fixed
-- Lane guidance: reject lane-marking geometry running against the direction of travel, preventing nearby opposing carriageways from pulling lane guidance onto the wrong side of the road.
-- Route-line alignment (#386): retain more of the routing engine's original route geometry when drawing the main route, completed section and alternatives, helping the blue line follow tighter bends and corners.
-- Speed-bump warning: keep the warning visible for 5 seconds instead of 3.5 seconds (#387).
-
-### New
 - Give Way signs: show mapped Give Way signs on the active route alongside STOP signs, using the existing route-sign setting and filtering out signs that cannot be matched confidently to the road being followed (#385). School warning signs are not included because available map data cannot reliably distinguish actual roadside signs from nearby school locations.
-
-### Fixed
-- Alternative routes: keep the locator matched to the car's position and direction when switching routes, preserve continuous trip progress, anchor map cards at the branch point, and switch routes with one tap on a map card while retaining two-tap confirmation in the routes list.
-- Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
-
-
-### Fixed
-- Polish saved-place menus: translate the saved, recent, name and distance labels instead of leaving them in English (#380)
-- Speed limits: avoid borrowing a nearby crossing or one-way road's limit when the car is travelling along a different road (#381)
-- Traffic lights and locator: recognise lights mapped slightly off the road centreline, avoid hiding the next light at a junction, and treat motorway carriageways as one-way when snapping the arrow (#378)
-- Chargers along a route: search long routes in separate sections so TomTom's 20-result limit does not hide chargers farther along the journey; the detour setting also controls the off-route search distance (#343)
-
-
-### New
 - Your own map colours on TomTom and OpenStreetMap: Settings › Map › Colours now offers Horizon, Twilight and Custom on those maps too, so you can pick your own ground, water, parks, road and building colours, day and night (thanks to desko1973, #355)
 - Chargers along your route: with a route active, the Chargers button now shows the same overview as "Add a stop": every charger along the route pinned on the map and listed with the detour it adds, using your provider, speed and detour settings, with an Add as stop button (thanks to Seali7Aut, #343)
 - Turn card colour: Settings › Map look › Turn card colour lets you choose green, black, dark grey, navy or purple behind the next turn, with white writing (thanks to the Android Auto testers)
@@ -95,174 +45,18 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Català: Catalan, with the core wording (turn instructions, the main screens, alerts, distances); anything not translated yet shows in English, and it's chosen by itself on a Catalan phone (GitHub #310)
 - తెలుగు: Telugu, with the core wording (turn instructions, the main screens, alerts, distances); anything not translated yet shows in English, and it's chosen by itself on a Telugu phone (GitHub #302)
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
-
-### Improved
-- Compass keeps up: the compass on the side now always follows the way the map is turned, so its red mark stays on north whether you're following your arrow, have turned the map by hand, or looked around
-- Tap a place on TomTom and OpenStreetMap maps: tapping a shop, station or other place now opens its card with the drive time and Go, as it already did on the Mapbox map (thanks to Branko Knez)
-- Longer offline routes: planning a longer trip from a big downloaded map (like all of England) now uses less memory, and if the phone still runs short it says the route couldn't be planned instead of closing the app (thanks to squirrel_blocks on Reddit)
-- Search results: the address under a place name can now use two lines, so more of the street and town can be read (thanks to the testers)
-- Battery: if you park for 30 minutes with a route or the background speed alert left running and the app out of sight, the background service and GPS now rest by themselves, and start again when you open the app (thanks to the Reddit report)
-- Speed limit announcements: Warnings only mode no longer announces limit changes, and a limit that flips back to the one you just left within a short stretch (50, 30, 50) isn't announced again (thanks to the testers)
-- Roomier map in portrait while navigating: the next services now appear as a slim line under the turn card only when they are within about 5 km, and further off they are a chip in the trip sheet along with the weather advice, so nothing needs hiding with Clean view to see the map
-- Android Auto on small screens: on small, low-resolution car screens (such as 7" 1024×600) the cards and text are now smaller and the position arrow scales down with the screen, so more of the map is visible (thanks to qpkqkma, #367)
-- The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
-
-### Fixed
-- Road numbers on TomTom routes: the road number (such as E39) shows beside the street name on the turn card again when your route comes from TomTom, as it does for Mapbox routes (thanks to desko1973, #371)
-- Voice prompts: the same prompt is no longer spoken twice within a few seconds, which stops prompts repeating in a loop (thanks to the testers)
-- Speed limit: on a road with different limits each way, when the direction isn't known the lower one is shown (thanks to the testers)
-- Sun in its real place: the sun's light and shadows now fade out at sunset instead of staying on all evening (thanks to ILDEMONICO, #335)
-- Problem reports now show why a trip counted as arrived, to help track down routes that cancel themselves (thanks to carlb051, #360)
-- The 3D buildings setting is reapplied when the map finishes loading, so a change made during loading isn't lost (#358)
-- Traffic colours no longer cover the white arrow at the next turn (#356)
-- The report button uses a megaphone instead of a flag, so it is easier to distinguish from a destination (#335)
-- Roundabouts on head units outside Britain: the turn card's roundabout picture went the British way round (clockwise) in the Netherlands and other countries that drive on the right. Most head units can't look up which country they're in, so it was never known; it's now asked of Mapbox when the unit can't tell (thanks to Dixet, #285)
-- Two-finger tilt works more often: moving two fingers up or down tilts the map even when they aren't held quite level, instead of moving the map (thanks to ILDEMONICO, #335)
-- The trip card's End and Add stop buttons are always on the screen. On a wide screen with large text, the time, arrival and distance pushed them off the right edge, so there was no way to end the route (thanks to neilch0111, #341)
-- Android Auto: the trip card starts with just Add stop and End, so it stays small and clear of your arrow; add Search, Report and the others under Settings › Android Auto › Buttons on the trip card (thanks to robertoflorez76-gif, #350)
-- The traffic colours on the trip card's route bar can be seen: a short patch of traffic on a long trip was averaged away into the blue, so the bar looked clear while the map showed amber. Patches now show in their own colour on a thicker bar, with the blending only at their edges (thanks to bijindas, #336)
-- Car parks near the end of a route are back, as their own card under the turn card again (phone, head unit and Android Auto) instead of lines of the turn card, where a fix for them opening and closing over and over had taken them away for good. If the first look finds no car parks (the map service didn't answer), it's tried again a few times (thanks to Dotancom, #324)
-- Germany: speed limits outside towns. Roads marked "no limit" that aren't motorways, and those marked rural, now show 100 km/h, instead of keeping the 70 or showing nothing (thanks to TheHairforce, #351)
-- The speed limit sign on the route, and the lorry height and weight signs, never showed on the map: Mapbox refused the layer they're drawn on because of how its size was written, so it was never added. Now it is, at the right size on Android Auto too (thanks to SonicBjork)
-- Portrait, on a route: a warning (traffic jam, camera…) now shows under the turn card instead of on top of it, where it hid the turn and the distance
-- Dim the screen at night now really dims: it's half of what the screen is at, never brighter. It used to set a fixed 50%, which is brighter than most screens at night (testers' group)
-- Rain on the map on a clear day: outside Europe and North America the weather service's rainfall figures are estimates, and a trace of forecast drizzle put rain on the map in sunshine. A clear sky is now taken as dry, and it takes more than a trace (thanks to pc4096)
-- A trip that ended by itself while you were stopped on the way (at a shop, say) is kept for 3 hours, so back in the car it's offered again: "Resume trip" on the phone, and on Android Auto a "Carry on to …" card that starts the route by itself after 10 seconds unless you tap "Not now", like Waze. Also a "Carry on" button in Android Auto's own row, for rotary knobs (thanks to pc4096)
-- Full screen on phones with a camera notch and Android 9 to 14: the map now reaches up round the camera, as it already did on Android 15, instead of stopping at a black band. Cards and buttons stay clear of the notch (#271)
-- Send feedback (and Request a language) on a short, wide head unit screen: the window now scrolls, so its Send and Copy buttons can be reached; they were below the bottom of the screen (thanks to bluelions25, #329)
-- Picture in picture: your arrow sits low in the small window, so more of the road ahead shows, and clear of the time along the bottom (it was in the middle)
-- Picture in picture: the map now zooms out and your arrow shrinks to suit the small window (and again if you resize it), so the road ahead can be seen; both go back to normal when the app is full size again
-- The upright phone's trip sheet: End is now the round red X, as it is everywhere else, instead of a wide red "End" button (thanks to Dotancom, #318)
-- Android Auto with a rotary knob: with "Search bar and places on the map" off (the setting for knob cars), Stop, sound and Report stay in Android Auto's own row of buttons, where the knob can reach them. Touching the screen while parked used to move them onto the trip card, out of the knob's reach (thanks to corocota1975, #333)
-- Your position when the app opens: an old remembered GPS position (from your last drive, say) is no longer taken for a live one. Standing still at the start, the arrow stayed where the phone last was until you drove off; it now moves to where you are as soon as the phone knows (thanks to neilch0111, #300)
-- The next services is a card of its own under the turn card again (phone, head unit and Android Auto), instead of a line joined to the bottom of the turn card
-- Android Auto: "Set home" and "Set work" now save the place you pick. Before, they started a route to it and the slot stayed empty (thanks to TheDMAl, #326)
-- The over-the-limit chime now sounds once when you go over, like other navigation apps, instead of every 9 seconds for as long as you're over. It sounds again once you're back at the limit, or when the limit changes (thanks to TheDMAl, #327)
-- Search: a result far away no longer comes before a nearer street or shop that matches as well (a city 700 km off used to be listed first). A place searched for with its town still comes first (thanks to TheDMAl, #327)
-- The coming speed limit change now shows about 15 seconds before it (at least 250 m), instead of up to 45 seconds early in town (thanks to desko1973, #319)
-- "Police directing traffic" in Polish now reads "Ruch sterowany przez policję", and it no longer shows in English when TomTom sends it in English (thanks to desko1973, #332)
-- "Walk back" to your parked car now opens walking directions in Google Maps. On some phones it opened a driving app instead (thanks to Dotancom, #320)
-- The car park lines near the end of a route no longer open and close over and over on the turn card (Android Auto and the phone) (thanks to Dotancom, #324)
-- Your own locator picture no longer shows as a white box: a picture saved with a solid white background (rather than a see-through one) now has the white around it made see-through. It's on by default and can be switched off under Settings › Your arrow › Remove white background (thanks to the #303 reporter)
-- The arrival time no longer jumps up and down while you drive: the time left is now smoothed over about half a minute, so a traffic figure that flips between route refreshes doesn't swing the arrival by several minutes (#298)
-- Android Auto trip card: the figures no longer run into each other ("19:206.2 …") with only one or two buttons picked; on a narrow card they now share its width and their text shrinks a little to fit
-- The arrow on the route bar is smooth again: it was the map's large locator picture shrunk in one go, which left its edges jagged
-- Android Auto route choice on a narrower screen: the Start (or Start demo drive) button is no longer cut off at the bottom of the card; with more routes than fit, the routes scroll instead
-- Warning banners (rain, hazards and so on) now have room for a third line, so on a wide, short head unit screen (1280 x 480) the rain warning is no longer cut off (#308)
-- Android Auto: roadworks ahead now show once, as the line on the turn card, instead of also popping up a second warning. New switch in Settings › Hazards: "Roadworks warnings", to turn the roadworks line and voice off (accidents and closures still warn) (#309)
-- The "Take it at …" sharp-bend warning now stays on screen until the end of the bend, instead of going out after 7 seconds (at lower speeds that was before the bend started) (#309)
-- Android Auto search: a long place name now wraps onto a second line before it is cut short, so results that start the same ("Johnsonville Fish…") can be told apart (thanks to pc4096)
-- Incidents from Mapbox that say "Police directing traffic" now show in Polish, German, French, Spanish, Italian, Dutch and Portuguese instead of just "Police" (#297)
-- Turn card: when a road has a name and a number (road 169, E39), the number now shows in a small badge beside the name, outside the UK (where the UK road badges already do this). Not spoken (#297)
-- The speed bump warning now comes at least 100 m before the bump, also at town speeds (it was about 70 to 85 m; thanks to desko1973, #309)
-- Words that were always English now follow the app's language: the hazard line on the Android Auto turn card ("Roboty drogowe za 1 km", not "... in 1 km") and the card on another route ("1 min wolniej", "Podobny ruch"; thanks to desko1973, #297)
-- Routes start straight away when TomTom refuses your key: a refused key (or a used-up daily limit) was mistaken for "no signal", so instead of switching to Mapbox the route waited for a signal that was already there, starting late or not at all, with "Weak signal" on screen. It now switches to Mapbox at once and says why (thanks to jerzdevil22, #269, #281, #291)
-- The speed limit sign on the map now shows where the limit changes even when the route has no limit for the stretch you're on (common with Mapbox's data); it used to appear only rarely (thanks to SonicBjork, #257)
-- Android Auto search waits for you to finish typing: it searched half a second after the third letter, and the results replaced the keyboard on some cars long before the name was finished. It now waits for a longer pause and keeps the keyboard up (thanks to joebGer19, #293)
-- Android Auto no longer gets stuck in night mode after a run of tunnels or underpasses: day and night now settle for a second before the map changes, and the car screen checks every 20 seconds that it matches what the car says (thanks to joebGer19, #292)
-- Traffic lights, speed limits and other OpenStreetMap look-ups: a server that has just failed is now tried after the others for a few minutes, so two servers being down no longer stops every search, and the maps.mail.ru server works on Android 10 (#271)
-
-### New
 - Multi-stop journey history: remember the destination and every stop as soon as the route is planned, so it can be previewed again with the same stops and fresh traffic
-
-### Improved
-- Quick reports on the map: open Police, Crash, Hazard, Broken down and Mobile camera from a button above the zoom controls, without opening Map options (thanks to ricres77, #275)
-
-### Fixed
-- Malayalam wording: refine Delete, fuel use and price, fuel-stop suggestions and the map-selection label (thanks to bijindas, #244)
-- Streetlights loading: queue every missing OpenStreetMap area instead of silently skipping requests while another area is downloading; carry on to the next area even when one request times out (thanks to joel941703-hash, #282)
-
-### Fixed
-- Roundabout direction: the highlighted path now follows the country's traffic rules, independently of the steering-wheel and screen layout settings, including the turn card, Android Auto and navigation notification (thanks to Dixet, #285)
-- Route progress after rerouting: keep the completed part of the journey, so the progress bar carries on instead of jumping back towards the start (thanks to yurividal, #287)
-- Speed camera warnings while navigating: only use cameras matched to the active route, not nearby cameras on parallel or opposite roads when route matching finds none (thanks to d3stiny999, #286)
-- Stop signs after rerouting: clear the previous route's results, ignore late replies from the old route, and don't guess when the sign's road cannot be identified (thanks to jvricardo1, #280)
-- Spanish incident labels and speed limits: translate incident badges on the phone, and clear a route-derived limit when the route has no known limit for the current stretch so live road data can take over (thanks to pimpampumpam, #283)
-
-### Improved
-- Battery: on a phone, the screen now goes off as usual while you're only looking at the map, and stays on just while you're following a route (it stayed on the whole time the app was open). Head units keep it on as before
-- Battery: with another app in front and no route, the map's per-frame work stops completely, instead of waking the phone at every screen refresh
-- Problem reports now say what the app did in the background today: how long GPS ran (with and without a route) and how many online requests were made, by which part of the app, to track down battery drain
-- Battery: a trip the phone carried on with after Android Auto was unplugged with the car parked now ends after 10 minutes of not driving, so GPS and guidance don't keep running in your pocket as you walk away
-
-### New
 - Upcoming speed limits you can read: the sign on the route where the limit changes is now the same sign as your main one (the red ring, or the white board in the US and Canada), about twice the size, on a white halo, and road names move out of its way instead of covering it. The small sign by your limit with how far it is now looks like the main one too. Both are under Settings › Alerts › Upcoming speed limits
 - Home, Work and starred places on the map: as well as your favourites, Home (a house on blue), Work (a briefcase on amber) and the starred places in Your places now show on the map, and a tap opens the place with Go. Settings › On the map › Saved places has one "Saved places icons" slider for the size of them all
 - The faded roads on the turn arrow sit at tidy angles: the arrow is drawn at a set angle for each kind of turn, but the other roads came at their real angles, so one could stick out at an odd angle beside it. They're now set to the nearest 45 degrees, on the side they really are
-
-### New
 - Android Auto follows the car again by itself: if the map was moved by hand and the car then drives off, it goes back to following the car after a few seconds, so the arrow doesn't drive off the screen (thanks to fjunakovic)
-
-### Improved
-- Media controls are off on a new install (Settings › While driving › Media controls to turn them on). Anyone who already has the app keeps them as they were
-
-### Fixed
-- The "next 3 km" hazard card no longer grows to fill half the screen: in languages with long names (Polish "Próg zwalniający"), its "next 3 km" was squeezed to a letter or two per line, so the card got very tall and jumped in size as the distance counted down. It now stays on one line, and a long name is cut short instead (thanks to ChrisSantosGarage)
-- The demo drive at 2x and faster: the view now turns as fast as the demo takes the bends, instead of falling behind and showing the fields beside the route (thanks to jhahvhi)
-- TomTom's map now shows names in the app's language where TomTom has them (it stayed in the local language, Arabic in the UAE, as the label translation only worked on Mapbox's map) (thanks to zaheerhakim)
-- The arrow stays in the middle when the recents panel folds away: with just the search bar left at the top, the arrow was pushed further to the side than with the whole panel down. Anything that ends above the arrow now leaves it centred
-- The map no longer zooms in and out on the way to a motorway exit: the lanes on the turn card kept vanishing and coming back between about 1.9 and 1 km before the junction (the road under you was sometimes not read in time), and the closer lane view's zoom came and went with them. Once a junction is known to be on a motorway, it stays that way (thanks to jhahvhi)
-- Fuel cost on the route cards: "≈ £2.10" in place of "Fuel about £2.10", as the pump icon already says what it is, so the amount isn't cut off with two or three routes side by side (thanks to clayts450)
-- The road name pill now sits above the media controls however tall they are: on a phone held sideways, with the song's name showing, they overlapped (thanks to desko1973)
-- Problem reports on Xiaomi phones say when the phone's own cleaner closed the app as the screen locked, in place of "closed by you"
-
-### New
 - Speed cameras beep again just before you pass: after the warning about 500 m ahead, a short second beep comes about 4 seconds before the camera (thanks to joel941703-hash)
 - Home and Work from where you are: Set Home and Set Work have a Use where I am now button, showing the address it found, so you can save it while parked outside without typing the address (thanks to jvricardo1)
 - Average speed checks show how far through you are: a bar under the distance left fills as you go, green, amber when you need to ease off for the rest, and red over the limit (thanks to joel941703-hash)
 - Move favourites to Your places: each favourite has Move to Your places, and Move all puts every one in a Favourites group there, so the row next to Home and Work stays short (thanks to Dixet)
-
-### Improved
-- Google Maps import goes into Your places: the places are filed in a Google Maps group, not starred, so 50 imported places fold into one row instead of filling the tiles next to Home and Work. The import button is now under Your places (thanks to Dixet and Xundey)
-- Your places list: the groups are in A–Z order, and the places are A–Z until the app knows where you are (then nearest first) (thanks to Dixet)
-- "Weak signal" in place of "No signal" when the phone is connected but the route service can't be reached, and the problem report now lists the last few connection problems with Android's own reason, to find out why (thanks to jerzdevil22)
-- Malayalam: SUV, USA, the UK road signs and living turn card switches, Import Google Maps, the search bar settings and Recent destinations, in the wording suggested (thanks to bijindas)
-
-### Fixed
-- Routes to a spot held on the map no longer go down footpaths or into private sites to get close: when the spot isn't on a road open to cars (a footpath, a pedestrian street, a park or a works site), the route goes to the nearest public road and says how far away that is. Car parks and ordinary roads are left as they are (thanks to karthikeyansr-lgtm)
-- Problem reports say how the app really ended: Android's own record (swiped away, closed for low memory, crashed in the map's code, not responding) is now in the report, and swiping the app away no longer shows as "closed by Android" or counts towards turning the drawing down (thanks to joel941703-hash)
-- A favourite's star on its card: a place saved a little way from where it shows on the map (often the case with imported places) showed an empty star, and tapping it took the favourite away. The card now finds it the same way the star does (thanks to Dixet)
-
-### Fixed
-- Malayalam Light & 3D settings: refine the Moonlight at night and 3D hills and valleys labels using the reviewer's suggested wording (thanks to the tester who asked for it).
-
-### Fixed
-- Opposite-direction hazards and cameras: tighten route matching for directionless point alerts and require line incidents to follow the route's direction, reducing false warnings from nearby carriageways (thanks to the tester who asked for it).
-
-### Improved
-- Speed-limit changes on the map: show a road-sign marker at the route position of the next posted speed-limit change, alongside the existing distance countdown (thanks to the tester who asked for it).
-
-### Improved
-- Favourites sorting: show saved favourites alphabetically by default, with an A–Z / Nearest choice in Places & trips; Android Auto favourites are alphabetised too (thanks to the tester who asked for it).
-
-### New
 - Tamil language: add Tamil to the language selector and automatic phone-language detection, with core navigation and interface translations and English fallback for untranslated text (thanks to the tester who asked for it).
-
-### Improved
-- Android Auto built-in GPS: use the car's Car App API 3 location feed when the head unit provides it, while keeping phone GPS as an automatic fallback (thanks to the tester who asked for it).
-
-### Improved
-- TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).
-
-### Added
 - Map settings: add an optional HD lane data diagnostic message, off by default and only shown in Demo mode; lane guidance itself is unaffected (thanks to the tester who asked for it).
-
-### Fixed
-- Malayalam map settings: add the suggested Malayalam labels for font names and map providers, and refine the translations for The map and HD roads (thanks to the tester who asked for it).
-
-### New
 - Google Maps favourites import: import individual saved places from a Google Takeout Saved Places.json file, preserving names and coordinates and skipping duplicates; favourites are no longer limited to 20 (thanks to the tester who asked for it)
-
-### Fixed
-- Android Auto alternative routes: fix the missing Compose layout import so the release build compiles (thanks to the tester who asked for it)
-
-### Improved
-- Android Auto alternative routes: keep the route text at a readable size on short screens, scrolling the list when space is limited instead of shrinking the whole panel (thanks to the tester who asked for it)
-
-### Fixed
-- Malayalam: translate the Android Auto setting label as “അൻഡ്രോയിഡ് ഓട്ടോ” (thanks to the tester who asked for it)
-
-### New
 - Favourites on the map: your saved places show as yellow stars with their names (smaller, without names, while navigating). Tap one for its card, with Go. Switch it off in Settings › On the map › Favourites on the map (thanks to Xundey)
 - Name a favourite as you save it: after tapping the star on a place's card, a box filled in with its name lets you call it something of your own straight away (thanks to Xundey)
 - Weather from the Met Office: in the UK, a free Met Office key (Settings › Keys & accounts › Weather) gives the current weather for rain on the map, the light and weather advice, usually more accurately than before. If it fails, the app carries on with Open-Meteo (thanks to yurividal)
@@ -330,6 +124,37 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+- Smoother on slow head units: the map screen (phone, head unit and Android Auto) is no longer redrawn every few metres as the distance to the next turn counts down; only the turn card is
+- Less writing to storage while driving: the note that lets a trip carry on after a restart is saved in a small file of its own instead of rewriting all your settings every 20 seconds
+- Chargers along long routes are found about three times faster
+- Fewer map lookups: the country you're in is checked again only after driving 15 km, not every 2 minutes, which saves data on head units
+- Planning offline towards a place outside your downloaded maps gives up after about 10 seconds instead of trying for minutes on slow head units
+- Android Auto search and quick-access cards: make the search bar, Home, Work, saved and Recent place backgrounds more opaque over the map (#390).
+- Road-closure routing: only avoid full-road closures matched to the active route, use short segment-sized avoidance areas rather than broad bounding boxes, and keep nearby lane closures and unrelated incidents from forcing detours.
+- Compass keeps up: the compass on the side now always follows the way the map is turned, so its red mark stays on north whether you're following your arrow, have turned the map by hand, or looked around
+- Tap a place on TomTom and OpenStreetMap maps: tapping a shop, station or other place now opens its card with the drive time and Go, as it already did on the Mapbox map (thanks to Branko Knez)
+- Longer offline routes: planning a longer trip from a big downloaded map (like all of England) now uses less memory, and if the phone still runs short it says the route couldn't be planned instead of closing the app (thanks to squirrel_blocks on Reddit)
+- Search results: the address under a place name can now use two lines, so more of the street and town can be read (thanks to the testers)
+- Battery: if you park for 30 minutes with a route or the background speed alert left running and the app out of sight, the background service and GPS now rest by themselves, and start again when you open the app (thanks to the Reddit report)
+- Speed limit announcements: Warnings only mode no longer announces limit changes, and a limit that flips back to the one you just left within a short stretch (50, 30, 50) isn't announced again (thanks to the testers)
+- Roomier map in portrait while navigating: the next services now appear as a slim line under the turn card only when they are within about 5 km, and further off they are a chip in the trip sheet along with the weather advice, so nothing needs hiding with Clean view to see the map
+- Android Auto on small screens: on small, low-resolution car screens (such as 7" 1024×600) the cards and text are now smaller and the position arrow scales down with the screen, so more of the map is visible (thanks to qpkqkma, #367)
+- The little fold-down arrow on the search bar now only shows in landscape, as in portrait the recent places are in the pull-up panel
+- Quick reports on the map: open Police, Crash, Hazard, Broken down and Mobile camera from a button above the zoom controls, without opening Map options (thanks to ricres77, #275)
+- Battery: on a phone, the screen now goes off as usual while you're only looking at the map, and stays on just while you're following a route (it stayed on the whole time the app was open). Head units keep it on as before
+- Battery: with another app in front and no route, the map's per-frame work stops completely, instead of waking the phone at every screen refresh
+- Problem reports now say what the app did in the background today: how long GPS ran (with and without a route) and how many online requests were made, by which part of the app, to track down battery drain
+- Battery: a trip the phone carried on with after Android Auto was unplugged with the car parked now ends after 10 minutes of not driving, so GPS and guidance don't keep running in your pocket as you walk away
+- Media controls are off on a new install (Settings › While driving › Media controls to turn them on). Anyone who already has the app keeps them as they were
+- Google Maps import goes into Your places: the places are filed in a Google Maps group, not starred, so 50 imported places fold into one row instead of filling the tiles next to Home and Work. The import button is now under Your places (thanks to Dixet and Xundey)
+- Your places list: the groups are in A–Z order, and the places are A–Z until the app knows where you are (then nearest first) (thanks to Dixet)
+- "Weak signal" in place of "No signal" when the phone is connected but the route service can't be reached, and the problem report now lists the last few connection problems with Android's own reason, to find out why (thanks to jerzdevil22)
+- Malayalam: SUV, USA, the UK road signs and living turn card switches, Import Google Maps, the search bar settings and Recent destinations, in the wording suggested (thanks to bijindas)
+- Speed-limit changes on the map: show a road-sign marker at the route position of the next posted speed-limit change, alongside the existing distance countdown (thanks to the tester who asked for it).
+- Favourites sorting: show saved favourites alphabetically by default, with an A–Z / Nearest choice in Places & trips; Android Auto favourites are alphabetised too (thanks to the tester who asked for it).
+- Android Auto built-in GPS: use the car's Car App API 3 location feed when the head unit provides it, while keeping phone GPS as an automatic fallback (thanks to the tester who asked for it).
+- TomTom map labels: use the app-selected language for translated place and road names, with the original name as fallback (thanks to the tester who asked for it).
+- Android Auto alternative routes: keep the route text at a readable size on short screens, scrolling the list when space is limited instead of shrinking the whole panel (thanks to the tester who asked for it)
 - Android Auto: Overall size goes much further: the size was held at the most that kept the screen on the roomy side of every layout change, and the ones that only change the spacing held it to about 112-134% on most cars, whatever was set. The layout is now picked from the screen at 100%, the spacing grows smoothly, and the size is only held back where the cards would no longer fit (thanks to magnazan)
 - Android Auto: the "Then…" line wraps: a long street name on the next-turn line now goes onto a second line before it's cut short (thanks to fjunakovic)
 - Map names in the app's language: place and road names on the map follow the app's language where Mapbox has them, instead of the phone's, so with the app in English the map no longer shows Arabic names in the UAE (thanks to zaheerhakim)
@@ -416,6 +241,102 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Map preview in Settings on a phone: on the map pages (Map style, Light & 3D, On the map, Your arrow) the live preview now stays at the top while you scroll the settings, as it does in landscape, so you can see each change as you make it
 
 ### Fixed
+- Closed roads stay avoided: once a route had gone round a closure, the next reroute or faster-route check could send you straight back into it. Closures you've been routed round are now kept off for the rest of the trip
+- Long closed roads are avoided along their whole length, not just their first 600 m or so
+- Head units with weak GPS: after a minute with no GPS, the phone network's rougher position is used again on a route, so the arrow doesn't stay frozen on an estimate
+- Speed limits no longer disappear in slow traffic and at junctions, where a shaky heading meant no road matched; roads crossing yours are still never used
+- Offline route messages are short and plain, and no longer show the exact coordinates of where you are and where you're going
+- Saved My routes: ignore provider-generated “waypoint reached/left” shaping-point instructions in turn guidance and spoken navigation, while retaining normal turns and real saved stops (#400).
+- Upcoming turns: translate the arrival wording and road-connection text instead of displaying English fragments in Croatian, Bosnian and Serbian (#401).
+- Arrival locator: when dismissing the arrival card, discard stale route-glide and camera anchors and recenter on the latest GPS fix, so the arrow returns to the car rather than remaining at the destination view.
+- Offline cross-country routing: check downloaded road coverage before calling Valhalla, route safely to the edge when the destination is outside downloaded areas, join supported legs across multiple downloaded areas (including intermediate stops), and give clearer errors when the starting point or a road is not covered (#396).
+- Android Auto overall size: apply the saved car-screen scale to the actual UI density while retaining the screen-fit cap, so changing Overall size visibly resizes the interface again (#397).
+- Tunnel positioning: while following an active route, ignore network-location fixes with missing or worse-than-30-metre accuracy even after GPS has been unavailable for two minutes. Keep the existing two-minute dead-reckoning limit so the locator does not assume constant movement indefinitely (#391).
+- Lane guidance: reject lane-marking geometry running against the direction of travel, preventing nearby opposing carriageways from pulling lane guidance onto the wrong side of the road.
+- Route-line alignment (#386): retain more of the routing engine's original route geometry when drawing the main route, completed section and alternatives, helping the blue line follow tighter bends and corners.
+- Speed-bump warning: keep the warning visible for 5 seconds instead of 3.5 seconds (#387).
+- Alternative routes: keep the locator matched to the car's position and direction when switching routes, preserve continuous trip progress, anchor map cards at the branch point, and switch routes with one tap on a map card while retaining two-tap confirmation in the routes list.
+- Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
+- Polish saved-place menus: translate the saved, recent, name and distance labels instead of leaving them in English (#380)
+- Speed limits: avoid borrowing a nearby crossing or one-way road's limit when the car is travelling along a different road (#381)
+- Traffic lights and locator: recognise lights mapped slightly off the road centreline, avoid hiding the next light at a junction, and treat motorway carriageways as one-way when snapping the arrow (#378)
+- Chargers along a route: search long routes in separate sections so TomTom's 20-result limit does not hide chargers farther along the journey; the detour setting also controls the off-route search distance (#343)
+- Road numbers on TomTom routes: the road number (such as E39) shows beside the street name on the turn card again when your route comes from TomTom, as it does for Mapbox routes (thanks to desko1973, #371)
+- Voice prompts: the same prompt is no longer spoken twice within a few seconds, which stops prompts repeating in a loop (thanks to the testers)
+- Speed limit: on a road with different limits each way, when the direction isn't known the lower one is shown (thanks to the testers)
+- Sun in its real place: the sun's light and shadows now fade out at sunset instead of staying on all evening (thanks to ILDEMONICO, #335)
+- Problem reports now show why a trip counted as arrived, to help track down routes that cancel themselves (thanks to carlb051, #360)
+- The 3D buildings setting is reapplied when the map finishes loading, so a change made during loading isn't lost (#358)
+- Traffic colours no longer cover the white arrow at the next turn (#356)
+- The report button uses a megaphone instead of a flag, so it is easier to distinguish from a destination (#335)
+- Roundabouts on head units outside Britain: the turn card's roundabout picture went the British way round (clockwise) in the Netherlands and other countries that drive on the right. Most head units can't look up which country they're in, so it was never known; it's now asked of Mapbox when the unit can't tell (thanks to Dixet, #285)
+- Two-finger tilt works more often: moving two fingers up or down tilts the map even when they aren't held quite level, instead of moving the map (thanks to ILDEMONICO, #335)
+- The trip card's End and Add stop buttons are always on the screen. On a wide screen with large text, the time, arrival and distance pushed them off the right edge, so there was no way to end the route (thanks to neilch0111, #341)
+- Android Auto: the trip card starts with just Add stop and End, so it stays small and clear of your arrow; add Search, Report and the others under Settings › Android Auto › Buttons on the trip card (thanks to robertoflorez76-gif, #350)
+- The traffic colours on the trip card's route bar can be seen: a short patch of traffic on a long trip was averaged away into the blue, so the bar looked clear while the map showed amber. Patches now show in their own colour on a thicker bar, with the blending only at their edges (thanks to bijindas, #336)
+- Car parks near the end of a route are back, as their own card under the turn card again (phone, head unit and Android Auto) instead of lines of the turn card, where a fix for them opening and closing over and over had taken them away for good. If the first look finds no car parks (the map service didn't answer), it's tried again a few times (thanks to Dotancom, #324)
+- Germany: speed limits outside towns. Roads marked "no limit" that aren't motorways, and those marked rural, now show 100 km/h, instead of keeping the 70 or showing nothing (thanks to TheHairforce, #351)
+- The speed limit sign on the route, and the lorry height and weight signs, never showed on the map: Mapbox refused the layer they're drawn on because of how its size was written, so it was never added. Now it is, at the right size on Android Auto too (thanks to SonicBjork)
+- Portrait, on a route: a warning (traffic jam, camera…) now shows under the turn card instead of on top of it, where it hid the turn and the distance
+- Dim the screen at night now really dims: it's half of what the screen is at, never brighter. It used to set a fixed 50%, which is brighter than most screens at night (testers' group)
+- Rain on the map on a clear day: outside Europe and North America the weather service's rainfall figures are estimates, and a trace of forecast drizzle put rain on the map in sunshine. A clear sky is now taken as dry, and it takes more than a trace (thanks to pc4096)
+- A trip that ended by itself while you were stopped on the way (at a shop, say) is kept for 3 hours, so back in the car it's offered again: "Resume trip" on the phone, and on Android Auto a "Carry on to …" card that starts the route by itself after 10 seconds unless you tap "Not now", like Waze. Also a "Carry on" button in Android Auto's own row, for rotary knobs (thanks to pc4096)
+- Full screen on phones with a camera notch and Android 9 to 14: the map now reaches up round the camera, as it already did on Android 15, instead of stopping at a black band. Cards and buttons stay clear of the notch (#271)
+- Send feedback (and Request a language) on a short, wide head unit screen: the window now scrolls, so its Send and Copy buttons can be reached; they were below the bottom of the screen (thanks to bluelions25, #329)
+- Picture in picture: your arrow sits low in the small window, so more of the road ahead shows, and clear of the time along the bottom (it was in the middle)
+- Picture in picture: the map now zooms out and your arrow shrinks to suit the small window (and again if you resize it), so the road ahead can be seen; both go back to normal when the app is full size again
+- The upright phone's trip sheet: End is now the round red X, as it is everywhere else, instead of a wide red "End" button (thanks to Dotancom, #318)
+- Android Auto with a rotary knob: with "Search bar and places on the map" off (the setting for knob cars), Stop, sound and Report stay in Android Auto's own row of buttons, where the knob can reach them. Touching the screen while parked used to move them onto the trip card, out of the knob's reach (thanks to corocota1975, #333)
+- Your position when the app opens: an old remembered GPS position (from your last drive, say) is no longer taken for a live one. Standing still at the start, the arrow stayed where the phone last was until you drove off; it now moves to where you are as soon as the phone knows (thanks to neilch0111, #300)
+- The next services is a card of its own under the turn card again (phone, head unit and Android Auto), instead of a line joined to the bottom of the turn card
+- Android Auto: "Set home" and "Set work" now save the place you pick. Before, they started a route to it and the slot stayed empty (thanks to TheDMAl, #326)
+- The over-the-limit chime now sounds once when you go over, like other navigation apps, instead of every 9 seconds for as long as you're over. It sounds again once you're back at the limit, or when the limit changes (thanks to TheDMAl, #327)
+- Search: a result far away no longer comes before a nearer street or shop that matches as well (a city 700 km off used to be listed first). A place searched for with its town still comes first (thanks to TheDMAl, #327)
+- The coming speed limit change now shows about 15 seconds before it (at least 250 m), instead of up to 45 seconds early in town (thanks to desko1973, #319)
+- "Police directing traffic" in Polish now reads "Ruch sterowany przez policję", and it no longer shows in English when TomTom sends it in English (thanks to desko1973, #332)
+- "Walk back" to your parked car now opens walking directions in Google Maps. On some phones it opened a driving app instead (thanks to Dotancom, #320)
+- The car park lines near the end of a route no longer open and close over and over on the turn card (Android Auto and the phone) (thanks to Dotancom, #324)
+- Your own locator picture no longer shows as a white box: a picture saved with a solid white background (rather than a see-through one) now has the white around it made see-through. It's on by default and can be switched off under Settings › Your arrow › Remove white background (thanks to the #303 reporter)
+- The arrival time no longer jumps up and down while you drive: the time left is now smoothed over about half a minute, so a traffic figure that flips between route refreshes doesn't swing the arrival by several minutes (#298)
+- Android Auto trip card: the figures no longer run into each other ("19:206.2 …") with only one or two buttons picked; on a narrow card they now share its width and their text shrinks a little to fit
+- The arrow on the route bar is smooth again: it was the map's large locator picture shrunk in one go, which left its edges jagged
+- Android Auto route choice on a narrower screen: the Start (or Start demo drive) button is no longer cut off at the bottom of the card; with more routes than fit, the routes scroll instead
+- Warning banners (rain, hazards and so on) now have room for a third line, so on a wide, short head unit screen (1280 x 480) the rain warning is no longer cut off (#308)
+- Android Auto: roadworks ahead now show once, as the line on the turn card, instead of also popping up a second warning. New switch in Settings › Hazards: "Roadworks warnings", to turn the roadworks line and voice off (accidents and closures still warn) (#309)
+- The "Take it at …" sharp-bend warning now stays on screen until the end of the bend, instead of going out after 7 seconds (at lower speeds that was before the bend started) (#309)
+- Android Auto search: a long place name now wraps onto a second line before it is cut short, so results that start the same ("Johnsonville Fish…") can be told apart (thanks to pc4096)
+- Incidents from Mapbox that say "Police directing traffic" now show in Polish, German, French, Spanish, Italian, Dutch and Portuguese instead of just "Police" (#297)
+- Turn card: when a road has a name and a number (road 169, E39), the number now shows in a small badge beside the name, outside the UK (where the UK road badges already do this). Not spoken (#297)
+- The speed bump warning now comes at least 100 m before the bump, also at town speeds (it was about 70 to 85 m; thanks to desko1973, #309)
+- Words that were always English now follow the app's language: the hazard line on the Android Auto turn card ("Roboty drogowe za 1 km", not "... in 1 km") and the card on another route ("1 min wolniej", "Podobny ruch"; thanks to desko1973, #297)
+- Routes start straight away when TomTom refuses your key: a refused key (or a used-up daily limit) was mistaken for "no signal", so instead of switching to Mapbox the route waited for a signal that was already there, starting late or not at all, with "Weak signal" on screen. It now switches to Mapbox at once and says why (thanks to jerzdevil22, #269, #281, #291)
+- The speed limit sign on the map now shows where the limit changes even when the route has no limit for the stretch you're on (common with Mapbox's data); it used to appear only rarely (thanks to SonicBjork, #257)
+- Android Auto search waits for you to finish typing: it searched half a second after the third letter, and the results replaced the keyboard on some cars long before the name was finished. It now waits for a longer pause and keeps the keyboard up (thanks to joebGer19, #293)
+- Android Auto no longer gets stuck in night mode after a run of tunnels or underpasses: day and night now settle for a second before the map changes, and the car screen checks every 20 seconds that it matches what the car says (thanks to joebGer19, #292)
+- Traffic lights, speed limits and other OpenStreetMap look-ups: a server that has just failed is now tried after the others for a few minutes, so two servers being down no longer stops every search, and the maps.mail.ru server works on Android 10 (#271)
+- Malayalam wording: refine Delete, fuel use and price, fuel-stop suggestions and the map-selection label (thanks to bijindas, #244)
+- Streetlights loading: queue every missing OpenStreetMap area instead of silently skipping requests while another area is downloading; carry on to the next area even when one request times out (thanks to joel941703-hash, #282)
+- Roundabout direction: the highlighted path now follows the country's traffic rules, independently of the steering-wheel and screen layout settings, including the turn card, Android Auto and navigation notification (thanks to Dixet, #285)
+- Route progress after rerouting: keep the completed part of the journey, so the progress bar carries on instead of jumping back towards the start (thanks to yurividal, #287)
+- Speed camera warnings while navigating: only use cameras matched to the active route, not nearby cameras on parallel or opposite roads when route matching finds none (thanks to d3stiny999, #286)
+- Stop signs after rerouting: clear the previous route's results, ignore late replies from the old route, and don't guess when the sign's road cannot be identified (thanks to jvricardo1, #280)
+- Spanish incident labels and speed limits: translate incident badges on the phone, and clear a route-derived limit when the route has no known limit for the current stretch so live road data can take over (thanks to pimpampumpam, #283)
+- The "next 3 km" hazard card no longer grows to fill half the screen: in languages with long names (Polish "Próg zwalniający"), its "next 3 km" was squeezed to a letter or two per line, so the card got very tall and jumped in size as the distance counted down. It now stays on one line, and a long name is cut short instead (thanks to ChrisSantosGarage)
+- The demo drive at 2x and faster: the view now turns as fast as the demo takes the bends, instead of falling behind and showing the fields beside the route (thanks to jhahvhi)
+- TomTom's map now shows names in the app's language where TomTom has them (it stayed in the local language, Arabic in the UAE, as the label translation only worked on Mapbox's map) (thanks to zaheerhakim)
+- The arrow stays in the middle when the recents panel folds away: with just the search bar left at the top, the arrow was pushed further to the side than with the whole panel down. Anything that ends above the arrow now leaves it centred
+- The map no longer zooms in and out on the way to a motorway exit: the lanes on the turn card kept vanishing and coming back between about 1.9 and 1 km before the junction (the road under you was sometimes not read in time), and the closer lane view's zoom came and went with them. Once a junction is known to be on a motorway, it stays that way (thanks to jhahvhi)
+- Fuel cost on the route cards: "≈ £2.10" in place of "Fuel about £2.10", as the pump icon already says what it is, so the amount isn't cut off with two or three routes side by side (thanks to clayts450)
+- The road name pill now sits above the media controls however tall they are: on a phone held sideways, with the song's name showing, they overlapped (thanks to desko1973)
+- Problem reports on Xiaomi phones say when the phone's own cleaner closed the app as the screen locked, in place of "closed by you"
+- Routes to a spot held on the map no longer go down footpaths or into private sites to get close: when the spot isn't on a road open to cars (a footpath, a pedestrian street, a park or a works site), the route goes to the nearest public road and says how far away that is. Car parks and ordinary roads are left as they are (thanks to karthikeyansr-lgtm)
+- Problem reports say how the app really ended: Android's own record (swiped away, closed for low memory, crashed in the map's code, not responding) is now in the report, and swiping the app away no longer shows as "closed by Android" or counts towards turning the drawing down (thanks to joel941703-hash)
+- A favourite's star on its card: a place saved a little way from where it shows on the map (often the case with imported places) showed an empty star, and tapping it took the favourite away. The card now finds it the same way the star does (thanks to Dixet)
+- Malayalam Light & 3D settings: refine the Moonlight at night and 3D hills and valleys labels using the reviewer's suggested wording (thanks to the tester who asked for it).
+- Opposite-direction hazards and cameras: tighten route matching for directionless point alerts and require line incidents to follow the route's direction, reducing false warnings from nearby carriageways (thanks to the tester who asked for it).
+- Malayalam map settings: add the suggested Malayalam labels for font names and map providers, and refine the translations for The map and HD roads (thanks to the tester who asked for it).
+- Android Auto alternative routes: fix the missing Compose layout import so the release build compiles (thanks to the tester who asked for it)
+- Malayalam: translate the Android Auto setting label as “അൻഡ്രോയിഡ് ഓട്ടോ” (thanks to the tester who asked for it)
 - False freeze reports: when a phone went to sleep or Android paused the app in the background, the problem report could record a "freeze" that never happened. Those are now ignored, so a freeze in the report is a real one (thanks to Dotancom)
 - Android Auto: Recent places running under the sound button: the suggestion card and Recent rows now fit the room actually left above the bottom-left buttons (thanks to yurividal)
 - Music stays quiet after an alert: the beep and the spoken alert each lowered the music and gave it back separately, and some cars through Android Auto kept it lowered. They now share one hold, given back once when both are done, and never held for more than 90 seconds. The problem report also shows when the music was lowered and given back (thanks to ajg0001)

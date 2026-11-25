@@ -354,7 +354,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         var turnExtraMax by remember { mutableStateOf(3) }
         var boxTopPx by remember { mutableStateOf(0f) }
         var railHPx by remember { mutableStateOf(0) }
-        val railBelow = narrow && routing && !hudOff && engine.turn != null && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
+        // (only whether there is a turn card is read here: the turn itself changes every few metres, and reading it here redrew the whole
+        // screen up to 4 times a second at motorway speed; the card below reads it in its own, much smaller part)
+        val hasTurn by remember { derivedStateOf { engine.turn != null } }
+        val railBelow = narrow && routing && !hudOff && hasTurn && !engine.itineraryOpen && engine.results.isEmpty() && turnBottomPx > 0f
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
         // Settings › sizes › Turn card width (ZarulOfficial #317): the card size slider scales what's in the cards, this how wide they are
         val turnWK = engine.prefs.i(PreferenceKeys.TURN_WIDTH, 100).coerceIn(60, 130) / 100f
@@ -401,11 +404,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             if (routing && !hudOff) {
                 if (engine.results.isNotEmpty()) ImmResults(engine, q) { q = "" }
                 else {
-                    val curTurn = engine.turn
-                    val lastTurn = remember { mutableStateOf(curTurn) }
-                    if (curTurn != null) lastTurn.value = curTurn
-                    AnimatedVisibility(curTurn != null, enter = fadeIn(tween(240)) + androidx.compose.animation.slideInVertically(tween(300)) { -it / 4 }, exit = fadeOut(tween(160))) {
-                        lastTurn.value?.let { t ->
+                    // (the last turn is kept so the card can fade out showing it)
+                    val lastTurn = remember { arrayOfNulls<com.headunit.launcher.TurnInfo>(1) }
+                    AnimatedVisibility(hasTurn, enter = fadeIn(tween(240)) + androidx.compose.animation.slideInVertically(tween(300)) { -it / 4 }, exit = fadeOut(tween(160))) {
+                        (engine.turn?.also { lastTurn[0] = it } ?: lastTurn[0])?.let { t ->
                             if (engine.itineraryOpen) {
                                 val itineraryDensity = LocalDensity.current
                                 val itineraryScale = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f

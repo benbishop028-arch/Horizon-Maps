@@ -57,6 +57,7 @@ import androidx.compose.material.icons.rounded.Route
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.setValue
@@ -427,7 +428,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val mapUi = engine.prefs.b(PreferenceKeys.CAR_MAPUI, true) && !(uiAsleep && !CarSearch.open)
         // (the sound button when not navigating can be left off: Settings > Android Auto)
         val soundBtn = engine.prefs.b(PreferenceKeys.CAR_SOUND_BTN, true)
-        val topShown = !portrait && !arriving && ((engine.route == null && mapUi) || (guiding && engine.turn != null))
+        // (whether there's a turn, and whether its card is slim, are read here; the turn itself, which changes every few metres, only in
+        // the card, so the rest of the car screen isn't redrawn several times a second)
+        val hasTurn by remember { derivedStateOf { engine.turn != null } }
+        val topShown = !portrait && !arriving && ((engine.route == null && mapUi) || (guiding && hasTurn))
         val colShown = !portrait && !previewing && !arriving
         val stackShown = portrait && !previewing && !arriving
         androidx.compose.runtime.SideEffect {
@@ -437,8 +441,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
 
         // the turn card, top left (as in the app)
-        val t = engine.turn
-        val showTurn = guiding && t != null && !arriving
+        val showTurn = guiding && hasTurn && !arriving
         // hazards ahead (an incident, a speed camera) go along the bottom of the turn card when it's showing, instead of a
         // separate pill: the left side is then just the turn card and the trip card
         val alert = engine.alert
@@ -452,7 +455,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
         // one slim line while the turn is far off (about 2 km), the full card as it comes up (a little either side, so it can't flicker)
         val slimHold = remember { booleanArrayOf(false) }
-        if (t != null) slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0]
+        val slimNow by remember { derivedStateOf {
+            engine.turn?.let { t -> slimHold[0] = if (t.dist > 2100.0) true else if (t.dist < 1900.0) false else slimHold[0] }
+            slimHold[0]
+        } }
         // Speed position (Settings > Android Auto, and the car's own settings). Every place is anchored to a card or a corner:
         // floating half-way up the right-hand side, beside Android Auto's zoom buttons, it looked lost and sat in from the edge.
         //  "bottom": the bottom corner, on the side picked under Card positions (bottom left on a short screen, #67)
@@ -505,14 +511,14 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             else if (extraFreePx < 0f && extraMax > 0) { grownH[0] = maxOf(grownH[0], aboveH); extraMax -= 1 }
             else if (extraFreePx > need && extraMax < extraCap) extraMax += 1
         }
-        if (showTurn && t != null && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
+        if (showTurn && !settingsOpen && !altsOpen && !searching && !stopsOpen) Box(Modifier.padding(start = left, top = top).width(turnCardW)
             .onSizeChanged { turnH = it.height; turnW = it.width }.onGloballyPositioned { if (topShown) report(0, it.boundsInRoot()) }) {
             // the turn card, with the junction sign or roundabout diagram under it and any advice for the conditions, as on the head unit
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
               Column(Modifier.onSizeChanged { aboveH = it.height }, verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
                 // (the car's "Navigation arrow size" is the arrow on the map, as on the phone: CarNav applies it there)
                 CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
-                    ImmTurnCard(engine, t, compact = compact, car = true, slim = slimHold[0],
+                    engine.turn?.let { t -> ImmTurnCard(engine, t, compact = compact, car = true, slim = slimNow,
                         footer = {
                             if (incShown || camShown) Column(Modifier.fillMaxWidth().background(GmGreenDeep).padding(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (incShown && inc != null) CarHazardLine("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
@@ -522,7 +528,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                             // end and advice for the conditions, as lines of the card instead of cards stacked under it
                             // (car parks are their own card again, under it: liked better that way)
                             TurnCardExtras(engine, extraMax, advice = !small, parking = false)
-                        })
+                        }) }
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
                 // ...and car parks near the end, a card of their own too, as they were before they joined the turn card

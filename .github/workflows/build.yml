@@ -179,7 +179,8 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-        run: gradle :app:assembleRelease -PtomtomApiKey="${{ secrets.TOMTOM_API_KEY }}"
+        # (no TomTom key is ever passed in here: the public APK must not carry one, users enter their own in Settings)
+        run: gradle :app:assembleRelease
 
       # Key rotation: once the new key is in Secrets (made by "Make the new signing key"), the APK is signed again with both
       # keys and the rotation record. Android 9 and newer then accept it as an update and move the app to the new key; Android 8
