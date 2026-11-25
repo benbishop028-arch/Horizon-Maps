@@ -632,7 +632,7 @@ object MapboxRest {
                                 if (u.startsWith("https://")) pic = u
                                 // Mapbox banner components may expose a shield image base plus its label.
                                 val imageBase = component.optString("imageBaseURL")
-                                val text = component.optString("text")
+                                val text = component.optString("text").ifBlank { ref }
                                 if (imageBase.isNotBlank() && text.isNotBlank()) shields += RoadShield(imageBase, text)
                             }
                         }
