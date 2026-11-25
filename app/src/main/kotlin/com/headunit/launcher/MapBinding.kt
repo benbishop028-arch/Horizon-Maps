@@ -3838,20 +3838,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             if (cardsMirrored) btn + halfW else side + halfW, h * 0.14f + cardH,
             if (cardsMirrored) w - side - halfW else w - btn - halfW, h * 0.84f)
         val loose = floatArrayOf(halfW + 12f * dp, cardH + 12f * dp, w - halfW - 12f * dp, h - 24f * dp)
+        // Keep each card on the actual branch point, not an arbitrary visible stretch farther along.
         val spots = liveLines.map { line ->
-            if (line.size < 2) return@map null
-            // look along the line (about 150 points at most), from the turn-off outwards
-            val step = maxOf(1, line.size / 150)
-            val sample = ArrayList<LL>()
-            var i = minOf(2, line.size - 1)
-            while (i < line.size) { sample += line[i]; i += step }
-            val px = pixels(sample)
-            if (px.size != sample.size) return@map null
-            fun first(b: FloatArray): LL? {
-                for (k in sample.indices) { val p = px[k]; if (p.x >= b[0] && p.x <= b[2] && p.y >= b[1] && p.y <= b[3]) return sample[k] }
-                return null
-            }
-            first(strict) ?: first(loose)
+            val branch = line.firstOrNull() ?: return@map null
+            val p = pixels(listOf(branch)).firstOrNull() ?: return@map null
+            if (p.x >= loose[0] && p.x <= loose[2] && p.y >= loose[1] && p.y <= loose[3]) branch else null
         }
         val zoom = try { mbMap.cameraState.zoom } catch (e: Throwable) { 15.0 }
         val moved = spots.size != cardSpots.size || spots.indices.any { k ->
