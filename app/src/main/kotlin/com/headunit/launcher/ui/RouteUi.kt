@@ -1066,7 +1066,10 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
     if (shieldItems.isEmpty() && refs.isEmpty() && places.isEmpty() && t.exitNo.isBlank()) return
     val motorway = t.exitNo.isNotBlank() || t.shields.any { it.reference.contains("highway", true) || it.reference.contains("motorway", true) } ||
         refs.any { it.startsWith("M") || it.endsWith("(M)") }
-    val bg = if (motorway) Color(0xFF07569A) else Color(0xFF087044)
+    val primary = t.shields.any { it.reference.contains("primary", true) || it.reference.contains("trunk", true) } ||
+        refs.any { it.startsWith("A") }
+    val bg = when { motorway -> Color(0xFF07569A); primary -> Color(0xFF087044); else -> Color.White }
+    val ink = if (bg == Color.White) Color(0xFF171717) else Color.White
     val shape = RoundedCornerShape(9.dp)
     val arrow = when {
         t.maneuver.contains("LEFT", true) -> "↖"
@@ -1091,11 +1094,11 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
             }
             refs.forEach { RoadShieldBadge(it, "") }
             Spacer(Modifier.weight(1f))
-            Text(arrow, color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text(arrow, color = ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         }
-        places.forEach { p -> Text(p, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        places.forEach { p -> Text(p, color = ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         if (places.isEmpty() && t.sign.isNotBlank() && refs.isEmpty()) {
-            Text(t.sign.take(90), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(t.sign.take(90), color = ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
