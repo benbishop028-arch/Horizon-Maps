@@ -97,8 +97,8 @@ internal object MapRouteGeometry {
 
     /**
      * Where each line in [lines] (lane middles from the map) crosses the road at [p], going the way [heading] points: metres sideways
-     * from [p] (+ to the right), left to right, one per lane. Lines not running along the road (within 25 degrees, either way) or
-     * more than 25 m off to the side are left out; the same lane cut into two map tiles counts once.
+     * from [p] (+ to the right), left to right, one per lane. Lines must run in the travel direction (within 25 degrees)
+     * and be no more than 25 m off to the side; the same lane cut into two map tiles counts once.
      */
     fun laneOffsets(lines: List<List<LL>>, p: LL, heading: Double): List<Double> {
         val kx = cos(Math.toRadians(p.lat)) * 111320.0
@@ -114,7 +114,7 @@ internal object MapRouteGeometry {
                 val dx = bx - ax; val dy = by - ay
                 val len = Math.hypot(dx, dy)
                 if (len < 0.5) continue
-                if (Math.abs((dx * fx + dy * fy) / len) < 0.906) continue   // not along the road (cos 25 degrees)
+                if ((dx * fx + dy * fy) / len < 0.906) continue   // opposite-direction or misaligned line
                 val sa = ax * fx + ay * fy; val sb = bx * fx + by * fy
                 if ((sa > 0 && sb > 0) || (sa < 0 && sb < 0)) continue     // doesn't reach across the line through p
                 val t = if (sa == sb) 0.0 else sa / (sa - sb)
