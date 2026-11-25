@@ -24,6 +24,7 @@ internal object RouteMatcher {
         require(route.cum.size >= pts.size) { "Route cumulative distances do not cover its points" }
 
         var bestDistance = 1e12
+        var bestScore = 1e12
         var bestIndex = 0
         var bestFraction = 0.0
         val longitudeScale = cos(Geo.rad(position.lat)) * 111320.0
@@ -44,13 +45,14 @@ internal object RouteMatcher {
                 val distance = hypot(ax + dx * fraction, ay + dy * fraction)
                 // A reliable heading helps distinguish opposite carriageways and nearby return legs.
                 val headingPenalty = if (heading != null && lengthSquared > 4.0) {
-                    val bearing = (Math.toDegrees(kotlin.math.atan2(dx, -dy)) + 360.0) % 360.0
+                    val bearing = (Math.toDegrees(kotlin.math.atan2(dx, dy)) + 360.0) % 360.0
                     val delta = kotlin.math.abs(((bearing - heading + 540.0) % 360.0) - 180.0)
                     when { delta > 135.0 -> 100.0; delta > 90.0 -> 35.0; else -> 0.0 }
                 } else 0.0
                 val score = distance + headingPenalty
-                if (score < bestDistance) {
-                    bestDistance = score
+                if (score < bestScore) {
+                    bestScore = score
+                    bestDistance = distance
                     bestIndex = i
                     bestFraction = fraction
                 }
