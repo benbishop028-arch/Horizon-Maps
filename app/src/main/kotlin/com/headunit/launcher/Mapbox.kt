@@ -889,7 +889,18 @@ object MapboxRest {
         @Volatile private var v: T? = null
         @Volatile var error: Exception? = null
         private val t = Thread { try { v = work() } catch (e: Exception) { error = e } }.apply { isDaemon = true; start() }
-        fun join(): T? { try { t.join(ms) } catch (e: InterruptedException) { }; return v }
+        /** Waits for the result (at most [ms]), giving up at once when [stale] says a newer search has replaced this one. */
+        fun join(stale: () -> Boolean = { false }): T? {
+            val end = System.currentTimeMillis() + ms
+            try {
+                while (t.isAlive && !stale()) {
+                    val left = end - System.currentTimeMillis()
+                    if (left <= 0) break
+                    t.join(minOf(left, 200L))
+                }
+            } catch (e: InterruptedException) { }
+            return if (stale()) null else v
+        }
     }
 
     /**
@@ -900,7 +911,9 @@ object MapboxRest {
      * Addresses come first when you type a house number or a postcode, otherwise places and businesses. OpenStreetMap's Nominatim
      * fills in when there's still little. [country]: ISO code, blank = anywhere.
      */
-    fun geocode(token: String, country: String, q: String, near: LL?): List<Place> {
+    /** [stale]: true once a newer search has replaced this one (typing on), so it stops before asking for anything more. */
+    fun geocode(token: String, country: String, q: String, near: LL?, stale: () -> Boolean = { false }): List<Place> {
+        if (stale()) return emptyList()
         val t = enc(token)
         val qq = enc(q.trim())
         val cc = country.trim().lowercase()
@@ -918,7 +931,8 @@ object MapboxRest {
         // Photon (OpenStreetMap, free): good with half-typed addresses and house numbers near you
         // (Photon only: Nominatim's rules don't allow it as an extra on every search)
         val osm = SearchJob(9000L) { OsmSearch.geocode(country, q, near, typed = true) }
-        val boxArr = box.join(); val geoArr = geo.join(); val pcPlace = pc?.join(); val osmList = osm.join()
+        val boxArr = box.join(stale); val geoArr = geo.join(stale); val pcPlace = pc?.join(stale); val osmList = osm.join(stale)
+        if (stale()) return emptyList()
         lastError = (box.error ?: geo.error)?.message?.takeIf { boxArr == null && geoArr == null }
         val out = ArrayList<Place>()
         fun addOne(p: Place) { if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p }
@@ -931,7 +945,7 @@ object MapboxRest {
         if (addressy) { add(geoArr); osmList?.forEach { addOne(it) }; add(boxArr) } else { add(boxArr); add(geoArr); osmList?.forEach { addOne(it) } }
         // both Mapbox searches failed (a refused token, a limit): say so, rather than "no matches"
         if (out.isEmpty() && boxArr == null && geoArr == null) (box.error ?: geo.error)?.let { if (it.message?.contains("(40") == true || it.message?.contains("limit") == true) throw it }
-        if (out.size < 5 && osmList == null) try {
+        if (out.size < 5 && osmList == null && !stale()) try {
             var url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&q=$qq"
             if (near != null) url += "&viewbox=${near.lon - 0.5},${near.lat + 0.35},${near.lon + 0.5},${near.lat - 0.35}"
             if (cc.isNotEmpty()) url += "&countrycodes=$cc"

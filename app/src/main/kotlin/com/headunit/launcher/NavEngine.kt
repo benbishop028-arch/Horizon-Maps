@@ -584,7 +584,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * you as you type), topped up with Mapbox's when TomTom finds little; Settings > Keys & accounts > Search with can pick Mapbox
      * instead. Without a key it's Mapbox's (with OpenStreetMap's alongside), or OpenStreetMap's alone with neither.
      */
-    private fun netGeocode(country: String, q: String, near: LL?, typed: Boolean = false): List<Place> {
+    /** Counts searches: each new one makes the one before it stale, so it stops instead of finishing lookups nobody will see. */
+    @Volatile private var searchGen = 0L
+
+    private fun netGeocode(country: String, q: String, near: LL?, typed: Boolean = false, gen: Long = -1L): List<Place> {
+        // (gen -1: a search that isn't replaced by typing, a voice command or a route to a named place, so it's never stale)
+        val stale = { gen >= 0 && gen != searchGen }
         // search follows Keys & accounts > Routes, search and traffic > Use (the separate "Search with" setting was folded into
         // it): Mapbox picks Mapbox's search, while Mapbox is working; Auto and TomTom ask TomTom with Mapbox's alongside, as before
         val with = if (prefs.s(PreferenceKeys.DATAPROV, "auto") == "mapbox" && hasMapbox && System.currentTimeMillis() >= mbDownUntil) "mapbox" else "auto"
@@ -595,21 +600,27 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // found fewer than 4). TomTom's still come first; the same place from both is listed once, and exact matches go
             // nearest first (rankResults)
             val mbJob = if (hasMapbox) java.util.concurrent.CompletableFuture.supplyAsync {
-                try { MapboxRest.geocode(mbToken, country, q, near) } catch (e: Throwable) { emptyList<Place>() }
+                try { MapboxRest.geocode(mbToken, country, q, near, stale) } catch (e: Throwable) { emptyList<Place>() }
             } else null
             val tt = try { TomTomRest.geocode(apiKey, country, q, near) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) { mbJob?.cancel(true); throw e }; null }
             // TomTom refused the search (a key without the Search API, the daily limit): said once a session, as the results
             // otherwise just look thin
             TomTomRest.lastSearchError?.let { err -> if (!ttSearchWarned) { ttSearchWarned = true; scope.launch { toast(L.t("TomTom search didn't work: {0}", err.take(160)), 8000) } } }
+            if (stale()) { mbJob?.cancel(true); return emptyList() }
             if (mbJob == null) return tt ?: OsmSearch.geocode(country, q, near)
-            // (Mapbox is given a few seconds more at most: TomTom's results aren't held up for long by a slow answer)
-            val mb = try { mbJob.get(if (tt.isNullOrEmpty()) 10L else 4L, java.util.concurrent.TimeUnit.SECONDS) } catch (e: Exception) { mbJob.cancel(true); emptyList() }
+            // (Mapbox is given a few seconds more at most: TomTom's results aren't held up for long by a slow answer; and no wait at
+            // all once a newer search has replaced this one)
+            val mbEnd = System.currentTimeMillis() + (if (tt.isNullOrEmpty()) 10_000L else 4_000L)
+            while (!mbJob.isDone && !stale() && System.currentTimeMillis() < mbEnd) try { mbJob.get(200L, java.util.concurrent.TimeUnit.MILLISECONDS) } catch (e: java.util.concurrent.TimeoutException) { } catch (e: Exception) { break }
+            if (stale()) { mbJob.cancel(true); return emptyList() }
+            val mb = try { mbJob.get(1L, java.util.concurrent.TimeUnit.MILLISECONDS) } catch (e: Exception) { mbJob.cancel(true); emptyList() }
             val out = ArrayList(tt ?: emptyList())
             for (p in mb) if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p
             return out
         }
         if (hasMapbox) {
-            val r = MapboxRest.geocode(mbToken, country, q, near)
+            val r = MapboxRest.geocode(mbToken, country, q, near, stale)
+            if (stale()) return emptyList()
             if (r.isEmpty()) MapboxRest.lastError?.let { err -> scope.launch { toast(L.t("Mapbox search didn't work: {0}", err.take(120)), 6000) } }
             return r
         }
@@ -2186,6 +2197,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val osmOnly: Boolean get() = !hasKey && !hasMapbox
 
     fun search(q: String, typed: Boolean = false) {
+        val gen = ++searchGen
         if (q.length < 2) { results = emptyList(); return }
         val near = fix?.pos ?: map.center()
         searchJob?.cancel()
@@ -2204,7 +2216,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (local.size >= (if (typed) 3 else 5)) { results = postcodeFirst(postcodeJob(q), rankResults(q, near, emptyList(), local)); return@launch }
                 if (local.isNotEmpty()) results = rankResults(q, near, emptyList(), local)
                 val pcJob = postcodeJob(q)
-                val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+                val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed, gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
                 val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
                 results = merged
                 if (merged.isEmpty() && !typed) toast(if (net == null) "Search failed: weak or no signal" else "No matches. Try adding a town or postcode.", 3500)
@@ -2213,7 +2225,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // the online search and the saved / downloaded places run at the same time, and their results are merged
             val localJob = async { offlineMatches(q, near) }
             val pcJob = postcodeJob(q)
-            val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+            val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, gen = gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
             // the online results are shown straight away if the downloaded lists are still being searched; those are merged in after
             var local = kotlinx.coroutines.withTimeoutOrNull(500L) { localJob.await() }
             if (local == null) {
