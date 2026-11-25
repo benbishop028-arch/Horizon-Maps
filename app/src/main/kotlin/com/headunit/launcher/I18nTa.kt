@@ -191,5 +191,10 @@ object I18nTa {
         "No offline route found. Check both places are inside your downloaded maps" to "ஆஃப்லைன் வழி கிடைக்கவில்லை. இரு இடங்களும் பதிவிறக்கிய வரைபடங்களுக்குள் உள்ளனவா எனச் சரிபார்க்கவும்",
         "speed limits" to "வேக வரம்புகள்",
         "speed cameras" to "வேகக் கண்காணிப்பு கேமராக்கள்",
+        "Couldn't join your two offline map areas at their border. Try updating both" to "இரண்டு ஆஃப்லைன் வரைபடப் பகுதிகளையும் அவற்றின் எல்லையில் இணைக்க முடியவில்லை. இரண்டையும் புதுப்பிக்கவும்",
+        "This offline map area needs downloading again" to "இந்த ஆஃப்லைன் வரைபடப் பகுதியை மீண்டும் பதிவிறக்க வேண்டும்",
+        "The destination is outside your offline maps" to "இலக்கு உங்கள் ஆஃப்லைன் வரைபடங்களுக்கு வெளியே உள்ளது",
+        "The destination is outside your offline maps, and no road towards it was found in them" to "இலக்கு ஆஃப்லைன் வரைபடங்களுக்கு வெளியே உள்ளது; அதற்குச் செல்லும் சாலை எதுவும் கிடைக்கவில்லை",
+        "No road found near the start or the destination in your offline maps" to "ஆஃப்லைன் வரைபடங்களில் தொடக்க இடம் அல்லது இலக்குக்கு அருகில் சாலை கிடைக்கவில்லை",
     )
 }
