@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Give Way signs: show mapped Give Way signs on the active route alongside STOP signs, using the existing route-sign setting and filtering out signs that cannot be matched confidently to the road being followed (#385). School warning signs are not included because available map data cannot reliably distinguish actual roadside signs from nearby school locations.
+
 ### Fixed
 - Alternative routes: keep the locator matched to the car's position and direction when switching routes, preserve continuous trip progress, anchor map cards at the branch point, and switch routes with one tap on a map card while retaining two-tap confirmation in the routes list.
 - Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
