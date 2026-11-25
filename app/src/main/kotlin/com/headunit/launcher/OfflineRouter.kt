@@ -475,7 +475,7 @@ object OfflineRouter {
             val far = if (near != null) minOf(Geo.dist(near, pos) / 1000.0, 999.0) else 0.0
             val score = starts * 1e6 + far
             if (top.size < 8 || score < top.last().score) {
-                top += Hit(score, Place(String(buf, ls, t - ls, Charsets.UTF_8), String(buf, t + 1, t2 - t - 1, Charsets.UTF_8) + " · offline", pos))
+                top += Hit(score, Place(String(buf, ls, t - ls, Charsets.UTF_8), String(buf, t + 1, t2 - t - 1, Charsets.UTF_8) + L.t(" · offline"), pos))
                 top.sortBy { it.score }
                 if (top.size > 8) top.removeAt(top.size - 1)
             }
@@ -692,7 +692,7 @@ object OfflineRouter {
                         val la = p.getOrNull(2)?.toDoubleOrNull(); val lo = p.getOrNull(3)?.toDoubleOrNull()
                         if (la != null && lo != null) {
                             val pos = LL(la, lo)
-                            hits += (if (near != null) Geo.dist(near, pos) else 0.0) to Place(p[1], "Postcode · offline", pos)
+                            hits += (if (near != null) Geo.dist(near, pos) else 0.0) to Place(p[1], L.t("Postcode") + L.t(" · offline"), pos)
                         }
                     }
                 }
@@ -723,7 +723,7 @@ object OfflineRouter {
                                 val la = p.getOrNull(2)?.toDoubleOrNull(); val lo = p.getOrNull(3)?.toDoubleOrNull()
                                 if (la != null && lo != null) {
                                     val pos = LL(la, lo)
-                                    hits += (if (near != null) Geo.dist(near, pos) else 0.0) to Place(p[1] + " " + p[0], (p.getOrNull(4)?.takeIf { it.isNotBlank() } ?: "Address") + " · offline", pos)
+                                    hits += (if (near != null) Geo.dist(near, pos) else 0.0) to Place(p[1] + " " + p[0], (p.getOrNull(4)?.takeIf { it.isNotBlank() } ?: L.t("Address")) + L.t(" · offline"), pos)
                                 }
                             }
                         }
