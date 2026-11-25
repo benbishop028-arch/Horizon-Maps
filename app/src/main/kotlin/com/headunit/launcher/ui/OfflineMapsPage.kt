@@ -101,13 +101,13 @@ internal fun OfflineMapsContent(prefs: Prefs, engine: NavEngine) {
     }
 
     MapboxOfflineGroup(prefs, engine)
-    SGroup(L.t("Downloaded areas"), footer = L.t("Keep as many areas as you like: the one you're in is used automatically (routes work offline within one area). Each is a snapshot of the roads on the day it was built, so update now and then.") + if (free >= 0) " ${fmtSize(free)} free." else "") {
+    SGroup(L.t("Downloaded areas"), footer = L.t("Keep as many areas as you like: the one you're in is used automatically (routes work offline within one area). Each is a snapshot of the roads on the day it was built, so update now and then.") + if (free >= 0) " " + L.t("Free space: {0}", fmtSize(free)) else "") {
         if (have.isEmpty()) SNote(L.t("Nothing downloaded yet. Pick an area below and download it on Wi-Fi."))
         for (id in have) {
             val r = PackRegions.byId(id)
             val d = OfflineRouter.packDir(ctx, id)
             val tiles = File(d, "tiles.tar")
-            val built = if (tiles.exists()) java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.UK).format(java.util.Date(tiles.lastModified())) else ""
+            val built = if (tiles.exists()) java.text.SimpleDateFormat("d MMM yyyy", L.locale).format(java.util.Date(tiles.lastModified())) else ""
             val inUse = id == activeId
             val hasLimits = File(d, "limits.bin").exists()
             SItem(r.name + if (inUse) L.t(" · in use") else "", (sizes[id]?.let { fmtSize(it) } ?: "…") + (if (built.isNotEmpty()) L.t(" · built {0}", built) else "") +
