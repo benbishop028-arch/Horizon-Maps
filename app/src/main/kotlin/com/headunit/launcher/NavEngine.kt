@@ -6570,7 +6570,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 junctionPic = cur.junctionPic, sides = cur.sides,
                 thenStreet = if (thenOn) nxt?.street.orEmpty() else "",
                 ref = cur.ref, thenRef = if (thenOn) nxt?.ref.orEmpty() else "",
-                shields = cur.shields,
+                shields = cur.shields, shieldAtlasUrl = r.shieldAtlasUrl,
                 landmark = if (d <= 500) when (lm) { 1 -> L.t("At the lights"); 2 -> L.t("At the second set of lights"); 3 -> L.t("At the stop sign"); else -> "" } else "",
             )
             // only publish a new turn card when something a driver can see changed (about 3 m of distance), so the screen is not redrawn four times a second for nothing
