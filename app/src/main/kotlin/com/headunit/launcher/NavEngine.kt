@@ -2501,7 +2501,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     val live = withContext(Dispatchers.IO) {
                         val out = LinkedHashMap<String, Pair<Int, Int>?>()
                         for (batch in ids.chunked(3)) {
-                            batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { (id, value) -> out[id] = value }
+                            batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { deferred ->
+                                val (id, value) = deferred.await()
+                                out[id] = value
+                            }
                         }
                         out
                     }
@@ -4251,7 +4254,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val got = withContext(Dispatchers.IO) {
                 val out = LinkedHashMap<String, Pair<Int, Int>?>()
                 for (batch in ids.chunked(3)) {
-                    batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { (id, value) -> out[id] = value }
+                    batch.map { id -> async { id to TomTomRest.chargingFree(apiKey, id) } }.forEach { deferred ->
+                                val (id, value) = deferred.await()
+                                out[id] = value
+                            }
                 }
                 out
             }
