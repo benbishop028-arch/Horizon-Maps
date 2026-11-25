@@ -258,7 +258,7 @@ fun AvgSpeedCard(engine: NavEngine, modifier: Modifier = Modifier) {
             Text(if (a.ahead) L.t("AVERAGE SPEED CHECK AHEAD") else L.t("AVERAGE SPEED CHECK"), color = red, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
             if (a.ahead) Text(L.t("Starts in {0} · {1} long", Geo.fmtDist(a.toStartM, engine.imperial), Geo.fmtDist(a.leftM, engine.imperial)), color = c.text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
             else {
-                Text("${Geo.fmtDist(a.leftM, engine.imperial)} left", color = c.sub, fontSize = 13.sp)
+                Text("${Geo.fmtDist(a.leftM, engine.imperial)} ${L.t("left")}", color = c.sub, fontSize = 13.sp)
                 // how far through the check you are, as a bar (GitHub #268): green, amber once you need to ease off for the rest,
                 // red over the limit, like the card's border
                 if (a.lenM > 50.0) {

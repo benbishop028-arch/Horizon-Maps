@@ -100,6 +100,19 @@ object I18nTa {
         "{0} minutes" to "{0} நிமிடங்கள்",
         "In {0}, {1}" to "{0} கழித்து, {1}",
         "Wrong way! This is a one-way road" to "தவறான திசை! இது ஒருவழிச் சாலை",
-        "Warning. You may be going the wrong way on a one-way road." to "எச்சரிக்கை: ஒருவழிச் சாலையில் தவறான திசையில் செல்லக்கூடும்."
+        "Warning. You may be going the wrong way on a one-way road." to "எச்சரிக்கை: ஒருவழிச் சாலையில் தவறான திசையில் செல்லக்கூடும்.",
+        "Offline maps" to "ஆஃப்லைன் வரைபடங்கள்",
+        "Download" to "பதிவிறக்கு",
+        "Delete" to "நீக்கு",
+        "Edit" to "திருத்து",
+        "Done" to "முடிந்தது",
+        "Yes" to "ஆம்",
+        "No" to "இல்லை",
+        "Route" to "வழி",
+        "Routes" to "வழிகள்",
+        "left" to "மீதம்",
+        "Send on GitHub" to "GitHub-இல் அனுப்பு",
+        "Copy" to "நகலெடு",
+        "Try again" to "மீண்டும் முயற்சிக்கவும்"
     )
 }

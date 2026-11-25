@@ -100,6 +100,19 @@ object I18nKo {
         "{0} minutes" to "{0}분",
         "In {0}, {1}" to "{0} 후, {1}",
         "Wrong way! This is a one-way road" to "역방향입니다! 일방통행 도로입니다",
-        "Warning. You may be going the wrong way on a one-way road." to "경고. 일방통행 도로에서 역주행 중일 수 있습니다."
+        "Warning. You may be going the wrong way on a one-way road." to "경고. 일방통행 도로에서 역주행 중일 수 있습니다.",
+        "Offline maps" to "오프라인 지도",
+        "Download" to "다운로드",
+        "Delete" to "삭제",
+        "Edit" to "수정",
+        "Done" to "완료",
+        "Yes" to "예",
+        "No" to "아니요",
+        "Route" to "경로",
+        "Routes" to "경로",
+        "left" to "남음",
+        "Send on GitHub" to "GitHub에 보내기",
+        "Copy" to "복사",
+        "Try again" to "다시 시도"
     )
 }

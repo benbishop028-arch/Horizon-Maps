@@ -100,6 +100,19 @@ object I18nTe {
         "{0} minutes" to "{0} నిమిషాలు",
         "In {0}, {1}" to "{0} తర్వాత, {1}",
         "Wrong way! This is a one-way road" to "తప్పు దిశ! ఇది ఏకదిశ రోడ్డు",
-        "Warning. You may be going the wrong way on a one-way road." to "హెచ్చరిక. మీరు ఏకదిశ రోడ్డులో తప్పు దిశలో వెళ్తుండవచ్చు."
+        "Warning. You may be going the wrong way on a one-way road." to "హెచ్చరిక. మీరు ఏకదిశ రోడ్డులో తప్పు దిశలో వెళ్తుండవచ్చు.",
+        "Offline maps" to "ఆఫ్‌లైన్ మ్యాప్‌లు",
+        "Download" to "డౌన్‌లోడ్",
+        "Delete" to "తొలగించు",
+        "Edit" to "సవరించు",
+        "Done" to "పూర్తయింది",
+        "Yes" to "అవును",
+        "No" to "కాదు",
+        "Route" to "మార్గం",
+        "Routes" to "మార్గాలు",
+        "left" to "మిగిలి ఉంది",
+        "Send on GitHub" to "GitHubకు పంపండి",
+        "Copy" to "కాపీ చేయండి",
+        "Try again" to "మళ్లీ ప్రయత్నించండి"
     )
 }

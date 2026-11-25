@@ -107,6 +107,19 @@ object I18nCa {
         "{0} minutes" to "{0} minuts",
         "In {0}, {1}" to "D'aquí a {0}, {1}",
         "Wrong way! This is a one-way road" to "Sentit contrari! Aquesta és una via de sentit únic",
-        "Warning. You may be going the wrong way on a one-way road." to "Atenció. Potser vas en sentit contrari per una via de sentit únic."
+        "Warning. You may be going the wrong way on a one-way road." to "Atenció. Potser vas en sentit contrari per una via de sentit únic.",
+        "Offline maps" to "Mapes sense connexió",
+        "Download" to "Baixa",
+        "Delete" to "Suprimeix",
+        "Edit" to "Edita",
+        "Done" to "Fet",
+        "Yes" to "Sí",
+        "No" to "No",
+        "Route" to "Ruta",
+        "Routes" to "Rutes",
+        "left" to "restant",
+        "Send on GitHub" to "Envia a GitHub",
+        "Copy" to "Copia",
+        "Try again" to "Torna-ho a provar"
     )
 }
