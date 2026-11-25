@@ -5,7 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
-- Junction signage: request country-specific road-shield references from TomTom where available and show a compact overhead-style direction sign with exit numbers, road numbers, destinations and direction. Missing provider data falls back to the normal turn guidance (#403, #407).
+- Junction signage: request TomTom's country-specific road-shield references and use its cached sprite atlas for the actual shield artwork where available. The turn card can also show a compact overhead-style direction sign with exit numbers, road numbers, destinations and direction. Missing provider data falls back to text and the normal turn guidance (#403, #407).
 - Route overview: when a journey has intermediate stops, each route option now shows the distance to each stop and its estimated arrival time as well as the final destination's distance and arrival time. Distances follow the app's selected units (#405).
 - Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
 - Give Way signs: show mapped Give Way signs on the active route alongside STOP signs, using the existing route-sign setting and filtering out signs that cannot be matched confidently to the road being followed (#385). School warning signs are not included because available map data cannot reliably distinguish actual roadside signs from nearby school locations.
