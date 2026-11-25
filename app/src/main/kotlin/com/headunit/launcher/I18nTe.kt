@@ -217,5 +217,11 @@ object I18nTe {
         "Reroute failed ({0}), trying again…" to "మళ్లీ మార్గం లెక్కించడం విఫలమైంది ({0}); తిరిగి ప్రయత్నిస్తోంది…",
         "Nothing found along the route ahead" to "మార్గంలో ముందుకు ఏదీ కనుగొనబడలేదు",
         "Nothing found nearby" to "సమీపంలో ఏదీ కనుగొనబడలేదు",
+        "{0} saved: {1}" to "{0} సేవ్ చేయబడింది: {1}",
+        "Switched: about {0} min quicker" to "మార్చబడింది: సుమారు {0} నిమిషాలు త్వరగా",
+        "Switched: about {0} min longer" to "మార్చబడింది: సుమారు {0} నిమిషాలు ఆలస్యంగా",
+        "Switched route" to "మార్గం మార్చబడింది",
+        "Leave now to arrive by {0}" to "{0} లోపు చేరుకోవడానికి ఇప్పుడే బయలుదేరండి",
+        "Leave by {0} to arrive by {1}. I'll remind you." to "{1} కు చేరుకోవడానికి {0} కు బయలుదేరండి. నేను గుర్తు చేస్తాను.",
     )
 }
