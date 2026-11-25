@@ -791,8 +791,13 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             // Keep the route text at its normal size on short car screens; the list scrolls within the room available.
             val boxTop = if (portrait) top + below else insT + 6.dp
             val room = (maxHeight - boxTop - bottom).coerceAtLeast(1.dp)
+            // This is the Android Auto route-choice panel: follow the car-card size setting,
+            // then shrink further on narrow or short displays so it doesn't cover the map.
+            val routesFit = minOf(1f, maxWidth.value / 520f, room.value / 460f).coerceIn(0.68f, 1f)
             Box(Modifier.align(Alignment.TopEnd).padding(end = insR + 8.dp, top = boxTop, bottom = bottom)) {
-                RoutesBox(engine, Modifier.heightIn(max = room), maxH = room)
+                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale * routesFit, dens.fontScale)) {
+                    RoutesBox(engine, Modifier.heightIn(max = room), maxH = room)
+                }
             }
         }
 
