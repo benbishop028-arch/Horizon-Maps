@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Route overview: when a journey has intermediate stops, each route option now shows the distance to each stop and its estimated arrival time as well as the final destination's distance and arrival time. Distances follow the app's selected units (#405).
 - Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
 - Give Way signs: show mapped Give Way signs on the active route alongside STOP signs, using the existing route-sign setting and filtering out signs that cannot be matched confidently to the road being followed (#385). School warning signs are not included because available map data cannot reliably distinguish actual roadside signs from nearby school locations.
 - Your own map colours on TomTom and OpenStreetMap: Settings › Map › Colours now offers Horizon, Twilight and Custom on those maps too, so you can pick your own ground, water, parks, road and building colours, day and night (thanks to desko1973, #355)

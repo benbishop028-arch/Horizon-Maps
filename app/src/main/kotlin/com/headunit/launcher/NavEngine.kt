@@ -6400,6 +6400,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         return NavigationPolicy.remainingSegmentTime(r.cum, r.segmentTimes, p) ?: (r.freeFlow * frac + ahead)
     }
 
+    /** Arrival estimates for intermediate stops while choosing between route options (#405). */
+    fun previewStopEtas(r: Route, departAtMs: Long): List<StopEta> {
+        if (via.isEmpty() || r.pts.isEmpty() || r.time <= 0.0) return emptyList()
+        val offsets = stopOffsFor(r, 0.0)
+        val estimates = RouteStopPreviewPolicy.estimate(
+            offsets, stopNear, r.time, remainFrom(r, 0.0),
+        ) { p -> remainFrom(r, p) }
+        return estimates.mapNotNull { estimate ->
+            val place = via.getOrNull(estimate.index) ?: return@mapNotNull null
+            StopEta(place, Clock.hm(departAtMs + (estimate.travelSeconds * 1000.0).toLong()),
+                estimate.distanceMeters, estimate.travelSeconds)
+        }
+    }
+
     private var etaSmoothSecs = -1.0
     private var etaSmoothAt = 0L
     /** The route the smoothing is for: a new route, a reroute or another route picked shows its own time straight away. */
