@@ -127,6 +127,15 @@ object I18nCa {
         "Low bridge" to "Pont baix",
         "Weight limit" to "Límit de pes",
         "Width limit" to "Límit d'amplada",
-        "Length limit" to "Límit de longitud"
+        "Length limit" to "Límit de longitud",
+        "Fuel prices" to "Preus del combustible",
+        "Avoid toll roads" to "Evita les autopistes de peatge",
+        "Avoid motorways" to "Evita les autopistes",
+        "Avoid ferries" to "Evita els ferris",
+        "Add stop" to "Afegeix una parada",
+        "Save place" to "Desa el lloc",
+        "Search for a place" to "Cerca un lloc",
+        "Map style" to "Estil del mapa",
+        "Satellite" to "Satèl·lit"
     )
 }

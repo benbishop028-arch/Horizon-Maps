@@ -120,6 +120,15 @@ object I18nKo {
         "Low bridge" to "낮은 교량",
         "Weight limit" to "중량 제한",
         "Width limit" to "너비 제한",
-        "Length limit" to "길이 제한"
+        "Length limit" to "길이 제한",
+        "Fuel prices" to "연료 가격",
+        "Avoid toll roads" to "유료 도로 피하기",
+        "Avoid motorways" to "고속도로 피하기",
+        "Avoid ferries" to "페리 피하기",
+        "Add stop" to "경유지 추가",
+        "Save place" to "장소 저장",
+        "Search for a place" to "장소 검색",
+        "Map style" to "지도 스타일",
+        "Satellite" to "위성"
     )
 }

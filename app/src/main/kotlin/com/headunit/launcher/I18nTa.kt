@@ -120,6 +120,15 @@ object I18nTa {
         "Low bridge" to "குறைந்த உயரப் பாலம்",
         "Weight limit" to "எடை வரம்பு",
         "Width limit" to "அகல வரம்பு",
-        "Length limit" to "நீள வரம்பு"
+        "Length limit" to "நீள வரம்பு",
+        "Fuel prices" to "எரிபொருள் விலைகள்",
+        "Avoid toll roads" to "கட்டணச் சாலைகளைத் தவிர்க்கவும்",
+        "Avoid motorways" to "நெடுஞ்சாலைகளைத் தவிர்க்கவும்",
+        "Avoid ferries" to "படகுப் போக்குவரத்தைத் தவிர்க்கவும்",
+        "Add stop" to "நிறுத்துமிடத்தைச் சேர்க்கவும்",
+        "Save place" to "இடத்தைச் சேமிக்கவும்",
+        "Search for a place" to "இடத்தைத் தேடவும்",
+        "Map style" to "வரைபடத் தோற்றம்",
+        "Satellite" to "செயற்கைக்கோள்"
     )
 }

@@ -120,6 +120,15 @@ object I18nTe {
         "Low bridge" to "తక్కువ ఎత్తు వంతెన",
         "Weight limit" to "బరువు పరిమితి",
         "Width limit" to "వెడల్పు పరిమితి",
-        "Length limit" to "పొడవు పరిమితి"
+        "Length limit" to "పొడవు పరిమితి",
+        "Fuel prices" to "ఇంధన ధరలు",
+        "Avoid toll roads" to "టోల్ రోడ్లను నివారించండి",
+        "Avoid motorways" to "హైవేలను నివారించండి",
+        "Avoid ferries" to "ఫెర్రీలను నివారించండి",
+        "Add stop" to "ఆగే ప్రదేశాన్ని జోడించండి",
+        "Save place" to "ప్రదేశాన్ని సేవ్ చేయండి",
+        "Search for a place" to "ప్రదేశం కోసం వెతకండి",
+        "Map style" to "మ్యాప్ శైలి",
+        "Satellite" to "ఉపగ్రహం"
     )
 }
