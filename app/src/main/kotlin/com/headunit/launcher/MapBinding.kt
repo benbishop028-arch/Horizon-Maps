@@ -2344,7 +2344,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val k = cellKey(p.lat, p.lon)
             for (dy in -1..1) for (dx in -1..1) routeCells[k + dy * 1000003L + dx]?.let { segs.addAll(it) }
             val kx = Math.cos(Math.toRadians(p.lat)) * 111320.0; val ky = 110574.0
-            var bd = 10.0; var bo = -1.0; var bi = -1
+            var bd = 18.0; var bo = -1.0; var bi = -1
             for (i in segs) {
                 val ax = (r[i].lon - p.lon) * kx; val ay = (r[i].lat - p.lat) * ky
                 val bx = (r[i + 1].lon - p.lon) * kx; val by = (r[i + 1].lat - p.lat) * ky
@@ -2362,7 +2362,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val models = ArrayList<Feature>()
         var lastOff = -1e9
         for ((off, p) in placed) {
-            if (off - lastOff < 70.0) { lastOff = off; continue }   // same junction: you have already passed its first light
+            if (off - lastOff < 70.0) continue   // same junction: keep its first light, not the last one
             lastOff = off
             keep += Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat))
             keepPts += p
