@@ -230,5 +230,16 @@ object I18nCa {
         "Switched route" to "Ruta canviada",
         "Leave now to arrive by {0}" to "Surt ara per arribar abans de les {0}",
         "Leave by {0} to arrive by {1}. I'll remind you." to "Surt a les {0} per arribar a les {1}. T'ho recordaré.",
+        "UK & Ireland" to "Regne Unit i Irlanda",
+        "Europe" to "Europa",
+        "United States" to "Estats Units",
+        "Canada" to "Canadà",
+        "Mexico & Central America" to "Mèxic i Amèrica Central",
+        "South America" to "Amèrica del Sud",
+        "Asia" to "Àsia",
+        "Africa" to "Àfrica",
+        "Oceania" to "Oceania",
+        "Free space: {0}" to "Espai lliure: {0}",
+        "arrive {0}" to "arribada {0}",
     )
 }
