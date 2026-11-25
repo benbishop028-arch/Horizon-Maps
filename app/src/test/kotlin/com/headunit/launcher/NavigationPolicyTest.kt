@@ -45,6 +45,10 @@ class NavigationPolicyTest {
         assertTrue(NavigationPolicy.shouldRejectNetworkPositionOnRoute(-1.0))
         assertTrue(NavigationPolicy.shouldRejectNetworkPositionOnRoute(Double.NaN))
         assertTrue(NavigationPolicy.shouldRejectNetworkPositionOnRoute(Double.POSITIVE_INFINITY))
+        // after a minute without GPS, rough positions up to 150 m are taken again
+        assertFalse(NavigationPolicy.shouldRejectNetworkPositionOnRoute(120.0, 61_000L))
+        assertTrue(NavigationPolicy.shouldRejectNetworkPositionOnRoute(120.0, 30_000L))
+        assertTrue(NavigationPolicy.shouldRejectNetworkPositionOnRoute(400.0, 61_000L))
     }
 
     @Test fun offRouteLimitWidensWithGpsAccuracyAndHandlesUnknownAccuracy() {

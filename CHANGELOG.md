@@ -5,6 +5,11 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Closed roads stay avoided: once a route had gone round a closure, the next reroute or faster-route check could send you straight back into it. Closures you've been routed round are now kept off for the rest of the trip
+- Long closed roads are avoided along their whole length, not just their first 600 m or so
+- Head units with weak GPS: after a minute with no GPS, the phone network's rougher position is used again on a route, so the arrow doesn't stay frozen on an estimate
+- Speed limits no longer disappear in slow traffic and at junctions, where a shaky heading meant no road matched; roads crossing yours are still never used
+- Offline route messages are short and plain, and no longer show the exact coordinates of where you are and where you're going
 - Saved My routes: ignore provider-generated “waypoint reached/left” shaping-point instructions in turn guidance and spoken navigation, while retaining normal turns and real saved stops (#400).
 - Upcoming turns: translate the arrival wording and road-connection text instead of displaying English fragments in Croatian, Bosnian and Serbian (#401).
 
@@ -23,6 +28,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Border information: when GPS confirms a country change while driving, show a notification with typical passenger-car speed limits and the emergency number. Unknown defaults are labelled as unavailable rather than guessed; road signs always take precedence (#389).
 
 ### Improved
+- Chargers along long routes are found about three times faster
+- Fewer map lookups: the country you're in is checked again only after driving 15 km, not every 2 minutes, which saves data on head units
+- Planning offline towards a place outside your downloaded maps gives up after about 10 seconds instead of trying for minutes on slow head units
 - Android Auto search and quick-access cards: make the search bar, Home, Work, saved and Recent place backgrounds more opaque over the map (#390).
 
 ### Improved

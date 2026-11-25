@@ -1050,6 +1050,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val now = android.os.SystemClock.elapsedRealtime()
         // Recheck periodically while GPS is moving: the old one-shot lookup never noticed a border crossed later in the drive.
         if (countryTryAt != 0L && now - countryTryAt < 120_000L) return
+        // once known, only looked up again after driving 15 km from where it was last found: a lookup every 2 minutes cost a
+        // Mapbox request each time on head units with no geocoder of their own, about 30 an hour, for a country that rarely changes
+        countryCheckedAt?.let { if (countryInitialised && Geo.dist(it, LL(lat, lon)) < 15_000.0) return }
         countryTryAt = now
         scope.launch {
             val cc = withContext(Dispatchers.IO) {
@@ -1076,8 +1079,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
             }
             countryInitialised = true
+            countryCheckedAt = LL(lat, lon)
         }
     }
+    /** Where the country was last found (see detectCountry). */
+    @Volatile private var countryCheckedAt: LL? = null
 
     private var styleJob: kotlinx.coroutines.Job? = null
 
@@ -1474,7 +1480,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         else if (l.provider != LocationManager.GPS_PROVIDER && now - lastGpsTime < 10000) return
         // with the GPS gone (a tunnel) a rough mobile-network position would throw the route off: keep estimating along the route instead
         else if (route != null && !previewing && glideOnRoute &&
-            NavigationPolicy.shouldRejectNetworkPositionOnRoute(if (l.hasAccuracy()) l.accuracy.toDouble() else null)) return
+            NavigationPolicy.shouldRejectNetworkPositionOnRoute(if (l.hasAccuracy()) l.accuracy.toDouble() else null, now - lastGpsTime)) return
         val cur = LL(l.latitude, l.longitude)
         var h = fix?.heading ?: 0.0
         if (l.hasBearing() && l.hasSpeed() && l.speed > 1.0f) h = l.bearing.toDouble()
@@ -2403,10 +2409,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         }
                     }
                     if (chunk.size >= 2) chunks += chunk
-                    for (part in chunks) {
-                        try {
-                            all += TomTomRest.alongText(apiKey, q, part, if (evDetourMin > 0) evDetourMin * 60 else 1200)
-                        } catch (e: Exception) { }
+                    // three stretches at a time rather than one after another: a 300 km route waited for 10 searches in a row
+                    val maxDetourS = if (evDetourMin > 0) evDetourMin * 60 else 1200
+                    for (batch in chunks.chunked(3)) {
+                        kotlinx.coroutines.coroutineScope {
+                            batch.map { part -> async { try { TomTomRest.alongText(apiKey, q, part, maxDetourS) } catch (e: Exception) { emptyList() } } }
+                                .forEach { all += it.await() }
+                        }
                     }
                 }
                 if (all.isEmpty()) {
@@ -2444,7 +2453,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
             }
             // chargers: only the providers and speeds chosen in Settings, and none further off than the Charger detour (#343)
-            val spots1 = if (chargers) spots0.filter { s -> chargerPlaceOk(s.place) && (evDetourMin <= 0 || s.detour < 0 || s.detour <= evDetourMin * 60.0) } else spots0
+            val evKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0); val evNames = chargerNames()
+            val spots1 = if (chargers) spots0.filter { s -> chargerPlaceOk(s.place, evKw, evNames) && (evDetourMin <= 0 || s.detour < 0 || s.detour <= evDetourMin * 60.0) } else spots0
             // petrol stations: each one's price for your fuel, from the price service the app already uses (and any priced station
             // the search missed); everything else as it was
             val spots = if (fuelList) {
@@ -2613,33 +2623,50 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Avoid only full-road closures matched to this route, never every closure in the surrounding 7 km.
         // Use short segment rectangles instead of one large bounding box, which can accidentally block parallel roads.
         val closedPts = ArrayList<LL>()
-        var closureRectCount = 0
-        fun addClosureSegment(a: LL, b: LL) {
-            if (closureRectCount >= 8 || rects.size >= 10) return
-            val distance = Geo.dist(a, b)
-            val pieces = kotlin.math.ceil(distance / 80.0).toInt().coerceIn(1, 20)
-            for (i in 0 until pieces) {
-                if (closureRectCount >= 8 || rects.size >= 10) break
-                val t0 = i.toDouble() / pieces
-                val t1 = (i + 1).toDouble() / pieces
-                val p0 = LL(a.lat + (b.lat - a.lat) * t0, a.lon + (b.lon - a.lon) * t0)
-                val p1 = LL(a.lat + (b.lat - a.lat) * t1, a.lon + (b.lon - a.lon) * t1)
-                val mid = LL((p0.lat + p1.lat) / 2.0, (p0.lon + p1.lon) / 2.0)
-                if ((from != null && Geo.dist(mid, from) < 150.0) || (to != null && Geo.dist(mid, to) < 150.0)) continue
-                val latPad = 10.0 / 110540.0
-                val lonPad = 10.0 / (111320.0 * kotlin.math.cos(Math.toRadians(mid.lat)).coerceAtLeast(0.2))
-                val sw = LL(minOf(p0.lat, p1.lat) - latPad, minOf(p0.lon, p1.lon) - lonPad)
-                val ne = LL(maxOf(p0.lat, p1.lat) + latPad, maxOf(p0.lon, p1.lon) + lonPad)
-                rects += sw to ne
-                rings += listOf(sw, LL(sw.lat, ne.lon), ne, LL(ne.lat, sw.lon), sw)
-                closedPts += mid
-                closureRectCount++
+        // Each closure is covered end to end: split along its length into short pieces (80 m, or longer when the closure is long, so
+        // that no more than 8 boxes are used in all). Small boxes only covered the first 640 m before, so the router could still use
+        // the rest of a long closure.
+        val closures = closedRoads().filter { it.isNotEmpty() }
+        val boxBudget = minOf(8, 10 - rects.size).coerceAtLeast(0)
+        if (closures.isNotEmpty() && boxBudget > 0) {
+            val perClosure = (boxBudget / closures.size).coerceAtLeast(1)
+            var used = 0
+            for (pts in closures) {
+                if (used >= boxBudget) break
+                var len = 0.0
+                for (i in 0 until pts.lastIndex) len += Geo.dist(pts[i], pts[i + 1])
+                val pieceLen = maxOf(80.0, len / minOf(perClosure, boxBudget - used))
+                // walk the closure, cutting a piece every pieceLen metres
+                val pieces = ArrayList<List<LL>>()
+                var cur = arrayListOf(pts[0]); var acc = 0.0
+                for (i in 0 until pts.lastIndex) {
+                    var a0 = pts[i]; val b0 = pts[i + 1]
+                    var seg = Geo.dist(a0, b0)
+                    while (acc + seg >= pieceLen && seg > 0.0) {
+                        val t = (pieceLen - acc) / seg
+                        val cut = LL(a0.lat + (b0.lat - a0.lat) * t, a0.lon + (b0.lon - a0.lon) * t)
+                        cur += cut; pieces += cur
+                        cur = arrayListOf(cut); seg -= (pieceLen - acc); acc = 0.0; a0 = cut
+                    }
+                    acc += seg; cur += b0
+                }
+                if (cur.size >= 2 || pieces.isEmpty()) pieces += cur
+                for (piece in pieces) {
+                    if (used >= boxBudget) break
+                    var minLat = 90.0; var maxLat = -90.0; var minLon = 180.0; var maxLon = -180.0
+                    for (q in piece) { minLat = min(minLat, q.lat); maxLat = max(maxLat, q.lat); minLon = min(minLon, q.lon); maxLon = max(maxLon, q.lon) }
+                    val mid = LL((minLat + maxLat) / 2.0, (minLon + maxLon) / 2.0)
+                    // (a closure at the start or the destination itself is left out, or there'd be no route at all)
+                    if ((from != null && Geo.dist(mid, from) < 150.0) || (to != null && Geo.dist(mid, to) < 150.0)) continue
+                    val latPad = 10.0 / 110540.0
+                    val lonPad = 10.0 / (111320.0 * kotlin.math.cos(Math.toRadians(mid.lat)).coerceAtLeast(0.2))
+                    val sw = LL(minLat - latPad, minLon - lonPad); val ne = LL(maxLat + latPad, maxLon + lonPad)
+                    rects += sw to ne
+                    rings += listOf(sw, LL(sw.lat, ne.lon), ne, LL(ne.lat, sw.lon), sw)
+                    closedPts += mid
+                    used++
+                }
             }
-        }
-        for (pts in closedRoads()) {
-            if (pts.size == 1) addClosureSegment(pts[0], pts[0])
-            else for (i in 0 until pts.lastIndex) addClosureSegment(pts[i], pts[i + 1])
-            if (closureRectCount >= 8 || rects.size >= 10) break
         }
         MapboxRest.avoidPoints = closedPts.take(25)
         MapboxRest.curbSide = prefs.b(PreferenceKeys.ARRIVE_SIDE, true)
@@ -4142,13 +4169,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Drops chargers known to be slower than the wanted speed, or from other providers. A charger whose speed isn't known stays. */
     /** The Settings charger filter (providers, speed) for a place in the along-the-route list; unknown speeds stay in. */
-    private fun chargerPlaceOk(p: Place): Boolean {
-        val minKw = prefs.i(PreferenceKeys.EV_MIN_KW, 0)
-        val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+    private fun chargerPlaceOk(p: Place, minKw: Int = prefs.i(PreferenceKeys.EV_MIN_KW, 0), names: List<String> = chargerNames()): Boolean {
         val text = (p.name + " " + p.sub).lowercase()
-        val kw = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE).find(text)?.groupValues?.get(1)?.toDoubleOrNull()
+        val kw = if (minKw > 0) kwRe.find(text)?.groupValues?.get(1)?.toDoubleOrNull() else null
         return (minKw <= 0 || kw == null || kw >= minKw) && (names.isEmpty() || names.any { it in text })
     }
+    private val kwRe = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE)
+    private fun chargerNames() = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
 
     /** The Chargers button: on a route, the overview of chargers along it (pins on the whole route, with the detour each adds); otherwise the nearby list. */
     fun showChargers() {
@@ -4161,7 +4188,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val names = prefs.s(PreferenceKeys.EV_PROVIDERS, "").split(',').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
         val maxDetour = prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0)
         if (minKw <= 0 && names.isEmpty() && maxDetour <= 0) return l
-        val kwRe = Regex("(\\d+(?:\\.\\d+)?)\\s*kW", RegexOption.IGNORE_CASE)
         return l.filter { n ->
             val kw = kwRe.find(n.extra)?.groupValues?.get(1)?.toDoubleOrNull()
             val fastEnough = minKw <= 0 || kw == null || kw >= minKw
@@ -5666,14 +5692,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Road closures the route is being kept off this trip (id to the closed road's points). */
     private val closuresAvoided = LinkedHashMap<String, List<LL>>()
 
-    /** Only confirmed full-road closures matched to the current route may affect route planning. */
-    private fun closedRoads(): List<List<LL>> =
-        incMatches.asSequence()
-            .filter { it.first.cat.equals("roadclosed", true) && it.first.pts.isNotEmpty() }
-            .distinctBy { it.first.id }
-            .map { it.first.pts }
-            .take(20)
-            .toList()
+    /**
+     * Closures that may affect route planning: confirmed full-road closures on the current route, and those the trip has already
+     * been routed round. Without the second, a closure stopped counting as soon as the new route went round it, so the next
+     * reroute or faster-route check could send you straight back into it, and back and forth.
+     */
+    private fun closedRoads(): List<List<LL>> {
+        val out = ArrayList<List<LL>>()
+        val seen = HashSet<String>()
+        for ((id, pts) in closuresAvoided) if (pts.isNotEmpty() && seen.add(id)) out += pts
+        for ((inc, _, _) in incMatches) if (inc.cat.equals("roadclosed", true) && inc.pts.isNotEmpty() && seen.add(inc.id)) out += inc.pts
+        return out.take(20)
+    }
 
     /** How far [q] is from the route [r] near [atOff] metres along it (the nearest stretch within 600 m either side). */
     private fun distToRoute(r: Route, q: LL, atOff: Double): Double {

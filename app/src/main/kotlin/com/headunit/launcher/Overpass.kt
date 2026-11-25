@@ -312,7 +312,10 @@ object Overpass {
                 val back = oneway && diff >= 150.0
                 // Never borrow a crossing road's limit, or the limit of a one-way road running against us.
                 // A short period with no limit is safer than showing a nearby road's unrelated limit.
-                if (!aligned) continue
+                if (back || diff in 55.0..125.0) continue
+                // (a road only a little off our heading, on a bend or with a shaky heading at low speed, is marked down rather than
+                // dropped: dropping it left no road at all, so the limit disappeared in slow traffic and at junctions)
+                if (!aligned) pen += 12.0
             }
             if (d + pen < bd) { bd = d + pen; best = w; bDist = d; bDiff = diff; bAligned = aligned }
         }
