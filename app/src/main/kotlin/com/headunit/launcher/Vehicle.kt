@@ -21,6 +21,8 @@ object Vehicle {
     @Volatile var hazmat = false
     /** Your top speed for arrival times in metres a second, 0 when off (GitHub #134): vans, lorries, towing. */
     @Volatile var topSpeedMs = 0.0
+    /** Valhalla's soft preference for higher-class roads; online providers do not currently support this setting. */
+    @Volatile var preferMainRoads = false
     fun topMs(): Double = topSpeedMs
     /** The steps offered for it, in mph and in km/h (0 = off). */
     val TOP_MPH = listOf(0, 40, 45, 50, 52, 55, 56, 60, 62, 65, 70)
@@ -34,6 +36,7 @@ object Vehicle {
         weightT10 = prefs.i(PreferenceKeys.LORRY_WEIGHT, 440).coerceIn(35, 1000)
         axleT10 = prefs.i(PreferenceKeys.LORRY_AXLE, 115).coerceIn(10, 300)
         hazmat = prefs.b(PreferenceKeys.LORRY_HAZMAT, false)
+        preferMainRoads = prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false)
         val top = prefs.i(PreferenceKeys.TOP_SPEED, 0)
         topSpeedMs = if (top <= 0) 0.0 else if (prefs.s(PreferenceKeys.TOP_SPEED_UNIT, "mph") == "mph") top * 0.44704 else top / 3.6
     }
@@ -69,7 +72,10 @@ object Vehicle {
         val topKmh = if (topSpeedMs > 0.0) Math.round(topSpeedMs * 3.6).toInt().coerceIn(10, 252) else 0
         if (!lorry) {
             req.put("costing", "auto")
-            if (topKmh > 0) req.put("costing_options", JSONObject().put("auto", JSONObject().put("top_speed", topKmh)))
+            val options = JSONObject()
+            if (topKmh > 0) options.put("top_speed", topKmh)
+            OfflineRoadPreference.useHighways(preferMainRoads)?.let { options.put("use_highways", it) }
+            if (options.length() > 0) req.put("costing_options", JSONObject().put("auto", options))
             return
         }
         req.put("costing", "truck")

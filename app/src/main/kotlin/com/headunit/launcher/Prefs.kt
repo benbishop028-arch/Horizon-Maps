@@ -171,6 +171,8 @@ internal object PreferenceKeys {
     const val AVOID_MOTORWAY = "avoid_motorway"
     const val AVOID_TOLL = "avoid_toll"
     const val AVOID_UNPAVED = "avoid_unpaved"
+    /** Soft preference for higher-class roads in offline Valhalla car routes only. */
+    const val PREFER_MAIN_ROADS = "prefer_main_roads"
     const val AVOIDZONES = "avoidzones"
     const val BREAKREMIND = "breakremind"
     const val BRIGHT = "bright"

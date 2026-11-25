@@ -6610,8 +6610,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (atEnd && said.add("end")) {
             toast(L.t("You have arrived"), 5000)
             // (why it counted as arrived, for the problem report: distances only, never places; carlb051, #360)
+            val stationarySeconds = if (parkedSince > 0L) ((nowP - parkedSince) / 1000L) else 0L
+            val speedKmh = f0?.let { Math.round(it.speed * 3.6).toString() + " km/h" } ?: "unknown"
             arrivedWhy = "arrived: " + listOf(if (nearEnd) "end of route" else "", if (parked) "parked near" else "", if (atDoor) "stopped at the door" else "").filter { it.isNotEmpty() }.joinToString("+") +
                 " · route " + Math.round(r.len) + " m, " + Math.round(rem) + " m left, " + (f0?.let { Math.round(Geo.dist(it.pos, dest?.pos ?: r.pts.last())).toString() + " m from the destination" } ?: "no GPS fix") +
+                ", speed " + speedKmh + ", stationary " + stationarySeconds + " s, mode " + (if (simMode == 0) "live" else "simulation") +
                 ", started " + (if (navStartMs > 0) ((System.currentTimeMillis() - navStartMs) / 1000).toString() + " s ago" else "unknown")
             if (navStartMs > 0) {
                 val secsT = (System.currentTimeMillis() - navStartMs) / 1000.0

@@ -124,6 +124,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Reorder your shortcuts: Settings › Places & trips › Shortcuts under the search bar now has a "Your order" list with up and down arrows to move each one
 
 ### Improved
+
+- Trip card on narrow landscape and split-screen layouts: the remaining time, arrival time and distance stay together; action buttons move to a second row when there isn't enough room (#399).
+- Navigation-end diagnostics: when the app decides you've arrived, the problem report now records the trigger, remaining route, distance from destination, speed and how long the vehicle had been stationary. This helps identify false arrivals without changing the arrival rules (#370).
+- Prefer main roads on offline car routes: an optional soft preference for higher-class roads in downloaded-map routing. It does not exclude local roads, and does not affect online or lorry routing (#402).
 - Search uses less data: as you type, a half-typed search that's been replaced stops straight away instead of finishing its lookups in the background
 - Smoother on slow head units: the map screen (phone, head unit and Android Auto) is no longer redrawn every few metres as the distance to the next turn counts down; only the turn card is
 - Less writing to storage while driving: the note that lets a trip carry on after a restart is saved in a small file of its own instead of rewriting all your settings every 20 seconds

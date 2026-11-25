@@ -20,6 +20,7 @@ class PreferenceKeysTest {
 
     @Test fun additionalLegacyNavigationAndMapKeysRemainStable() {
         assertEquals("avoid_motorway", PreferenceKeys.AVOID_MOTORWAY)
+        assertEquals("prefer_main_roads", PreferenceKeys.PREFER_MAIN_ROADS)
         assertEquals("avoid_toll", PreferenceKeys.AVOID_TOLL)
         assertEquals("countrydetected", PreferenceKeys.COUNTRYDETECTED)
         assertEquals("lastlat", PreferenceKeys.LASTLAT)

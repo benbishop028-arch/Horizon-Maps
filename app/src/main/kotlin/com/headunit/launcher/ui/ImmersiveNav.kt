@@ -1127,12 +1127,22 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                         Icon(Icons.Rounded.Close, L.t("End route"), tint = Color.White, modifier = Modifier.size(23.dp))
                     }
                 }
-                if (!narrow) Row(
-                    Modifier.widthIn(min = 360.dp).onSizeChanged { rowPx = it.width }.padding(start = 18.dp, end = 12.dp, top = 9.dp, bottom = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp),
+                if (!narrow) androidx.compose.foundation.layout.BoxWithConstraints(
+                    Modifier.widthIn(max = 620.dp).onSizeChanged { rowPx = it.width }
+                        .padding(start = 18.dp, end = 12.dp, top = 9.dp, bottom = 10.dp)
                 ) {
-                    stats()
-                    Row(Modifier.padding(start = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) { buttons() }
+                    // A landscape screen can still be narrow when split-screen is in use. Keep the figures intact and move
+                    // the action buttons below them rather than letting the End route button push the remaining distance away.
+                    val nStats = if (evStat) 4 else 3
+                    val nButtons = 2 + (if (evPct != null) 1 else 0) + (if (canShare) 1 else 0)
+                    val oneLine = maxWidth >= (nStats * 85 + nButtons * 54 + 35).dp
+                    if (oneLine) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                        stats()
+                        Row(Modifier.padding(start = 4.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) { buttons() }
+                    } else Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(22.dp)) { stats() }
+                        Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(10.dp)) { buttons() }
+                    }
                 } else androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
                     // portrait: one compact line (figures, then the buttons), so the card stays low and clear of your arrow. When it can't
                     // all fit (an electric car adds a fourth figure and a fifth button), the buttons go on a line under the figures:

@@ -96,6 +96,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Avoid Clean Air Zones and ULEZ", "A zone you start or finish in can't be avoided", "Avoid", 5),
     SettingRef("Eco routes", "Fuel-efficient instead of fastest", "Choosing a route", 5),
     SettingRef("Prefer simpler routes", "Fastest first when off", "Choosing a route", 5),
+    SettingRef("Prefer main roads (offline)", "Offline car routes gently favour higher-class roads; online and lorry routes are unchanged", "Choosing a route", 5),
     SettingRef("Arrive on your side of the road", "The kerb side of where you're going", "Choosing a route", 5),
     SettingRef("Offer faster routes", "", "Choosing a route", 5),
     SettingRef("Keep other routes on the map", "Grey lines with +/− minutes you can tap any time. Off shows a Faster route found card instead", "Choosing a route", 5),
