@@ -191,5 +191,10 @@ object I18nTe {
         "No offline route found. Check both places are inside your downloaded maps" to "ఆఫ్‌లైన్ మార్గం కనుగొనలేకపోయాం. రెండు ప్రదేశాలూ డౌన్‌లోడ్ చేసిన మ్యాప్‌లలో ఉన్నాయో తనిఖీ చేయండి",
         "speed limits" to "వేగ పరిమితులు",
         "speed cameras" to "వేగ నియంత్రణ కెమెరాలు",
+        "Couldn't join your two offline map areas at their border. Try updating both" to "రెండు ఆఫ్‌లైన్ మ్యాప్ ప్రాంతాలను వాటి సరిహద్దు వద్ద కలపలేకపోయాం. రెండింటినీ అప్‌డేట్ చేయండి",
+        "This offline map area needs downloading again" to "ఈ ఆఫ్‌లైన్ మ్యాప్ ప్రాంతాన్ని మళ్లీ డౌన్‌లోడ్ చేయాలి",
+        "The destination is outside your offline maps" to "గమ్యస్థానం మీ ఆఫ్‌లైన్ మ్యాప్‌ల వెలుపల ఉంది",
+        "The destination is outside your offline maps, and no road towards it was found in them" to "గమ్యస్థానం ఆఫ్‌లైన్ మ్యాప్‌ల వెలుపల ఉంది; దాని వైపు వెళ్లే రహదారి కనుగొనబడలేదు",
+        "No road found near the start or the destination in your offline maps" to "ఆఫ్‌లైన్ మ్యాప్‌లలో ప్రారంభ స్థానం లేదా గమ్యస్థానం దగ్గర రహదారి కనుగొనబడలేదు",
     )
 }
