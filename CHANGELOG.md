@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Localise Mapbox offline-save progress and errors, downloaded-pack progress and availability messages, and offline-routing failures; add coverage for Catalan, Korean, Tamil and Telugu.
+
+### Improved
 - Localise offline town, village, postcode and address result labels, and complete the missing lane-diagnostics and favourites-sort translations in Catalan, Korean, Tamil and Telugu.
 
 ### Improved
