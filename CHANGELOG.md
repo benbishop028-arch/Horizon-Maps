@@ -7,7 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### Fixed
 - Polish saved-place menus: translate the saved, recent, name and distance labels instead of leaving them in English (#380)
 - Speed limits: avoid borrowing a nearby crossing or one-way road's limit when the car is travelling along a different road (#381)
-- Traffic lights: match mapped lights a little more reliably to the route and keep the first light at a junction (#378)
+- Traffic lights and locator: recognise lights mapped slightly off the road centreline, avoid hiding the next light at a junction, and treat motorway carriageways as one-way when snapping the arrow (#378)
 - Chargers along a route: search long routes in separate sections so TomTom's 20-result limit does not hide chargers farther along the journey; the detour setting also controls the off-route search distance (#343)
 
 
