@@ -223,5 +223,16 @@ object I18nKo {
         "Switched route" to "경로 변경됨",
         "Leave now to arrive by {0}" to "{0}까지 도착하려면 지금 출발하세요",
         "Leave by {0} to arrive by {1}. I'll remind you." to "{1}까지 도착하려면 {0}에 출발하세요. 알려드리겠습니다.",
+        "UK & Ireland" to "영국 및 아일랜드",
+        "Europe" to "유럽",
+        "United States" to "미국",
+        "Canada" to "캐나다",
+        "Mexico & Central America" to "멕시코 및 중앙아메리카",
+        "South America" to "남아메리카",
+        "Asia" to "아시아",
+        "Africa" to "아프리카",
+        "Oceania" to "오세아니아",
+        "Free space: {0}" to "사용 가능 공간: {0}",
+        "arrive {0}" to "도착 {0}",
     )
 }
