@@ -17,6 +17,7 @@ import com.headunit.launcher.NavigationPolicy
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.aspectRatio
@@ -93,6 +94,7 @@ import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -1052,8 +1054,8 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
 fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier) {
     if (t.dist > 3200.0) return
     val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
-    val refs = (t.shields.map { it.text } + refRx.findAll(t.sign).map { it.groupValues[1] } +
-        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).distinct().take(4)
+    val refs = (t.shields.map { it.content.ifBlank { it.affixes.joinToString("") } } + refRx.findAll(t.sign).map { it.groupValues[1] } +
+        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).filter { it.isNotBlank() }.distinct().take(4)
     val places = refRx.replace(t.sign, " ").split(',', ';', ':', '/')
         .map { it.trim().trim('-', '–').trim() }
         .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) }
@@ -1077,7 +1079,11 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
                     Text(t.exitNo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
-            refs.forEach { r -> RoadShieldBadge(r, t.shields.firstOrNull { it.text == r }?.type.orEmpty()) }
+            refs.forEach { r ->
+                val shield = t.shields.firstOrNull { it.content == r || it.affixes.joinToString("") + it.content == r }
+                if (shield != null && t.shieldAtlasUrl.isNotBlank()) RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
+                else RoadShieldBadge(r, shield?.reference.orEmpty())
+            }
             Spacer(Modifier.weight(1f))
             Text(arrow, color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         }
@@ -1088,12 +1094,12 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
     }
 }
 
-/** Compact shield treatment; provider shield type selects a recognisable national road-sign family. */
+/** Text fallback used when the provider atlas has no matching sprite or cannot be downloaded. */
 @Composable
 private fun RoadShieldBadge(text: String, type: String) {
     val k = type.lowercase()
     val bg = when {
-        "interstate" in k || "motorway" in k -> Color(0xFF07569A)
+        "usa" in k || "interstate" in k || "motorway" in k -> Color(0xFF07569A)
         "europe" in k -> Color(0xFF1554A8)
         "primary" in k || "trunk" in k -> Color(0xFF087044)
         "national" in k -> Color(0xFFB52B27)
