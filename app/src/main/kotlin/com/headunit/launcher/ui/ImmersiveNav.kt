@@ -1549,7 +1549,7 @@ internal fun ImmTurnCard(
         // (the blue "EXIT" strip that used to sit here is gone: the exit's number badge beside the road name already says it, and its
         // arrows always pointed right, even for an exit on the left: mjdshibly #232)
         // A proper UK direction sign: blue for motorways, green for primary roads, white for local roads.
-        if (ukSign) JunctionSign(t, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp))
+        if (ukSign) JunctionSign(t, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp), engine.mbToken)
         // (the lanes stay on a small car screen too: they were left off with everything else, so small screens had no lane guidance)
         if ((!compact || car) && engine.prefs.b(PreferenceKeys.LANE_STRIP, true)) t.lanes?.let { ls ->
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
