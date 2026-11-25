@@ -788,7 +788,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // just zoomed the map out to the grey routes. On the right, under Android Auto's buttons and beside its zoom buttons;
         // drawn smaller when it's taller than the room there (as the arrival card is)
         if (altsOpen) {
-            // Keep the route text at its normal size on short car screens; the list scrolls within the room available.
+            // Fit the route-choice panel to the car screen; the list can still scroll if several routes need more room.
             val boxTop = if (portrait) top + below else insT + 6.dp
             val room = (maxHeight - boxTop - bottom).coerceAtLeast(1.dp)
             // This is the Android Auto route-choice panel: follow the car-card size setting,
