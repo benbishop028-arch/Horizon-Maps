@@ -1110,15 +1110,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     fun downloadPack(url: String, id: String, extrasUrl: String = url, onDone: () -> Unit = {}) {
         if (packBusy || url.isBlank()) return
-        packBusy = true; packStatus = "Starting…"; packDownloading = id
+        packBusy = true; packStatus = L.t("Starting…"); packDownloading = id
         scope.launch {
             try {
                 withContext(Dispatchers.IO) { OfflineRouter.download(ctx, url, id, extrasUrl) { packStatus = it } }
                 onDone()
-                packStatus = "Pack ready"
+                packStatus = L.t("Pack ready")
                 toast(L.t("Offline pack ready"), 3000)
             } catch (e: Throwable) {
-                packStatus = "Download failed: ${e.message ?: e.javaClass.simpleName}. Tap Download again to carry on."
+                packStatus = L.t("Download failed. Tap Download again to carry on.")
             } finally { packBusy = false; packDownloading = null; packRev++; restyle() }
         }
     }
@@ -2125,12 +2125,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      */
     fun downloadRegion(r: PackRegion) {
         if (packBusy) return
-        packBusy = true; packStatus = "Checking the ${r.name} pack…"
+        packBusy = true; packStatus = L.t("Checking the {0} pack…", r.name)
         scope.launch {
             val ok = withContext(Dispatchers.IO) { PackRegions.available(r) }
             when (ok) {
-                false -> { packBusy = false; packStatus = "The ${r.name} pack isn't available yet. It appears here once it has been built."; return@launch }
-                null -> { packBusy = false; packStatus = "Couldn't reach the download. Check the connection and try again."; return@launch }
+                false -> { packBusy = false; packStatus = L.t("The {0} pack isn't available yet. It appears here once it has been built.", r.name); return@launch }
+                null -> { packBusy = false; packStatus = L.t("Couldn't reach the download. Check the connection and try again."); return@launch }
                 true -> {}
             }
             packBusy = false
