@@ -144,6 +144,13 @@ object I18nKo {
         "Map style" to "지도 스타일",
         "Satellite" to "위성",
         "Couldn't read a place from that" to "해당 내용에서 장소를 찾을 수 없습니다",
+        "Town / city" to "도시",
+        "Village / area" to "마을 / 지역",
+        " · offline" to " · 오프라인",
+        "Postcode" to "우편번호",
+        "Address" to "주소",
+        "Show lane data diagnostics" to "차로 데이터 진단 표시",
+        "Only shown in Demo mode; does not affect lane guidance." to "데모 모드에서만 표시되며 차로 안내에는 영향을 주지 않습니다.",
         "{0} ahead" to "{0} 앞",
     )
 }
