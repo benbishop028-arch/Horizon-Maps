@@ -47,12 +47,14 @@ internal object I18nFavouriteSort {
             "esar" to "Más cercanos",
             "esmx" to "Más cercanos"
         )
-        return listOf(
-            "Saved" to if (code == "pl") "Zapisane" else "Saved",
-            "Recent" to if (code == "pl") "Ostatnie" else "Recent",
-            "Name" to if (code == "pl") "Nazwa" else "Name",
-            "Distance" to if (code == "pl") "Odległość" else "Distance",
-            "A–Z" to "A–Z",
+        val savedPlaceLabels = if (code == "pl") listOf(
+            "Saved" to "Zapisane",
+            "Recent" to "Ostatnie",
+            "Name" to "Nazwa",
+            "Distance" to "Odległość",
+            "A–Z" to "A–Z"
+        ) else emptyList()
+        return savedPlaceLabels + listOf(
             "Sort favourites" to when (code) {
             "nl" -> "Favorieten sorteren"; "de" -> "Favoriten sortieren"; "fr" -> "Trier les favoris"; "es", "esar", "esmx" -> "Ordenar favoritos"
             "it" -> "Ordina preferiti"; "pt" -> "Ordenar favoritos"; "pl" -> "Sortuj ulubione"; "th" -> "เรียงรายการโปรด"; "ja" -> "お気に入りを並べ替え"
