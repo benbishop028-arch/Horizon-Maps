@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Offline cross-country routing: check downloaded road coverage before calling Valhalla, route safely to the edge when the destination is outside downloaded areas, join supported legs across multiple downloaded areas (including intermediate stops), and give clearer errors when the starting point or a road is not covered (#396).
+### Fixed
 - Android Auto overall size: apply the saved car-screen scale to the actual UI density while retaining the screen-fit cap, so changing Overall size visibly resizes the interface again (#397).
 
 ### Fixed

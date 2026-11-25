@@ -809,9 +809,10 @@ object OfflineRouter {
         endsShort = false
         val rs = routesInner(ctx, from, to, via, headingDeg)
         val r = rs.firstOrNull() ?: return rs
-        // more than 1.5 km short of the destination: the downloaded roads ran out. It mustn't say "you have arrived" there
-        if (r.pts.isNotEmpty() && Geo.dist(r.pts.last(), to) > 1500.0) {
-            endsShort = true
+        // A route can be deliberately stopped at the edge of downloaded coverage, or discovered to end
+        // well short of the destination. In either case it must not announce arrival.
+        if (r.pts.isNotEmpty() && Geo.dist(r.pts.last(), to) > 1500.0) endsShort = true
+        if (endsShort) {
             val steps = r.steps.filterNot { it.maneuver.startsWith("ARRIVE") }
             return listOf(Route(r.pts, r.cum, steps, r.len, r.time, r.delay, r.lanes, r.sev))
         }
@@ -819,13 +820,43 @@ object OfflineRouter {
     }
 
     private fun routesInner(ctx: Context, from: LL, to: LL, via: List<LL>, headingDeg: Double): List<Route> {
-        // the area that covers the whole trip (the start and the end): the normal case
+        // Keep the fast path for a journey wholly covered by one pack.
         val whole = areaFor(ctx, *(listOf(from, to) + via).toTypedArray())
         if (whole != null) return listOf(routeIn(packDir(ctx, whole), from, to, via, headingDeg))
-        val a = areaFor(ctx, from); val b = areaFor(ctx, to)
-        // the start and the end are in two different downloaded areas: a route in each, joined at the border
-        if (a != null && b != null && a != b && via.isEmpty()) return listOf(acrossTwo(ctx, a, b, from, to, headingDeg))
-        return listOf(routeIn(a?.let { packDir(ctx, it) } ?: b?.let { packDir(ctx, it) } ?: dir(ctx), from, to, via, headingDeg))
+
+        // A legacy single pack may not have readable map bounds. Retain its previous behaviour when no
+        // separately installed area can be identified; otherwise never send an uncovered start to Valhalla.
+        if (installedIds(ctx).isEmpty()) return listOf(routeIn(dir(ctx), from, to, via, headingDeg))
+        var currentArea = areaFor(ctx, from)
+            ?: throw IllegalStateException("Your starting location is outside the downloaded offline map areas. Download the area containing your current location, or turn off 'Without signal' to plan this route online.")
+
+        // Route each stop as its own leg. This lets a trip cross more than one downloaded area, including
+        // journeys with intermediate stops, without asking one area's Valhalla graph to route through another.
+        var current = from
+        var combined: Route? = null
+        val targets = via + to
+        for ((index, target) in targets.withIndex()) {
+            val targetArea = areaFor(ctx, target)
+            val leg = when (OfflineRouteCoveragePolicy.leg(currentArea, targetArea)) {
+                OfflineRouteCoveragePolicy.Leg.SAME_AREA ->
+                    routeIn(packDir(ctx, currentArea), current, target, emptyList(), if (index == 0) headingDeg else -1.0)
+                OfflineRouteCoveragePolicy.Leg.DIFFERENT_AREAS ->
+                    acrossTwo(ctx, currentArea, targetArea!!, current, target, if (index == 0) headingDeg else -1.0)
+                OfflineRouteCoveragePolicy.Leg.DESTINATION_UNCOVERED -> {
+                    // Stop at a routable point near the edge of the current pack. Never pass the distant
+                    // destination to this pack's engine: that is the common cause of Valhalla error 171.
+                    endsShort = true
+                    routeToCoverageEdge(ctx, currentArea, current, target, if (index == 0) headingDeg else -1.0)
+                }
+                OfflineRouteCoveragePolicy.Leg.START_UNCOVERED ->
+                    throw IllegalStateException("The starting location is outside the downloaded offline map areas. Download the area containing your current location, or turn off 'Without signal'.")
+            }
+            combined = combined?.let { join(it, it.cum.last(), it.pts.last(), it.pts.lastIndex, leg) } ?: leg
+            if (targetArea == null) break
+            current = leg.pts.last()
+            currentArea = targetArea
+        }
+        return listOf(combined ?: throw IllegalStateException("No offline route could be built from the downloaded areas"))
     }
 
     private fun lerp(a: LL, b: LL, t: Double) = LL(a.lat + (b.lat - a.lat) * t, a.lon + (b.lon - a.lon) * t)
@@ -876,7 +907,40 @@ object OfflineRouter {
             if (Geo.dist(rb.pts.first(), pt) > 60.0) continue
             return join(ra, cut, pt, idx, rb)
         }
-        throw IllegalStateException("Couldn't join the two downloaded areas at the border with no signal")
+        throw IllegalStateException("Couldn't join downloaded offline areas '$a' and '$b' at their border. Their road data may not overlap at a usable road; update both areas or use an internet connection.")
+    }
+
+    /**
+     * Route towards a destination outside downloaded coverage, but stop at a routable point inside the
+     * current pack. Candidate points are tried progressively farther back from the map boundary because
+     * map bounds can include a small margin beyond the actual Valhalla road graph.
+     */
+    private fun routeToCoverageEdge(ctx: Context, area: String, from: LL, to: LL, headingDeg: Double): Route {
+        val b = bounds(ctx, area)
+            ?: throw IllegalStateException("Offline area '$area' has no readable coverage bounds, so its safe routing boundary cannot be determined. Update or re-download that offline area.")
+        if (!contains(b, from)) {
+            throw IllegalStateException("The starting location is outside the downloaded offline area '$area'. Download the area containing your current location, or turn off 'Without signal'.")
+        }
+        var exit = -1.0
+        for (k in 100 downTo 0) {
+            val t = k / 100.0
+            if (contains(b, lerp(from, to, t))) { exit = t; break }
+        }
+        if (exit < 0.0) throw IllegalStateException("The route does not pass through the known bounds of offline area '$area'.")
+        val distance = Geo.dist(from, to)
+        val step = (8_000.0 / maxOf(distance, 1.0)).coerceIn(0.002, 0.1)
+        var t = exit
+        for (attempt in 0 until 24) {
+            if (t <= 0.0) break
+            val candidate = lerp(from, to, t)
+            try {
+                return routeIn(packDir(ctx, area), from, candidate, emptyList(), headingDeg)
+            } catch (_: Exception) {
+                // Move farther inside the downloaded area and try again; do not widen Valhalla's snap radius.
+            }
+            t -= step
+        }
+        throw IllegalStateException("Offline area '$area' contains your starting location, but no suitable road edge could be found towards the destination. The downloaded routing data may not include that road; update the offline area or use an internet connection.")
     }
 
     private fun join(ra: Route, cut: Double, pt: LL, idx: Int, rb: Route): Route {
@@ -929,6 +993,11 @@ object OfflineRouter {
             if (polys.length() > 0) req.put("exclude_polygons", polys)
         }
         var res: JSONObject? = try { JSONObject(engine(pd).routeRaw(req.toString())) } catch (e: Exception) {
+            // The native engine can throw ValhallaError 171 before returning a JSON response.
+            val message = e.message.orEmpty()
+            if (message.contains("171") || message.contains("No suitable edges", ignoreCase = true)) {
+                throw IllegalStateException("Offline area '${pd.name}' could not match a road near the start (${from.lat}, ${from.lon}) or destination (${to.lat}, ${to.lon}). The point may be off-road or outside this pack's routing data (Valhalla error 171).", e)
+            }
             // the router turned the areas down (or couldn't get round them): plan the route without them rather than fail
             if (!req.has("exclude_polygons")) throw e
             null
@@ -939,7 +1008,13 @@ object OfflineRouter {
             res = JSONObject(engine(pd).routeRaw(req.toString()))
         }
         val o: JSONObject = res ?: throw IllegalStateException("No offline route")
-        if (o.has("error") && !o.has("trip")) throw IllegalStateException("No offline route here (${o.optString("error")}). Is it inside the downloaded area?")
+        if (o.has("error") && !o.has("trip")) {
+            val code = o.optInt("error_code", -1)
+            if (code == 171 || o.optString("error").contains("171") || o.optString("error").contains("No suitable edges", ignoreCase = true)) {
+                throw IllegalStateException("Offline area '${pd.name}' has no suitable road edge near the start (${from.lat}, ${from.lon}) or destination (${to.lat}, ${to.lon}) (Valhalla error 171). Check that the location is beside a routable road and included in this offline area.")
+            }
+            throw IllegalStateException("No offline route in area '${pd.name}' (${o.optString("error")}). Check that both locations are covered by its downloaded road data.")
+        }
         val trip = o.getJSONObject("trip")
         val legs = trip.getJSONArray("legs")
         val pts = ArrayList<LL>()
