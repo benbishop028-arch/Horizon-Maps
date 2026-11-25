@@ -51,6 +51,7 @@ object RoadShieldAtlas {
             val atlasBitmap = BitmapFactory.decodeFile(pngFile.path) ?: return@withContext null
             if (x + w > atlasBitmap.width || y + h > atlasBitmap.height) return@withContext null
             val cropped = Bitmap.createBitmap(atlasBitmap, x, y, w, h)
+            atlasBitmap.recycle()
             synchronized(memory) { memory[key] = cropped }
             cropped
         } catch (_: Exception) { null }
