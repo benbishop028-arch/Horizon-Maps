@@ -2373,20 +2373,48 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (ahead.lastOrNull() != r.pts.last()) ahead += r.pts.last()
             val found: List<Pair<Place, Int>> = withContext(Dispatchers.IO) {
                 val all = ArrayList<Pair<Place, Int>>()
-                if (hasKey && online()) try { all += TomTomRest.alongText(apiKey, q, ahead, if (evDetourMin > 0) evDetourMin * 60 else 1200) } catch (e: Exception) { }
+                if (hasKey && online()) {
+                    // TomTom returns at most 20 places per request. Split long routes so its result cap
+                    // cannot hide chargers (or a selected provider) farther along the journey.
+                    val chunks = ArrayList<List<LL>>()
+                    var chunk = ArrayList<LL>()
+                    var metres = 0.0
+                    for (p in ahead) {
+                        val prev = chunk.lastOrNull()
+                        if (prev != null) metres += Geo.dist(prev, p)
+                        chunk += p
+                        if (metres >= 30_000.0 && chunk.size >= 2) {
+                            chunks += chunk
+                            chunk = arrayListOf(p)
+                            metres = 0.0
+                        }
+                    }
+                    if (chunk.size >= 2) chunks += chunk
+                    for (part in chunks) {
+                        try {
+                            all += TomTomRest.alongText(apiKey, q, part, if (evDetourMin > 0) evDetourMin * 60 else 1200)
+                        } catch (e: Exception) { }
+                    }
+                }
                 if (all.isEmpty()) {
-                    // no TomTom: the usual search near a few points along the way (and what's already been found)
-                    val probes = listOf(0.15, 0.4, 0.65, 0.9).map { f -> ahead[((ahead.size - 1) * f).toInt()] }
-                    for (c in probes) {
-                        try { if (mbToken.isNotBlank() && online()) MapboxRest.chain(mbToken, q, c).forEach { all += it to -1 } } catch (e: Exception) { }
+                    // Without TomTom results, search the full route at regular intervals rather than four isolated points.
+                    val probes = ArrayList<LL>()
+                    probes += ahead.first()
+                    var walked = 0.0
+                    var last = ahead.first()
+                    for (p in ahead.drop(1)) {
+                        walked += Geo.dist(last, p)
+                        if (walked >= 25_000.0) { probes += p; walked = 0.0 }
+                        last = p
+                    }
+                    if (probes.lastOrNull() != ahead.last()) probes += ahead.last()
+                    for (p in probes) {
+                        try { if (mbToken.isNotBlank() && online()) MapboxRest.chain(mbToken, q, p).forEach { all += it to -1 } } catch (e: Exception) { }
                     }
                     try { findPlaces(q).forEach { all += it to -1 } } catch (e: Exception) { }
                 }
                 val out = ArrayList<Pair<Place, Int>>()
                 for ((p, t) in all) if (out.none { Geo.dist(it.first.pos, p.pos) < 80 }) out += p to t
-                // a shop or chain: only its own branches when there are some ("Western Union, Sainsbury's" is a counter inside one,
-                // not a Sainsbury's)
-                // (not for a kind of place, from Add a stop's buttons: "coffee" kept only the places with Coffee in their name)
                 val own = if (category) emptyList() else out.filter { chainHit(it.first, q) }
                 if (own.size >= 2) own else out
             }
@@ -2398,7 +2426,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 var j = i0
                 val st = maxOf(1, (r.pts.size - i0) / 600)
                 while (j < r.pts.size) { val d = Geo.dist(r.pts[j], p.pos); if (d < best) { best = d; at = j }; j += st }
-                if (at < 0 || best > 6000.0) return@mapNotNull null
+                if (at < 0 || best > (if (chargers && evDetourMin > 0) evDetourMin * 60.0 * 13.0 / 2.6 else 6000.0)) return@mapNotNull null
                 val detour = if (t >= 0) t.toDouble() else best * 2.6 / 13.0
                 ChainSpot(p, Geo.dist(from, p.pos), -1.0, -1.0, detour, ahead = (r.cum[at] - prog).coerceAtLeast(0.0), off = best)
             }
