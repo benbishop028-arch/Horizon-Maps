@@ -276,20 +276,15 @@ internal fun Modifier.carTap(id: String, action: () -> Unit): Modifier {
 @Composable
 private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: CarActions, onCover: (Int) -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
-        // the screen in the units it would have at 100%
-        val rawW = maxWidth.value * user; val rawH = maxHeight.value * user
-        // The layout (side by side or stacked, short or roomy) is now picked from the screen at 100% (in CarScreenBody), so the size
-        // no longer has to stay on the roomy side of every layout switch: that held 240% down to about 112-134% on most cars, as the
-        // switches that only change the spacing bound first (magnazan, #242). The only limit left is that the cards still have room:
-        // the screen, in the enlarged units, stays at least 560 wide and 300 high.
-        val cap = minOf(rawW / 560f, rawH / 300f).coerceAtLeast(1f)
-        val eff = if (user <= 1f) user else minOf(user, cap).coerceAtLeast(1f)
-        // (the most this screen fits, for the setting to say)
-        val most = (Math.floor(cap.coerceAtMost(3f) * 20.0) * 5).toInt().coerceAtLeast(100)
+        val scale = CarScalePolicy.resolve(PreferenceKeys.CARSCALE.let { engine.prefs.i(it, 100) }, maxWidth.value, maxHeight.value)
+        val user = scale.requested
+        val eff = scale.effective
+        val most = scale.maximumPercent
         androidx.compose.runtime.SideEffect { if (engine.prefs.i(PreferenceKeys.CARSCALE_MAX, 0) != most) engine.prefs.put(PreferenceKeys.CARSCALE_MAX, most) }
         val d = LocalDensity.current
-        CompositionLocalProvider(LocalDensity provides Density(d.density * eff / user, d.fontScale)) {
+        // Overall size is a physical UI scale. Dividing by the requested value cancelled the scale whenever it fit,
+        // leaving the saved slider value with no visible effect (#397).
+        CompositionLocalProvider(LocalDensity provides Density(d.density * eff, d.fontScale)) {
             CarScreenBody(engine, a, actions, onCover, eff)
         }
     }

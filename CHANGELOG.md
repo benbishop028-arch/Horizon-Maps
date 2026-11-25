@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Fixed
+- Android Auto overall size: apply the saved car-screen scale to the actual UI density while retaining the screen-fit cap, so changing Overall size visibly resizes the interface again (#397).
+
+### Fixed
 - Tunnel positioning: while following an active route, ignore network-location fixes with missing or worse-than-30-metre accuracy even after GPS has been unavailable for two minutes. Keep the existing two-minute dead-reckoning limit so the locator does not assume constant movement indefinitely (#391).
 
 ### New
