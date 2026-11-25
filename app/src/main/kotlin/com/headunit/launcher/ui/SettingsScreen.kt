@@ -510,7 +510,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Speed cameras and roadworks"), "hazardicons", true, L.t("Their icons on the map. The warnings are in Settings > Alerts"))
         if (prefs.b("hazardicons", true)) SPercent(L.t("Speed camera size"), L.t("The red camera badge on the map"), prefs, PreferenceKeys.CAM_SIZE, 50, 350)
         SToggle(prefs, L.t("Zebra crossings"), "zebras", true, L.t("Crossings on your route painted on the road, with Belisha beacons at zebras (close in)"))
-        SToggle(prefs, L.t("Stop signs"), PreferenceKeys.STOP_SIGNS, true, L.t("Stop signs on your route shown on the map, with a short chime before each one (where OpenStreetMap has them)"))
+        SToggle(prefs, L.t("Stop signs"), PreferenceKeys.STOP_SIGNS, true, L.t("STOP and Give Way signs on your route shown on the map; a short chime before STOP signs (where OpenStreetMap has them)"))
         SToggle(prefs, L.t("Number-plate cameras"), PreferenceKeys.ALPR_CAMS, true, L.t("Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts"))
     }
     SGroup(L.t("3D street furniture")) {
