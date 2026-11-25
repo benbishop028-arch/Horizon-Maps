@@ -143,5 +143,7 @@ object I18nTe {
         "Search for a place" to "స్థలం కోసం వెతుకు",
         "Map style" to "మ్యాప్ శైలి",
         "Satellite" to "ఉపగ్రహం",
+        "Couldn't read a place from that" to "ఆ సమాచారంలో నుంచి స్థలాన్ని గుర్తించలేకపోయాం",
+        "{0} ahead" to "{0} ముందు",
     )
 }

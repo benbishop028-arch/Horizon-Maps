@@ -310,7 +310,7 @@ class MainActivity : ComponentActivity() {
             // wait (briefly) for a first position so the route can start from where you are
             var n = 0
             while (t?.pos != null && engine.fix == null && n < 20) { kotlinx.coroutines.delay(500); n++ }
-            if (t != null) engine.openShared(t) else engine.toast("Couldn't read a place from that", 3500)
+            if (t != null) engine.openShared(t) else engine.toast(L.t("Couldn't read a place from that"), 3500)
         }
     }
 

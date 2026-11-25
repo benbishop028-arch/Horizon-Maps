@@ -150,5 +150,7 @@ object I18nCa {
         "Search for a place" to "Cerca un lloc",
         "Map style" to "Estil del mapa",
         "Satellite" to "Satèl·lit",
+        "Couldn't read a place from that" to "No s’ha pogut obtenir cap lloc d’això",
+        "{0} ahead" to "{0} més endavant",
     )
 }

@@ -20,6 +20,7 @@ class I18nCoreCoverageTest {
         "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style",
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map",
         "step", "steps",
+        "Couldn't read a place from that", "{0} ahead",
         "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it."
     )
 

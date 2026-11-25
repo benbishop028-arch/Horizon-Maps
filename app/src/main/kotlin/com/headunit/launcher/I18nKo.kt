@@ -143,5 +143,7 @@ object I18nKo {
         "Search for a place" to "장소 검색",
         "Map style" to "지도 스타일",
         "Satellite" to "위성",
+        "Couldn't read a place from that" to "해당 내용에서 장소를 찾을 수 없습니다",
+        "{0} ahead" to "{0} 앞",
     )
 }

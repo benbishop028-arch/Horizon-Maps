@@ -143,5 +143,7 @@ object I18nTa {
         "Search for a place" to "இடத்தைத் தேடு",
         "Map style" to "வரைபடத் தோற்றம்",
         "Satellite" to "செயற்கைக்கோள்",
+        "Couldn't read a place from that" to "அந்தத் தகவலிலிருந்து இடத்தைப் படிக்க முடியவில்லை",
+        "{0} ahead" to "{0} முன்னால்",
     )
 }

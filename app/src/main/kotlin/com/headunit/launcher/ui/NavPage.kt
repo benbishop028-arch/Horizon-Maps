@@ -570,7 +570,7 @@ internal fun NearbyCard(engine: NavEngine) {
     val c = LocalVw.current
     val adding = engine.stopMode || engine.route != null
     val along = engine.nearby.any { it.ahead }
-    val title = (if (adding) L.t("Add a stop: ") else "") + nearbyTitle(engine.nearbyKind) + (if (along) " ahead" else "")
+    val title = (if (adding) L.t("Add a stop: ") else "") + if (along) L.t("{0} ahead", nearbyTitle(engine.nearbyKind)) else nearbyTitle(engine.nearbyKind)
     val hasPrices = engine.nearby.any { it.price != null }
     Column(Modifier.floating(24.dp).padding(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
