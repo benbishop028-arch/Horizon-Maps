@@ -4,6 +4,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Fixed
+- Polish saved-place menus: translate the saved, recent, name and distance labels instead of leaving them in English (#380)
+- Speed limits: avoid borrowing a nearby crossing or one-way road's limit when the car is travelling along a different road (#381)
+- Traffic lights: match mapped lights a little more reliably to the route and keep the first light at a junction (#378)
+- Chargers along a route: search long routes in separate sections so TomTom's 20-result limit does not hide chargers farther along the journey; the detour setting also controls the off-route search distance (#343)
+
+
 ### New
 - Your own map colours on TomTom and OpenStreetMap: Settings › Map › Colours now offers Horizon, Twilight and Custom on those maps too, so you can pick your own ground, water, parks, road and building colours, day and night (thanks to desko1973, #355)
 - Chargers along your route: with a route active, the Chargers button now shows the same overview as "Add a stop": every charger along the route pinned on the map and listed with the detour it adds, using your provider, speed and detour settings, with an Add as stop button (thanks to Seali7Aut, #343)
