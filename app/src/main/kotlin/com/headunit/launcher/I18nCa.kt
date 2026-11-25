@@ -151,6 +151,13 @@ object I18nCa {
         "Map style" to "Estil del mapa",
         "Satellite" to "Satèl·lit",
         "Couldn't read a place from that" to "No s’ha pogut obtenir cap lloc d’això",
+        "Town / city" to "Poble / ciutat",
+        "Village / area" to "Poble / zona",
+        " · offline" to " · fora de línia",
+        "Postcode" to "Codi postal",
+        "Address" to "Adreça",
+        "Show lane data diagnostics" to "Mostra el diagnòstic de dades dels carrils",
+        "Only shown in Demo mode; does not affect lane guidance." to "Només es mostra en mode de demostració; no afecta la guia de carrils.",
         "{0} ahead" to "{0} més endavant",
     )
 }
