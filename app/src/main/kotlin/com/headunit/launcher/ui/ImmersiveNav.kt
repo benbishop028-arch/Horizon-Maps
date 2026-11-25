@@ -1492,6 +1492,7 @@ internal fun ImmTurnCard(
         "purple" -> Color(0xFF462870) to Color(0xFF2E1A4C)
         else -> GmGreen to GmGreenDeep
     }
+    val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.shields.isNotEmpty() || t.exitNo.isNotBlank())
     Column(
         Modifier.fillMaxWidth()
             // (grows from its top middle, evenly both ways: grown from its left edge, a card the full width of an upright phone went off
@@ -1529,7 +1530,6 @@ internal fun ImmTurnCard(
                 val lmk = t.landmark.isNotBlank()
                 if (lmk) Text(t.landmark, color = Color.White, fontSize = if (compact) 24.sp else 31.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 else RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, if (compact) 28.sp else 38.sp, fontWeight = FontWeight.Bold)
-                val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.shields.isNotEmpty() || t.exitNo.isNotBlank())
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (t.tag.isNotBlank() && !(ukSign && t.tag.startsWith("Exit"))) Text(t.tag, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1,
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))

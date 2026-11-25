@@ -1056,7 +1056,7 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
     val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
     val shieldItems = t.shields.take(4)
     val refs = (refRx.findAll(t.sign).map { it.groupValues[1] } +
-        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).filter { it.isNotBlank() }
+        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).toList().filter { it.isNotBlank() }
         .filterNot { road -> shieldItems.any { it.content == road || it.affixes.joinToString("") + it.content == road } }
         .distinct().take((4 - shieldItems.size).coerceAtLeast(0))
     val places = refRx.replace(t.sign, " ").split(',', ';', ':', '/')
