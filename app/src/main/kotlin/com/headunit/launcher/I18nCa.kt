@@ -128,14 +128,10 @@ object I18nCa {
         "Weight limit" to "Límit de pes",
         "Width limit" to "Límit d'amplada",
         "Length limit" to "Límit de longitud",
-        "Fuel prices" to "Preus del combustible",
-        "Avoid toll roads" to "Evita les autopistes de peatge",
-        "Avoid motorways" to "Evita les autopistes",
-        "Avoid ferries" to "Evita els ferris",
-        "Add stop" to "Afegeix una parada",
-        "Save place" to "Desa el lloc",
-        "Search for a place" to "Cerca un lloc",
-        "Map style" to "Estil del mapa",
-        "Satellite" to "Satèl·lit"
+        "This head unit can't draw the Mapbox map" to "Aquesta unitat principal no pot mostrar el mapa de Mapbox",
+        "Horizon Nav keeps closing while it starts" to "Horizon Nav es tanca repetidament durant l'inici",
+        "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "Ho sentim. Envia l'informe següent perquè es pugui solucionar en aquesta unitat. No conté informació personal.",
+        "No browser on this unit: use Copy instead" to "Aquesta unitat no té navegador: fes servir Copia",
+        "Copied: paste it into a message or a Reddit comment" to "S'ha copiat: enganxa-ho en un missatge o comentari de Reddit"
     )
 }

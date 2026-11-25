@@ -121,14 +121,10 @@ object I18nTe {
         "Weight limit" to "బరువు పరిమితి",
         "Width limit" to "వెడల్పు పరిమితి",
         "Length limit" to "పొడవు పరిమితి",
-        "Fuel prices" to "ఇంధన ధరలు",
-        "Avoid toll roads" to "టోల్ రోడ్లను నివారించండి",
-        "Avoid motorways" to "హైవేలను నివారించండి",
-        "Avoid ferries" to "ఫెర్రీలను నివారించండి",
-        "Add stop" to "ఆగే ప్రదేశాన్ని జోడించండి",
-        "Save place" to "ప్రదేశాన్ని సేవ్ చేయండి",
-        "Search for a place" to "ప్రదేశం కోసం వెతకండి",
-        "Map style" to "మ్యాప్ శైలి",
-        "Satellite" to "ఉపగ్రహం"
+        "This head unit can't draw the Mapbox map" to "ఈ హెడ్ యూనిట్ Mapbox మ్యాప్‌ను చూపించలేకపోతోంది",
+        "Horizon Nav keeps closing while it starts" to "Horizon Nav ప్రారంభమవుతున్నప్పుడు పదేపదే మూసుకుపోతోంది",
+        "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "క్షమించండి. దిగువ నివేదికను పంపితే ఈ హెడ్ యూనిట్‌లోని సమస్యను పరిష్కరించవచ్చు. ఇందులో వ్యక్తిగత సమాచారం ఏదీ లేదు.",
+        "No browser on this unit: use Copy instead" to "ఈ యూనిట్‌లో బ్రౌజర్ లేదు: బదులుగా కాపీని ఉపయోగించండి",
+        "Copied: paste it into a message or a Reddit comment" to "కాపీ చేయబడింది: సందేశంలో లేదా Reddit వ్యాఖ్యలో అతికించండి"
     )
 }

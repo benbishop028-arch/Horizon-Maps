@@ -4,6 +4,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### Improved
+- Add everyday interface translations to Catalan, Korean, Tamil and Telugu, and use the selected app language on startup recovery and graphics-compatibility screens.
+- Check the four expanded language packs for duplicate keys, empty translations and altered placeholders.
+
 ### Fixed
 - Fill missing arrival instructions across all supported languages, and add the missing road-closure, distance and rerouting prompts for Korean, Tamil and Telugu. Existing translations are kept, including Catalan's corrected wording (#408).
 - Expand core interface wording in Catalan, Korean, Tamil and Telugu, and localise the remaining-distance and itinerary arrival labels.

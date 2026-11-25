@@ -43,6 +43,9 @@ class MainActivity : ComponentActivity() {
         val prev = Thread.getDefaultUncaughtExceptionHandler()
         val crashFile = java.io.File(applicationContext.filesDir, "lastcrash.txt")
         val boot = getSharedPreferences(CrashGuardPrefs.FILE, android.content.Context.MODE_PRIVATE)
+        val prefs = Prefs(applicationContext)
+        // Set the chosen language before any recovery or compatibility screen is shown.
+        try { L.set(prefs.s(PreferenceKeys.APP_LANG, "auto")) } catch (e: Exception) { }
         val startedAt = System.currentTimeMillis()
         Thread.setDefaultUncaughtExceptionHandler { t, e ->
             // (with the version and time, so a report left over from an older version can be told apart)
@@ -73,7 +76,6 @@ class MainActivity : ComponentActivity() {
             if (vis and android.view.View.SYSTEM_UI_FLAG_FULLSCREEN == 0) window.decorView.postDelayed({ if (!isFinishing) hideBars() }, 2500)
         }
 
-        val prefs = Prefs(applicationContext)
         // the Mapbox map needs OpenGL ES 3.0: on an older unit, say so plainly instead of showing a black map (or closing)
         val gl = try { (getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager).deviceConfigurationInfo.reqGlEsVersion } catch (e: Throwable) { 0x30000 }
         if (gl in 1 until 0x30000) {
@@ -112,7 +114,7 @@ class MainActivity : ComponentActivity() {
         SessionWatch.resumed(applicationContext)
         if (sessionStep > 0) window.decorView.postDelayed({ try { engine.toast(SessionWatch.message(sessionStep), 12_000) } catch (e: Throwable) { } }, 5000L)
         if (safeLevel > 0) window.decorView.postDelayed({
-            try { engine.toast(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map", 10_000) } catch (e: Throwable) { }
+            try { engine.toast(L.t(if (safeLevel >= 2) "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" else "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map"), 10_000) } catch (e: Throwable) { }
         }, 4000L)
 
         setContent { App(prefs, engine, map) }
@@ -371,9 +373,8 @@ private fun NoGlesPage(gl: Int) {
         androidx.compose.ui.Modifier.fillMaxSize().background(bg).verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(32.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp),
     ) {
-        androidx.compose.material3.Text("This head unit can't draw the Mapbox map", color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-        androidx.compose.material3.Text(L.branded("Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version ${gl shr 16}.${gl and 0xFFFF}. " +
-            "Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one."), color = fg.copy(alpha = 0.8f), fontSize = 16.sp)
+        androidx.compose.material3.Text(L.t("This head unit can't draw the Mapbox map"), color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        androidx.compose.material3.Text(L.t("Horizon Nav needs OpenGL ES 3.0 graphics, and this unit has version {0}. Versions of Horizon Nav from before the Mapbox map work on older graphics, if you still have one.", "${gl shr 16}.${gl and 0xFFFF}"), color = fg.copy(alpha = 0.8f), fontSize = 16.sp)
     }
 }
 
@@ -407,20 +408,20 @@ private fun StartupCrashPage(report: String, onRetry: () -> Unit) {
         androidx.compose.ui.Modifier.fillMaxSize().background(bg).verticalScroll(androidx.compose.foundation.rememberScrollState()).padding(32.dp),
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(14.dp),
     ) {
-        androidx.compose.material3.Text(L.branded("Horizon Nav keeps closing while it starts"), color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-        androidx.compose.material3.Text("Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it.", color = fg.copy(alpha = 0.75f), fontSize = 15.sp)
+        androidx.compose.material3.Text(L.t("Horizon Nav keeps closing while it starts"), color = fg, fontSize = 24.sp, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+        androidx.compose.material3.Text(L.t("Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it."), color = fg.copy(alpha = 0.75f), fontSize = 15.sp)
         androidx.compose.foundation.layout.Row(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp)) {
             androidx.compose.material3.Button({
                 val url = "https://github.com/${BuildConfig.UPDATE_REPO}/issues/new?title=" + android.net.Uri.encode("Crash on start: ${Build.MANUFACTURER} ${Build.MODEL}") + "&body=" + android.net.Uri.encode(report.take(5000))
                 try { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                catch (e: Exception) { android.widget.Toast.makeText(ctx, "No browser on this unit: use Copy instead", android.widget.Toast.LENGTH_LONG).show() }
-            }) { androidx.compose.material3.Text("Send on GitHub") }
+                catch (e: Exception) { android.widget.Toast.makeText(ctx, L.t("No browser on this unit: use Copy instead"), android.widget.Toast.LENGTH_LONG).show() }
+            }) { androidx.compose.material3.Text(L.t("Send on GitHub")) }
             androidx.compose.material3.Button({
                 val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
                 cm?.setPrimaryClip(android.content.ClipData.newPlainText("Horizon Nav crash", report))
-                android.widget.Toast.makeText(ctx, "Copied: paste it into a message or a Reddit comment", android.widget.Toast.LENGTH_LONG).show()
-            }) { androidx.compose.material3.Text("Copy") }
-            androidx.compose.material3.OutlinedButton(onRetry) { androidx.compose.material3.Text("Try again", color = fg) }
+                android.widget.Toast.makeText(ctx, L.t("Copied: paste it into a message or a Reddit comment"), android.widget.Toast.LENGTH_LONG).show()
+            }) { androidx.compose.material3.Text(L.t("Copy")) }
+            androidx.compose.material3.OutlinedButton(onRetry) { androidx.compose.material3.Text(L.t("Try again"), color = fg) }
         }
         androidx.compose.material3.Text(report, color = fg.copy(alpha = 0.6f), fontSize = 11.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
     }

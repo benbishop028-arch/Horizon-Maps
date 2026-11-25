@@ -121,14 +121,10 @@ object I18nTa {
         "Weight limit" to "எடை வரம்பு",
         "Width limit" to "அகல வரம்பு",
         "Length limit" to "நீள வரம்பு",
-        "Fuel prices" to "எரிபொருள் விலைகள்",
-        "Avoid toll roads" to "கட்டணச் சாலைகளைத் தவிர்க்கவும்",
-        "Avoid motorways" to "நெடுஞ்சாலைகளைத் தவிர்க்கவும்",
-        "Avoid ferries" to "படகுப் போக்குவரத்தைத் தவிர்க்கவும்",
-        "Add stop" to "நிறுத்துமிடத்தைச் சேர்க்கவும்",
-        "Save place" to "இடத்தைச் சேமிக்கவும்",
-        "Search for a place" to "இடத்தைத் தேடவும்",
-        "Map style" to "வரைபடத் தோற்றம்",
-        "Satellite" to "செயற்கைக்கோள்"
+        "This head unit can't draw the Mapbox map" to "இந்த ஹெட் யூனிட்டால் Mapbox வரைபடத்தைக் காட்ட முடியாது",
+        "Horizon Nav keeps closing while it starts" to "Horizon Nav தொடங்கும்போது தொடர்ந்து மூடப்படுகிறது",
+        "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "மன்னிக்கவும். கீழே உள்ள அறிக்கையை அனுப்பினால் இந்த ஹெட் யூனிட்டுக்கான சிக்கலைச் சரிசெய்ய உதவும். இதில் தனிப்பட்ட தகவல்கள் இல்லை.",
+        "No browser on this unit: use Copy instead" to "இந்த யூனிட்டில் உலாவி இல்லை: அதற்குப் பதிலாக நகலெடுக்கவும்",
+        "Copied: paste it into a message or a Reddit comment" to "நகலெடுக்கப்பட்டது: இதைச் செய்தியிலோ Reddit கருத்திலோ ஒட்டவும்"
     )
 }

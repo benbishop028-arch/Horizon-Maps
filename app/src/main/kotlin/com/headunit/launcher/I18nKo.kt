@@ -121,14 +121,10 @@ object I18nKo {
         "Weight limit" to "중량 제한",
         "Width limit" to "너비 제한",
         "Length limit" to "길이 제한",
-        "Fuel prices" to "연료 가격",
-        "Avoid toll roads" to "유료 도로 피하기",
-        "Avoid motorways" to "고속도로 피하기",
-        "Avoid ferries" to "페리 피하기",
-        "Add stop" to "경유지 추가",
-        "Save place" to "장소 저장",
-        "Search for a place" to "장소 검색",
-        "Map style" to "지도 스타일",
-        "Satellite" to "위성"
+        "This head unit can't draw the Mapbox map" to "이 차량용 기기는 Mapbox 지도를 표시할 수 없습니다",
+        "Horizon Nav keeps closing while it starts" to "Horizon Nav가 시작 중 계속 종료됩니다",
+        "Sorry about that. Sending the report below lets it be fixed for this head unit. Nothing personal is in it." to "불편을 드려 죄송합니다. 아래 보고서를 보내 주시면 이 차량용 기기의 문제를 해결하는 데 도움이 됩니다. 개인 정보는 포함되지 않습니다.",
+        "No browser on this unit: use Copy instead" to "이 기기에 브라우저가 없습니다. 대신 복사를 사용하세요",
+        "Copied: paste it into a message or a Reddit comment" to "복사했습니다. 메시지나 Reddit 댓글에 붙여넣으세요"
     )
 }
