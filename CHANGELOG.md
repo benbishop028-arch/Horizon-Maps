@@ -34,7 +34,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Voice boost: Settings › Sound & voice › Voice and volume › Voice boost makes the spoken directions up to 18 dB louder, for when they are too quiet next to the music over Android Auto or Bluetooth. Moving it up turns on "Play the voice like the chimes", which it needs. Off (0 dB) by default (thanks to Mirrrik, #362)
 - Android Auto: the left-column trip card now shows live fuel cost and distance driven when Live fuel cost is enabled, as the bottom bar does (thanks to ZarulOfficial, #353)
 - Bigger 3D models for your arrow: a .glb over 8 MB (as models made with AI tools like Meshy often are) has its pictures made smaller as it's picked, so it fits; the shape isn't changed. Up to 48 MB can be picked (thanks to HukarStudio, Reddit)
-- "Slow down" in words: Settings › Alerts › Say "Slow down" speaks it after the beep when you go over the limit, and Top speed alert gives a speed of your own (say 120 km/h) that beeps and says "Slow down" once as you reach it, whatever the limit is. Both are off by default (thanks to Dotancom, #345)
+- Separate speed-warning voices: "Say \"Slow down\"" controls speech when you exceed a road's speed limit; "Say \"Slow down\" at top speed" controls speech only when you reach your chosen maximum. The top-speed beep and voice remain enabled by default when a top speed is set, and can be separated (thanks to Dotancom, #345)
 - Pause the music for the voice: Settings › Sound & voice › Pause the music for the voice stops the music while the directions are spoken and carries on after, for when lowering it isn't enough. How far the music drops when lowered is up to your music app (thanks to bluelions25, #338)
 - Speed limit sounds on their own: Settings › Alerts › Speed limit sounds turns off just the speed limit's beeps and voice (over the limit, and when it changes), while cameras, hazards and other alerts still sound (testers' group)
 - Pop-up when the limit changes can be switched off (Settings › Alerts): the sign by your speedometer still pulses, and the sign on the route ahead still shows (thanks to karthikeyansr, #328)
@@ -56,6 +56,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
+- Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
 - Compass keeps up: the compass on the side now always follows the way the map is turned, so its red mark stays on north whether you're following your arrow, have turned the map by hand, or looked around
 - Tap a place on TomTom and OpenStreetMap maps: tapping a shop, station or other place now opens its card with the drive time and Go, as it already did on the Mapbox map (thanks to Branko Knez)
 - Longer offline routes: planning a longer trip from a big downloaded map (like all of England) now uses less memory, and if the phone still runs short it says the route couldn't be planned instead of closing the app (thanks to squirrel_blocks on Reddit)
