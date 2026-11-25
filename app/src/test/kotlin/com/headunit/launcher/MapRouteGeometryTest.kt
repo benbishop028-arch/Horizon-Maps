@@ -7,7 +7,7 @@ import org.junit.Test
 
 class MapRouteGeometryTest {
     @Test fun laneOffsetsRejectsOppositeCarriagewayDirection() {
-        val eastbound = listOf(LL(50.00005, -1.0001), LL(50.00005, -0.9999))
+        val eastbound = listOf(LL(49.99995, -1.0001), LL(49.99995, -0.9999))
         val westbound = listOf(LL(50.00010, -0.9999), LL(50.00010, -1.0001))
         val offsets = MapRouteGeometry.laneOffsets(listOf(eastbound, westbound), LL(50.0, -1.0), 90.0)
         assertEquals(1, offsets.size)

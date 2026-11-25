@@ -108,7 +108,7 @@ class NavigationPolicyTest {
         val cumulative = doubleArrayOf(0.0, 100.0, 300.0, 400.0)
         val seconds = doubleArrayOf(60.0, 300.0, 30.0)
         assertEquals(390.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 0.0)!!, 0.001)
-        assertEquals(285.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 150.0)!!, 0.001)
+        assertEquals(255.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 150.0)!!, 0.001)
         assertEquals(15.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 350.0)!!, 0.001)
         assertEquals(0.0, NavigationPolicy.remainingSegmentTime(cumulative, seconds, 450.0)!!, 0.001)
     }

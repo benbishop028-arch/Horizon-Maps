@@ -134,5 +134,14 @@ object I18nKo {
         "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav가 계속 멈추거나 종료되어 지도가 가장 가벼운 설정으로 전환되었습니다. 이 기기의 문제를 해결할 수 있도록 설정 > 정보 및 백업에서 피드백 보고서를 보내 주세요.",
         "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav 시작에 문제가 있어 지도가 가장 가벼운 모드로 설정되었습니다. 설정 > 지도 스타일에서 변경할 수 있습니다.",
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav 시작에 문제가 있어 무거운 3D 지도 효과가 꺼졌습니다. 설정 > 밝기 및 3D > 지도 화면에서 다시 켤 수 있습니다.",
+        "Fuel prices" to "연료 가격",
+        "Avoid toll roads" to "유료 도로 피하기",
+        "Avoid motorways" to "고속도로 피하기",
+        "Avoid ferries" to "페리 피하기",
+        "Add stop" to "경유지 추가",
+        "Save place" to "장소 저장",
+        "Search for a place" to "장소 검색",
+        "Map style" to "지도 스타일",
+        "Satellite" to "위성",
     )
 }

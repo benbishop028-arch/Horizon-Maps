@@ -134,5 +134,14 @@ object I18nTe {
         "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav పదేపదే నిలిచిపోవడం లేదా మూసుకుపోవడం వల్ల మ్యాప్ ఇప్పుడు అత్యంత తేలికైన సెట్టింగ్‌లో ఉంది. ఈ యూనిట్ సమస్యను పరిష్కరించేందుకు Settings > About & backup నుంచి అభిప్రాయ నివేదిక పంపండి.",
         "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav ప్రారంభించడంలో సమస్య ఏర్పడింది, అందువల్ల మ్యాప్ అత్యంత తేలికైన మోడ్‌లో ఉంది. Settings > Map styleలో మార్చవచ్చు.",
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav ప్రారంభించడంలో సమస్య ఏర్పడింది, అందువల్ల భారీ 3D మ్యాప్ ఫీచర్లు ఆఫ్ చేయబడ్డాయి. Settings > Light & 3D మరియు On the mapలో మళ్లీ ఆన్ చేయవచ్చు.",
+        "Fuel prices" to "ఇంధన ధరలు",
+        "Avoid toll roads" to "టోల్ రోడ్లను నివారించు",
+        "Avoid motorways" to "హైవేలను నివారించు",
+        "Avoid ferries" to "ఫెర్రీలను నివారించు",
+        "Add stop" to "ఆగే స్థలాన్ని జోడించు",
+        "Save place" to "స్థలాన్ని సేవ్ చేయి",
+        "Search for a place" to "స్థలం కోసం వెతుకు",
+        "Map style" to "మ్యాప్ శైలి",
+        "Satellite" to "ఉపగ్రహం",
     )
 }

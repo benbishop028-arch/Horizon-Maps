@@ -7,7 +7,7 @@ class I18nCaTest {
     private val translations = I18nCa.rows().toMap()
 
     @Test fun navigationConnectorsAreTranslated() {
-        assertEquals(" per Ronda del Litoral", translations[" onto {0}"])
+        assertEquals(" per Ronda del Litoral", translations[" onto {0}"]?.replace("{0}", "Ronda del Litoral"))
         assertEquals("Arribada a Avinguda dels Banús 105", translations["Arrive at {0}"]?.replace("{0}", "Avinguda dels Banús 105"))
     }
 

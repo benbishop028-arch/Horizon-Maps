@@ -134,5 +134,14 @@ object I18nTa {
         "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav தொடர்ந்து உறைவதால் அல்லது மூடப்படுவதால், வரைபடம் மிக இலகுவான அமைப்புக்கு மாற்றப்பட்டுள்ளது. இந்த யூனிட்டின் சிக்கலைச் சரிசெய்ய, அமைப்புகள் > அறிமுகம் மற்றும் காப்புப்பிரதி பகுதியில் கருத்தறிக்கை அனுப்பவும்.",
         "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav தொடங்குவதில் சிக்கல் ஏற்பட்டதால், வரைபடம் மிக இலகுவான முறையில் உள்ளது. அமைப்புகள் > வரைபட பாணியில் இதை மாற்றலாம்.",
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav தொடங்குவதில் சிக்கல் ஏற்பட்டதால், அதிக சுமையுள்ள 3D வரைபட அம்சங்கள் முடக்கப்பட்டுள்ளன. அமைப்புகள் > ஒளி மற்றும் 3D > வரைபடத்தில் மீண்டும் இயக்கலாம்.",
+        "Fuel prices" to "எரிபொருள் விலைகள்",
+        "Avoid toll roads" to "சுங்கச் சாலைகளைத் தவிர்",
+        "Avoid motorways" to "நெடுஞ்சாலைகளைத் தவிர்",
+        "Avoid ferries" to "படகுப் பாதைகளைத் தவிர்",
+        "Add stop" to "நிறுத்தத்தைச் சேர்",
+        "Save place" to "இடத்தைச் சேமி",
+        "Search for a place" to "இடத்தைத் தேடு",
+        "Map style" to "வரைபடத் தோற்றம்",
+        "Satellite" to "செயற்கைக்கோள்",
     )
 }

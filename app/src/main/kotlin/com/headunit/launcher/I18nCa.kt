@@ -141,5 +141,14 @@ object I18nCa {
         "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed" to "Horizon Nav continua bloquejant-se o tancant-se, així que el mapa ara està en la configuració més lleugera. Envia un informe des de Configuració > Quant a i còpies de seguretat perquè es pugui solucionar el problema d’aquesta unitat",
         "Horizon Nav had trouble starting, so the map is on Lightest. You can change it in Settings > Map style" to "Horizon Nav ha tingut problemes per iniciar-se, així que el mapa està en el mode més lleuger. Pots canviar-ho a Configuració > Estil del mapa",
         "Horizon Nav had trouble starting, so the heaviest 3D map features are off. You can turn them back on in Settings > Light & 3D and On the map" to "Horizon Nav ha tingut problemes per iniciar-se, així que els efectes 3D més exigents estan desactivats. Pots tornar-los a activar a Configuració > Llum i 3D i Al mapa",
+        "Fuel prices" to "Preus del combustible",
+        "Avoid toll roads" to "Evita els peatges",
+        "Avoid motorways" to "Evita les autopistes",
+        "Avoid ferries" to "Evita els ferris",
+        "Add stop" to "Afegeix una parada",
+        "Save place" to "Desa el lloc",
+        "Search for a place" to "Cerca un lloc",
+        "Map style" to "Estil del mapa",
+        "Satellite" to "Satèl·lit",
     )
 }

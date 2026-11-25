@@ -5,6 +5,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Complete the nine everyday settings and map-action translations in Catalan, Korean, Tamil and Telugu.
+
+### Fixed
+- Correct the Catalan road-name template test, the lane-offset test's eastbound carriageway position, and the remaining-time test's expected segment calculation.
+
+### Improved
 - Remove the repeated road-shield badge from the larger junction sign in the turn card, keeping the destination names and direction arrow.
 - Translate route-overview step counts and startup recovery/graphics compatibility messages in Catalan, Korean, Tamil and Telugu.
 - Run the public release unit tests in GitHub Actions as part of the normal build.
