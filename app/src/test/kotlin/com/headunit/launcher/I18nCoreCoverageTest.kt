@@ -95,8 +95,6 @@ class I18nCoreCoverageTest {
         "Switched route",
         "Leave now to arrive by {0}",
         "Leave by {0} to arrive by {1}. I'll remind you.",
-        "UK & Ireland", "Europe", "United States", "Canada",
-        "Mexico & Central America", "South America", "Asia", "Africa", "Oceania",
         "Free space: {0}", "arrive {0}",
     )
 
@@ -150,15 +148,24 @@ class I18nCoreCoverageTest {
         }
     }
 
-    @Test fun offlinePickerAndCarArrivalLabelsAreTranslated() {
+    @Test fun offlinePickerGroupsExistInEveryShortPack() {
+        val packs = listOf("ca" to I18nCa.rows(), "ko" to I18nKo.rows(), "ta" to I18nTa.rows(), "te" to I18nTe.rows())
+        val keys = listOf("UK & Ireland", "Europe", "United States", "Canada",
+            "Mexico & Central America", "South America", "Asia", "Africa", "Oceania")
+        for ((code, rows) in packs) {
+            val translations = rows.toMap()
+            for (key in keys) {
+                assertTrue("$code is missing offline picker label '$key'", !translations[key].isNullOrBlank())
+                assertNotEquals("$code offline picker label '$key' is still English", key, translations[key])
+            }
+            val free = translations["Free space: {0}"].orEmpty()
+            val arrival = translations["arrive {0}"].orEmpty()
+            assertTrue("$code free-space translation lost its placeholder", free.contains("{0}"))
+            assertTrue("$code car-arrival translation lost its placeholder", arrival.contains("{0}"))
+        }
         try {
             for (code in listOf("ca", "ko", "ta", "te")) {
                 L.set(code)
-                for (key in listOf("UK & Ireland", "Europe", "United States", "Canada",
-                    "Mexico & Central America", "South America", "Asia", "Africa", "Oceania")) {
-                    println("I18N_DEBUG $code [$key] -> [${L.t(key)}]")
-                    assertNotEquals("$code group label falls back", key, L.t(key))
-                }
                 val free = L.t("Free space: {0}", "2 GB")
                 assertTrue("$code lost the free-space value", free.contains("2 GB"))
                 assertNotEquals("$code free-space label falls back", "Free space: 2 GB", free)
