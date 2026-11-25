@@ -18,7 +18,7 @@ internal object RouteMatcher {
      * route only when the local result is more than 60 m away. The limits intentionally match the old
      * NavEngine implementation to avoid changing snapping behaviour.
      */
-    fun snap(route: Route, position: LL, previousIndex: Int): RouteSnap {
+    fun snap(route: Route, position: LL, previousIndex: Int, heading: Double? = null): RouteSnap {
         val pts = route.pts
         require(pts.size >= 2) { "A route needs at least two points to snap a position" }
         require(route.cum.size >= pts.size) { "Route cumulative distances do not cover its points" }
@@ -42,8 +42,15 @@ internal object RouteMatcher {
                     (-(ax * dx + ay * dy) / lengthSquared).coerceIn(0.0, 1.0)
                 } else 0.0
                 val distance = hypot(ax + dx * fraction, ay + dy * fraction)
-                if (distance < bestDistance) {
-                    bestDistance = distance
+                // A reliable heading helps distinguish opposite carriageways and nearby return legs.
+                val headingPenalty = if (heading != null && lengthSquared > 4.0) {
+                    val bearing = (Math.toDegrees(kotlin.math.atan2(dx, -dy)) + 360.0) % 360.0
+                    val delta = kotlin.math.abs(((bearing - heading + 540.0) % 360.0) - 180.0)
+                    when { delta > 135.0 -> 100.0; delta > 90.0 -> 35.0; else -> 0.0 }
+                } else 0.0
+                val score = distance + headingPenalty
+                if (score < bestDistance) {
+                    bestDistance = score
                     bestIndex = i
                     bestFraction = fraction
                 }
