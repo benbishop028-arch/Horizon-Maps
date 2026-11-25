@@ -217,5 +217,11 @@ object I18nTa {
         "Reroute failed ({0}), trying again…" to "மீண்டும் வழி கணக்கிடுதல் தோல்வி ({0}); மீண்டும் முயற்சிக்கிறது…",
         "Nothing found along the route ahead" to "வழியில் முன்னால் எதுவும் கிடைக்கவில்லை",
         "Nothing found nearby" to "அருகில் எதுவும் கிடைக்கவில்லை",
+        "{0} saved: {1}" to "{0} சேமிக்கப்பட்டது: {1}",
+        "Switched: about {0} min quicker" to "மாற்றப்பட்டது: சுமார் {0} நிமிடம் விரைவானது",
+        "Switched: about {0} min longer" to "மாற்றப்பட்டது: சுமார் {0} நிமிடம் தாமதமானது",
+        "Switched route" to "வழி மாற்றப்பட்டது",
+        "Leave now to arrive by {0}" to "{0} மணிக்குள் செல்ல இப்போது புறப்படவும்",
+        "Leave by {0} to arrive by {1}. I'll remind you." to "{1} மணிக்குச் செல்ல {0} மணிக்குப் புறப்படவும். நினைவூட்டுகிறேன்.",
     )
 }
