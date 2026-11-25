@@ -1094,6 +1094,24 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
     }
 }
 
+@Composable
+private fun RoadShieldAtlasImage(shield: com.headunit.launcher.RoadShield, atlas: String) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var bitmap by remember(atlas, shield.reference) {
+        mutableStateOf(com.headunit.launcher.RoadShieldAtlas.cached(atlas, shield.reference))
+    }
+    if (bitmap == null) {
+        LaunchedEffect(atlas, shield.reference) {
+            bitmap = com.headunit.launcher.RoadShieldAtlas.load(context, atlas, shield.reference)
+        }
+    }
+    val label = shield.affixes.joinToString("") + shield.content
+    if (bitmap != null) {
+        Image(bitmap!!.asImageBitmap(), contentDescription = label,
+            modifier = Modifier.height(25.dp).widthIn(max = 66.dp), contentScale = ContentScale.Fit)
+    } else RoadShieldBadge(label.ifBlank { "Road" }, shield.reference)
+}
+
 /** Text fallback used when the provider atlas has no matching sprite or cannot be downloaded. */
 @Composable
 private fun RoadShieldBadge(text: String, type: String) {
