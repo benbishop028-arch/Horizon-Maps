@@ -8,7 +8,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Road-closure routing: only avoid full-road closures matched to the active route, use short segment-sized avoidance areas rather than broad bounding boxes, and keep nearby lane closures and unrelated incidents from forcing detours.
 
 ### Fixed
-- Route-line alignment: ignore lane-marking geometry running against the direction of travel so nearby opposing carriageways cannot pull the guidance line off the correct road (#386).
+- Lane guidance: reject lane-marking geometry running against the direction of travel, preventing nearby opposing carriageways from pulling lane guidance onto the wrong side of the road.
+- Route-line alignment (#386): retain more of the routing engine's original route geometry when drawing the main route, completed section and alternatives, helping the blue line follow tighter bends and corners.
 - Speed-bump warning: keep the warning visible for 5 seconds instead of 3.5 seconds (#387).
 
 ### New
