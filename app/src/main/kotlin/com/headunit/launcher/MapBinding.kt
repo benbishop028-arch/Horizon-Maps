@@ -2330,7 +2330,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         signalModels = empty(); signalKept = emptyList()
         if (r.size < 2) return empty()
         if (cellsFor !== r) rebuildCells(r)
-        // only lights that stand on the route's own road (within ~10 m of the line), and at each junction only the first one you reach:
+        // only lights that stand on the route's own road (within ~18 m of the line), and at each junction only the first one you reach:
         // a junction usually has a light on every arm, but only the one on your approach matters
         val near = signalPts.filter { onRoute(it) }
         if (near.isEmpty()) return empty()
