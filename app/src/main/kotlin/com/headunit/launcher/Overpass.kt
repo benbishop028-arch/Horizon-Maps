@@ -310,8 +310,9 @@ object Overpass {
                 val oneway = w.tags.optString("oneway") == "yes"
                 aligned = if (oneway) diff <= 30.0 else (diff >= 150.0 || diff <= 30.0)
                 val back = oneway && diff >= 150.0
-                // a road crossing yours (a side road at a junction) is heavily penalised, so its limit is not picked up as you pass it
-                if (back) pen += 40.0 else if (!aligned) pen += if (diff in 50.0..130.0) 35.0 else 12.0
+                // Never borrow a crossing road's limit, or the limit of a one-way road running against us.
+                // A short period with no limit is safer than showing a nearby road's unrelated limit.
+                if (!aligned) continue
             }
             if (d + pen < bd) { bd = d + pen; best = w; bDist = d; bDiff = diff; bAligned = aligned }
         }
