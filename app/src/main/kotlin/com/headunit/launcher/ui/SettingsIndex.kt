@@ -223,6 +223,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Temperature", "", "Units", 13),
     SettingRef("Driving side", "Right- or left-hand drive: mirrors the map screen for driving on the right", "Units", 13),
     SettingRef("Overall size on the car screen", "", "Sizes on the car screen", 14),
+    SettingRef("Speed, battery and position", "The car's own speed, battery level and position over Android Auto", "Car data", 14),
     SettingRef("Cool running", "For phones that get hot on Android Auto: 30 frames a second, a flat map", "Android Auto", 14),
     SettingRef("Hide them after", "The search bar and places on the car screen fold away", "Android Auto", 14),
     SettingRef("Picture in picture", "The map in a small window when you leave the app on a route", "While driving", 9),

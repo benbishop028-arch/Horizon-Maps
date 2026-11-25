@@ -1443,6 +1443,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         handleLocation(copy, false)
     }
 
+    /** Speed from the car (Car App API 3, m/s, the dashboard's figure): used instead of the GPS speed while the car gives one. */
+    @Volatile private var carSpeedMs: Double? = null
+    fun onCarSpeed(mps: Double?) { carSpeedMs = mps }
+
     override fun onLocationChanged(l: Location) {
         // Keep phone GPS registered as a fallback, but don't let it overwrite a newer car-hardware fix.
         if (isCar && System.currentTimeMillis() - carLocationAt < 5000L) return
@@ -1498,7 +1502,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         else lastRaw?.let { if (Geo.dist(it, cur) > 6) h = Geo.bearing(it, cur) }
         val prev = lastRaw
         if (prev == null || Geo.dist(prev, cur) > 6) lastRaw = cur
-        val speed = if (l.hasSpeed()) l.speed.toDouble() else 0.0
+        val speed = carSpeedMs ?: if (l.hasSpeed()) l.speed.toDouble() else 0.0
         if (prev != null && speed > 0.8) {
             val d = Geo.dist(prev, cur)
             if (d in 3.0..200.0) { tripDist += d; tripMoving += 1.0 }
@@ -2740,7 +2744,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         TomTomRest.evParams = if (isEv && prefs.b(PreferenceKeys.ROUTE_ECO, false)) {
             val k = evKwhPerKm() * 100.0
             val batt = evBatteryKwh()
-            val now = batt * prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100) / 100.0
+            val now = batt * evNowPct().coerceIn(5, 100) / 100.0
             String.format(java.util.Locale.US, "&vehicleEngineType=electric&constantSpeedConsumptionInkWhPerHundredkm=50,%.1f:90,%.1f:130,%.1f&currentChargeInkWh=%.1f&maxChargeInkWh=%.1f",
                 k * 0.7, k, k * 1.45, now, batt)
         } else ""
@@ -7194,11 +7198,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun evArrivalPct(): Int? {
         if (!isEv) return null
         val e = eta ?: return null
-        val start = prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(1, 100)
-        val driven = if (navStartMs > 0) max(0.0, tripDist - navStartDist) else 0.0
+        val start = evNowPct().coerceIn(1, 100)
+        // (the car's live battery level already has what's been driven taken off)
+        val driven = if (CarData.soc == null && navStartMs > 0) max(0.0, tripDist - navStartDist) else 0.0
         val usedPct = (driven + e.dist) / 1000.0 * evKwhPerKm() / evBatteryKwh() * 100.0
         return Math.round(start - usedPct).toInt().coerceIn(-50, 100)
     }
+
+    /** The battery level now: the car's own (Android Auto) when it gives one, otherwise the one set on the route options. */
+    fun evNowPct(): Int = CarData.soc ?: prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80)
 
     /** The battery level or the charge to arrive with changed on the route options: look again for a charging stop. */
     fun refreshEvPlan() { val r = route ?: return; fuelSuggestion = null; suggestFuel(r) }
@@ -7211,7 +7219,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // detour, and how much you'll have when you get there. Only when the trip needs one.
         if (fuel == "EV") {
             val cons = evKwhPerKm(); val batt = evBatteryKwh()
-            val startPct = prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(1, 100); val minPct = prefs.i(PreferenceKeys.EV_MIN_ARRIVE, 20).coerceIn(0, 60)
+            val startPct = evNowPct().coerceIn(1, 100); val minPct = prefs.i(PreferenceKeys.EV_MIN_ARRIVE, 20).coerceIn(0, 60)
             val rangeM = max(0.0, (startPct - minPct) / 100.0 * batt / cons * 1000.0)
             if (r.len <= rangeM) { fuelSuggestion = null; return }
             a = max(5_000.0, rangeM * 0.5); b = max(a + 5_000.0, rangeM * 0.92)
@@ -8455,4 +8463,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 object CarDiag {
     @Volatile var screen = ""
     @Volatile var shift = ""
+}
+
+/** What the car itself reports over Android Auto (Car App API 3), shared by the car's and the phone's engines. */
+object CarData {
+    /** Battery %, or null when the car gives none (the one set on the route options is used then). */
+    var soc by mutableStateOf<Int?>(null)
+    /** Runtime permissions (granted through Android Auto) for the car's speed and its battery level. */
+    const val CAR_SPEED = "com.google.android.gms.permission.CAR_SPEED"
+    const val CAR_FUEL = "com.google.android.gms.permission.CAR_FUEL"
 }

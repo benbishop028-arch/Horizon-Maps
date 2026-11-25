@@ -253,9 +253,14 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         Text(L.t("Battery now"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 10.dp))
         // (1% a tap, and held down it runs on: it went in tens, so 32% or 35% couldn't be set, Dry-Secretary2456)
         val setPct = { d: Int -> engine.prefs.put(PreferenceKeys.EV_CHARGE_PCT, (engine.prefs.i(PreferenceKeys.EV_CHARGE_PCT, 80).coerceIn(5, 100) + d).coerceIn(5, 100)) }
-        StepPill("−", { setPct(-1) }, { engine.refreshEvPlan() })
-        Text("$pct%", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
-        StepPill("+", { setPct(1) }, { engine.refreshEvPlan() })
+        // (the car's own level over Android Auto when it gives one: nothing to set then)
+        val carPct = com.headunit.launcher.CarData.soc
+        if (carPct != null) Text("$carPct% · " + L.t("from car"), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
+        else {
+            StepPill("−", { setPct(-1) }, { engine.refreshEvPlan() })
+            Text("$pct%", color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
+            StepPill("+", { setPct(1) }, { engine.refreshEvPlan() })
+        }
         Text(L.t("Arrive with at least"), color = c.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 14.dp, end = 4.dp))
         for (m in listOf(10, 20, 30)) Pill("$m%", minArr == m, { engine.prefs.put(PreferenceKeys.EV_MIN_ARRIVE, m); engine.refreshEvPlan() })
         val eco = engine.prefs.b(PreferenceKeys.ROUTE_ECO, false)
