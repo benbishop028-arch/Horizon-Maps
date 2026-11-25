@@ -2648,7 +2648,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             places.setSlot(slot, p)
             pendingSave = null
             results = emptyList()
-            toast("${if (slot == "home") "Home" else "Work"} saved: ${p.name}", 3500)
+            toast(L.t("{0} saved: {1}", if (slot == "home") L.t("Home") else L.t("Work"), p.name), 3500)
         } else startRoute(p)
     }
 
@@ -6327,7 +6327,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         lastFasterCheck = System.currentTimeMillis()
         drawRoutes()
         updateRouteZones()
-        toast(if (a.diffMin < 0) "Switched: about ${-a.diffMin} min quicker" else if (a.diffMin > 0) "Switched: about ${a.diffMin} min longer" else "Switched route", 3000)
+        toast(if (a.diffMin < 0) L.t("Switched: about {0} min quicker", -a.diffMin) else if (a.diffMin > 0) L.t("Switched: about {0} min longer", a.diffMin) else L.t("Switched route"), 3000)
         // back to following you on the new route (the map had zoomed out to show the routes)
         recenter(byUser = true)
         // the way you were going stays on the map as an alternative, with its card (the other way round: slower becomes faster)
@@ -7130,7 +7130,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // back to the map, where the planned card shows the leave time
             if (previewing) endRoute()
             val f = Clock.format()
-            toast(if (leave <= System.currentTimeMillis()) "Leave now to arrive by ${f.format(Date(arriveMs))}" else "Leave by ${f.format(Date(leave))} to arrive by ${f.format(Date(arriveMs))}. I'll remind you.", 5000)
+            toast(if (leave <= System.currentTimeMillis()) L.t("Leave now to arrive by {0}", f.format(Date(arriveMs))) else L.t("Leave by {0} to arrive by {1}. I'll remind you.", f.format(Date(leave)), f.format(Date(arriveMs))), 5000)
             watchPlanned()
         }
     }
