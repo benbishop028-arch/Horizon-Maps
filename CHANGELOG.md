@@ -6,6 +6,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### Fixed
 - Alternative routes: keep the locator matched to the car's position and direction when switching routes, preserve continuous trip progress, anchor map cards at the branch point, and switch routes with one tap on a map card while retaining two-tap confirmation in the routes list.
+- Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
 
 
 ### Fixed
@@ -56,7 +57,6 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Português (Brasil): Brazilian Portuguese, with Brazil's own words (tela, celular, salvar, pedágio, rotatória, "Calculando…") and voice, chosen by itself on a Brazilian phone (thanks to wberaldo, #284)
 
 ### Improved
-- Android Auto alternative-route panel: now follows the car-card size setting and automatically scales down on narrow or short screens, leaving more of the map visible without changing the phone app (#374)
 - Compass keeps up: the compass on the side now always follows the way the map is turned, so its red mark stays on north whether you're following your arrow, have turned the map by hand, or looked around
 - Tap a place on TomTom and OpenStreetMap maps: tapping a shop, station or other place now opens its card with the drive time and Go, as it already did on the Mapbox map (thanks to Branko Knez)
 - Longer offline routes: planning a longer trip from a big downloaded map (like all of England) now uses less memory, and if the phone still runs short it says the route couldn't be planned instead of closing the app (thanks to squirrel_blocks on Reddit)
