@@ -639,7 +639,7 @@ object MapboxRest {
                     val j0 = s.optJSONArray("intersections")?.optJSONObject(0)
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
-                        shields = shields.distinctBy { it.text },
+                        shields = shields.distinctBy { it.content },
                         lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay,
                         sides = sideRoads(j0), ref = if (name.isNotBlank() && type != "off ramp") ref else "")
                     sigOnWay = sigHere
