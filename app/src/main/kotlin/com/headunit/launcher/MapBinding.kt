@@ -1319,6 +1319,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    /** Give Way signs on the active route, kept separate from STOP markers so each uses its proper road-sign shape. */
+    private var giveWaySigns: List<LL> = emptyList()
+    private fun giveWayFeats(): List<Feature> = giveWaySigns.map { Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat)) }
+    fun setGiveWaySigns(list: List<LL>) {
+        main0.post {
+            giveWaySigns = list
+            try { src("dl-giveways")?.featureCollection(FeatureCollection.fromFeatures(giveWayFeats())) } catch (e: Throwable) { }
+        }
+    }
+
     /** A stop sign: a red octagon with a white rim and STOP across it (drawn at 2x, shown at half). */
     private fun stopBitmap(): Bitmap {
         val s = 72
@@ -1336,6 +1346,26 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         c.drawPath(octagon(30f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFC8102E.toInt() })
         val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt(); textSize = 18f; typeface = android.graphics.Typeface.DEFAULT_BOLD; textAlign = Paint.Align.CENTER }
         c.drawText("STOP", s / 2f, s / 2f - (tp.descent() + tp.ascent()) / 2f, tp)
+        return bmp
+    }
+
+    /** Standard inverted Give Way triangle: red border, white face and legible two-line label. */
+    private fun giveWayBitmap(): Bitmap {
+        val s = 72
+        val bmp = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        fun triangle(inset: Float): Path = Path().apply {
+            moveTo(s / 2f, 4f + inset)
+            lineTo(s - 4f - inset, s - 7f - inset)
+            lineTo(4f + inset, s - 7f - inset)
+            close()
+        }
+        c.drawPath(triangle(0f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt(); style = Paint.Style.STROKE; strokeWidth = 5f; strokeJoin = Paint.Join.ROUND })
+        c.drawPath(triangle(3f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFD71920.toInt() })
+        c.drawPath(triangle(9f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() })
+        val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF202020.toInt(); textSize = 9.5f; typeface = android.graphics.Typeface.DEFAULT_BOLD; textAlign = Paint.Align.CENTER }
+        c.drawText("GIVE", s / 2f, 43f, tp)
+        c.drawText("WAY", s / 2f, 53f, tp)
         return bmp
     }
 
@@ -2672,6 +2702,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addImg(st, "dl-stop", stopBitmap())
         addS(st, GeoJsonSource.Builder("dl-stops").featureCollection(FeatureCollection.fromFeatures(stopFeats())).build())
         addL(st, SymbolLayer("dl-stop", "dl-stops").inSlot(TOP).iconImage("dl-stop").iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
+            .iconSize(zoomed(1.5, 14 to 0.35, 17 to 0.55, 20 to 0.8)).iconEmissiveStrength(1.0).minZoom(14.0))
+        // Give Way signs use the same compact, upright route-marker treatment as STOP signs.
+        addImg(st, "dl-giveway", giveWayBitmap())
+        addS(st, GeoJsonSource.Builder("dl-giveways").featureCollection(FeatureCollection.fromFeatures(giveWayFeats())).build())
+        addL(st, SymbolLayer("dl-giveway", "dl-giveways").inSlot(TOP).iconImage("dl-giveway").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             .iconSize(zoomed(1.5, 14 to 0.35, 17 to 0.55, 20 to 0.8)).iconEmissiveStrength(1.0).minZoom(14.0))
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
