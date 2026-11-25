@@ -189,5 +189,7 @@ object I18nKo {
         "No offline route" to "오프라인 경로가 없습니다",
         "No offline route found" to "오프라인 경로를 찾을 수 없습니다",
         "No offline route found. Check both places are inside your downloaded maps" to "오프라인 경로를 찾을 수 없습니다. 두 위치가 모두 다운로드한 지도 안에 있는지 확인하세요",
+        "speed limits" to "속도 제한",
+        "speed cameras" to "과속 단속 카메라",
     )
 }
