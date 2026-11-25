@@ -995,17 +995,23 @@ object OfflineRouter {
         var res: JSONObject? = try { JSONObject(engine(pd).routeRaw(req.toString())) } catch (e: Exception) {
             // The native engine can throw ValhallaError 171 before returning a JSON response.
             val message = e.message.orEmpty()
-            if (message.contains("171") || message.contains("No suitable edges", ignoreCase = true)) {
+            if ((message.contains("171") || message.contains("No suitable edges", ignoreCase = true)) && !req.has("exclude_polygons")) {
                 throw IllegalStateException("Offline area '${pd.name}' could not match a road near the start (${from.lat}, ${from.lon}) or destination (${to.lat}, ${to.lon}). The point may be off-road or outside this pack's routing data (Valhalla error 171).", e)
             }
-            // the router turned the areas down (or couldn't get round them): plan the route without them rather than fail
+            // If exclusions made the route fail, retry without them as before.
             if (!req.has("exclude_polygons")) throw e
             null
         }
         if (req.has("exclude_polygons") && (res == null || (res.has("error") && !res.has("trip")))) {
             // no way round the areas: route normally instead
             req.remove("exclude_polygons")
-            res = JSONObject(engine(pd).routeRaw(req.toString()))
+            res = try { JSONObject(engine(pd).routeRaw(req.toString())) } catch (e: Exception) {
+                val message = e.message.orEmpty()
+                if (message.contains("171") || message.contains("No suitable edges", ignoreCase = true)) {
+                    throw IllegalStateException("Offline area '${pd.name}' could not match a road near the start (${from.lat}, ${from.lon}) or destination (${to.lat}, ${to.lon}). The point may be off-road or outside this pack's routing data (Valhalla error 171).", e)
+                }
+                throw e
+            }
         }
         val o: JSONObject = res ?: throw IllegalStateException("No offline route")
         if (o.has("error") && !o.has("trip")) {
