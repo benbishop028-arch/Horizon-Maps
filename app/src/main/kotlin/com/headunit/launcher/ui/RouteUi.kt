@@ -1054,8 +1054,11 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
 fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier) {
     if (t.dist > 3200.0) return
     val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
-    val refs = (t.shields.map { it.content.ifBlank { it.affixes.joinToString("") } } + refRx.findAll(t.sign).map { it.groupValues[1] } +
-        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).filter { it.isNotBlank() }.distinct().take(4)
+    val shieldItems = t.shields.take(4)
+    val refs = (refRx.findAll(t.sign).map { it.groupValues[1] } +
+        listOfNotNull(t.ref.takeIf { it.isNotBlank() })).filter { it.isNotBlank() }
+        .filterNot { road -> shieldItems.any { it.content == road || it.affixes.joinToString("") + it.content == road } }
+        .distinct().take((4 - shieldItems.size).coerceAtLeast(0))
     val places = refRx.replace(t.sign, " ").split(',', ';', ':', '/')
         .map { it.trim().trim('-', '–').trim() }
         .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) }
@@ -1079,11 +1082,11 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
                     Text(t.exitNo, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
-            refs.forEach { r ->
-                val shield = t.shields.firstOrNull { it.content == r || it.affixes.joinToString("") + it.content == r }
-                if (shield != null && t.shieldAtlasUrl.isNotBlank()) RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
-                else RoadShieldBadge(r, shield?.reference.orEmpty())
+            shieldItems.forEach { shield ->
+                if (t.shieldAtlasUrl.isNotBlank() && shield.reference.isNotBlank()) RoadShieldAtlasImage(shield, t.shieldAtlasUrl)
+                else RoadShieldBadge((shield.content + if (shield.affixes.isNotEmpty()) " " + shield.affixes.joinToString(" ") else "").ifBlank { t.ref }, shield.reference)
             }
+            refs.forEach { RoadShieldBadge(it, "") }
             Spacer(Modifier.weight(1f))
             Text(arrow, color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Bold)
         }
