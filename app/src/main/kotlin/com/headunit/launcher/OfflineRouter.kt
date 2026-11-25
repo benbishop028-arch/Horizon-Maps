@@ -194,7 +194,7 @@ object OfflineRouter {
                 if (!ok) break
                 sum += len; k++
             }
-            if (k > 0 && sum == have.length()) { have.setLastModified(System.currentTimeMillis()); progress("Already have $name"); return true }
+            if (k > 0 && sum == have.length()) { have.setLastModified(System.currentTimeMillis()); progress(L.t("Already have {0}", name)); return true }
         }
         var n = 0
         while (fetch(d, base, "$name.part%02d".format(n), progress)) n++
