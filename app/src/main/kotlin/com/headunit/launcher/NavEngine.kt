@@ -6957,7 +6957,35 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Closes the arrival card and goes back to following the car. */
     fun dismissArrival() {
         arrival = null; arrivalParking = null; finishedDrive = null
-        if (!following && route == null) recenter()
+        if (route == null) {
+            // The arrival camera deliberately leaves the locator at the destination view. The route glide can
+            // still hold its last route-projected point when the route ends, so rebuild every position anchor
+            // from the latest GPS fix before following again. Do not reuse the cached fix through onPosition:
+            // it is the same object, so its normal new-fix path will not refresh these anchors.
+            val latest = fix
+            if (latest != null) {
+                val heading = if (latest.speed > 2.5) latest.heading else goodHead ?: latest.heading
+                gPos = latest.pos
+                gHead = heading
+                gSpeed = 0.0
+                gProg = 0.0
+                glideRoute = null
+                glideOnRoute = false
+                mAt = android.os.SystemClock.elapsedRealtime()
+                mProg = 0.0
+                mSpeed = 0.0
+                mPos = latest.pos
+                mHead = heading
+                camReady = false
+                camCatchUp = false
+                camTargetAt = 0L
+                lastCamSet = null
+                map.setMe(latest.pos, heading, 0)
+            }
+            // Always return the map to the actual last-known GPS position, even if the arrival
+            // camera had already left following enabled (for example when the arrival effect is off).
+            recenter()
+        }
     }
 
     /** "left" or "right" for the side of the road the destination is on, from the route's own instruction or from where the pin is. */
