@@ -4020,7 +4020,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 }
                 nearby = sortNearby(list).take(15)
                 if (kind == "charging") fillChargerAvailability()
-                if (nearby.isEmpty()) toast(if (alongRoute) "Nothing found along the route ahead" else "Nothing found nearby", 3000)
+                if (nearby.isEmpty()) toast(L.t(if (alongRoute) "Nothing found along the route ahead" else "Nothing found nearby"), 3000)
             } catch (e: Exception) { toast(searchFailText(e), 4500) }
             finally { nearbyBusy = false }
         }
