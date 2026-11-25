@@ -63,6 +63,11 @@ class I18nCoreCoverageTest {
         "No offline route found. Check both places are inside your downloaded maps",
         "speed limits",
         "speed cameras"
+        "Couldn't join your two offline map areas at their border. Try updating both",
+        "This offline map area needs downloading again",
+        "The destination is outside your offline maps",
+        "The destination is outside your offline maps, and no road towards it was found in them",
+        "No road found near the start or the destination in your offline maps",
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {
