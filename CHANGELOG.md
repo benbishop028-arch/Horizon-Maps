@@ -5,6 +5,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Localise offline town, village, postcode and address result labels, and complete the missing lane-diagnostics and favourites-sort translations in Catalan, Korean, Tamil and Telugu.
+
+### Improved
 - Translate shared-place import errors and nearby-results headings in Catalan, Korean, Tamil and Telugu; route the shared-place error through the localisation system for every language.
 
 
