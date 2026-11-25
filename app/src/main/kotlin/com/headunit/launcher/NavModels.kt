@@ -34,6 +34,8 @@ class TurnInfo(
     val ref: String = "", val thenRef: String = "",
     /** Provider-supplied country-specific road shield metadata for the upcoming sign. */
     val shields: List<RoadShield> = emptyList(),
+    /** TomTom's sprite atlas URL; downloaded and cached only when a shield is actually shown. */
+    val shieldAtlasUrl: String = "",
 )
 /** Countries that use miles for road distances and speeds. */
 val MILES_COUNTRIES = setOf("GB", "US", "PR", "LR", "MM", "IM", "GG", "JE", "VG", "VI", "AG", "DM", "GD", "KN", "LC", "VC", "BS", "KY", "FK", "SH", "WS", "GU", "AS", "MP")
