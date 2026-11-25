@@ -3589,7 +3589,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 else if (p.speed >= top && topArmed && soundMode != 2 && now - lastBeep > 4000) {
                     topArmed = false; lastBeep = now
                     speedChime()
-                    scope.launch { delay(450); speak(L.t("Slow down"), true) }
+                    if (prefs.b(PreferenceKeys.SAY_TOP_SPEED, true)) scope.launch { delay(450); speak(L.t("Slow down"), true) }
                     raiseAlert("limit", L.t("Top speed {0} reached", prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0")))
                 }
             }
