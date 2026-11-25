@@ -7270,7 +7270,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (hzWinRoute !== r) {
             rawHz = emptyList(); hzWinRoute = r; hzWinEnd = -1.0; hzRetryAt = 0L
             placed = null; placedSig = 0
-            map.setStopSigns(emptyList()); map.setCrossings(emptyList())
+            map.setStopSigns(emptyList()); map.setGiveWaySigns(emptyList()); map.setCrossings(emptyList())
         }
         barProgress = progress
         val d = dest
@@ -7361,8 +7361,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     // zebra and other marked crossings on the route, painted on the road
                     map.setCrossings(if (prefs.b(PreferenceKeys.ZEBRAS, true)) pl.hz.filter { it.poi.kind == "crossing" && it.poi.name in setOf("zebra", "marked", "uncontrolled") }
                         .take(300).map { Triple(it.poi.pos, pointAt(r, it.off).second, it.poi.name == "zebra") } else emptyList())
-                    // stop signs on the route
+                    // STOP and Give Way signs on the route (only where OpenStreetMap has a road-matched sign)
                     map.setStopSigns(if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) pl.hz.filter { it.poi.kind == "stop" }.take(300).map { it.poi.pos } else emptyList())
+                    map.setGiveWaySigns(if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) pl.hz.filter { it.poi.kind == "give_way" }.take(300).map { it.poi.pos } else emptyList())
                 } catch (e: Exception) { placedSig = sig } finally { placing = false }
             }
         }
