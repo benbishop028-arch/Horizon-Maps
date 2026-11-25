@@ -2598,20 +2598,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val rects = ArrayList<Pair<LL, LL>>(sessionAvoid)
         val rings = ArrayList<List<LL>>()
         for ((sw, ne) in sessionAvoid) rings += listOf(sw, LL(sw.lat, ne.lon), ne, LL(ne.lat, sw.lon), sw)
-        // closed roads: kept off by every route source (a closure at the start or the destination itself is left out, or there'd be
-        // no route at all). TomTom gets a small box round each, Mapbox points along it, the offline router the boxes
+        // Avoid only full-road closures matched to this route, never every closure in the surrounding 7 km.
+        // Use short segment rectangles instead of one large bounding box, which can accidentally block parallel roads.
         val closedPts = ArrayList<LL>()
+        var closureRectCount = 0
+        fun addClosureSegment(a: LL, b: LL) {
+            if (closureRectCount >= 8 || rects.size >= 10) return
+            val distance = Geo.dist(a, b)
+            val pieces = kotlin.math.ceil(distance / 80.0).toInt().coerceIn(1, 20)
+            for (i in 0 until pieces) {
+                if (closureRectCount >= 8 || rects.size >= 10) break
+                val t0 = i.toDouble() / pieces
+                val t1 = (i + 1).toDouble() / pieces
+                val p0 = LL(a.lat + (b.lat - a.lat) * t0, a.lon + (b.lon - a.lon) * t0)
+                val p1 = LL(a.lat + (b.lat - a.lat) * t1, a.lon + (b.lon - a.lon) * t1)
+                val mid = LL((p0.lat + p1.lat) / 2.0, (p0.lon + p1.lon) / 2.0)
+                if ((from != null && Geo.dist(mid, from) < 150.0) || (to != null && Geo.dist(mid, to) < 150.0)) continue
+                val latPad = 10.0 / 110540.0
+                val lonPad = 10.0 / (111320.0 * kotlin.math.cos(Math.toRadians(mid.lat)).coerceAtLeast(0.2))
+                val sw = LL(minOf(p0.lat, p1.lat) - latPad, minOf(p0.lon, p1.lon) - lonPad)
+                val ne = LL(maxOf(p0.lat, p1.lat) + latPad, maxOf(p0.lon, p1.lon) + lonPad)
+                rects += sw to ne
+                rings += listOf(sw, LL(sw.lat, ne.lon), ne, LL(ne.lat, sw.lon), sw)
+                closedPts += mid
+                closureRectCount++
+            }
+        }
         for (pts in closedRoads()) {
-            if (pts.isEmpty()) continue
-            if ((from != null && pts.any { Geo.dist(it, from) < 150.0 }) || (to != null && pts.any { Geo.dist(it, to) < 150.0 })) continue
-            var minLat = 90.0; var maxLat = -90.0; var minLon = 180.0; var maxLon = -180.0
-            for (q in pts) { minLat = min(minLat, q.lat); maxLat = max(maxLat, q.lat); minLon = min(minLon, q.lon); maxLon = max(maxLon, q.lon) }
-            val pad = 0.0003
-            val sw = LL(minLat - pad, minLon - pad); val ne = LL(maxLat + pad, maxLon + pad)
-            rects += sw to ne
-            rings += listOf(sw, LL(sw.lat, ne.lon), ne, LL(ne.lat, sw.lon), sw)
-            // the middle of a short closure, or a few points along a long one
-            if (pts.size <= 2) closedPts += pts.last() else { closedPts += pts[pts.size / 2]; closedPts += pts.first(); closedPts += pts.last() }
+            if (pts.size == 1) addClosureSegment(pts[0], pts[0])
+            else for (i in 0 until pts.lastIndex) addClosureSegment(pts[i], pts[i + 1])
+            if (closureRectCount >= 8 || rects.size >= 10) break
         }
         MapboxRest.avoidPoints = closedPts.take(25)
         MapboxRest.curbSide = prefs.b(PreferenceKeys.ARRIVE_SIDE, true)
@@ -5638,14 +5654,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Road closures the route is being kept off this trip (id to the closed road's points). */
     private val closuresAvoided = LinkedHashMap<String, List<LL>>()
 
-    /** Every closed road known now: on the route (and already being avoided) and round about. */
-    private fun closedRoads(): List<List<LL>> {
-        val out = ArrayList<List<LL>>(closuresAvoided.values)
-        val seen = HashSet(closuresAvoided.keys)
-        for (inc in nearIncidents) if (inc.cat.equals("roadclosed", true) && seen.add(inc.id)) out += inc.pts
-        for ((inc, _, _) in incMatches) if (inc.cat.equals("roadclosed", true) && seen.add(inc.id)) out += inc.pts
-        return out.take(20)
-    }
+    /** Only confirmed full-road closures matched to the current route may affect route planning. */
+    private fun closedRoads(): List<List<LL>> =
+        incMatches.asSequence()
+            .filter { it.first.cat.equals("roadclosed", true) && it.first.pts.isNotEmpty() }
+            .distinctBy { it.first.id }
+            .map { it.first.pts }
+            .take(20)
+            .toList()
 
     /** How far [q] is from the route [r] near [atOff] metres along it (the nearest stretch within 600 m either side). */
     private fun distToRoute(r: Route, q: LL, atOff: Double): Double {
@@ -7471,7 +7487,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (prefs.b(PreferenceKeys.BUMPS, true) && sp > 6.7 && ahead < max(100.0, sp * 6.0) && now - lastBumpAt > 25_000L && hzAlerted.add(key)) {
                     lastBumpAt = now
                     chime(android.media.ToneGenerator.TONE_PROP_ACK)
-                    raiseAlert("bump", L.t("Speed bump ahead"), 3500)
+                    raiseAlert("bump", L.t("Speed bump ahead"), 5000)
                 }
             } else if (prefs.b(PreferenceKeys.SCHOOLS, true) && ahead < 300.0 && RouteExtras.schoolTime(now) && hzAlerted.add(key)) {
                 raiseAlert("school", L.t("School ahead: {0}", h.poi.name), 5000)
