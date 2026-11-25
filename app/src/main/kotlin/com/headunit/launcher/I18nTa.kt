@@ -223,5 +223,16 @@ object I18nTa {
         "Switched route" to "வழி மாற்றப்பட்டது",
         "Leave now to arrive by {0}" to "{0} மணிக்குள் செல்ல இப்போது புறப்படவும்",
         "Leave by {0} to arrive by {1}. I'll remind you." to "{1} மணிக்குச் செல்ல {0} மணிக்குப் புறப்படவும். நினைவூட்டுகிறேன்.",
+        "UK & Ireland" to "ஐக்கிய இராச்சியம் மற்றும் அயர்லாந்து",
+        "Europe" to "ஐரோப்பா",
+        "United States" to "அமெரிக்கா",
+        "Canada" to "கனடா",
+        "Mexico & Central America" to "மெக்சிகோ மற்றும் மத்திய அமெரிக்கா",
+        "South America" to "தென் அமெரிக்கா",
+        "Asia" to "ஆசியா",
+        "Africa" to "ஆப்பிரிக்கா",
+        "Oceania" to "ஓசியானியா",
+        "Free space: {0}" to "காலியிடம்: {0}",
+        "arrive {0}" to "வருகை {0}",
     )
 }
