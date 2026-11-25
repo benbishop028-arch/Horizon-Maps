@@ -807,7 +807,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // moving the map with no route: the panel under the search bar tucks away so the map can be seen (TouristCreepy1884)
             if (route == null && !previewing && chain == null) homeTucked = true
         }
-        map.onAltTap = { i -> tapAlt(i) }
+        // Map cards switch immediately; the side routes list keeps its two-tap confirmation.
+        map.onAltTap = { i -> switchToAlt(i) }
         map.onChainTap = { i -> chainTapped(i) }
         // the parked-car spot is no longer used (the app lives in the car): drop any old one
         if (prefs.s(PreferenceKeys.PLACE_PARKED, "").isNotBlank()) places.clearParked()
@@ -4180,7 +4181,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     // ---- guidance ----
     private fun snap(r: Route, p: LL): RouteSnap {
-        val result = RouteMatcher.snap(r, p, lastIdx)
+        val heading = fix?.takeIf { it.speed > 2.5 }?.heading ?: goodHead
+        val result = RouteMatcher.snap(r, p, lastIdx, heading)
         lastIdx = result.segmentIndex
         return result
     }
@@ -6209,7 +6211,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val old = route; val oldProg = curProgress
         routeFracBase = routeFrac.coerceIn(0f, 1f)
         routes = listOf(a.route); active = 0
-        said.clear(); offCount = 0; lastIdx = 0; trustProg = -1.0; liveSaid.clear()
+        // Seed matching at the car's actual location and direction instead of route index zero.
+        val atCar = fix?.let { f -> RouteMatcher.snap(a.route, f.pos, 0, if (f.speed > 2.5) f.heading else goodHead) }
+        lastIdx = atCar?.segmentIndex ?: 0
+        if (atCar != null) curProgress = atCar.progress
+        said.clear(); offCount = 0; trustProg = atCar?.progress ?: -1.0; liveSaid.clear()
         clearLiveAlts()
         lastFasterCheck = System.currentTimeMillis()
         drawRoutes()
