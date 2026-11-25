@@ -156,7 +156,10 @@ class I18nCoreCoverageTest {
             val translations = rows.toMap()
             for (key in keys) {
                 assertTrue("$code is missing offline picker label '$key'", !translations[key].isNullOrBlank())
-                assertNotEquals("$code offline picker label '$key' is still English", key, translations[key])
+                // "Oceania" is correctly spelt the same way in Catalan.
+                if (!(code == "ca" && key == "Oceania")) {
+                    assertNotEquals("$code offline picker label '$key' is still English", key, translations[key])
+                }
             }
             val free = translations["Free space: {0}"].orEmpty()
             val arrival = translations["arrive {0}"].orEmpty()
