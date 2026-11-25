@@ -217,5 +217,11 @@ object I18nKo {
         "Reroute failed ({0}), trying again…" to "경로 재탐색 실패({0}). 다시 시도합니다…",
         "Nothing found along the route ahead" to "경로 앞쪽에서 아무것도 찾지 못했습니다",
         "Nothing found nearby" to "주변에서 찾지 못했습니다",
+        "{0} saved: {1}" to "{0} 저장됨: {1}",
+        "Switched: about {0} min quicker" to "변경됨: 약 {0}분 더 빠름",
+        "Switched: about {0} min longer" to "변경됨: 약 {0}분 더 느림",
+        "Switched route" to "경로 변경됨",
+        "Leave now to arrive by {0}" to "{0}까지 도착하려면 지금 출발하세요",
+        "Leave by {0} to arrive by {1}. I'll remind you." to "{1}까지 도착하려면 {0}에 출발하세요. 알려드리겠습니다.",
     )
 }
