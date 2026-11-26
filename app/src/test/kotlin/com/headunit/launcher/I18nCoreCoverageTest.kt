@@ -338,7 +338,7 @@ class I18nCoreCoverageTest {
         assertEquals("Every non-English language option must have a translation table",
             expectedCodes, translations.keys)
 
-        val placeholder = Regex("""\\{\\d+}""")
+        val placeholder = Regex("""\{\d+}""")
         for ((code, rows) in translations) {
             assertTrue("$code has an empty translation table", rows.isNotEmpty())
             for ((source, translated) in rows) {
