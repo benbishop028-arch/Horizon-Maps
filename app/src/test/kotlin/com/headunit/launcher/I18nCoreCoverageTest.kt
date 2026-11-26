@@ -154,7 +154,7 @@ class I18nCoreCoverageTest {
             "eu" to listOf("Auto"),
             "sl" to listOf("Pickup")
         )
-        val placeholder = Regex("""\\{\\d+}""")
+        val placeholder = Regex("""\{\d+}""")
         try {
             for ((code, keys) in expected) {
                 L.set(code)
