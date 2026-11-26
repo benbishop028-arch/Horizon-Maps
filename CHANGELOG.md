@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Localise weather status and conditions, fuel price labels and freshness, clean-air-zone results, and Google Play billing messages in Catalan, Korean, Tamil and Telugu.
+
 Everything that has changed in Horizon Nav, newest first. Each version lists what's new, what's improved and what's fixed. Changes that are ready but not published yet are under Unreleased.
 
 ## Unreleased
