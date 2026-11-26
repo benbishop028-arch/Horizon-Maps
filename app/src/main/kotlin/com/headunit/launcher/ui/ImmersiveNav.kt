@@ -283,6 +283,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             .let { if (!narrow && (engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") != "auto") && ((engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") == "left") != engine.layoutMirrored)) "bottom" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
+        // The popup sits above the trip card. Its height is temporary camera coverage, lifting
+        // the locator above it while shown and restoring the normal position afterwards.
+        LaunchedEffect(narrow, tripPx, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
+            val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
+            val tripHeight = if (narrow) 0.dp else tripH
+            engine.popupCover = if (currentAlert != null) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
+        }
         // Other routes on a phone held upright (smikkelvriend): the routes come up as a panel along the bottom, the turn card goes
         // to one line, and the speed, Re-centre and trip card step aside, so the map between shows the routes clearly
         val altSheet = narrow && !previewing && engine.altListOpen && engine.route != null
