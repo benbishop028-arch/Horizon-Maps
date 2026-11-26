@@ -1117,6 +1117,26 @@ private fun WideTiles(cols: Int, tiles: List<TileSpec>, compact: Boolean = false
     }
 }
 
+/**
+ * The next stop on the trip card: its number (as on its pin on the map), name, arrival time and distance. Nothing without stops.
+ * Reads the stops' times itself, so their once-a-second update redraws only this line.
+ */
+@Composable
+private fun NextStopLine(engine: NavEngine, modifier: Modifier) {
+    val s = engine.stopEtas.firstOrNull() ?: return
+    val c = LocalVw.current
+    val n = (engine.via.indexOfFirst { it === s.place } + 1).coerceAtLeast(1)
+    Row(modifier.clip(RoundedCornerShape(14.dp)).background(c.tile).padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(24.dp).clip(CircleShape).background(Color.White).padding(2.dp).clip(CircleShape).background(Color(0xFFFF8A00)), contentAlignment = Alignment.Center) {
+            Text("$n", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Column(Modifier.padding(start = 10.dp)) {
+            Text(s.place.name, color = c.text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+            Text(L.t("Arrive {0}", s.arrive) + " · " + Geo.fmtDist(s.dist, engine.imperial), color = c.sub, fontSize = 13.sp, maxLines = 1)
+        }
+    }
+}
+
 /** Bottom left: hazard badges, then the trip card with the route bar, arrival, time and distance left, and the trip buttons. */
 @Composable
 private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = false, voice: () -> Unit = {}, alignEnd: Boolean = engine.layoutMirrored, centred: Boolean = false) {
@@ -1156,6 +1176,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
                     RouteBar(engine, barMod.padding(start = if (narrow) 16.dp else 18.dp, end = if (narrow) 16.dp else 18.dp, top = if (narrow) 7.dp else 9.dp, bottom = if (narrow) 2.dp else 4.dp))
                     Box(barMod.padding(horizontal = 18.dp).height(1.dp).background(c.line))
                 }
+                // the next stop, when there is one: its name, when you'll get there and how far (d3stiny999, #437)
+                if (narrow || rowPx > 0) NextStopLine(engine, barMod.padding(start = if (narrow) 12.dp else 14.dp, end = if (narrow) 12.dp else 14.dp, top = 6.dp))
                 // electric: roughly how much battery you'll arrive with (amber under 20%, red under 10%)
                 val evPct = engine.evArrivalPct()
                 val evStat = evPct != null && engine.prefs.b(PreferenceKeys.EV_PCT_CARD, true)

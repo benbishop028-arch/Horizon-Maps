@@ -194,7 +194,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Show estimated limits**: where no limit is mapped, the usual one for that kind of road (greyed out). Off shows no sign.
 
 **Cameras**
-- **Speed cameras**: spoken and on-screen warnings.
+- **Speed cameras**: spoken and on-screen warnings. **How** picks chime and voice, voice only, chime only or the screen only, and **Camera pop-up** turns the banner on screen on or off (the camera badge on the map shows either way).
 - **Off where they're banned**: switches off by itself in France, Germany and Switzerland, which don't allow camera warnings.
 - **Average speed checks**: shows your average against the limit.
 

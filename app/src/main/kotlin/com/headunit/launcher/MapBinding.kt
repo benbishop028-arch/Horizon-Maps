@@ -2923,6 +2923,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 .iconAllowOverlap(true).iconIgnorePlacement(true).iconSize(0.6))
         } else addL(st, CircleLayer("dl-dest-dot", "dl-dest")
             .circleRadius(10.0).circleColor("#ff3b30").circleStrokeColor("#ffffff").circleStrokeWidth(3.0).circleEmissiveStrength(1.0))
+        // the stops' numbered pins, the size of the app's own buttons on this screen
+        stopPinImgs.clear()
+        addS(st, GeoJsonSource.Builder("dl-stoppins").featureCollection(empty()).build())
+        addL(st, SymbolLayer("dl-stoppins-l", "dl-stoppins").iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(sized("dl-stoppins-l") { lit(uiK) }))
+        pushStopPins()
         // the 3D flags (destination red, stops amber), lit from within so they stand out day and night
         if (!satellite) try {
             addL(st, FillExtrusionLayer("dl-flags-3d", "dl-flags").inSlot(MID).minZoom(12.0)
@@ -5149,7 +5155,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // they were for the first stretch, so lights further along never appeared)
         pushSignals()
     }
-    fun setDest(p: LL?) { dest = p; pushDest(); pushFlags() }
+    fun setDest(p: LL?) { dest = p; pushDest(); pushFlags(); if (p == null) setStopPins(emptyList()) }
 
     // ---- 3D flags: a tall flag at the destination (and smaller ones at your stops) standing above the buildings ----
     private var flagsOn = true
@@ -5157,6 +5163,55 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     fun setFlags(on: Boolean) { if (on != flagsOn) { flagsOn = on; pushFlags() } }
     fun setStopFlags(stops: List<LL>) { if (stops != stopPts) { stopPts = stops; pushFlags() } }
+
+    // ---- the stops on the way as numbered pins with their names, seen at every zoom (the 3D flags are too small to see on an
+    // overview, d3stiny999 #437) ----
+    private var stopPins: List<Pair<LL, String>> = emptyList()
+    private val stopPinImgs = HashSet<String>()
+    fun setStopPins(stops: List<Pair<LL, String>>) { if (stops != stopPins) { stopPins = stops; pushStopPins() } }
+    private fun pushStopPins() {
+        val st = style ?: return
+        try {
+            val fs = ArrayList<Feature>()
+            for ((i, sp) in stopPins.take(10).withIndex()) {
+                val (pos, name) = sp
+                val id = "dl-stoppin-" + (i + 1) + "-" + name.hashCode()
+                if (stopPinImgs.add(id)) addImg(st, id, stopPinBitmap(i + 1, name))
+                fs += Feature.fromGeometry(Point.fromLngLat(pos.lon, pos.lat)).also { it.addStringProperty("img", id) }
+            }
+            src("dl-stoppins")?.featureCollection(FeatureCollection.fromFeatures(fs))
+        } catch (e: Throwable) { }
+    }
+    /** An orange disc with the stop's number, white-edged, and its name in a white tag to the right. The disc is the middle. */
+    private fun stopPinBitmap(n: Int, name: String): Bitmap {
+        val dm = mapView.resources.displayMetrics
+        val d = dm.density
+        val r = 14f * d
+        val label = if (name.length > 26) name.take(25) + "…" else name
+        val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 12f * d; typeface = android.graphics.Typeface.DEFAULT_BOLD; color = 0xFF222222.toInt() }
+        val tw = if (label.isBlank()) 0f else text.measureText(label)
+        val gap = 6f * d; val padX = 8f * d; val tagH = 20f * d
+        // (the disc in the middle of the picture, so it sits on the stop; the tag reaches out to the right, the left is left empty)
+        val half = r + 2f * d + (if (tw > 0f) gap + tw + 2 * padX else 0f)
+        val h = 2 * r + 6f * d
+        val b = Bitmap.createBitmap((half * 2).toInt() + 2, h.toInt() + 2, Bitmap.Config.ARGB_8888)
+        b.density = dm.densityDpi
+        val cv = Canvas(b)
+        val cx = b.width / 2f; val cy = b.height / 2f
+        val p = Paint(Paint.ANTI_ALIAS_FLAG)
+        if (tw > 0f) {
+            val l = cx + r + gap; val rect = RectF(l, cy - tagH / 2, l + tw + 2 * padX, cy + tagH / 2)
+            p.color = 0x55000000; cv.drawRoundRect(RectF(rect.left, rect.top + 1.5f * d, rect.right, rect.bottom + 1.5f * d), tagH / 2, tagH / 2, p)
+            p.color = 0xF5FFFFFF.toInt(); cv.drawRoundRect(rect, tagH / 2, tagH / 2, p)
+            cv.drawText(label, l + padX, cy - (text.descent() + text.ascent()) / 2, text)
+        }
+        p.color = 0x55000000; cv.drawCircle(cx, cy + 1.5f * d, r + 2.5f * d, p)
+        p.color = 0xFFFFFFFF.toInt(); cv.drawCircle(cx, cy, r + 2.5f * d, p)
+        p.color = 0xFFFF8A00.toInt(); cv.drawCircle(cx, cy, r, p)
+        val num = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 15f * d; typeface = android.graphics.Typeface.DEFAULT_BOLD; color = 0xFFFFFFFF.toInt(); textAlign = Paint.Align.CENTER }
+        cv.drawText("$n", cx, cy - (num.descent() + num.ascent()) / 2, num)
+        return b
+    }
 
     /** A flag at [p], [h] metres tall: a thin pole and a flag near its top, as 3D shapes ("part" pole / flag, "kind" dest / stop). */
     private fun flagShapes(p: LL, h: Double, kind: String): List<Feature> {

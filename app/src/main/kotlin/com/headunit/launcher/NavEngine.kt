@@ -162,7 +162,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!previewing) return
         flyingOver = true
         val allPts = routes.take(3).flatMap { x -> x.pts.filterIndexed { i, _ -> i % 8 == 0 } + x.pts.last() }
-        map.flyRoute(r.pts, r.cum, r.len, 62.0, full = true) { flyingOver = false; if (previewing) map.fit(allPts) }
+        map.flyRoute(r.pts, r.cum, r.len, 62.0, full = true) { flyingOver = false; if (previewing) fitMap(allPts) }
     }
 
     /** Stops the fly-over and goes back to the route overview. */
@@ -172,7 +172,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     fun refitPreview() {
         if (!previewing || flyingOver) return
         val allPts = routes.take(3).flatMap { x -> x.pts.filterIndexed { i, _ -> i % 8 == 0 } + x.pts.last() }
-        if (allPts.size >= 2) map.fit(allPts)
+        if (allPts.size >= 2) fitMap(allPts)
     }
 
     /** The way back to where this trip started (home when it started near home). */
@@ -1953,7 +1953,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val r = route ?: return
         following = false
         val pts = (-3..3).map { k -> pointAt(r, (row.off + k * 50.0).coerceIn(0.0, r.len)).first }
-        map.fit(pts)
+        fitMap(pts)
     }
 
     fun closeItinerary() {
@@ -2924,7 +2924,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             shownTrack = t
             map.setTrack(t.pts)
             following = false
-            map.fit(t.pts, panel = false)
+            fitMap(t.pts, panel = false)
         }
     }
 
@@ -3043,7 +3043,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             shownTrack = GpxTrack("mine-" + r.id, r.name, r.len, r.at, r.pts, "", r.pts.first())
             map.setTrack(r.pts)
             following = false
-            map.fit(r.pts, panel = false)
+            fitMap(r.pts, panel = false)
         }
     }
 
@@ -3171,8 +3171,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // those go straight to the overview)
                 if (!startNow && prefs.b(PreferenceKeys.CINEMATIC, true) && rs[0].len < 40_000.0) {
                     val r0 = rs[active.coerceIn(0, rs.size - 1)]
-                    map.flyRoute(r0.pts, r0.cum, r0.len, 50.0) { if (previewing && routes === rs) map.fit(allPts) }
-                } else map.fit(allPts)
+                    map.flyRoute(r0.pts, r0.cum, r0.len, 50.0) { if (previewing && routes === rs) fitMap(allPts) }
+                } else fitMap(allPts)
                 waitingFor = null; waitJob?.cancel()
                 // changing stops while already driving carries straight on, without the route options in between
                 // (and Settings › My routes › Start on it: straight onto your own route)
@@ -3198,7 +3198,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         updateRouteZones()
         drawRoutes()
         val r = routes[i]
-        map.fit(r.pts.filterIndexed { n, _ -> n % 6 == 0 } + r.pts.last())
+        fitMap(r.pts.filterIndexed { n, _ -> n % 6 == 0 } + r.pts.last())
     }
 
     /** A name for the map strip of the current route: "Southampton → Bristol" style, from where you are to the destination. */
@@ -3286,7 +3286,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val r = route ?: return
         try { pushJams() } catch (e: Exception) { }
         map.setRoute(r.pts, routes.filterIndexed { i, _ -> i != active }.map { it.pts }, r.sev)
-        map.setStopFlags(via.map { it.pos })
+        map.setStopFlags(via.map { it.pos }); map.setStopPins(via.map { it.pos to it.name })
         map.setTunnels(r.tunnels.map { (a, b) -> slice(r, a, b) })
         drawBends(r)
     }
@@ -3584,7 +3584,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         following = false
         // on Android Auto there's no preview panel at the bottom: fitting as if there were left the route in the top third of
         // the screen, zoomed out further than needed, with place names too small to read
-        map.fit(pts, panel = !isCar)
+        fitMap(pts)
         scheduleRecentre(10_000)
     }
 
@@ -3928,14 +3928,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         cameraDist = if (best != null) bestD.toInt() else null
         if (best != null) {
             if (camAlerted.size > 100) camAlerted.clear()
-            if (camAlerted.add(best)) { chime(android.media.ToneGenerator.TONE_PROP_PROMPT); raiseAlert("camera", L.t("Speed camera ahead")); speak(L.t("Speed camera ahead"), true)
+            // (Settings › Alerts › Cameras: chime, voice, both or neither, and the pop-up on or off, #436)
+            val how = prefs.s(PreferenceKeys.CAM_HOW, "both")
+            val camChime = how == "both" || how == "chime"
+            if (camAlerted.add(best)) {
+                if (camChime) chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
+                if (prefs.b(PreferenceKeys.CAM_POPUP, true)) raiseAlert("camera", L.t("Speed camera ahead"))
+                if (how == "both" || how == "voice") speak(L.t("Speed camera ahead"), true)
                 // first seen already close (just joined the road): the spoken warning is enough, no beep straight after it
                 if (bestD <= max(80.0, p.speed * 4.0)) camNearBeeped.add(best) }
             // a second short beep just before the camera (about 4 seconds out, at least 80 m), so the first warning about 500 m
             // ahead isn't the only one (GitHub #268). Only for cameras already announced, and only once each
             else if (bestD <= max(80.0, p.speed * 4.0)) {
                 if (camNearBeeped.size > 100) camNearBeeped.clear()
-                if (camNearBeeped.add(best)) chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
+                if (camNearBeeped.add(best) && camChime) chime(android.media.ToneGenerator.TONE_PROP_BEEP2)
             }
         }
     }
@@ -4053,7 +4059,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             try {
                 // the search runs on its own, and the 30 s limit just stops waiting for it: a blocked network read used to hold the
                 // limit up too (the timeout can't end a read that's waiting on a server), so a busy server left it spinning for minutes
+                val mwOnly = kind == "services" && servicesMotorwayOnly
                 val work = searchScope.async {
+                    // motorway services only, along the route: the ones already found for it (the services card's), at once
+                    if (mwOnly && alongRoute && rt != null) {
+                        val pl = placed?.takeIf { it.route === rt }
+                        val mine = pl?.services.orEmpty().filter { it.poi.kind == "services" && it.off > progress - 100.0 && it.side < 1200.0 }
+                            .sortedBy { it.off }.map { Nearby(Place(it.poi.name, "", it.poi.pos), it.off - progress, "", detourMin = detour(it.side), ahead = true) }
+                        if (mine.isNotEmpty()) return@async mine
+                    }
                     if (fuelLive) {
                         try { FuelFinder.refresh(ctx, prefs) } catch (e: Exception) { /* use what is stored */ }
                         val st = FuelFinder.stations(ctx)
@@ -4149,7 +4163,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     } else Overpass.nearby(kind, centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                 }
                 val found = kotlinx.coroutines.withTimeoutOrNull(30_000L) { work.await() }
-                val list = if (kind == "charging") found?.let { filterChargers(it) } else found
+                val list = if (kind == "charging") found?.let { filterChargers(it) }
+                    else if (mwOnly) found?.filter { !notServices.containsMatchIn(it.place.name) && !notServices.containsMatchIn(it.extra) }
+                    else found
                 if (list == null) { work.cancel(); toast(L.t("Search took too long. Check the signal and try again."), 4000); clearNearby(); return@launch }
                 if (pickBest) {
                     val ahead = list.filter { it.ahead || route == null }
@@ -4412,6 +4428,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun changeNearbySort(mode: String) { nearbySort = mode; nearby = sortNearby(nearby) }
+
+    /** The services list: motorway services only (rest and picnic areas left out), remembered for next time (d3stiny999, #437). */
+    var servicesMotorwayOnly by mutableStateOf(prefs.b(PreferenceKeys.SERVICES_MW_ONLY, false))
+        private set
+    fun setServicesFilter(motorwayOnly: Boolean) {
+        if (motorwayOnly == servicesMotorwayOnly) return
+        servicesMotorwayOnly = motorwayOnly
+        prefs.put(PreferenceKeys.SERVICES_MW_ONLY, motorwayOnly)
+        if (nearbyKind == "services") loadNearby("services", false)
+    }
+    /** Not a rest stop, picnic or play area, lay-by or car park (by its name, for search services that don't say which it is). */
+    private val notServices = Regex("picnic|play|rest ?area|rest stop|lay-?by|toilet|viewpoint|car ?park|parking|rastplatz|parkplatz|aire de repos|aire de pique|area di sosta|área de descanso|rustplaats|parkeerplaats", RegexOption.IGNORE_CASE)
 
     /** A destination shared from another app: routes straight to coordinates, or puts text in the search box. */
     fun openShared(t: SharedTarget) {
@@ -5247,6 +5275,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (settingsPreview || orbiting) tLeft = 0.0
         map.cardsMirrored = layoutMirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
+    }
+
+    /**
+     * Fits [pts] on the map. On Android Auto: into the part beside the cards, using the whole height. It used to leave the bottom
+     * 60% empty as if the phone's route panel were there, so on a small car screen the route was a thin strip at the top
+     * (neilch0111, #441).
+     */
+    private fun fitMap(pts: List<LL>, panel: Boolean = true) {
+        if (!isCar) { map.fit(pts, panel); return }
+        var left = 0.0
+        for (p in panels) if (p[2] - p[0] >= 0.02 && p[3] - p[1] >= 0.02 && p[0] < 0.5f) left = max(left, p[2].toDouble())
+        map.fitFrac(pts, (left + 0.04).coerceIn(0.06, 0.6), 0.10, 0.06, 0.10)
     }
 
     // outlines of the cards on screen, as parts of its width and height (left, top, right, bottom), reported by the screen
@@ -6393,7 +6433,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             cover > 0.0 -> map.fitFrac(pts, 0.07, 0.14, 0.07, (cover + 0.04).coerceAtMost(0.7))
             // a phone held sideways: the panel down one side, the one-line turn card at the top of the other
             side != null -> map.fitFrac(pts, (side.first + 0.04).coerceAtMost(0.75), 0.2, (side.second + 0.04).coerceAtMost(0.75), 0.08)
-            else -> map.fit(pts)
+            else -> fitMap(pts)
         }
         scheduleRecentre(15_000)
     }
@@ -6625,7 +6665,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             liveAlts = list
             // the plain grey lines make way for the ones with cards
             map.setRoute(cur.pts, emptyList(), cur.sev)
-            map.setStopFlags(via.map { it.pos })
+            map.setStopFlags(via.map { it.pos }); map.setStopPins(via.map { it.pos to it.name })
             map.setTunnels(cur.tunnels.map { (a, b) -> slice(r = cur, a = a, b = b) })
             map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic }); syncPicked()
         }

@@ -879,6 +879,10 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
     }
     SGroup(L.t("Cameras")) {
         SToggle(prefs, L.t("Speed cameras"), "cameras", true, L.t("Spoken and on-screen warnings as you come up to one"))
+        // (how they're warned about: jvetsuypens, #436)
+        if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only"), "silent" to L.t("Screen only")),
+            prefs.s(PreferenceKeys.CAM_HOW, "both")) { prefs.put(PreferenceKeys.CAM_HOW, it) }
+        if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, L.t("Camera pop-up"), PreferenceKeys.CAM_POPUP, true, L.t("The banner on screen as you come up to one. The camera badge on the map shows either way"))
         if (prefs.b(PreferenceKeys.CAMERA_WARNINGS, true)) SToggle(prefs, L.t("Off where they're banned"), "cambanobey", true, L.t("France, Germany and Switzerland don't allow camera warnings, so they switch off there by themselves"))
         SToggle(prefs, L.t("Average speed checks"), "avgzones", true, L.t("Shows your average against the limit"))
     }
