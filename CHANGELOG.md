@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1022 — 26 Nov 2026
+
 ### New
 - Limit sign size on the route: a size setting (On the map › On your route) for the speed limit signs drawn where the limit changes, which are also half as big again to start with
 
