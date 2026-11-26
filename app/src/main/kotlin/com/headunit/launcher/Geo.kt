@@ -11,8 +11,6 @@ import java.net.URLEncoder
 import kotlin.math.*
 
 data class LL(val lat: Double, val lon: Double)
-/** Provider-supplied road-shield identity and text for a route instruction. */
-data class RoadShield(val reference: String, val content: String, val affixes: List<String> = emptyList())
 data class Step(val off: Double, val maneuver: String, val street: String, val msg: String, val roundExit: Int = 0, val exitNo: String = "", val sign: String = "",
     /** Mapbox's picture of this junction (a motorway junction with the lanes marked), when there is one; "" otherwise. */
     val junctionPic: String = "",
@@ -25,9 +23,7 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
      *  turn arrow; null when the route data doesn't say. */
     val sides: List<Double>? = null,
     /** The road number (169, E39) when the road has a name too, shown beside the name; never spoken (desko1973, #297). */
-    val ref: String = "",
-    /** Country/provider-specific shield metadata returned with the instruction, when available. */
-    val shields: List<RoadShield> = emptyList())
+    val ref: String = "")
 /** A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). */
 data class Place(val name: String, val sub: String, val pos: LL, val web: String = "")
 
@@ -73,15 +69,12 @@ class Route(
     @Volatile var simpler: Boolean = false
     /** An offline route's own time before the usual-traffic estimate ([JourneyTimes]) was added; 0 for other routes. */
     @Volatile var baseTime: Double = 0.0
-    /** TomTom road-shield sprite atlas base URL for this route, if supplied. */
-    @Volatile var shieldAtlasUrl: String = ""
 
     /** The same route taking [secs] (no live traffic), with everything else kept. */
     fun withTime(secs: Double): Route {
         val n = Route(pts, cum, steps, len, secs, 0.0, lanes, sev)
         n.delays = delays; n.segmentTimes = segmentTimes.copyOf(); n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
         n.baseTime = if (baseTime > 0) baseTime else time
-        n.shieldAtlasUrl = shieldAtlasUrl
         return n
     }
 }
@@ -463,8 +456,7 @@ object TomTomRest {
         val prefs = avoid.joinToString("") { "&avoid=$it" } + (if (routeType != "fastest") "&routeType=$routeType" else "")
         // the direction you are travelling stops the route sending you the wrong way down the road you are on (used when rerouting)
         val hd = if (headingDeg >= 0) "&vehicleHeading=${headingDeg.toInt() % 360}" else ""
-        // Ask TomTom for country-specific road-shield references as well as text instructions.
-        val classic = "$CLASSIC/$loc/json?key=$k&maxAlternatives=$n&traffic=true&routeRepresentation=polyline&instructionsType=text&instructionRoadShieldReferences=all$prefs$hd${Vehicle.tomtom()}"
+        val classic = "$CLASSIC/$loc/json?key=$k&maxAlternatives=$n&traffic=true&routeRepresentation=polyline&instructionsType=text$prefs$hd${Vehicle.tomtom()}"
         val attempts = ArrayList<String>()
         if (quick) {
             // rerouting: only two quick tries, so a weak signal does not leave you waiting through ten slow requests
@@ -522,10 +514,8 @@ object TomTomRest {
             val explained = m.startsWith("TomTom didn't accept") || m.startsWith("This TomTom key")
             throw IOException(if (explained) m else if (!m.startsWith("HTTP")) "no signal" else if (m.startsWith("HTTP 429")) "too many requests, try again in a moment" else m.ifBlank { "Routing failed" })
         }
-        val response = JSONObject(body)
-        val arr = response.optJSONArray("routes") ?: JSONArray()
-        val atlas = response.optString("roadShieldAtlasReference")
-        return (0 until arr.length()).map { parse(arr.getJSONObject(it), atlas) }
+        val arr = JSONObject(body).optJSONArray("routes") ?: JSONArray()
+        return (0 until arr.length()).map { parse(arr.getJSONObject(it)) }
     }
 
     /** What to ask TomTom's search for each kind of place. */
@@ -706,7 +696,7 @@ object TomTomRest {
         if (o.has("longitude")) o.getDouble("longitude") else if (o.has("lon")) o.getDouble("lon") else o.getDouble("lng"),
     )
 
-    private fun parse(r: JSONObject, shieldAtlasUrl: String = ""): Route {
+    private fun parse(r: JSONObject): Route {
         val pts = ArrayList<LL>()
         val legs = r.optJSONArray("legs") ?: JSONArray()
         for (i in 0 until legs.length()) {
@@ -718,19 +708,6 @@ object TomTomRest {
         val insArr = r.optJSONObject("guidance")?.optJSONArray("instructions") ?: r.optJSONArray("instructions") ?: JSONArray()
         val steps = (0 until insArr.length()).map {
             val i = insArr.getJSONObject(it)
-            // Road shield references are optional in TomTom responses; older regions continue to use plain road-number text.
-            val shields = ArrayList<RoadShield>()
-            for (key in listOf("roadShieldReferences", "signpostRoadShieldReferences")) {
-                val refs = i.optJSONArray(key) ?: continue
-                for (ri in 0 until refs.length()) {
-                    val shield = refs.optJSONObject(ri) ?: continue
-                    val reference = shield.optString("reference")
-                    val content = shield.optString("shieldContent")
-                    val affixArray = shield.optJSONArray("affixes")
-                    val affixes = if (affixArray == null) emptyList() else (0 until affixArray.length()).map { affixArray.optString(it) }.filter { it.isNotBlank() }
-                    if (reference.isNotBlank() || content.isNotBlank()) shields += RoadShield(reference, content, affixes)
-                }
-            }
             val street = i.optString("street").ifBlank {
                 i.optJSONObject("nextRoadInformation")?.optJSONObject("streetName")?.optString("text").orEmpty()
             }.ifBlank { i.optJSONArray("roadNumbers")?.optString(0).orEmpty() }
@@ -748,7 +725,6 @@ object TomTomRest {
                 rx, i.optString("exitNumber"), i.optString("signpostText"),
                 // the road number (E39, 169) beside the name, as on Mapbox's routes (desko1973, #371)
                 ref = i.optJSONArray("roadNumbers")?.optString(0).orEmpty().trim().let { n -> if (street.isNotBlank() && !n.equals(street, true) && n.length <= 8) n else "" },
-                shields = shields.distinctBy { it.reference + "|" + it.content },
             )
         }
         val laneSecs = ArrayList<LaneSec>()
@@ -813,7 +789,7 @@ object TomTomRest {
         } catch (e: Exception) { /* speed limits are optional */ }
         val s = r.optJSONObject("summary")
         val len = s?.optDouble("lengthInMeters", 0.0)?.takeIf { it > 0 } ?: cum.lastOrNull() ?: 0.0
-        return Route(pts, cum, steps, len, s?.optDouble("travelTimeInSeconds", 0.0) ?: 0.0, s?.optDouble("trafficDelayInSeconds", 0.0) ?: 0.0, laneSecs, sev).also { it.delays = delays; it.limits = limits; it.shieldAtlasUrl = shieldAtlasUrl }
+        return Route(pts, cum, steps, len, s?.optDouble("travelTimeInSeconds", 0.0) ?: 0.0, s?.optDouble("trafficDelayInSeconds", 0.0) ?: 0.0, laneSecs, sev).also { it.delays = delays; it.limits = limits }
     }
 }
 

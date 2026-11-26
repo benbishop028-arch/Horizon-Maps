@@ -321,8 +321,6 @@ object MapboxRest {
     @Volatile var curbSide = true
     /** Ask for Mapbox's junction pictures (banner instructions). */
     @Volatile var junctionPics = false
-    /** Ask for banner components when road shields are enabled, independently of junction-picture display. */
-    @Volatile var roadShields = true
 
     fun routes(token: String, from: LL, to: LL, alternatives: Boolean, departAtMs: Long = 0L, via: List<LL> = emptyList(),
                headingDeg: Double = -1.0, quick: Boolean = false, leftHand: Boolean = false): List<Route> {
@@ -356,7 +354,7 @@ object MapboxRest {
         // arrive on your side of the road (the destination on the kerb side), the other points as Mapbox likes
         if (curbSide) base += "&approaches=" + enc((List(pts.size - 1) { "" } + listOf("curb")).joinToString(";"))
         // pictures of motorway junctions, when Mapbox has them for this account
-        if (junctionPics || roadShields) base += "&banner_instructions=true"
+        if (junctionPics) base += "&banner_instructions=true"
         val dep = if (departAtMs > 0) "&depart_at=" + enc(java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).format(java.util.Date(departAtMs))) else ""
         val attempts = ArrayList<String>()
         if (dep.isNotEmpty() && !quick) { if (ex.isNotEmpty()) attempts += "$base&exclude=$ex$dep"; attempts += "$base$dep" }
@@ -622,26 +620,17 @@ object MapboxRest {
                     val exit = if (man.startsWith("ROUNDABOUT")) m.optInt("exit", 0) else 0
                     // Mapbox's picture of the junction (from its banner instructions, when asked for and it has one)
                     var pic = ""
-                    val shields = ArrayList<RoadShield>()
                     s.optJSONArray("bannerInstructions")?.let { bi ->
                         for (k in 0 until bi.length()) {
                             val comps = bi.optJSONObject(k)?.optJSONObject("view")?.optJSONArray("components") ?: continue
-                            for (q in 0 until comps.length()) {
-                                val component = comps.optJSONObject(q) ?: continue
-                                val u = component.optString("imageURL").orEmpty()
-                                if (u.startsWith("https://")) pic = u
-                                // Mapbox banner components may expose a shield image base plus its label.
-                                val imageBase = component.optString("imageBaseURL")
-                                val text = component.optString("text").ifBlank { ref }
-                                if (imageBase.isNotBlank() && text.isNotBlank()) shields += RoadShield(imageBase, text)
-                            }
+                            for (q in 0 until comps.length()) { val u = comps.optJSONObject(q)?.optString("imageURL").orEmpty(); if (u.startsWith("https://")) { pic = u; break } }
+                            if (pic.isNotEmpty()) break
                         }
                     }
                     // traffic lights or a stop sign at the turn itself (the step's first junction), for "At the traffic lights, turn right"
                     val j0 = s.optJSONArray("intersections")?.optJSONObject(0)
                     steps += Step(at, man, street, m.optString("instruction"), exit, if (type == "off ramp") s.optString("exits").substringBefore(';') else "", s.optString("destinations"), junctionPic = pic,
                         rbIn = if (type == "roundabout" || type == "rotary") m.optDouble("bearing_before", -1.0) else -1.0,
-                        shields = shields.distinctBy { it.content },
                         lights = j0?.optBoolean("traffic_signal", false) == true, stopSign = j0?.optBoolean("stop_sign", false) == true, lightsBefore = sigOnWay,
                         sides = sideRoads(j0), ref = if (name.isNotBlank() && type != "off ramp") ref else "")
                     sigOnWay = sigHere

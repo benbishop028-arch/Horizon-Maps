@@ -2734,7 +2734,6 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         MapboxRest.avoidPoints = closedPts.take(25)
         MapboxRest.curbSide = prefs.b(PreferenceKeys.ARRIVE_SIDE, true)
         MapboxRest.junctionPics = prefs.b(PreferenceKeys.JUNCTION_PICS, false)
-        MapboxRest.roadShields = prefs.b(PreferenceKeys.UKSIGNS, true)
         if (prefs.b(PreferenceKeys.AVOIDZONES, false)) {
             for (z in Zones.all(ctx)) {
                 if ((from != null && Zones.inside(z, from)) || (to != null && Zones.inside(z, to))) continue
@@ -6652,12 +6651,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 junctionPic = cur.junctionPic, sides = cur.sides,
                 thenStreet = if (thenOn) nxt?.street.orEmpty() else "",
                 ref = cur.ref, thenRef = if (thenOn) nxt?.ref.orEmpty() else "",
-                shields = cur.shields, shieldAtlasUrl = r.shieldAtlasUrl,
                 landmark = if (d <= 500) when (lm) { 1 -> L.t("At the lights"); 2 -> L.t("At the second set of lights"); 3 -> L.t("At the stop sign"); else -> "" } else "",
             )
             // only publish a new turn card when something a driver can see changed (about 3 m of distance), so the screen is not redrawn four times a second for nothing
             val ot = turn
-            if (ot == null || ot.maneuver != newTurn.maneuver || ot.street != newTurn.street || ot.lanes !== newTurn.lanes || ot.thenText != newTurn.thenText || ot.landmark != newTurn.landmark || ot.shields != newTurn.shields || ot.shieldAtlasUrl != newTurn.shieldAtlasUrl || abs(ot.dist - newTurn.dist) >= 3.0 || newTurn.dist < 30.0) turn = newTurn
+            if (ot == null || ot.maneuver != newTurn.maneuver || ot.street != newTurn.street || ot.lanes !== newTurn.lanes || ot.thenText != newTurn.thenText || ot.landmark != newTurn.landmark || abs(ot.dist - newTurn.dist) >= 3.0 || newTurn.dist < 30.0) turn = newTurn
             val word = Geo.maneuverText(cur.maneuver, cur.roundExit)
             // (Settings > Sound > Say road names off: just the direction, "In 200 metres, turn left")
             val tail = if (arriving || cur.street.isBlank() || !prefs.b(PreferenceKeys.VOICE_ROADS, true)) "" else L.t(" onto {0}", cur.street)

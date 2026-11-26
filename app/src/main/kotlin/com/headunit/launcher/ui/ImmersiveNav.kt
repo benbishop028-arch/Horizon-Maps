@@ -222,6 +222,36 @@ private fun SheetHeading(text: String) {
 
 // ------------------------------------------------------------------ the screen
 
+/**
+ * The alert popup (a camera, a limit, rain...) above the trip card, on the side away from the speed-limit sign. While it shows, its
+ * height counts as covered screen, so the locator rises above it, and drops back when it goes.
+ */
+@Composable
+private fun AlertPopup(engine: NavEngine, modifier: Modifier, narrow: Boolean, tripH: androidx.compose.ui.unit.Dp, screenH: androidx.compose.ui.unit.Dp) {
+    val currentAlert = engine.alert
+    val lastAlert = remember { mutableStateOf(currentAlert) }
+    if (currentAlert != null) lastAlert.value = currentAlert
+    var alertPx by remember { mutableStateOf(0) }
+    val dens = LocalDensity.current
+    LaunchedEffect(narrow, tripH, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
+        if (currentAlert == null) { alertPx = 0; engine.popupCover = 0.0; return@LaunchedEffect }
+        val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
+        val tripHeight = if (narrow) 0.dp else tripH
+        engine.popupCover = if (screenH > 0.dp) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
+    }
+    // (gone from the screen, say for the route choice: nothing is covered any more)
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { engine.popupCover = 0.0 } }
+    Box(modifier, contentAlignment = Alignment.Center) {
+        AnimatedVisibility(
+            visible = currentAlert != null,
+            enter = fadeIn(tween(160)) + androidx.compose.animation.slideInVertically(tween(180)) { it / 3 },
+            exit = fadeOut(tween(160)) + androidx.compose.animation.slideOutVertically(tween(180)) { it / 3 },
+        ) {
+            lastAlert.value?.let { a -> AlertBanner(a, modifier = Modifier.onSizeChanged { alertPx = it.height }) }
+        }
+    }
+}
+
 @Composable
 private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val c = LocalVw.current
@@ -263,12 +293,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
-        var alertPx by remember { mutableStateOf(0) }
-        val currentAlert = engine.alert
-        val lastAlert = remember { mutableStateOf(currentAlert) }
-        if (currentAlert != null) lastAlert.value = currentAlert
-        engine.portraitLayout = narrow
-        androidx.compose.runtime.SideEffect { if (currentAlert == null && alertPx != 0) alertPx = 0 }
+        androidx.compose.runtime.SideEffect { engine.portraitLayout = narrow }
         // the trip card's and speedometer's widths, and the media bar's height (for fitting the media bar between them)
         var tripWPx by remember { mutableStateOf(0) }
         var speedWPx by remember { mutableStateOf(0) }
@@ -283,13 +308,6 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             .let { if (!narrow && (engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") != "auto") && ((engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") == "left") != engine.layoutMirrored)) "bottom" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
-        // The popup sits above the trip card. Its height is temporary camera coverage, lifting
-        // the locator above it while shown and restoring the normal position afterwards.
-        LaunchedEffect(narrow, tripPx, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
-            val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
-            val tripHeight = if (narrow) 0.dp else tripH
-            engine.popupCover = if (currentAlert != null) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
-        }
         // Other routes on a phone held upright (smikkelvriend): the routes come up as a panel along the bottom, the turn card goes
         // to one line, and the speed, Re-centre and trip card step aside, so the map between shows the routes clearly
         val altSheet = narrow && !previewing && engine.altListOpen && engine.route != null
@@ -722,27 +740,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
 
         // Alerts sit on the opposite side of the screen from the speed-limit sign.
         // speedAt follows the mirrored layout and any manual speedometer-side choice.
-        if (!previewing && !altFocus && !hudOff) {
-            Box(
-                Modifier.align(if (speedAt == "left") Alignment.BottomEnd else Alignment.BottomStart).zIndex(9f)
-                    .padding(
-                        start = if (speedAt == "right") 16.dp else 0.dp,
-                        end = if (speedAt == "left") 16.dp else 0.dp,
-                        bottom = tripH + 12.dp,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                AnimatedVisibility(
-                    visible = currentAlert != null,
-                    enter = fadeIn(tween(160)) + androidx.compose.animation.slideInVertically(tween(180)) { it / 3 },
-                    exit = fadeOut(tween(160)) + androidx.compose.animation.slideOutVertically(tween(180)) { it / 3 },
-                ) {
-                    lastAlert.value?.let { a ->
-                        AlertBanner(a, modifier = Modifier.onSizeChanged { alertPx = it.height })
-                    }
-                }
-            }
-        }
+        // (the popup reads the alert itself, so an alert coming or going redraws only the popup, not this whole screen)
+        if (!previewing && !altFocus && !hudOff) AlertPopup(engine,
+            Modifier.align(if (speedAt == "left") Alignment.BottomEnd else Alignment.BottomStart).zIndex(9f)
+                .padding(start = if (speedAt == "right") 16.dp else 0.dp, end = if (speedAt == "left") 16.dp else 0.dp, bottom = tripH + 12.dp),
+            narrow, tripH, screenH)
 
         // ---- the media bar (Reddit, mrEnmi): back, play / pause and next for whatever is playing on the head unit, with the song
         // when notification access is given. Only while something plays (or for a few minutes after a pause). It goes in the free
@@ -1534,7 +1536,7 @@ internal fun ImmTurnCard(
         "purple" -> Color(0xFF462870) to Color(0xFF2E1A4C)
         else -> GmGreen to GmGreenDeep
     }
-    val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.shields.isNotEmpty() || t.exitNo.isNotBlank())
+    val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.exitNo.isNotBlank())
     // (worked out once per sign, not on every distance update)
     val signPlaces = remember(t.sign, t.street, ukSign) { if (ukSign) junctionSignPlaces(t.sign, t.street) else "" }
     var placesBelow by remember(signPlaces) { mutableStateOf(false) }

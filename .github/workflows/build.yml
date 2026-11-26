@@ -356,6 +356,38 @@ jobs:
           echo "Permanent version release: https://github.com/${{ github.repository }}/releases/tag/${TAG}"
           echo "Updater download link: https://github.com/${{ github.repository }}/releases/download/app/HorizonNav-public.apk"
 
+      # After publishing, file what this release published under its own version and date in CHANGELOG.md, and take it out of
+      # Unreleased, so the changelog shows which change shipped in which version (ILDEMONICO, #420). Done on a fresh copy of main,
+      # so changes pushed during the build are kept; a problem here never counts against the release itself.
+      - name: File the published notes in the changelog
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish && github.ref == 'refs/heads/main' }}
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          VERSION="1.0.${GITHUB_RUN_NUMBER}"
+          NOTES="$RUNNER_TEMP/horizon-change-notes.md"
+          PUBLISHED="$RUNNER_TEMP/published-notes.txt"
+          [ -f "$NOTES" ] || : > "$NOTES"
+          [ -f "$PUBLISHED" ] || : > "$PUBLISHED"
+          SCRIPT="$RUNNER_TEMP/changelog.py"
+          cp "$GITHUB_WORKSPACE/.github/scripts/changelog.py" "$SCRIPT"
+          COPY="$RUNNER_TEMP/changelog-main"
+          for i in 1 2 3; do
+            git fetch -q origin main
+            rm -rf "$COPY"; git worktree prune
+            git worktree add -q --detach "$COPY" origin/main
+            python3 "$SCRIPT" file "$COPY/CHANGELOG.md" "$VERSION" "$NOTES" "$PUBLISHED"
+            cd "$COPY"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            if git diff --quiet -- CHANGELOG.md; then echo "Changelog already up to date"; exit 0; fi
+            git commit -q -m "Changelog: file the notes published in ${VERSION} [skip ci]" -- CHANGELOG.md
+            if git push -q origin HEAD:main; then echo "Changelog filed under ${VERSION}"; exit 0; fi
+            cd "$GITHUB_WORKSPACE"
+            sleep 10
+          done
+          echo "Could not save the changelog after 3 tries"; exit 1
+
       # ---- Google Play edition (com.headunit.nav.play: no self-updater, no PayPal, Play updates it) ----
       # On a manual run (sent to Play only when publishing), and after the GitHub release above, so a problem here can never hold up the normal update. Builds the
       # app bundle Play wants, signed with the existing key: Play uses that as the "upload key" and signs what it hands out with its
