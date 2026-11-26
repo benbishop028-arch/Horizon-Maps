@@ -367,4 +367,34 @@ class I18nCoreCoverageTest {
         }
     }
 
+    @Test fun routeGuidanceAndFasterRouteMessagesAreTranslatedInEveryShortPack() {
+        val keys = listOf(
+            "arrive, destination on the left", "arrive, destination on the right",
+            "switch to the parallel road", "switch to the main road", "take the ferry",
+            "take junction {0}", "take exit {0}", "{0} exit", "Exit {0}", "In {0}, you will arrive",
+            "Use the left {0} lanes", "Use the right {0} lanes", "Use the middle {0} lanes",
+            "Use lane {0} from the left", "move into the left lane", "move into the right lane",
+            "move into the middle lane", "move into the left {0} lanes", "move into the right {0} lanes",
+            "move into the middle {0} lanes", "A faster route is available, saving {0} minutes. Tap it on the map to switch.",
+            "A faster route is available, saving {0} minutes", "Faster route found", "Switched to the faster route"
+        )
+        val placeholder = Regex("""\{\d+}""")
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in keys) {
+                    val translated = L.t(key)
+                    assertNotEquals("$code still falls back for '$key'", key, translated)
+                    assertEquals("$code changed placeholders in '$key'",
+                        placeholder.findAll(key).map { it.value }.toSet(),
+                        placeholder.findAll(translated).map { it.value }.toSet())
+                }
+                assertTrue("$code lost the junction number", L.t("take junction {0}", "4").contains("4"))
+                assertTrue("$code lost the time saving", L.t("A faster route is available, saving {0} minutes", "7").contains("7"))
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
 }

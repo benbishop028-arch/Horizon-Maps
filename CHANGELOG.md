@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Improved
+- Expand Catalan, Korean, Tamil and Telugu navigation translations for junctions, exits, lane guidance, arrival prompts and faster-route messages; add placeholder-preservation regression coverage.
+
+### Improved
 - Expand Catalan, Korean, Tamil and Telugu coverage for essential actions, location and traffic labels, and common map controls; add regression coverage.
 
 ### Improved
