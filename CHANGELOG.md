@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Fixed
+- Allow legitimate identical Catalan wording for “Vehicle” in the settings localisation regression test.
+
 ### Improved
 - Expand Catalan, Korean, Tamil and Telugu translations for settings, Android Auto, offline maps and download states; add fallback and placeholder regression coverage.
 

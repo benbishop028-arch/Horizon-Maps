@@ -431,7 +431,10 @@ class I18nCoreCoverageTest {
                 L.set(code)
                 for (key in keys) {
                     val translated = L.t(key)
-                    assertNotEquals("$code still falls back for '$key'", key, translated)
+                    // "Vehicle" is a valid identical word in Catalan, not an English fallback.
+                    if (!(code == "ca" && key == "Vehicle")) {
+                        assertNotEquals("$code still falls back for '$key'", key, translated)
+                    }
                     assertEquals("$code changed placeholders in '$key'",
                         placeholder.findAll(key).map { it.value }.toSet(),
                         placeholder.findAll(translated).map { it.value }.toSet())
