@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- A route without tolls: when the fastest route uses toll roads, the route choice also offers a "No tolls" route, with how much longer it takes, and marks the routes that have tolls. Switch it off under Settings › Routes › Avoid › Offer a route without tolls (thanks to Luís Pedro Antunes)
 
 ### Improved
 - Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)

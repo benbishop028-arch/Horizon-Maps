@@ -296,7 +296,7 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
         rs.forEachIndexed { i, r ->
             val sel = i == engine.active
             val shape = RoundedCornerShape(18.dp)
-            val label = if (r.mine.isNotBlank()) L.t("Your route") else if (i == fastest) L.t("Fastest") else if (rs[i].mainRoads) L.t("Main roads") else if (rs[i].simpler) L.t("Simplest") else if (i == shortest) L.t("Shortest") else L.t("Alternative")
+            val label = if (r.mine.isNotBlank()) L.t("Your route") else if (i == fastest) L.t("Fastest") else if (rs[i].noToll) L.t("No tolls") else if (rs[i].mainRoads) L.t("Main roads") else if (rs[i].simpler) L.t("Simplest") else if (i == shortest) L.t("Shortest") else L.t("Alternative")
             Column(
                 Modifier.weight(1f).inset(18.dp, if (sel) c.accent else null)
                                         .clickable { engine.selectRoute(i) }.padding(horizontal = 14.dp, vertical = 9.dp),
@@ -319,6 +319,11 @@ internal fun BoxScope.RoutePreview(engine: NavEngine) {
                     mine ?: if (delayMin >= 1) L.t("+{0} min traffic", delayMin) else if (via.isNotEmpty()) "via $via" else L.t("No delays"),
                     color = if (mine != null) Good else if (delayMin >= 10) Bad else if (delayMin >= 1) Warn else c.sub, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
+                // toll roads: which routes have them, and how much longer the toll-free one takes (Luís Pedro Antunes)
+                if (r.noToll) {
+                    val extra = Math.round((r.time - rs[fastest].time) / 60.0).toInt()
+                    Text(if (extra >= 1) L.t("No tolls · +{0} min", extra) else L.t("No tolls"), color = Good, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                } else if (r.toll && rs.any { it.noToll }) Text(L.t("Tolls"), color = Warn, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
                 // roughly what this route costs in fuel (or charging), from Settings › Fuel (pc4096: it was only at the far end of the
                 // Stops row, scrolled out of sight)
                 if (mpg != null && ppl != null) Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {

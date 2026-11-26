@@ -84,6 +84,10 @@ class Route(
     /** Metres of it on small roads (residential streets, lanes, service roads), from Mapbox's junction data; -1 when not known
      *  (TomTom and offline routes). For Prefer main roads (#402). */
     @Volatile var minorM: Double = -1.0
+    /** The route uses toll roads (from Mapbox's junction data); false when it doesn't or isn't known (TomTom and offline routes). */
+    @Volatile var toll: Boolean = false
+    /** The toll-free route offered next to a quicker one that has tolls (Settings › Routes › Offer a route without tolls): labelled "No tolls". */
+    @Volatile var noToll: Boolean = false
     /** Picked first for keeping to main roads (Prefer main roads): labelled "Main roads" on the route choice. */
     @Volatile var mainRoads: Boolean = false
     /** An offline route's own time before the usual-traffic estimate ([JourneyTimes]) was added; 0 for other routes. */
@@ -93,7 +97,7 @@ class Route(
     fun withTime(secs: Double): Route {
         val n = Route(pts, cum, steps, len, secs, 0.0, lanes, sev)
         n.delays = delays; n.segmentTimes = segmentTimes.copyOf(); n.tunnels = tunnels; n.limits = limits; n.incidents = incidents; n.lorry = lorry; n.from = from; n.simpler = simpler
-        n.minorM = minorM; n.mainRoads = mainRoads
+        n.minorM = minorM; n.mainRoads = mainRoads; n.toll = toll; n.noToll = noToll
         n.baseTime = if (baseTime > 0) baseTime else time
         return n
     }
