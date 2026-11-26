@@ -4472,7 +4472,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
     // ---- Android Auto's cool running (Settings › Android Auto › Cool running, TheDMAl #327) ----
     // Full 3D on the car screen while the phone also makes Android Auto's video gets a phone hot. Cool running draws 30 frames a
-    // second, a flat map with the lighter detail, and no street lamps or falling rain or snow. "Automatic" turns it on when the phone
+    // second, a lower 3D view (40 degrees at most) with the lighter detail, and no street lamps or falling rain or snow. "Automatic" turns it on when the phone
     // says it's getting warm (moderate, or worse) and off again once it's cool; "Always" keeps it on.
     /** Cool running is on now. */
     @Volatile var coolOn = false
@@ -5005,8 +5005,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the small live preview in Settings: the full screen's steep tilt and low arrow showed little but sky in a short, wide box,
         // so there the view is gentler, with your arrow in the middle
         if (settingsPreview) { tilt = minOf(tilt, 40.0); pad = 0.0 }
-        // (cool running on the car screen: a flat map, which draws far less, #327)
-        if (isCar && coolOn && !settingsPreview) { tilt = 0.0; pad = minOf(pad, flatPad) }
+        // (cool running on the car screen: a lower view, which draws far less, #327. It used to go flat, and as it only switches
+        // off once the phone is fully cool, a warm phone kept the car map 2D with the tilt setting doing nothing, nonoclub #414)
+        if (isCar && coolOn && !settingsPreview) tilt = minOf(tilt, 40.0)
         // (the picture-in-picture window: your arrow low down, so more of the road ahead shows, but clear of the time strip along
         // the bottom; it sat in the middle. Also while stopped, when the traffic view centres it on the full screen, #301)
         if (pipPad >= 0.0) pad = pipPad

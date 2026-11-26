@@ -1445,7 +1445,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
     CarTripButtonsGroup(prefs)
     SGroup {
         SChoice(L.t("Cool running"), listOf("off" to L.t("Off"), "auto" to L.t("Automatic"), "always" to L.t("Always")), prefs.s(PreferenceKeys.CAR_COOL, "off"),
-            L.t("For phones that get hot: 30 frames a second, a flat map, no rain or lamp effects. Automatic turns it on when the phone reports it's getting hot")) { prefs.put(PreferenceKeys.CAR_COOL, it) }
+            L.t("For phones that get hot: 30 frames a second, a flatter map, no rain or lamp effects. Automatic turns it on when the phone reports it's getting hot")) { prefs.put(PreferenceKeys.CAR_COOL, it) }
         SToggle(prefs, L.t("Search bar and places on the map"), PreferenceKeys.CAR_MAPUI, true, L.t("Off for a car with a rotary knob: the full map, with Search, Home and Work under Places (★)"))
         if (prefs.b(PreferenceKeys.CAR_MAPUI, true)) SChoice(L.t("Hide them after"), listOf("30" to L.t("30 s"), "60" to L.t("1 min"), "120" to L.t("2 min"), "300" to L.t("5 min"), "0" to L.t("Never")),
             prefs.s(PreferenceKeys.CAR_MAPUI_HIDE, "0"), L.t("Comes back when you touch the screen")) { prefs.put(PreferenceKeys.CAR_MAPUI_HIDE, it) }

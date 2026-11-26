@@ -21,6 +21,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### Fixed
 - Screen brightness at night: the Brightness slider now works like your phone's own, so a low setting is really dim, and "Dim the screen at night" no longer overrides auto-brightness (thanks to benkkwok, #417)
+- Android Auto 3D view on a warm phone: cool running now keeps a gentler 3D view instead of a flat map, and your Android Auto tilt setting still applies, up to a moderate tilt (thanks to nonoclub, #414)
 - Android Auto: a route started on the car screen (Home, Work or any other) no longer cancels itself after a few seconds. The phone app, whose GPS rests while it's put away, still thought you were where you last opened it (often home), so it decided you'd already arrived and ended the trip on both screens (thanks to carlb051, #419, #360)
 - Changelog: each release's changes are listed under its own version and date again, so you can see which fix is in the version you have (thanks to ILDEMONICO, #420)
 - Junction place names are back on the turn card: the towns on the sign (Southampton, Portsmouth) show beside the small road sign, or on a short line underneath when the card is narrow
