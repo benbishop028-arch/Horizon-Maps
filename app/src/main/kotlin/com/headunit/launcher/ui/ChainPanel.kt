@@ -139,7 +139,7 @@ internal fun ChainPanel(engine: NavEngine, modifier: Modifier) {
                 Text(if (view.forStop) L.t("Add a stop: {0}", view.name) else view.name, color = c.text, fontSize = 21.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 // (petrol stations with prices: which fuel the prices are for)
                 val priced = view.forStop && view.spots.any { it.price != null }
-                val fuelName = if (priced) " · " + L.t(com.headunit.launcher.FuelFinder.fuelName(engine.prefs.s(com.headunit.launcher.PreferenceKeys.FUEL_TYPE, "E10"))) else ""
+                val fuelName = if (priced) " · " + com.headunit.launcher.FuelFinder.fuelName(engine.prefs.s(com.headunit.launcher.PreferenceKeys.FUEL_TYPE, "E10")) else ""
                 Text(if (view.forStop) L.t("{0} along your route", view.spots.size) + fuelName else L.t(if (engine.imperial) "{0} within 10 miles" else "{0} within 15 km", view.spots.size), color = c.sub, fontSize = 13.sp)
             }
             Box(Modifier.size(42.dp).clip(CircleShape).background(c.tile).clickable { engine.closeChain(back = true); if (fromStops) engine.stopsEditor = false }, contentAlignment = Alignment.Center) {
