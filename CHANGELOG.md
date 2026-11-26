@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1027 — 26 Nov 2026
+
 ### New
 - Turn card in road-sign colours: a new Turn card colour, Match road signs, gives the card the colour of the country's signs for the road you're on: motorway colours on a motorway (blue in the UK, green in Scandinavia, Italy and much of central Europe), main-road colours elsewhere, fading across when you join or leave (thanks to desko1973, #431)
 - Phone battery on the car screen: an optional badge with your phone's battery level beside the speedometer on Android Auto (Settings › Android Auto › Phone battery, off unless switched on) (thanks to joel941703-hash, #430)
