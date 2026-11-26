@@ -3071,7 +3071,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      */
     private fun prefetchStreets(list: List<Place>) {
         streetPrefetch?.cancel()
-        val todo = list.filter { !it.onStreet && it.addressKey.isNotEmpty() && !it.web.startsWith("gpx:") && streetKey(it) !in streetFound }.take(2)
+        val todo = list.filter { !it.onStreet && it.addressKey.isNotEmpty() && !it.web.startsWith("gpx:") && !streetFound.containsKey(streetKey(it)) }.take(2)
         if (todo.isEmpty() || !hasOnline) return
         streetPrefetch = scope.launch(Dispatchers.IO) {
             delay(700)
