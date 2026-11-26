@@ -5,9 +5,11 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Hide speed limits: Settings › Screen & sizes › Speed display › Show speed limits switches the limit sign, the warnings for going over it and the limit signs on the map off, for roads where the limits shown aren't right (thanks to a tester in Germany)
 - A route without tolls: when the fastest route uses toll roads, the route choice also offers a "No tolls" route, with how much longer it takes, and marks the routes that have tolls. Switch it off under Settings › Routes › Avoid › Offer a route without tolls (thanks to Luís Pedro Antunes)
 
 ### Improved
+- The time cards on the other routes ("Same time", "5 min slower") are about 30% smaller, size with the screen like the other signs on the map, and sit a little way along their own route instead of right on the junction, so cards of routes leaving the same point no longer pile on top of each other (thanks to joel941703-hash, #444)
 - Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)
 
 ### Fixed

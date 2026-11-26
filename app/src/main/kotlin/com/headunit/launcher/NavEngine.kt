@@ -3641,6 +3641,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var pendHits = 0
 
     /** True while the posted limits that came with the route are being shown (they're exact, so nothing else overrides them). */
+    /** Settings › Screen & sizes › Speed display › Show speed limits (on unless switched off, #445). */
+    private fun limitsOn(): Boolean = prefs.b(PreferenceKeys.SHOW_LIMITS, true)
+
+    /** With speed limits switched off: nothing of them is left showing (the sign, the next-limit sign, the one on the map). */
+    private fun hideLimits() {
+        if (speedLimit != null || limitEstimated) { speedLimit = null; limitEstimated = false }
+        if (nextLimit != null) nextLimit = null
+        if (limitSignOnMap) { limitSignOnMap = false; map.setSpeedChange(null, null) }
+        routeLimitShown = false
+    }
+    private var limitSignOnMap = true
+
     private fun routeLimitLive() = route != null && !previewing && System.currentTimeMillis() - routeLimitAt < 4000L
 
     /**
@@ -3700,6 +3712,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * seen twice, so passing a side road at a junction doesn't flash its limit.
      */
     private fun showLimit(r: Overpass.Limit, at: LL) {
+        if (!limitsOn()) return
         val showEst = prefs.b(PreferenceKeys.LIMITEST, false)
         val v = if (r.ms <= 0.0 || (r.estimated && !showEst)) -1.0 else r.ms
         val cur = speedLimit ?: -1.0
@@ -3720,6 +3733,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** While navigating a TomTom route: the posted limit for exactly where you are on it, updated with every GPS fix. */
     private fun applyRouteLimit(r: Route, prog: Double, p: Fix) {
+        if (!limitsOn()) return
         val secs = r.limits
         if (secs.isEmpty()) { clearRouteLimitIfNeeded(); return }
         // a few metres ahead, to make up for the GPS being about a second behind
@@ -3843,7 +3857,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // a quick local check every few seconds (the roads around you are downloaded a few hundred metres at a time, so most
         // checks need no network): the sign changes within a few seconds of passing the real one
         if (shadow()) return
-        if (!limitBusy && now - limitAt > (if (moving) 3000L else 12000L) && (lp == null || Geo.dist(lp, p.pos) > 25) && (moving || lp == null)) {
+        // speed limits switched off: none shown, none looked up
+        if (!limitsOn()) hideLimits() else limitSignOnMap = true
+        if (limitsOn() && !limitBusy && now - limitAt > (if (moving) 3000L else 12000L) && (lp == null || Geo.dist(lp, p.pos) > 25) && (moving || lp == null)) {
             limitAt = now; limitPos = p.pos; limitBusy = true
             // where the car really is: on the route line while navigating, or snapped to the road the map shows
             val look = (if (glideOnRoute) gPos else mPos)?.takeIf { Geo.dist(it, p.pos) < 40.0 } ?: p.pos

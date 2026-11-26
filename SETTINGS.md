@@ -321,7 +321,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Advanced display sizes**: **Card size**, **Turn arrow size**, **Turn card width** and **height**, **Button size**, **Text size**, **Road name size**.
 
 **Speed display**
-- **Your speed next to the limit**, **Speedometer ring** (fills towards the limit, amber then red), **Big speed limit sign** (the limit big, your speed small), **Speed limit and speedometer size**.
+- **Show speed limits** (on by default): off hides the limit sign, the warnings for going over it and the limit signs on the map; no limits are looked up then. **Your speed next to the limit**, **Speedometer ring** (fills towards the limit, amber then red), **Big speed limit sign** (the limit big, your speed small), **Speed limit and speedometer size**.
 
 **Card positions**
 - Where the **Turn card**, **Trip card** and **Speedometer** go.

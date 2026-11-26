@@ -247,6 +247,8 @@ internal object PreferenceKeys {
     /** How a limit change is told: "both" chime then voice, "voice", "chime" (LIMITCHANGE off: not at all). */
     const val LIMITCHANGE_HOW = "limitchange_how"
     const val LIMITEST = "limitest"
+    /** Show speed limits at all (Settings › Screen & sizes › Speed display); off hides the sign, the over-the-limit warnings and the signs on the map. */
+    const val SHOW_LIMITS = "showlimits"
     const val LIVECARD = "livecard"
     const val MAPFAST = "mapfast"
     const val MAPSPEED = "mapspeed"
