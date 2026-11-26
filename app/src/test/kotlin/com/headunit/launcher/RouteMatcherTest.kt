@@ -38,6 +38,26 @@ class RouteMatcherTest {
         assertTrue(result.dist < 1.0)
     }
 
+    @Test fun initialSnapStaysNearRouteStartWhenLaterLegPassesCloser() {
+        // The route begins about 110 m north of the GPS fix, then loops back to within 6 m
+        // after travelling more than 300 m. Initial matching must prefer the start section.
+        val r = route(listOf(
+            LL(50.001, -1.0),
+            LL(50.001, -0.996),
+            LL(50.00005, -0.996),
+            LL(50.00005, -1.0),
+        ))
+        val position = LL(50.0, -1.0)
+
+        val unrestricted = RouteMatcher.snap(r, position, 0)
+        val initial = RouteMatcher.snap(r, position, 0, maxProgressMeters = 300.0)
+
+        assertEquals(2, unrestricted.segmentIndex)
+        assertEquals(0, initial.segmentIndex)
+        assertTrue(initial.progress < 300.0)
+        assertTrue(initial.dist > unrestricted.dist)
+    }
+
     @Test fun degenerateSegmentDoesNotDivideByZero() {
         val r = route(listOf(LL(50.0, -1.0), LL(50.0, -1.0), LL(50.0, -0.99)))
         val result = RouteMatcher.snap(r, LL(50.0, -1.0), 0)
