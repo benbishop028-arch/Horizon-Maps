@@ -128,13 +128,14 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 
 **Avoid**
 - **Avoid toll roads**, or **Avoid tolls only in** chosen countries.
-- **Avoid motorways**, **Avoid ferries**, **Avoid car trains** (like the Channel Tunnel shuttle), **Avoid unpaved roads**.
+- **Avoid motorways**: *Never*, *Always*, or *Short trips*, when where you're going is less than a distance you choose away (**Short trips: under**, 10 to 50 miles or 15 to 80 km).
+- **Avoid ferries**, **Avoid car trains** (like the Channel Tunnel shuttle), **Avoid unpaved roads**.
 - **Avoid Clean Air Zones and ULEZ** (a zone you start or finish in can't be avoided), and **Clean air zones on this unit** (the zone data kept on the device).
 
 **Choosing a route**
 - **Eco routes**: fuel-efficient instead of fastest.
 - **Prefer simpler routes**: a route only a minute or so slower with far fewer turns is picked first (labelled *Simplest*).
-- **Prefer main roads (offline)**: offline car routes gently favour bigger roads. Online and lorry routes are unchanged.
+- **Prefer main roads**: keeps to main roads rather than residential streets and lanes, even if a few minutes slower (labelled *Main roads*). Online it picks from the routes Mapbox offers (not TomTom's); offline car routes favour bigger roads.
 - **Offer faster routes**: tells you when a faster route turns up on the way.
 - **Keep other routes on the map**: grey lines with +/− minutes you can tap any time. Off shows a *Faster route found* card instead.
 - **Suggest where you're going**: guesses your destination, with the live journey time, including home and work at your usual times.
@@ -159,6 +160,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Lanes on the map**: your lanes lit on the road.
 - **Zoom in on lanes before a junction**.
 - **Junction close-up**: at slip roads, exits, forks and lane splits the view moves closer and a little flatter for the last 200 m.
+- **Junction zoom**: *Usual*, *Closer* or *Closest*: how close the map comes in for lanes and junctions (closer makes the lit lanes bigger on a small screen).
 
 **Trip card**
 - **Route bar on the trip card**: traffic, cameras, services and stops, with your progress.
