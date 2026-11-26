@@ -118,6 +118,33 @@ class I18nCoreCoverageTest {
         }
     }
 
+
+    @Test fun firstStageThreeAuditBatchHasTranslatedLabelsAndPreservesPlaceholders() {
+        val expected = mapOf(
+            "nl" to listOf("Stops", "+ Stop", "Feedback", "Version", "School"),
+            "de" to listOf("Auto", "Feedback", "Version", "Name (optional)"),
+            "fr" to listOf("Parking", "Notifications", "Microphone"),
+            "es" to listOf("Auto", "Demo"),
+            "it" to listOf("Auto", "Hatchback", "Feedback", "Demo")
+        )
+        val placeholder = Regex("""\{\d+}""")
+        try {
+            for ((code, keys) in expected) {
+                L.set(code)
+                for (key in keys) {
+                    assertNotEquals("$code still falls back for '$key'", key, L.t(key))
+                }
+                for ((source, translated) in I18nAuditBatch1.rows(code)) {
+                    assertTrue("$code changed placeholders in '$source'",
+                        placeholder.findAll(source).map { it.value }.toSet() ==
+                            placeholder.findAll(translated).map { it.value }.toSet())
+                }
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
     @Test fun weatherFuelZonesAndBillingLabelsExistInEveryShortPack() {
         val packs = listOf("ca" to I18nCa.rows(), "ko" to I18nKo.rows(), "ta" to I18nTa.rows(), "te" to I18nTe.rows())
         for ((code, rows) in packs) {
