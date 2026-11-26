@@ -397,4 +397,49 @@ class I18nCoreCoverageTest {
         }
     }
 
+
+    @Test fun settingsAndroidAutoAndOfflineLabelsAreTranslatedInEveryShortPack() {
+        val keys = listOf(
+            "Sound",
+            "Voice",
+            "More settings",
+            "Traffic round you · back when you move",
+            "Sound & voice",
+            "Spoken directions and volume",
+            "Screen & sizes",
+            "Brightness, sizes, glass, units, while driving",
+            "Vehicle",
+            "On the head unit",
+            "Android Auto settings",
+            "Android Auto app info",
+            "Android Auto isn't installed on this phone",
+            "App permissions",
+            "Location services",
+            "Offline pack",
+            "Offline routes and search for when signal drops",
+            "Offline pack ready",
+            "Download now",
+            "You're not on Wi-Fi",
+            "On Wi-Fi only",
+            "Downloaded areas",
+            "Nothing downloaded yet. Pick an area below and download it on Wi-Fi.",
+            "Downloading…",
+        )
+        val placeholder = Regex("""\{\d+}""")
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in keys) {
+                    val translated = L.t(key)
+                    assertNotEquals("$code still falls back for '$key'", key, translated)
+                    assertEquals("$code changed placeholders in '$key'",
+                        placeholder.findAll(key).map { it.value }.toSet(),
+                        placeholder.findAll(translated).map { it.value }.toSet())
+                }
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
 }

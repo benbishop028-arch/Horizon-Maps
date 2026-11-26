@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Improved
+- Expand Catalan, Korean, Tamil and Telugu translations for settings, Android Auto, offline maps and download states; add fallback and placeholder regression coverage.
+
+### Improved
 - Expand Catalan, Korean, Tamil and Telugu navigation translations for junctions, exits, lane guidance, arrival prompts and faster-route messages; add placeholder-preservation regression coverage.
 
 ### Improved
