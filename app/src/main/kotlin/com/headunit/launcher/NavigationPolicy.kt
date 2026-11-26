@@ -44,6 +44,10 @@ internal object NavigationPolicy {
         return ys.last()
     }
 
+    /** Keep the opening-route match window until the vehicle is actually moving and close to that section. */
+    fun shouldReleaseInitialRouteSnap(speedMps: Double, distanceMeters: Double): Boolean =
+        speedMps.isFinite() && distanceMeters.isFinite() && speedMps > 2.5 && distanceMeters <= 60.0
+
     /** Unknown accuracy is allowed for compatibility; known poor fixes should not trigger a reroute. */
     fun gpsReliableForReroute(accuracyMeters: Double): Boolean =
         !accuracyMeters.isFinite() || accuracyMeters <= 0.0 || accuracyMeters <= 45.0
