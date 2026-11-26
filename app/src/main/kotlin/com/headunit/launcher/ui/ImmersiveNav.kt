@@ -261,6 +261,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
+        var alertPx by remember { mutableStateOf(0) }
+        val currentAlert = engine.alert
+        val lastAlert = remember { mutableStateOf(currentAlert) }
+        if (currentAlert != null) lastAlert.value = currentAlert
+        androidx.compose.runtime.SideEffect {
+            engine.portraitLayout = narrow
+            if (currentAlert == null && alertPx != 0) alertPx = 0
+        }
         // the trip card's and speedometer's widths, and the media bar's height (for fitting the media bar between them)
         var tripWPx by remember { mutableStateOf(0) }
         var speedWPx by remember { mutableStateOf(0) }
@@ -275,6 +283,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             .let { if (!narrow && (engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") != "auto") && ((engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") == "left") != engine.layoutMirrored)) "bottom" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
+        // The popup sits above the trip card. Its height is temporary camera coverage, lifting
+        // the locator above it while shown and restoring the normal position afterwards.
+        LaunchedEffect(narrow, tripPx, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
+            val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
+            val tripHeight = if (narrow) 0.dp else tripH
+            engine.popupCover = if (currentAlert != null) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
+        }
         // Other routes on a phone held upright (smikkelvriend): the routes come up as a panel along the bottom, the turn card goes
         // to one line, and the speed, Re-centre and trip card step aside, so the map between shows the routes clearly
         val altSheet = narrow && !previewing && engine.altListOpen && engine.route != null
@@ -455,14 +470,6 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                         // car parks remain in the portrait trip sheet; landscape keeps its existing card.
                                         if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
                                     }
-                                    if (routeSheet && !altFocus) {
-                                        val currentAlert = engine.alert
-                                        val lastAlert = remember { mutableStateOf(currentAlert) }
-                                        if (currentAlert != null) lastAlert.value = currentAlert
-                                        AnimatedVisibility(currentAlert != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
-                                            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-                                            lastAlert.value?.let { Box(Modifier.padding(top = 5.dp)) { AlertBanner(it, compact = true) } }
-                                        }
                                     }
                                     }
                                 }
@@ -672,8 +679,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val speedShareTrip = !narrow && tripPx > 0 && tripAt == speedAt
         if (!previewing && !altFocus && !hudOff) Box(
             when {
-                // (the portrait route layout: bottom left, above the trip sheet)
-                routeSheet -> Modifier.align(side(Alignment.BottomStart)).sides(start = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
+                // Right by default for right-hand drive; left by default for left-hand drive.
+                routeSheet -> Modifier.align(if (mir) Alignment.BottomStart else Alignment.BottomEnd)
+                    .padding(horizontal = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
                 speedOnCardSide -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
                     .padding(start = 16.dp, end = 16.dp, bottom = if (speedShareTrip) tripH + 8.dp else 16.dp)
                 speedPos == "top" -> Modifier.align(side(Alignment.TopEnd)).sides(end = besideButtons, top = 16.dp)
@@ -712,6 +720,25 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             }
         }
         else androidx.compose.runtime.SideEffect { if (tripPx != 0) tripPx = 0; if (tripWPx != 0) tripWPx = 0; engine.setPanel(1, 0f, 0f, 0f, 0f) }
+
+        // Alerts are centred immediately above the arrival / trip panel in every layout. Their
+        // natural width follows the text, and the measured height raises the locator temporarily.
+        if (!previewing && !altFocus && !hudOff) {
+            Box(
+                Modifier.align(Alignment.BottomCenter).zIndex(9f).padding(bottom = tripH + 12.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                AnimatedVisibility(
+                    visible = currentAlert != null,
+                    enter = fadeIn(tween(160)) + androidx.compose.animation.slideInVertically(tween(180)) { it / 3 },
+                    exit = fadeOut(tween(160)) + androidx.compose.animation.slideOutVertically(tween(180)) { it / 3 },
+                ) {
+                    lastAlert.value?.let { a ->
+                        AlertBanner(a, modifier = Modifier.onSizeChanged { alertPx = it.height })
+                    }
+                }
+            }
+        }
 
         // ---- the media bar (Reddit, mrEnmi): back, play / pause and next for whatever is playing on the head unit, with the song
         // when notification access is given. Only while something plays (or for a few minutes after a pause). It goes in the free
