@@ -60,6 +60,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Speed cameras and roadworks", "", "On your route", 3),
     SettingRef("Speed camera size", "Make the red camera badge on the map bigger or smaller", "On your route", 3),
     SettingRef("Limit sign size on the route", "Make the speed limit signs on your route bigger or smaller", "On your route", 3),
+    SettingRef("Update automatically", "Offline map data and town names update by themselves, on Wi-Fi or mobile data", "Downloaded areas", 12),
     SettingRef("Hazard sign size", "Make the roadworks, closure and hazard signs on the map bigger or smaller", "On your route", 3),
     SettingRef("Zebra crossings", "Painted on the road with beacons, on your route and round you in towns", "On your route", 3),
     SettingRef("Stop signs", "Stop signs on your route, with a chime", "On your route", 3),

@@ -297,6 +297,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 
 **Downloaded areas / Add an area**
 - Download a country or region (**Area**) for offline routing, search, speed limits and cameras. Best on Wi-Fi: a country is usually 1 to 4 GB.
+- **Update automatically**: newer map data, speed limits, cameras and town names download by themselves when you're not driving: *On Wi-Fi only* (the default), *Always* (mobile data too), or *Off* to be asked first.
 
 **Without signal**
 - **Offline mode**: nothing goes online (no traffic, weather or online search). Routes, search, limits and cameras come from your downloaded pack.

@@ -4,6 +4,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Offline data updates by itself: newer offline map data, speed limits, cameras and town names now download in the background when you're not driving, on Wi-Fi by default (Settings › Offline maps › Update automatically: Wi-Fi, mobile data too, or off to be asked) (thanks to ricres77, #428)
+
 ### Improved
 - Android Auto driver's display: the next turn (arrow, distance and road) now shows with the time left, distance and arrival, in a bar at the top where the car's own bar along the bottom can't hide it, and the map zooms in a little for a turn (thanks to joel941703-hash, #430)
 - Other-route bubbles on the map ("Same time", "+3 min") are about a quarter smaller, and road names no longer run over them or over the lane sign at a junction (thanks to karthikeyansr-lgtm, #429)

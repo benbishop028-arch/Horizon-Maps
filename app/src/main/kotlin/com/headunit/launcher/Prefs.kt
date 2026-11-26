@@ -334,6 +334,8 @@ internal object PreferenceKeys {
     const val HAZ_SIZE = "hazsize"
     /** The speed limit signs drawn on the route (50 to 250%, of a size half as big again as they used to be). */
     const val ROUTE_LIMIT_SIZE = "routelimsize"
+    /** Update downloaded data by itself (offline maps, town names): "wifi" (the default), "always" (mobile data too) or "off" (#428). */
+    const val DATA_AUTO = "dataauto"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
     const val MOONLIT = "moonlit"
     /** Light and weather (Settings > Map look): night brightness and moon strength in percent (100 as Mapbox / as first made). */

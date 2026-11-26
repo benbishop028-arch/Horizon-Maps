@@ -19,6 +19,8 @@ object OfflinePlaces {
     private fun file(ctx: Context) = File(ctx.filesDir, "offline_places.tsv")
 
     fun installed(ctx: Context): Boolean = file(ctx).let { it.exists() && it.length() > 1000 }
+    /** How long ago the town names were downloaded (ms; 0 when they aren't). */
+    fun ageMs(ctx: Context): Long = file(ctx).let { if (it.exists()) System.currentTimeMillis() - it.lastModified() else 0L }
     fun sizeMb(ctx: Context): Double = file(ctx).length() / 1048576.0
 
     private fun load(ctx: Context): List<Entry> {

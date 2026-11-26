@@ -1156,7 +1156,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 toast(L.t("Offline pack ready"), 3000)
             } catch (e: Throwable) {
                 packStatus = L.t("Download failed. Tap Download again to carry on.")
-            } finally { packBusy = false; packDownloading = null; packRev++; restyle() }
+            } finally {
+                packBusy = false; packDownloading = null; packRev++; restyle()
+                // (updating by itself: on to the next area, while that's still allowed; otherwise they're offered as before)
+                val next = autoPending.firstOrNull()
+                if (next != null) { autoPending = autoPending.drop(1); if (autoDataNow()) updateData(next) else { dataUpdates = dataUpdates + next + autoPending; autoPending = emptyList() } }
+            }
         }
     }
 
@@ -2079,20 +2084,41 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Downloaded areas with newer data published (a rebuilt pack, or new speed limit / camera files). */
     var dataUpdates by mutableStateOf<List<String>>(emptyList())
 
+    /**
+     * Settings › Offline maps › Update automatically (ricres77 #428): newer data is downloaded by itself, without asking, on Wi-Fi
+     * (the default) or on mobile data too, and never while you're driving or on a route. Otherwise it's offered, as before.
+     */
+    private fun autoDataNow(): Boolean {
+        val mode = prefs.s(PreferenceKeys.DATA_AUTO, "wifi")
+        if (mode == "off" || route != null || (fix?.speed ?: 0.0) > 3.0) return false
+        return mode == "always" || onWifi()
+    }
+
     fun checkDataUpdates() {
-        if (packBusy) return
+        // (the phone or head unit does this; the car screen, the same app, doesn't do it twice)
+        if (packBusy || isCar) return
         val nowMs = System.currentTimeMillis()
         if (nowMs - lastAutoDataCheck < autoCheckGapMs) return
         lastAutoDataCheck = nowMs
+        val auto = autoDataNow()
         val snoozed = (prefs.s(PreferenceKeys.DATASNOOZE, "0").toLongOrNull() ?: 0L) > System.currentTimeMillis()
-        if (snoozed) return
+        if (snoozed && !auto) return
         scope.launch {
             val found = withContext(Dispatchers.IO) {
                 OfflineRouter.installedIds(ctx).filter { PackRegions.newerOnline(PackRegions.byId(it), OfflineRouter.packDir(ctx, it)) == true }
             }
-            dataUpdates = found
+            // updated by itself: the first now, the others one after another as each finishes (as Update does)
+            if (found.isNotEmpty() && autoDataNow() && !packBusy) { autoPending = found.drop(1); dataUpdates = emptyList(); updateData(found.first()) }
+            else dataUpdates = found
+            // the town and village names too, once they're a month old
+            if (autoDataNow() && OfflinePlaces.installed(ctx) && OfflinePlaces.ageMs(ctx) > 30L * 86_400_000L) {
+                val cc = chosenPack().country.ifBlank { detectedCountry }.ifBlank { "GB" }
+                try { withContext(Dispatchers.IO) { OfflinePlaces.download(ctx, cc) } } catch (e: Exception) { }
+            }
         }
     }
+    /** Areas still to update by themselves after the one downloading now. */
+    private var autoPending: List<String> = emptyList()
 
     /** Updates the first area with newer data (the others follow, one at a time, as each finishes). */
     fun updateData(id: String) {

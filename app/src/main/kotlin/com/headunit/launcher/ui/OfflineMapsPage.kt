@@ -126,6 +126,11 @@ internal fun OfflineMapsContent(prefs: Prefs, engine: NavEngine) {
             SNote(L.t("Offline speed limits and cameras are now ready for {0}: tap its Update (only the new files download, usually under 100 MB).", PackRegions.byId(id).name))
         val age = engine.packAgeDays()
         if (age != null && age >= 120 && !engine.packBusy) SNote(L.t("The area in use is about {0} months old. Update it on Wi-Fi to pick up new roads and junction changes.", age / 30))
+        // (ricres77 #428: newer data and town names update by themselves, on Wi-Fi unless mobile data is allowed too)
+        SChoice(L.t("Update automatically"), listOf("wifi" to L.t("On Wi-Fi only"), "always" to L.t("Always (uses mobile data)"), "off" to L.t("Off")),
+            prefs.s(PreferenceKeys.DATA_AUTO, "wifi"), L.t("Newer map data, speed limits, cameras and town names download by themselves when you're not driving. Off asks first")) {
+            prefs.put(PreferenceKeys.DATA_AUTO, it)
+        }
     }
     SGroup(L.t("Add an area")) {
         SItem(L.t("Area"), region.name + " · " + region.group) { SButton(L.t("Change")) { picking = true } }
