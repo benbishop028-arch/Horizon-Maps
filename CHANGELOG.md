@@ -4,9 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
-
-### Improved
+## 1.0.1038 — 26 Nov 2026
 
 ### Fixed
 - Route overview while driving: it now fills all the map left clear by the turn card, the trip card and the map buttons, instead of being squeezed small and partly hidden under the turn card
