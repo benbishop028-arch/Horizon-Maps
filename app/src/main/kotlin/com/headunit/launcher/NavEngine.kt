@@ -1865,6 +1865,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
+            if (lastPlanTiming.isNotBlank()) appendLine("Last route planned in: $lastPlanTiming")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { com.headunit.launcher.car.CarCardLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Car search card closed:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
@@ -2303,6 +2304,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed, gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
                 val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
                 results = merged
+                prefetchStreets(merged)
                 if (merged.isEmpty() && !typed) toast(if (net == null) L.t("Search failed: weak or no signal") else L.t("No matches. Try adding a town or postcode."), 3500)
                 return@launch
             }
@@ -2319,6 +2321,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
             results = merged
+            prefetchStreets(merged)
             if (merged.isEmpty()) toast(if (net == null) L.t("Search failed: weak or no signal") else L.t("No matches. Try adding a town or postcode."), 3500)
             else if (net == null) toast(L.t("Weak signal: showing saved places and offline towns"), 3500)
         }
@@ -3049,10 +3052,34 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun streetTarget(to: Place): LL {
         if (!hasOnline || to.web.startsWith("gpx:") || to.onStreet) return to.pos
         val street = Overpass.streetOf(to.name) ?: Overpass.streetOf(to.name.substringBefore(',')) ?: return to.pos
+        val key = streetKey(to)
+        streetFound[key]?.let { return it }
         if (!try { online() } catch (e: Exception) { false }) return to.pos
         val p = Overpass.nearestOnStreet(to.pos, street) ?: return to.pos
-        return if (Geo.dist(p, to.pos) < 150.0) p else to.pos
+        val out = if (Geo.dist(p, to.pos) < 150.0) p else to.pos
+        if (streetFound.size > 200) streetFound.clear()
+        streetFound[key] = out
+        return out
     }
+    /** Street points already looked up (by address), so picking one again, or one looked up while the results showed, is instant. */
+    private val streetFound = java.util.concurrent.ConcurrentHashMap<String, LL>()
+    private fun streetKey(p: Place) = p.name.lowercase() + "@" + Math.round(p.pos.lat * 1e4) + "," + Math.round(p.pos.lon * 1e4)
+    private var streetPrefetch: kotlinx.coroutines.Job? = null
+    /**
+     * While search results are on screen: the street of the first two house addresses is looked up already (once typing has
+     * stopped for a moment), so the route to the one you pick doesn't wait for it.
+     */
+    private fun prefetchStreets(list: List<Place>) {
+        streetPrefetch?.cancel()
+        val todo = list.filter { !it.onStreet && it.addressKey.isNotEmpty() && !it.web.startsWith("gpx:") && streetKey(it) !in streetFound }.take(2)
+        if (todo.isEmpty() || !hasOnline) return
+        streetPrefetch = scope.launch(Dispatchers.IO) {
+            delay(700)
+            for (p in todo) { if (coroutineContext[Job]?.isActive == false) break; try { streetTarget(p) } catch (e: Exception) { } }
+        }
+    }
+    /** How long the last route took to plan, for the problem report: "street 0.0 s, routes 1.8 s". */
+    @Volatile private var lastPlanTiming = ""
 
     fun startRoute(to: Place, departInMin: Int = 0, keepVia: Boolean = false, startNow: Boolean = false, preferVia: String = "", fromTrack: Boolean = false) {
         // a GPX track picked from the search (on the car screen, say): drive it rather than to its start
@@ -3075,8 +3102,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // a house address: the route ends on the street the house is on, not whichever road is nearest the middle of its plot
                 // (3 s at most: the lookup could take 10 s or more when the map server was slow, and the route waited for it. If
                 // it's slow, the route goes to the address as found and the lookup finishes by itself in the background)
+                val t0 = android.os.SystemClock.elapsedRealtime()
                 val look = scope.async(Dispatchers.IO) { try { streetTarget(to) } catch (e: Exception) { to.pos } }
-                val target = kotlinx.coroutines.withTimeoutOrNull(3000L) { look.await() } ?: to.pos
+                // (usually already looked up while the search results showed; 1.5 s at most otherwise)
+                val target = kotlinx.coroutines.withTimeoutOrNull(1500L) { look.await() } ?: to.pos
+                val t1 = android.os.SystemClock.elapsedRealtime()
                 var rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed
@@ -3088,6 +3118,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                 }
                 if (rs.isEmpty()) throw IllegalStateException("No route found")
+                val t2 = android.os.SystemClock.elapsedRealtime()
+                lastPlanTiming = String.format(java.util.Locale.US, "street %.1f s, routes %.1f s%s", (t1 - t0) / 1000.0, (t2 - t1) / 1000.0, if (to.onStreet) " (entrance given)" else "")
                 // one of your own saved routes fits this trip (#321): planned through points along it, and put first
                 val myMode = prefs.s(PreferenceKeys.MY_ROUTES, "offer")
                 val mineRs = if (usedOffline || keepVia || fromTrack || via.isNotEmpty() || myMode == "off") emptyList()

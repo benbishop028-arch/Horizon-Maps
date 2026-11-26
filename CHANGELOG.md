@@ -7,6 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 
 ### Improved
+- Routes to a house address plan quicker: the street the house is on is looked up while the search results are showing, so picking one doesn't wait for it, and search results come up a little faster as you type
 - Route to a house address plans faster: it no longer waits up to 10 seconds or more to find the house's street first when the search already gave its entrance, and never waits more than 3 seconds otherwise
 - Alerts (speed cameras, traffic, hazards) no longer cover the speed limit sign: they stop short of its corner
 - Speed limit signs on the route are a little smaller
