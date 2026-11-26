@@ -148,7 +148,7 @@ object RouteExtras {
         val q = "[out:json][timeout:30];" +
             "(node(around:14,$pl)[\"traffic_calming\"~\"^(bump|hump|table|cushion)$\"];" +
             "node(around:90,$pl)[\"amenity\"=\"school\"];way(around:90,$pl)[\"amenity\"=\"school\"];)->.a;.a out center tags 300;" +
-            "node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"]->.c;.c out body 400;" +
+            "(node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|traffic_signals|uncontrolled|pelican|toucan|puffin|pegasus)$\"];node(around:10,$pl)[\"highway\"=\"crossing\"][\"crossing:markings\"=\"zebra\"];)->.c;.c out body 400;" +
             "node(around:12,$pl)[\"highway\"~\"^(stop|give_way)$\"]->.s;.s out body 300;way(bn.s)[\"highway\"]->.sw;.sw out body geom 600;" +
             "(node(around:12,$pl)[\"railway\"=\"level_crossing\"];node(around:12,$pl)[\"ford\"=\"yes\"];way(around:12,$pl)[\"ford\"=\"yes\"];)->.f;.f out center tags 200;"
         // (average speed checks are no longer part of this big request: they have their own, see avgZones, so a slow or failed
@@ -173,7 +173,11 @@ object RouteExtras {
                     if (t.optString("highway") == "stop" || t.optString("highway") == "give_way") signs += Triple(e.optLong("id"), pos, t)
                     else if (t.optString("railway") == "level_crossing") pois += RoutePoi("rail", "Level crossing", pos)
                     else if (t.optString("ford") == "yes") pois += RoutePoi("ford", "Ford", pos)
-                    else if (t.optString("highway") == "crossing") pois += RoutePoi("crossing", t.optString("crossing"), pos)
+                    else if (t.optString("highway") == "crossing") {
+                        val markings = t.optString("crossing:markings")
+                        val crossing = if (markings.equals("zebra", true)) "zebra" else t.optString("crossing").ifBlank { markings }
+                        pois += RoutePoi("crossing", crossing, pos)
+                    }
                     else if (t.has("traffic_calming")) pois += RoutePoi("bump", t.optString("traffic_calming"), pos)
                     else if (t.optString("amenity") == "school") pois += RoutePoi("school", t.optString("name").ifBlank { "School" }, pos)
                 }

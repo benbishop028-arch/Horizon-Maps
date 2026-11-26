@@ -856,7 +856,12 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (++gapCount >= 3) { mapboxGaps = true; scope.launch { applyStyle(lastDark) } }
             }
         }
-        map.onStyleLoaded = { styleRetry = 0; mapWatchJob?.cancel() }
+        map.onStyleLoaded = {
+            styleRetry = 0
+            mapWatchJob?.cancel()
+            // A style replacement can reset the camera pitch. Restore the driver's saved 2D / 3D choice.
+            map.setTilt(if (tilt3d) 55.0 else 0.0)
+        }
         try {
             val o = org.json.JSONObject(prefs.s(PreferenceKeys.PLANNED, "{}"))
             if (o.has("la") && o.optLong("a") > System.currentTimeMillis())
@@ -7459,7 +7464,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (hzWinRoute !== r) {
             rawHz = emptyList(); hzWinRoute = r; hzWinEnd = -1.0; hzRetryAt = 0L
             placed = null; placedSig = 0
-            map.setStopSigns(emptyList()); map.setGiveWaySigns(emptyList()); map.setCrossings(emptyList())
+            map.setStopSigns(emptyList()); map.setGiveWaySigns(emptyList()); map.setCrossings(emptyList()); map.setSpeedBumps(emptyList())
         }
         barProgress = progress
         val d = dest
@@ -7474,7 +7479,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         // speed bumps, schools and average speed checks: a window of the next 20 km, fetched again before you reach its end
-        val wantHz = prefs.b(PreferenceKeys.BUMPS, true) || prefs.b(PreferenceKeys.SCHOOLS, true) || prefs.b(PreferenceKeys.AVGZONES, true)
+        val bumpOn = prefs.b(PreferenceKeys.BUMPS, true)
+        val zebraOn = prefs.b(PreferenceKeys.ZEBRAS, true)
+        val stopSignsOn = prefs.b(PreferenceKeys.STOP_SIGNS, true)
+        val wantHz = bumpOn || prefs.b(PreferenceKeys.SCHOOLS, true) || prefs.b(PreferenceKeys.AVGZONES, true) || zebraOn || stopSignsOn
         // (a new route after a reroute is looked up again, but not more than once every 45 seconds)
         if (wantHz && !hzBusy && (progress + 6000.0 > hzWinEnd || (hzWinRoute !== r && now - hzLastAt > 45_000L)) && now > hzRetryAt && online()) {
             hzBusy = true; hzLastAt = now
@@ -7518,7 +7526,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         // place everything on this route (in the background) whenever the route or what was found changes
-        val sig = ((System.identityHashCode(r) * 31 + rawServices.size) * 31 + rawHz.size) * 31 + rawAvg.size * 7 + via.size * 13 + zonesVersion * 17
+        val sig = (((((System.identityHashCode(r) * 31 + rawServices.size) * 31 + rawHz.size) * 31 + rawAvg.size * 7 + via.size * 13 + zonesVersion * 17) * 31 + (if (bumpOn) 1 else 0)) * 31 + (if (zebraOn) 1 else 0)) * 31 + (if (stopSignsOn) 1 else 0)
         if (sig != placedSig && !placing) {
             placing = true
             val sv = rawServices; val hz = rawHz; val av = rawAvg; val vs = via
@@ -7548,11 +7556,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     placed = pl; placedSig = sig
                     pushAvgZones(r, if (prefs.b(PreferenceKeys.AVGZONES, true)) pl.avg else emptyList())
                     // zebra and other marked crossings on the route, painted on the road
-                    map.setCrossings(if (prefs.b(PreferenceKeys.ZEBRAS, true)) pl.hz.filter { it.poi.kind == "crossing" && it.poi.name in setOf("zebra", "marked", "uncontrolled") }
+                    map.setCrossings(if (zebraOn) pl.hz.filter { it.poi.kind == "crossing" && it.poi.name in setOf("zebra", "marked", "uncontrolled") }
                         .take(300).map { Triple(it.poi.pos, pointAt(r, it.off).second, it.poi.name == "zebra") } else emptyList())
+                    // Speed bumps and raised tables are also marked on the map, reusing the existing route lookup.
+                    map.setSpeedBumps(if (bumpOn) pl.hz.filter { it.poi.kind == "bump" }.take(300).map { it.poi.pos } else emptyList())
                     // STOP and Give Way signs on the route (only where OpenStreetMap has a road-matched sign)
-                    map.setStopSigns(if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) pl.hz.filter { it.poi.kind == "stop" }.take(300).map { it.poi.pos } else emptyList())
-                    map.setGiveWaySigns(if (prefs.b(PreferenceKeys.STOP_SIGNS, true)) pl.hz.filter { it.poi.kind == "give_way" }.take(300).map { it.poi.pos } else emptyList())
+                    map.setStopSigns(if (stopSignsOn) pl.hz.filter { it.poi.kind == "stop" }.take(300).map { it.poi.pos } else emptyList())
+                    map.setGiveWaySigns(if (stopSignsOn) pl.hz.filter { it.poi.kind == "give_way" }.take(300).map { it.poi.pos } else emptyList())
                 } catch (e: Exception) { placedSig = sig } finally { placing = false }
             }
         }

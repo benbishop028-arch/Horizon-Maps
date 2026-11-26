@@ -1300,6 +1300,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // ---- zebra crossings on the route ----
     /** Each crossing: where, the road's direction there, and whether it's a zebra (with Belisha beacons). */
     private var crossings: List<Triple<LL, Double, Boolean>> = emptyList()
+    /** Speed bumps and raised tables on the active route, from the same OpenStreetMap lookup as route warnings. */
+    private var speedBumps: List<LL> = emptyList()
+    private fun speedBumpFeats(): List<Feature> = speedBumps.map { Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat)) }
 
     private fun zebraFeats(): List<Feature> = crossings.map { (p, b, _) ->
         Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also { it.addNumberProperty("r", b) }
@@ -1379,6 +1382,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         }
     }
 
+    /** Speed-bump markers on the route. This reuses the route's existing hazard lookup; it makes no extra network request. */
+    fun setSpeedBumps(list: List<LL>) {
+        main0.post {
+            speedBumps = list
+            try { src("dl-bumps")?.featureCollection(FeatureCollection.fromFeatures(speedBumpFeats())) } catch (e: Throwable) { }
+        }
+    }
+
     /** White crossing stripes across the road (the picture's top is along the road; drawn wide, shown to scale by the zoom). */
     private fun zebraBitmap(): Bitmap {
         val w = 200; val h = 80
@@ -1403,6 +1414,33 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         c.drawCircle(cx, 20f, 18f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = android.graphics.RadialGradient(cx - 5f, 14f, 20f, intArrayOf(0xFFFFE08A.toInt(), 0xFFFFA000.toInt(), 0xFFE07B00.toInt()), floatArrayOf(0f, 0.6f, 1f), android.graphics.Shader.TileMode.CLAMP)
         })
+        return bmp
+    }
+
+    /** Yellow warning diamond with a black raised-hump symbol, kept small so it does not clutter the route. */
+    private fun speedBumpBitmap(): Bitmap {
+        val s = 72
+        val bmp = Bitmap.createBitmap(s, s, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bmp)
+        fun diamond(inset: Float) = Path().apply {
+            moveTo(s / 2f, 3f + inset)
+            lineTo(s - 3f - inset, s / 2f)
+            lineTo(s / 2f, s - 3f - inset)
+            lineTo(3f + inset, s / 2f)
+            close()
+        }
+        c.drawPath(diamond(0f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF202124.toInt() })
+        c.drawPath(diamond(5f), Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFC928.toInt() })
+        val hump = Path().apply {
+            moveTo(15f, 44f)
+            cubicTo(23f, 44f, 24f, 30f, 36f, 30f)
+            cubicTo(48f, 30f, 49f, 44f, 57f, 44f)
+        }
+        c.drawPath(hump, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFF202124.toInt(); style = Paint.Style.STROKE; strokeWidth = 7f
+            strokeCap = Paint.Cap.ROUND; strokeJoin = Paint.Join.ROUND
+        })
+        c.drawLine(14f, 49f, 58f, 49f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF202124.toInt(); strokeWidth = 5f; strokeCap = Paint.Cap.ROUND })
         return bmp
     }
 
@@ -2712,7 +2750,13 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconSize(zoomed(1.5, 14 to 0.35, 17 to 0.55, 20 to 0.8)).iconEmissiveStrength(1.0).minZoom(14.0))
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
-            .iconSize(zoomed(1.6, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(16.0))
+            .iconSize(zoomed(1.6, 15 to 0.26, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(15.0))
+        // speed bumps and raised tables on the active route, from the same OpenStreetMap data as the warnings
+        addImg(st, "dl-bump", speedBumpBitmap())
+        addS(st, GeoJsonSource.Builder("dl-bumps").featureCollection(FeatureCollection.fromFeatures(speedBumpFeats())).build())
+        addL(st, SymbolLayer("dl-bump", "dl-bumps").inSlot(TOP).iconImage("dl-bump").iconAllowOverlap(true).iconIgnorePlacement(true)
+            .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconSize(zoomed(1.0, 14 to 0.35, 17 to 0.55, 20 to 0.8)).minZoom(14.0))
         // a GPX track you're looking at or driving (GitHub #153): pink, under the routes, with its start (green) and end (red)
         addS(st, GeoJsonSource.Builder("dl-track").featureCollection(trackFeatures()).build())
         addL(st, ln("dl-track-line", "dl-track").filter(Expression.eq(Expression.geometryType(), Expression.literal("LineString")))
@@ -3778,7 +3822,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     // ---- data from the engine ----
     fun setRoute(mainPts: List<LL>, altPts: List<List<LL>>, sev: IntArray? = null) {
         main = mainPts; alts = altPts; mainSev = sev; mainOff = 0; pushRoute(); pushSignals()
-        if (mainPts.isEmpty()) { setAvgZones(emptyList(), emptyList()); setTunnels(emptyList()); setCrossings(emptyList()); setStopSigns(emptyList()) }
+        if (mainPts.isEmpty()) { setAvgZones(emptyList(), emptyList()); setTunnels(emptyList()); setCrossings(emptyList()); setSpeedBumps(emptyList()); setStopSigns(emptyList()) }
         if (mainPts.size >= 2) loadSignalsAlong(mainPts) else { sigRoute = null; signalToken++; signalBusy = false; signalStage = "no route" }
         val on = mainPts.isNotEmpty()
         if (on != routing) { routing = on; applyTraffic(); applyNearLook() }

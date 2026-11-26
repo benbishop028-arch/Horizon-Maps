@@ -7,6 +7,11 @@
 - Navigation start: keep GPS matching constrained to the opening part of the route until the vehicle is moving, and ignore remembered travel direction while stationary, preventing a nearby return leg from making the journey jump ahead.
 - Prevent initial GPS matching from jumping to a later, nearby section of a looping route.
 - Correct the Catalan translation coverage test for valid unchanged wording.
+- Restore the saved 2D / 3D map angle after a style reload, including the reload that follows an app update.
+- Give motorway exit numbers a separate black-and-white badge, distinct from green-and-yellow UK A-road numbers.
+- Clean view now switches directly between Full view and Map only; old saved Minimal view choices migrate to Full view.
+- Draw speed-bump and raised-table markers on the active route using the existing OpenStreetMap hazard lookup, without extra network requests.
+- Make Zebra-crossing beacons visible from slightly farther out and recognise crossings tagged with crossing:markings=zebra.
 
 ## Unreleased
 - Localise weather status and conditions, fuel price labels and freshness, clean-air-zone results, and Google Play billing messages in Catalan, Korean, Tamil and Telugu.

@@ -250,9 +250,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     val routing = engine.route != null && !engine.previewing
     val previewing = engine.previewing
     val simple by remember { derivedStateOf { engine.driving && engine.prefs.b(PreferenceKeys.DRIVESIMPLE, true) } }
-    // the Clean view button (#358): while on a route, 1 hides the extra cards and the media bar, 2 leaves just the map and the buttons
-    var cleanView by remember { mutableStateOf(engine.prefs.i(PreferenceKeys.CLEAN_VIEW, 0).coerceIn(0, 2)) }
-    val hudMin = routing && !previewing && cleanView >= 1
+    // Clean view has two states: Full (0) and Map only (2). Older saved Minimal (1) is migrated to Full.
+    val savedCleanView = engine.prefs.i(PreferenceKeys.CLEAN_VIEW, 0)
+    var cleanView by remember { mutableStateOf(if (savedCleanView == 2) 2 else 0) }
+    LaunchedEffect(Unit) { if (savedCleanView != 0 && savedCleanView != 2) engine.prefs.put(PreferenceKeys.CLEAN_VIEW, 0) }
+    val hudMin = routing && !previewing && cleanView == 2
     val hudOff = routing && !previewing && cleanView == 2
 
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
@@ -511,13 +513,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             })
             // navigating: other ways to go, any time (as in Google Maps): shown in grey on the map with how they compare, tap one to switch
             if (routing && "routes" !in railHidden) railItems.add(@Composable { ImmIcon(Icons.Rounded.AltRoute, { engine.findAlternatives() }, desc = L.t("Other routes")) })
-            // Clean view (#358): full, then minimal, then the map only; remembered for the next trip
+            // Clean view (#358): one press switches directly between Full view and Map only.
             if (routing && !previewing && "clean" !in railHidden) railItems.add(@Composable {
-                val label = when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }
+                val label = if (cleanView == 0) L.t("Full view") else L.t("Map only")
                 ImmIcon(if (cleanView == 0) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff, {
-                    cleanView = (cleanView + 1) % 3
+                    cleanView = if (cleanView == 0) 2 else 0
                     engine.prefs.put(PreferenceKeys.CLEAN_VIEW, cleanView)
-                    engine.toast(when (cleanView) { 0 -> L.t("Full view"); 1 -> L.t("Minimal view"); else -> L.t("Map only") }, 1500)
+                    engine.toast(if (cleanView == 0) L.t("Full view") else L.t("Map only"), 1500)
                 }, active = cleanView != 0, desc = label)
             })
             // the whole route on screen for a few seconds, then back to following you (off unless chosen in Settings > Map buttons)
@@ -718,11 +720,16 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         }
         else androidx.compose.runtime.SideEffect { if (tripPx != 0) tripPx = 0; if (tripWPx != 0) tripWPx = 0; engine.setPanel(1, 0f, 0f, 0f, 0f) }
 
-        // Alerts are centred immediately above the arrival / trip panel in every layout. Their
-        // natural width follows the text, and the measured height raises the locator temporarily.
+        // Alerts sit opposite the speed-limit sign. The sign is on the inner edge of the speed cluster,
+        // so the cluster's side is the clear side for the alert; keep the same height above the trip panel.
         if (!previewing && !altFocus && !hudOff) {
             Box(
-                Modifier.align(Alignment.BottomCenter).zIndex(9f).padding(bottom = tripH + 12.dp),
+                Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd).zIndex(9f)
+                    .padding(
+                        start = if (speedAt == "left") 16.dp else 0.dp,
+                        end = if (speedAt == "right") 16.dp else 0.dp,
+                        bottom = tripH + 12.dp,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 AnimatedVisibility(
@@ -1570,6 +1577,15 @@ internal fun ImmTurnCard(
                         modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.White.copy(alpha = 0.18f)).padding(horizontal = 7.dp, vertical = 2.dp))
                     if (!ukSign && t.sign.isNotBlank() && t.sign != t.street) Text(t.sign, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.widthIn(max = 130.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF1E8E55)).padding(horizontal = 7.dp, vertical = 2.dp))
+                    // Keep the exit number visually separate from the green/yellow A-road number badge.
+                    val exitLabel = t.exitNo.takeIf { it.isNotBlank() }?.let { L.t("Exit {0}", it) }
+                        ?: t.tag.takeIf { ukSign && it.startsWith("Exit", true) }
+                    exitLabel?.let { label ->
+                        val exitShape = RoundedCornerShape(5.dp)
+                        Text(label, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, softWrap = false,
+                            modifier = Modifier.clip(exitShape).background(Color(0xFF202124))
+                                .border(1.dp, Color.White.copy(alpha = 0.9f), exitShape).padding(horizontal = 7.dp, vertical = 3.dp))
+                    }
                     RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp, ref = if (!lmk) t.ref else "")
                 }
             }

@@ -200,7 +200,7 @@ internal object PreferenceKeys {
     const val DRIVELOCK = "drivelock"
     /** The media bar on the driving screen (Reddit, mrEnmi). */
     const val MEDIA_BAR = "media_bar"
-    /** The Clean view button on the map: 0 everything, 1 minimal (turn card, speed, trip), 2 the map only (#358). */
+    /** The Clean view button on the map: 0 full view, 2 map only. Value 1 is the retired Minimal view (#358). */
     const val CLEAN_VIEW = "cleanview"
     /** Map buttons switched off in Settings > Map buttons, comma separated (compass, report, sound, routes, clean, overview). Overview starts off. */
     const val RAIL_HIDDEN = "rail_hidden"
