@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Fixed
+- Demo drive: keep genuine GPS fixes separate from simulated positions and restore the latest real position when the demo ends, preventing the next journey from starting at the demo's last simulated location.
 - Navigation start: keep GPS matching constrained to the opening part of the route until the vehicle is moving, and ignore remembered travel direction while stationary, preventing a nearby return leg from making the journey jump ahead.
 - Prevent initial GPS matching from jumping to a later, nearby section of a looping route.
 - Correct the Catalan translation coverage test for valid unchanged wording.
