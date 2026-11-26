@@ -282,5 +282,14 @@ object I18nTe {
         "Entering {0}" to "{0}లోకి ప్రవేశిస్తోంది",
         "Emergency: {0} · {1} {2}" to "అత్యవసర నంబర్: {0} · {1} {2}",
         "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "సాధారణ కార్ల వేగ పరిమితులు (పట్టణం / గ్రామీణం / మోటార్‌వే): {0}. అత్యవసర నంబర్: {1}. స్థానిక రహదారి సూచికలను అనుసరించండి; రహదారి, పరిస్థితులు, వాహనాన్ని బట్టి పరిమితులు మారవచ్చు.",
+        "Navigating" to "నావిగేషన్ కొనసాగుతోంది",
+        "Shown while a route is running, with the next turn" to "మార్గం కొనసాగుతున్నప్పుడు తదుపరి మలుపును చూపిస్తుంది",
+        "At the roundabout" to "రౌండ్‌అబౌట్ వద్ద",
+        "Continue" to "కొనసాగండి",
+        "Head off" to "ప్రయాణం ప్రారంభించండి",
+        "Exit left" to "ఎడమవైపు నిష్క్రమించండి",
+        "Exit right" to "కుడివైపు నిష్క్రమించండి",
+        "Arrive {0}" to "{0} చేరుకున్నారు",
+
     )
 }

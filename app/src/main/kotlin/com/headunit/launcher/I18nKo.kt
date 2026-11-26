@@ -282,5 +282,14 @@ object I18nKo {
         "Entering {0}" to "{0} 진입 중",
         "Emergency: {0} · {1} {2}" to "긴급 전화: {0} · {1} {2}",
         "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "일반 승용차 제한 속도(도심 / 교외 / 고속도로): {0}. 긴급 전화: {1}. 현지 표지판을 따르세요. 도로와 상황, 차량에 따라 제한 속도가 달라질 수 있습니다.",
+        "Navigating" to "주행 중",
+        "Shown while a route is running, with the next turn" to "경로 안내 중 다음 회전 정보를 표시합니다",
+        "At the roundabout" to "로터리에서",
+        "Continue" to "직진하세요",
+        "Head off" to "출발하세요",
+        "Exit left" to "왼쪽으로 나가세요",
+        "Exit right" to "오른쪽으로 나가세요",
+        "Arrive {0}" to "{0} 도착",
+
     )
 }

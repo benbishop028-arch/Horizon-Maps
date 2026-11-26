@@ -28,7 +28,7 @@ class NavService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val text = intent?.getStringExtra(EXTRA_TEXT).orEmpty().ifBlank { "Navigating" }
+        val text = intent?.getStringExtra(EXTRA_TEXT).orEmpty().ifBlank { L.t("Navigating") }
         plainText = text
         lastSig = ""
         val n = notification(this, text)
@@ -57,19 +57,17 @@ class NavService : Service() {
         private const val GREEN = 0xFF1F6F43.toInt()
 
         @Volatile private var running = false
-        @Volatile private var plainText = "Navigating"
+        @Volatile private var plainText = L.t("Navigating")
         private var lastSig = ""
         private var lastPost = 0L
         private val arrows = HashMap<Int, Bitmap>()
 
         private fun channel(ctx: Context) {
             val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (nm.getNotificationChannel(CHANNEL) == null) {
-                nm.createNotificationChannel(NotificationChannel(CHANNEL, "Navigation", NotificationManager.IMPORTANCE_LOW).apply {
-                    description = "Shown while a route is running, with the next turn"
-                    setShowBadge(false)
-                })
-            }
+            nm.createNotificationChannel(NotificationChannel(CHANNEL, L.t("Navigation"), NotificationManager.IMPORTANCE_LOW).apply {
+                description = L.t("Shown while a route is running, with the next turn")
+                setShowBadge(false)
+            })
         }
 
         private fun openApp(ctx: Context): PendingIntent = PendingIntent.getActivity(
@@ -124,14 +122,14 @@ class NavService : Service() {
         private fun what(t: TurnInfo): String {
             val m = t.maneuver.uppercase()
             return when {
-                m.startsWith("ROUNDABOUT") && t.exit > 0 -> "Take exit ${t.exit}"
-                m.startsWith("ROUNDABOUT") -> "At the roundabout"
-                m.startsWith("ARRIVE") -> "Arrive"
+                m.startsWith("ROUNDABOUT") && t.exit > 0 -> L.t("Take exit {0}", t.exit)
+                m.startsWith("ROUNDABOUT") -> L.t("At the roundabout")
+                m.startsWith("ARRIVE") -> L.t("Arrive")
                 t.tag.isNotBlank() -> t.tag
-                m == "STRAIGHT" || m == "FOLLOW" -> "Continue"
-                m == "DEPART" -> "Head off"
-                m.startsWith("MOTORWAY_EXIT_LEFT") -> "Exit left"
-                m.startsWith("MOTORWAY_EXIT_RIGHT") -> "Exit right"
+                m == "STRAIGHT" || m == "FOLLOW" -> L.t("Continue")
+                m == "DEPART" -> L.t("Head off")
+                m.startsWith("MOTORWAY_EXIT_LEFT") -> L.t("Exit left")
+                m.startsWith("MOTORWAY_EXIT_RIGHT") -> L.t("Exit right")
                 else -> m.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
             }
         }
@@ -193,7 +191,7 @@ class NavService : Service() {
                     .setShowWhen(false)
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
-                if (arrive.isNotBlank()) b.setSubText("Arrive $arrive")
+                if (arrive.isNotBlank()) b.setSubText(L.t("Arrive {0}", arrive))
                 bigArrow(ctx, res)?.let { b.setLargeIcon(it) }
                 nm.notify(ID, b.build())
             } catch (e: Throwable) { /* a notification problem must never stop guidance */ }

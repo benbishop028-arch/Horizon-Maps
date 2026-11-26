@@ -175,6 +175,22 @@ class I18nCoreCoverageTest {
         }
     }
 
+    @Test fun navigationNotificationLabelsAreTranslatedInEveryShortPack() {
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in listOf("Navigating", "Shown while a route is running, with the next turn",
+                    "At the roundabout", "Continue", "Head off", "Exit left", "Exit right", "Arrive {0}")) {
+                    assertNotEquals("$code missing translation: $key", key, L.t(key, 2))
+                }
+                assertTrue(L.t("Take exit {0}", 2).contains("2"))
+                assertTrue(L.t("Arrive {0}", "18:30").contains("18:30"))
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
     @Test fun androidAutoReportsAndBorderNotificationsAreLocalisedInEveryShortPack() {
         try {
             for (code in listOf("ca", "ko", "ta", "te")) {

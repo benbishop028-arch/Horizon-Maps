@@ -282,5 +282,14 @@ object I18nTa {
         "Entering {0}" to "{0} நாட்டிற்குள் நுழைகிறது",
         "Emergency: {0} · {1} {2}" to "அவசர எண்: {0} · {1} {2}",
         "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "வழக்கமான கார் வேக வரம்புகள் (நகரம் / கிராமப்புறம் / நெடுஞ்சாலை): {0}. அவசர எண்: {1}. உள்ளூர் சாலைப் பலகைகளைப் பின்பற்றவும்; சாலை, சூழ்நிலை மற்றும் வாகனத்தைப் பொறுத்து வரம்புகள் மாறலாம்.",
+        "Navigating" to "வழிசெலுத்தல் நடைபெறுகிறது",
+        "Shown while a route is running, with the next turn" to "வழி செயலில் இருக்கும்போது அடுத்த திருப்பத்தைக் காட்டும்",
+        "At the roundabout" to "சுற்றுவட்டச் சாலையில்",
+        "Continue" to "தொடரவும்",
+        "Head off" to "புறப்படவும்",
+        "Exit left" to "இடப்புறம் வெளியேறவும்",
+        "Exit right" to "வலப்புறம் வெளியேறவும்",
+        "Arrive {0}" to "{0} வந்தடைவு",
+
     )
 }

@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Improved
+- Localise navigation foreground notifications, channel details, turn prompts and arrival labels in Catalan, Korean, Tamil and Telugu.
+
+### Improved
 - Translate Android Auto report confirmations and country-border driving notifications in Catalan, Korean, Tamil and Telugu, with placeholder-preservation regression coverage.
 
 ### Fixed

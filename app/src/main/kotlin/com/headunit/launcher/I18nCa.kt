@@ -289,5 +289,14 @@ object I18nCa {
         "Entering {0}" to "Entrant a {0}",
         "Emergency: {0} · {1} {2}" to "Emergències: {0} · {1} {2}",
         "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "Límits habituals per a turismes (urbà / interurbà / autopista): {0}. Emergències: {1}. Seguiu els senyals locals; els límits poden variar segons la via, les condicions i el vehicle.",
+        "Navigating" to "Navegant",
+        "Shown while a route is running, with the next turn" to "Es mostra mentre hi ha una ruta activa, amb el proper gir",
+        "At the roundabout" to "A la rotonda",
+        "Continue" to "Continueu",
+        "Head off" to "Inicieu la marxa",
+        "Exit left" to "Sortiu a l’esquerra",
+        "Exit right" to "Sortiu a la dreta",
+        "Arrive {0}" to "Arribada {0}",
+
     )
 }
