@@ -30,6 +30,8 @@ import androidx.car.app.hardware.common.CarValue
 import androidx.car.app.hardware.common.OnCarDataAvailableListener
 import androidx.car.app.hardware.info.CarHardwareLocation
 import androidx.car.app.hardware.info.CarSensors
+import androidx.car.app.hardware.info.EnergyLevel
+import androidx.car.app.hardware.info.Speed
 import androidx.car.app.Screen
 import androidx.car.app.Session
 import androidx.car.app.SurfaceCallback
@@ -118,8 +120,65 @@ class CarNavSession : Session() {
     @Volatile private var pendingNavWait: Thread? = null
     @Volatile private var pendingNavWaitToken = 0L
     private val main = Handler(Looper.getMainLooper())
-    private var carSensors: CarSensors? = null
     private var carLocationListener: OnCarDataAvailableListener<CarHardwareLocation>? = null
+    private var carSpeedListener: OnCarDataAvailableListener<Speed>? = null
+    private var carEnergyListener: OnCarDataAvailableListener<EnergyLevel>? = null
+
+    /**
+     * The car's own position, speed and battery level (Car App API 3), each on its own: a car may give some and not others, or the
+     * permission for one may be missing (they're asked for in the phone's Settings > Android Auto). Safe to call again: only what
+     * isn't listening yet is tried, so a permission allowed during the drive is picked up when the car screen comes back.
+     */
+    private fun startCarData() {
+        if (carContext.carAppApiLevel < 3) return
+        val hw = try { carContext.getCarService(CarHardwareManager::class.java) } catch (e: Exception) { return }
+        val exec = androidx.core.content.ContextCompat.getMainExecutor(carContext)
+        fun granted(p: String) = androidx.core.content.ContextCompat.checkSelfPermission(carContext, p) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        // (UNKNOWN: not read yet, the last value stands; UNAVAILABLE / UNIMPLEMENTED: back to the phone's GPS speed or the set %)
+        fun <T : Any> pick(v: CarValue<T>, set: (T?) -> Unit) { if (v.status == CarValue.STATUS_SUCCESS) v.value?.let(set) else if (v.status != CarValue.STATUS_UNKNOWN) set(null) }
+        // Prefer the head unit's GPS; NavEngine keeps the phone LocationManager feed as an automatic fallback.
+        if (carLocationListener == null && granted(android.Manifest.permission.ACCESS_FINE_LOCATION)) try {
+            val l = OnCarDataAvailableListener<CarHardwareLocation> { data ->
+                val value = data.location
+                if (value.status == CarValue.STATUS_SUCCESS) value.value?.let { holder.engine?.onCarLocation(it) }
+            }
+            hw.carSensors.addCarHardwareLocationListener(CarSensors.UPDATE_RATE_NORMAL, exec, l)
+            carLocationListener = l
+        } catch (e: Exception) { android.util.Log.w("CarNav", "Car GPS unavailable; using phone location", e) }
+        if (carSpeedListener == null && granted(com.headunit.launcher.CarData.CAR_SPEED)) try {
+            // the dashboard's figure (what the driver compares with the limit), else the raw one
+            val l = OnCarDataAvailableListener<Speed> { data ->
+                val v = data.displaySpeedMetersPerSecond.takeIf { it.status == CarValue.STATUS_SUCCESS && it.value != null } ?: data.rawSpeedMetersPerSecond
+                pick(v) { holder.engine?.onCarSpeed(it?.toDouble()) }
+            }
+            hw.carInfo.addSpeedListener(exec, l)
+            carSpeedListener = l
+        } catch (e: Exception) { android.util.Log.w("CarNav", "Car speed unavailable; using GPS speed", e) }
+        if (carEnergyListener == null && granted(com.headunit.launcher.CarData.CAR_FUEL)) try {
+            val l = OnCarDataAvailableListener<EnergyLevel> { data ->
+                pick(data.batteryPercent) { pct ->
+                    val first = com.headunit.launcher.CarData.soc == null
+                    com.headunit.launcher.CarData.soc = pct?.let { Math.round(it).coerceIn(0, 100) }
+                    // only the first reading looks for a charging stop again: every 1 % would search again all the way
+                    // (and only when automatic charging stops are on, like the search at the route's start)
+                    if (first && pct != null) holder.engine?.let { e -> if (e.prefs.b(PreferenceKeys.SMARTFUEL, true)) e.refreshEvPlan() }
+                }
+            }
+            hw.carInfo.addEnergyLevelListener(exec, l)
+            carEnergyListener = l
+        } catch (e: Exception) { android.util.Log.w("CarNav", "Car battery level unavailable; using the set %", e) }
+    }
+
+    /** Each removed on its own, so one that fails doesn't leave the others listening. */
+    private fun stopCarData() {
+        val hw = try { carContext.getCarService(CarHardwareManager::class.java) } catch (e: Exception) { null }
+        carLocationListener?.let { l -> try { hw?.carSensors?.removeCarHardwareLocationListener(l) } catch (e: Exception) { } }
+        carSpeedListener?.let { l -> try { hw?.carInfo?.removeSpeedListener(l) } catch (e: Exception) { } }
+        carEnergyListener?.let { l -> try { hw?.carInfo?.removeEnergyLevelListener(l) } catch (e: Exception) { } }
+        carLocationListener = null; carSpeedListener = null; carEnergyListener = null
+        holder.engine?.onCarSpeed(null)
+        com.headunit.launcher.CarData.soc = null
+    }
 
     override fun onNewIntent(intent: Intent) { takeNav(intent) }
 
@@ -282,16 +341,12 @@ class CarNavSession : Session() {
             // (Horizon's screen in front on the car, or another app over it: with no route it keeps quiet behind another app)
             override fun onStart(owner: LifecycleOwner) { holder.engine?.carHidden = false }
             override fun onStop(owner: LifecycleOwner) { holder.engine?.carHidden = true }
+            override fun onResume(owner: LifecycleOwner) { startCarData() }
             override fun onDestroy(owner: LifecycleOwner) {
                 screen.stop()
                 sunHandler.removeCallbacks(sunTick)
                 try { voice.finish(""); com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false } catch (e: Exception) { }
-                try {
-                    val listener = carLocationListener
-                    val sensors = carSensors
-                    if (listener != null && sensors != null) sensors.removeCarHardwareLocationListener(listener)
-                } catch (e: Exception) { }
-                carLocationListener = null; carSensors = null
+                stopCarData()
                 try { carContext.applicationContext.unregisterComponentCallbacks(phoneThemeWatch) } catch (e: Exception) { }
                 pendingNavWaitToken++
                 pendingNavWait?.interrupt()
@@ -381,22 +436,7 @@ class CarNavSession : Session() {
         }
         applyTheme()
         try { engine.startLocation() } catch (e: Exception) { }
-        // Prefer the head unit's GPS when its Android Auto host supports Car App API 3.
-        // NavEngine keeps the phone LocationManager feed as an automatic fallback.
-        try {
-            if (carContext.carAppApiLevel >= 3 &&
-                androidx.core.content.ContextCompat.checkSelfPermission(carContext, android.Manifest.permission.ACCESS_FINE_LOCATION) ==
-                    android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                val sensors = carContext.getCarService(CarHardwareManager::class.java).carSensors
-                val listener = OnCarDataAvailableListener<CarHardwareLocation> { data ->
-                    val value = data.location
-                    if (value.status == CarValue.STATUS_SUCCESS) value.value?.let { holder.engine?.onCarLocation(it) }
-                }
-                sensors.addCarHardwareLocationListener(CarSensors.UPDATE_RATE_NORMAL, androidx.core.content.ContextCompat.getMainExecutor(carContext), listener)
-                carSensors = sensors
-                carLocationListener = listener
-            }
-        } catch (e: Exception) { android.util.Log.w("CarNav", "Car GPS unavailable; using phone location", e) }
+        startCarData()
         // the location service runs the whole time the map is on Android Auto, not only during a route: without it, driving with
         // no route and the phone locked, Android could hold back location updates, and the arrow froze or stayed where the drive
         // began, such as at home (timblr1989, #214)

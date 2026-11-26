@@ -336,6 +336,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Search bar and places on the map**: off for a car with a rotary knob (Search, Home and Work move under Places ★). **Hide them after**: they come back when you touch the screen.
 - **Sound button on the map**: sound on / alerts only / muted, when not navigating.
 - **Microphone**: voice search on the car screen.
+- **Car data** › **Speed, battery and position**: lets Android Auto pass on the car's own speed, battery level and position. Without it, the app uses GPS and the battery % you set.
 
 **Card positions on the car screen**
 - **Trip card**, **Trip card in split screen**, **Speedometer**, **Speedometer style on the car screen** (*Compact* is a small dark pill with the limit and your speed side by side).

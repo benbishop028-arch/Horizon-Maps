@@ -1480,6 +1480,21 @@ private fun AndroidAutoSection(prefs: Prefs) {
             }
         }
     }
+    // The car's own speed, battery level and position, read through Android Auto (Car App API 3): runtime permissions, asked
+    // here for the same reason as the microphone
+    run {
+        val carPerms = arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, com.headunit.launcher.CarData.CAR_SPEED, com.headunit.launcher.CarData.CAR_FUEL)
+        fun carOk() = carPerms.all { ctx.checkSelfPermission(it) == android.content.pm.PackageManager.PERMISSION_GRANTED }
+        var ok by remember { mutableStateOf(carOk()) }
+        val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { ok = carOk() }
+        SGroup(L.t("Car data"), footer = L.t("Lets Android Auto pass on the car's speed, battery level and position. Without it the app uses GPS and the battery % you set.")) {
+            SItem(L.t("Speed, battery and position"), if (ok) L.t("Allowed") else L.t("Not allowed")) {
+                if (!ok) SButton(L.t("Allow"), primary = true) { ask.launch(carPerms.filter { ctx.checkSelfPermission(it) != android.content.pm.PackageManager.PERMISSION_GRANTED }
+                    // Android 12+ ignores a request for fine location without coarse location in the same request
+                    .let { if (android.Manifest.permission.ACCESS_FINE_LOCATION in it) it + android.Manifest.permission.ACCESS_COARSE_LOCATION else it }.toTypedArray()) }
+            }
+        }
+    }
     SGroup(L.t("Card positions on the car screen"), L.t("The turn card stays top left on Android Auto, where its own buttons leave room")) {
         CardPositionsPreview(prefs, car = true)
         SChoice(L.t("Trip card"), listOf("auto" to L.t("Under the turn card"), "centre" to L.t("Bottom centre"), "right" to L.t("Bottom right")), prefs.s(PreferenceKeys.CAR_TRIP_POS, "auto")) { prefs.put(PreferenceKeys.CAR_TRIP_POS, it) }
