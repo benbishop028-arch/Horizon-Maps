@@ -452,34 +452,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     // "under" the turn card covered its top, the turn and the distance)
                                     Column {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        if (routeSheet && !altFocus) {
-                                            val baseDensity = LocalDensity.current
-                                            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density * 0.92f, baseDensity.fontScale)) {
-                                                ImmTurnCard(engine, t, slim = false, footer = {
-                                                    RouteHazardLines(engine)
-                                                    if (!hudMin) TurnCardExtras(engine, turnExtraMax, advice = false, parking = false)
-                                                })
-                                            }
-                                        } else {
-                                            ImmTurnCard(engine, t, slim = altFocus || slimHold[0], footer = {
-                                                if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, advice = true, parking = false)
-                                            })
-                                        }
-                                        // In portrait, services and live alerts live in the bottom trip sheet, not over the map.
-                                        if (!altFocus && !routeSheet && !hudMin) ServicesCard(engine)
-                                        // car parks remain in the portrait trip sheet; landscape keeps its existing card.
-                                        if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
-                                    }
-                                    if (routeSheet && !altFocus) {
-                                        val currentAlert = engine.alert
-                                        val lastAlert = remember { mutableStateOf(currentAlert) }
-                                        if (currentAlert != null) lastAlert.value = currentAlert
-                                        AnimatedVisibility(currentAlert != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
-                                            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-                                            lastAlert.value?.let { Box(Modifier.padding(top = 5.dp)) { AlertBanner(it, compact = true) } }
-                                        }
-                                    }
-                                    }
+                                       }
                                 }
                             }
                         }
