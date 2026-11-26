@@ -6,6 +6,8 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 
 ⚙️ **[Every setting explained](SETTINGS.md)**: what each option in Settings does.
 
+🔌 **[Using Horizon from other apps](INTEGRATION.md)**: for launcher and app developers: starting navigation and showing the next turn.
+
 💙 **[Support development](https://www.paypal.me/BBishop462)**: totally optional. The app stays free.
 
 ---
