@@ -119,18 +119,21 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
             root.addView(m.beamView, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
             root.addView(m.roadView, FrameLayout.LayoutParams(1, 1))
             root.addView(m.locatorView, FrameLayout.LayoutParams(1, 1))
-            // the trip bar at the bottom centre (time left · distance · arrival, as Google Maps has), only with a route
+            // the trip bar at the top centre, only with a route: the next turn (arrow, distance, road) over time left · distance ·
+            // arrival. It was at the bottom with only the trip figures, where some cars draw their own bar over the map and hid it
+            // (a Renault Captur's driver display showed no directions or arrival at all, joel941703-hash #430)
             val tv = android.widget.TextView(p.context).apply {
                 setTextColor(android.graphics.Color.WHITE)
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, 13f)
                 typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                 val padH = (12 * dens).toInt(); val padV = (4 * dens).toInt()
                 setPadding(padH, padV, padH, padV)
-                maxLines = 1
-                background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = 100f * dens; setColor(0xD910151D.toInt()) }
+                maxLines = 2
+                gravity = android.view.Gravity.CENTER
+                background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = 14f * dens; setColor(0xD910151D.toInt()) }
                 visibility = android.view.View.GONE
             }
-            root.addView(tv, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL).apply { bottomMargin = (8 * dens).toInt() })
+            root.addView(tv, FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT, android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL).apply { topMargin = (8 * dens).toInt() })
             tripBar = tv; barDens = dens
             owner.start()
             root.setViewTreeLifecycleOwner(owner)
@@ -161,7 +164,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
         tripBar?.let { tv ->
             try {
                 val lp = tv.layoutParams as FrameLayout.LayoutParams
-                lp.bottomMargin = (height - visibleArea.bottom).coerceAtLeast(0) + (8 * barDens).toInt()
+                lp.topMargin = visibleArea.top.coerceAtLeast(0) + (8 * barDens).toInt()
                 val shift = (visibleArea.left.coerceAtLeast(0) - (width - visibleArea.right).coerceAtLeast(0)) / 2
                 lp.leftMargin = shift.coerceAtLeast(0); lp.rightMargin = (-shift).coerceAtLeast(0)
                 tv.layoutParams = lp
@@ -213,7 +216,9 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
         val kmh = (e?.fix?.speed ?: 0.0) * 3.6
         val speedOut = ((kmh - 50.0) / 70.0).coerceIn(0.0, 1.0) * 0.8
         val user = prefs.i(PreferenceKeys.CLUSTER_ZOOM, 0).coerceIn(-2, 1) * 0.7
-        val target = (if (route.isNotEmpty()) 15.1 else 14.7) - speedOut + user
+        // (closer as a turn comes up, as on the main screen: a little in the last 300 m, #430)
+        val turnIn = e?.turn?.takeIf { route.isNotEmpty() }?.let { ((300.0 - it.dist) / 300.0).coerceIn(0.0, 1.0) * 0.7 } ?: 0.0
+        val target = (if (route.isNotEmpty()) 15.1 else 14.7) - speedOut + user + turnIn
         // eased, so the speed part doesn't make the map breathe in and out
         zoomNow = if (zoomNow < 0) target else zoomNow + (target - zoomNow) * 0.05
         m.cameraSet(pos, bearing, 40.0, zoomNow, 0.35, 0.0)
@@ -228,7 +233,10 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
         barAt = now
         val eta = if (routing) e?.eta else null
         val t = if (eta == null) "" else try {
-            listOf(com.headunit.launcher.Geo.fmtDur(eta.secs), com.headunit.launcher.Geo.fmtDist(eta.dist, e?.imperial == true), eta.arrive).joinToString(" · ")
+            val trip = listOf(com.headunit.launcher.Geo.fmtDur(eta.secs), com.headunit.launcher.Geo.fmtDist(eta.dist, e?.imperial == true), eta.arrive).joinToString(" · ")
+            val turn = e?.turn
+            if (turn == null) trip
+            else (arrowFor(turn.maneuver) + "  " + com.headunit.launcher.Geo.fmtDist(turn.dist, e?.imperial == true) + (if (turn.street.isNotBlank()) " · " + turn.street.take(28) else "")) + "\n" + trip
         } catch (x: Exception) { "" }
         if (t == barText) return
         barText = t
@@ -236,6 +244,23 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
     }
     private var arrowSet = -1
     private var zoomNow = -1.0
+
+    /** A plain arrow for the kind of turn, for the driver's display's text line. */
+    private fun arrowFor(m0: String): String {
+        val m = m0.uppercase()
+        return when {
+            m.startsWith("ARRIVE") -> "⚑"
+            m.contains("ROUNDABOUT") || m.contains("ROTARY") -> "↻"
+            m.contains("UTURN") || m.contains("U_TURN") -> if (m.contains("RIGHT")) "↷" else "↶"
+            m.startsWith("SHARP") && m.contains("LEFT") -> "↙"
+            m.startsWith("SHARP") && m.contains("RIGHT") -> "↘"
+            (m.contains("SLIGHT") || m.contains("BEAR") || m.contains("KEEP") || m.contains("EXIT") || m.contains("RAMP") || m.contains("FORK")) && m.contains("LEFT") -> "↖"
+            (m.contains("SLIGHT") || m.contains("BEAR") || m.contains("KEEP") || m.contains("EXIT") || m.contains("RAMP") || m.contains("FORK")) && m.contains("RIGHT") -> "↗"
+            m.contains("LEFT") -> "←"
+            m.contains("RIGHT") -> "→"
+            else -> "↑"
+        }
+    }
 
     /** Where you were last, from the phone's saved start position (for when the main car screen isn't running). */
     private fun lastKnown(): LL? = try {

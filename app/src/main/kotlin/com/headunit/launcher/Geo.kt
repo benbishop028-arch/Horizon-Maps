@@ -314,7 +314,24 @@ object TomTomRest {
     /** Why TomTom's search failed on the last try (both its searches refused), or null when it worked. */
     @Volatile var lastSearchError: String? = null
 
+    /**
+     * The language for TomTom's search results: the app's own where TomTom has it, else "NGT" (each place's own local name).
+     * It was always British English, so a search in Taiwan came back with English names wherever TomTom had one (nonoclub #433).
+     */
+    private fun searchLang(): String = when (com.headunit.launcher.L.lang) {
+        "en" -> "en-GB"; "zh", "zhhk" -> "zh-TW"; "zhs" -> "zh-CN"; "esar", "esmx" -> "es-MX"; "bs" -> "hr-HR"; "nb" -> "no-NO"
+        "ja", "ur", "kn", "mr", "uk", "vi", "ml", "ta", "te", "ko", "ca", "th", "he", "ar", "eu", "ms", "id", "sr", "bg", "el", "mk" -> "NGT"
+        else -> com.headunit.launcher.L.locale.toLanguageTag()
+    }
+
     fun geocode(key: String, country: String, q: String, near: LL?): List<Place> {
+        val lang = searchLang()
+        val first = geocodeIn(key, country, q, near, lang)
+        // (a language TomTom turned down, or nothing found: once more in English, as it always was)
+        return if (lang != "en-GB" && first.isEmpty()) geocodeIn(key, country, q, near, "en-GB") else first
+    }
+
+    private fun geocodeIn(key: String, country: String, q: String, near: LL?, lang: String): List<Place> {
         val k = URLEncoder.encode(key, "UTF-8")
         val enc = URLEncoder.encode(q, "UTF-8").replace("+", "%20")
         val cc = country.trim().uppercase()
@@ -323,15 +340,17 @@ object TomTomRest {
         // 1. classic fuzzy search
         var classicErr: Exception? = null
         try {
-            var url = "$SEARCH/$enc.json?key=$k&limit=15&language=en-GB&typeahead=true&minFuzzyLevel=1&maxFuzzyLevel=2&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
+            var url = "$SEARCH/$enc.json?key=$k&limit=15&language=$lang&typeahead=true&minFuzzyLevel=1&maxFuzzyLevel=2&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
             if (cc.isNotEmpty()) url += "&countrySet=$cc"
             if (near != null) url += "&lat=${near.lat}&lon=${near.lon}"
-            parsePlaces(JSONObject(get(url)).optJSONArray("results") ?: JSONArray(), q, out)
+            // (a language this search turns down: the same search in English)
+            val res = try { JSONObject(get(url)) } catch (e: Exception) { if (lang == "en-GB") throw e; JSONObject(get(url.replace("&language=$lang", "&language=en-GB"))) }
+            parsePlaces(res.optJSONArray("results") ?: JSONArray(), q, out)
         } catch (e: Exception) { classicErr = e }
         // 1b. the same fuzzy search on TomTom's newer Orbis service: some newer keys are only given the Orbis APIs, and with the
         // classic search refused, names and businesses were never found, only addresses and postcodes (Reddit)
         if (classicErr != null || out.size < 3) try {
-            var url = "$API/places/search/$enc.json?key=$k&apiVersion=1&limit=15&language=en-GB&typeahead=true&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
+            var url = "$API/places/search/$enc.json?key=$k&apiVersion=1&limit=15&language=$lang&typeahead=true&idxSet=POI,Addr,Str,Xstr,Geo,PAD"
             if (cc.isNotEmpty()) url += "&countrySet=$cc"
             if (near != null) url += "&lat=${near.lat}&lon=${near.lon}"
             parsePlaces(JSONObject(get(url)).optJSONArray("results") ?: JSONArray(), q, out)

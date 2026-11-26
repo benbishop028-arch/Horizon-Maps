@@ -8,10 +8,15 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Limit sign size on the route: a size setting (On the map › On your route) for the speed limit signs drawn where the limit changes, which are also half as big again to start with
 
 ### Improved
+- Android Auto driver's display: the next turn (arrow, distance and road) now shows with the time left, distance and arrival, in a bar at the top where the car's own bar along the bottom can't hide it, and the map zooms in a little for a turn (thanks to joel941703-hash, #430)
+- Other-route bubbles on the map ("Same time", "+3 min") are about a quarter smaller, and road names no longer run over them or over the lane sign at a junction (thanks to karthikeyansr-lgtm, #429)
 - Saved places on the map: their icons are twice the size, so they're easier to spot
 - "Park here": only offered once you've driven and stopped, not all the time, and not on the phone while Android Auto is connected (where you parked is saved by itself when you unplug)
 - Automatic UI size on the phone and head unit: it now really goes by the screen, as Settings says. Ordinary phones and head units stay as they are; narrow phones and small or squarish screens get the cards a little smaller (down to 85%), so the map has room
 - Prefer main roads after a missed turn: the new route keeps to main roads too, instead of sending you back through side streets (#402)
+
+### Fixed
+- TomTom search results in your language: places came back with English names wherever TomTom had one (Taiwan, for one); they now use the app's language, or the local name (thanks to nonoclub, #433)
 
 ## 1.0.1019 — 26 Nov 2026
 

@@ -2899,8 +2899,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         signBmp?.let { addImg(st, "dl-lanesign", it) }
         addS(st, GeoJsonSource.Builder("dl-lanesign").featureCollection(FeatureCollection.fromFeatures(
             signAt?.let { listOf(Feature.fromGeometry(Point.fromLngLat(it.lon, it.lat))) } ?: emptyList())).build())
+        // (it keeps its space on the map, so road names step aside instead of running across it, karthikeyansr-lgtm #429)
         addL(st, SymbolLayer("dl-lanesign-l", "dl-lanesign").iconImage("dl-lanesign").iconAnchor(IconAnchor.BOTTOM)
-            .iconAllowOverlap(true).iconIgnorePlacement(true).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
+            .iconAllowOverlap(true).iconIgnorePlacement(false).iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
             .iconSize(zoomed(1.0, 13 to 0.45, 16 to 0.7, 18 to 0.9)))
         addL(st, SymbolLayer("dl-parked-l", "dl-parked").iconImage("dl-car-pin").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(zoomed(1.0, 10 to 0.4, 15 to 0.55, 18 to 0.7)))
@@ -2949,11 +2950,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                 .circlePitchAlignment(CirclePitchAlignment.MAP).circlePitchScale(CirclePitchScale.MAP))
         }
         // the "+4 min" / "−2 min" bubbles on the alternatives (on top of everything, so they're always readable)
+        // (about a quarter smaller than it was, and road names step aside for it: it was big and sat over them, #429, #430)
         addL(st, SymbolLayer("dl-live-bub", "dl-live-bub")
             .iconImage(Expression.get("img")).iconAnchor(IconAnchor.BOTTOM)
-            .iconAllowOverlap(true).iconIgnorePlacement(true).iconEmissiveStrength(1.0)
+            .iconAllowOverlap(true).iconIgnorePlacement(false).iconEmissiveStrength(1.0)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
-            .iconSize(zoomed(1.0, 9 to 0.6, 14 to 0.68, 18 to 0.76)))
+            .iconSize(zoomed(1.0, 9 to 0.45, 14 to 0.5, 18 to 0.56)))
         // "See all locations": a dotted line from you to the one picked, and every branch as its logo with the drive time
         addL(st, LineLayer("dl-chain-line", "dl-chain-line").lineColor("#4C8DFF").lineWidth(5.0).lineOpacity(0.9)
             .lineCap(LineCap.ROUND).lineDasharray(listOf(0.1, 2.2)).lineEmissiveStrength(1.0))
