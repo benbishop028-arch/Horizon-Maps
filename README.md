@@ -4,6 +4,8 @@ Free sat nav for Android car head units, that also runs on Android Auto. No ads,
 
 ⬇️ **[Download the latest version](https://github.com/benbishop028-arch/Horizon-Maps/releases/tag/app)**: install the APK, and the app updates itself from then on.
 
+⚙️ **[Every setting explained](SETTINGS.md)**: what each option in Settings does.
+
 💙 **[Support development](https://www.paypal.me/BBishop462)**: totally optional. The app stays free.
 
 ---
