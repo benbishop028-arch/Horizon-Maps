@@ -4286,14 +4286,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var initialRouteSnapPending = false
 
     private fun snap(r: Route, p: LL): RouteSnap {
-        val heading = fix?.takeIf { it.speed > 2.5 }?.heading ?: goodHead
+        // A remembered heading is not evidence of the vehicle's direction while stationary.
+        // Using it here can favour a later, nearby return leg at the instant navigation starts.
+        val movingFix = fix?.takeIf { it.speed > 2.5 }
+        val heading = movingFix?.heading
         val result = RouteMatcher.snap(
             r, p, lastIdx, heading,
             maxProgressMeters = if (initialRouteSnapPending) 300.0 else null,
         )
         lastIdx = result.segmentIndex
         // Keep the start-only window until GPS is actually close to the opening section.
-        if (initialRouteSnapPending && result.dist <= 60.0) initialRouteSnapPending = false
+        if (initialRouteSnapPending && movingFix != null &&
+            NavigationPolicy.shouldReleaseInitialRouteSnap(movingFix.speed, result.dist)) {
+            initialRouteSnapPending = false
+        }
         return result
     }
 
