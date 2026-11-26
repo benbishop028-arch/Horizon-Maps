@@ -53,6 +53,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.BatteryStd
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.AddLocationAlt
@@ -1266,7 +1268,48 @@ internal fun ImmSpeed(engine: NavEngine) {
         }
         return
     }
+    // the phone's battery level with the speedometer on the car screen (Settings › Android Auto › Phone battery), the same way
+    // (joel941703-hash #430)
+    if (engine.isCar && engine.prefs.b(PreferenceKeys.CAR_PHONE_BATTERY, false)) {
+        val atTop = LocalSpeedAtTop.current
+        val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true)
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign && !atTop) 26.dp else 6.dp)) {
+            if (!atTop) PhoneBattery()
+            ImmSpeedOnly(engine)
+            if (atTop) PhoneBattery()
+        }
+        return
+    }
     ImmSpeedOnly(engine)
+}
+
+/** The phone's battery level in a small pill, with a bolt while it's charging. Read once a minute (a sticky system broadcast, no receiver kept). */
+@Composable
+private fun PhoneBattery() {
+    val c = LocalVw.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    var level by remember { mutableStateOf(-1) }
+    var charging by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            try {
+                val i = ctx.registerReceiver(null, android.content.IntentFilter(android.content.Intent.ACTION_BATTERY_CHANGED))
+                if (i != null) {
+                    val lv = i.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1); val sc = i.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, 100)
+                    level = if (lv >= 0 && sc > 0) Math.round(lv * 100f / sc) else -1
+                    val st = i.getIntExtra(android.os.BatteryManager.EXTRA_STATUS, -1)
+                    charging = st == android.os.BatteryManager.BATTERY_STATUS_CHARGING || st == android.os.BatteryManager.BATTERY_STATUS_FULL
+                }
+            } catch (e: Exception) { }
+            kotlinx.coroutines.delay(60_000L)
+        }
+    }
+    if (level < 0) return
+    val col = if (level <= 15 && !charging) Bad else c.text
+    Row(Modifier.panel(6.dp, RoundedCornerShape(50), c.surface).padding(horizontal = 12.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(if (charging) Icons.Rounded.BatteryChargingFull else Icons.Rounded.BatteryStd, null, tint = col, modifier = Modifier.size(18.dp))
+        Text("$level%", color = col, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
+    }
 }
 
 /** The time now, in a small pill (12 or 24-hour as Settings › Units › Clock). Ticks over on the minute. */

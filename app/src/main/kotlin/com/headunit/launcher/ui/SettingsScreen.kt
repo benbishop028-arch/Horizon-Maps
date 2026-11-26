@@ -1482,6 +1482,9 @@ private fun AndroidAutoSection(prefs: Prefs) {
     run {
         var micOk by remember { mutableStateOf(ctx.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) }
         val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> micOk = granted }
+        SGroup(L.t("Phone battery")) {
+            SToggle(prefs, L.t("Phone battery on the car screen"), PreferenceKeys.CAR_PHONE_BATTERY, false, L.t("The phone's battery level beside the speedometer"))
+        }
         SGroup(L.t("Voice search on the car screen"), footer = L.t("With the microphone allowed, the microphone button on the car screen listens straight away. Without it, the button opens Android Auto's search screen, which has a microphone of its own.")) {
             SItem(L.t("Microphone"), if (micOk) L.t("Allowed") else L.t("Not allowed")) {
                 if (!micOk) SButton(L.t("Allow"), primary = true) { askMic.launch(android.Manifest.permission.RECORD_AUDIO) }

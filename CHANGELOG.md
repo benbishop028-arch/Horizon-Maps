@@ -5,6 +5,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Phone battery on the car screen: an optional badge with your phone's battery level beside the speedometer on Android Auto (Settings › Android Auto › Phone battery, off unless switched on) (thanks to joel941703-hash, #430)
+- Macedonian: the whole app, its spoken directions and Android Auto in Macedonian (Македонски). Phones without a Macedonian voice read it with the Bulgarian or Serbian one (thanks to skywalkermkd, #432)
 - Offline data updates by itself: newer offline map data, speed limits, cameras and town names now download in the background when you're not driving, on Wi-Fi by default (Settings › Offline maps › Update automatically: Wi-Fi, mobile data too, or off to be asked) (thanks to ricres77, #428)
 
 ### Improved

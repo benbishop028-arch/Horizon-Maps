@@ -336,6 +336,8 @@ internal object PreferenceKeys {
     const val ROUTE_LIMIT_SIZE = "routelimsize"
     /** Update downloaded data by itself (offline maps, town names): "wifi" (the default), "always" (mobile data too) or "off" (#428). */
     const val DATA_AUTO = "dataauto"
+    /** The phone's battery level beside the speedometer on the car screen (off unless chosen; joel941703-hash #430). */
+    const val CAR_PHONE_BATTERY = "carphonebattery"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
     const val MOONLIT = "moonlit"
     /** Light and weather (Settings > Map look): night brightness and moon strength in percent (100 as Mapbox / as first made). */
