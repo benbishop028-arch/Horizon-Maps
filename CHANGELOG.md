@@ -5,6 +5,15 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+
+### Improved
+- Signs on the map the same size on every screen: saved places, speed limit signs, give way and stop signs, cameras, roadworks, closures, speed bumps and traffic lights are now sized like the rest of the screen's buttons and text, so they're easy to read and grow with bigger screens (and the car screen), and they're always a little wider than the route line. They change less as you zoom in and out. They were tiny on some screens and huge on others. The size sliders still make them bigger or smaller
+
+### Fixed
+
+## 1.0.1027 — 26 Nov 2026
+
+### New
 - Turn card in road-sign colours: a new Turn card colour, Match road signs, gives the card the colour of the country's signs for the road you're on: motorway colours on a motorway (blue in the UK, green in Scandinavia, Italy and much of central Europe), main-road colours elsewhere, fading across when you join or leave (thanks to desko1973, #431)
 - Phone battery on the car screen: an optional badge with your phone's battery level beside the speedometer on Android Auto (Settings › Android Auto › Phone battery, off unless switched on) (thanks to joel941703-hash, #430)
 - Macedonian: the whole app, its spoken directions and Android Auto in Macedonian (Македонски). Phones without a Macedonian voice read it with the Bulgarian or Serbian one (thanks to skywalkermkd, #432)
