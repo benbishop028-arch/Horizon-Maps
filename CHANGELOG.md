@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1016 — 26 Nov 2026
+
 ### New
 - Junction zoom: a "Further" option keeps more of the roads round a turn in view, as well as Closer and Closest (thanks to José Antonio Arriaga)
 - Hazard sign size: roadworks, closure and hazard signs on the map have their own size setting (On the map › On your route), and are a little bigger to start with (thanks to Strong_Force1302)
