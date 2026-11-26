@@ -68,7 +68,7 @@ The new geometry helpers have standalone Kotlin smoke coverage and corresponding
 - CI prefers the checked-out Gradle source tree and retains `HorizonNav.zip` as a compatibility fallback for archive-only repositories.
 - Update discovery uses a published `version.json` asset (`version`, `build`, `versionCode`) instead of scraping a version number from human-edited release title/body text. APK SHA-256 validation remains mandatory. Existing releases without `version.json` intentionally fail closed; the next published update adds the required metadata.
 - The workflow passes the TomTom secret through an environment variable rather than interpolating it directly into a shell command.
-- R8/minification and resource shrinking stay disabled pending a full release build and on-device regression tests. No keep-rule set is assumed safe without that validation.
+- R8 code and resource shrinking are on for release builds, without obfuscation or optimisation (`-dontobfuscate`, `-dontoptimize`), so class names, line numbers in problem reports and stack traces stay readable. `app/proguard-rules.pro` keeps the Valhalla offline router and Moshi whole (native callbacks and reflection); the other libraries use their own consumer rules. Still needs an on-device check of the map, offline routing and Android Auto after each change to the rules.
 - Full Android build, JUnit suite, signature verification and head-unit testing still need to run in the configured GitHub Actions environment/device; this local environment has no Android SDK/Gradle installation.
 
 

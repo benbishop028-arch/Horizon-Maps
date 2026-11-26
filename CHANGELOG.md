@@ -10,6 +10,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Chargers along your route: the route overview now retains TomTom charger power, connector types and provider names, and adds live free/total connector counts when the operator supplies them. Availability checks run in small batches after the list appears. Provider, speed and detour filters apply to charger-specific results (#343)
 
 ### Improved
+- Smaller app: the download leaves out code and pictures the app never uses, so it installs and updates faster
 - Smaller route downloads: routes no longer fetch road-shield picture data that the app doesn't show, which helps on a weak signal
 - Smoother on slow head units: an alert popping up or going away now redraws only the popup, not the whole map screen
 - Live charger availability: checks up to 15 chargers at a time, so a long route doesn't use up a lot of your TomTom allowance

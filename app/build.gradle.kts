@@ -45,7 +45,8 @@ android {
 
     buildFeatures { compose = true; buildConfig = true }
     // A release build runs noticeably faster than the debug one (no debug overhead, and the libraries' built-in speed-up profiles are applied).
-    // It is signed with the debug key so it installs like before; code shrinking stays off to avoid breaking the map library.
+    // R8 removes the code and resources the app never uses, which makes the APK much smaller. It doesn't rename anything (see
+    // proguard-rules.pro), so problem reports stay readable, and it leaves the map library and the offline router alone.
     buildTypes {
         // Local test builds install beside the released app (com.headunit.nav.public.dev) under their own name, so the
         // real one needn't be uninstalled to try a change on a phone or the Desktop Head Unit.
@@ -54,8 +55,9 @@ android {
             resValue("string", "app_name", "Horizon Nav Dev")
         }
         release {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             isDebuggable = false
             signingConfig = signingConfigs.findByName("stable") ?: signingConfigs.getByName("debug")
         }
