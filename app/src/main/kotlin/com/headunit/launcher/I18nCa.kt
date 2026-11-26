@@ -285,5 +285,9 @@ object I18nCa {
         "Low emission zone" to "Zona de baixes emissions",
         "Google Play billing isn't available: {0}" to "La facturació de Google Play no està disponible: {0}",
         "Plus isn't on sale yet" to "Plus encara no està disponible per comprar",
+        "{0} report saved here" to "Informe {0} desat aquí",
+        "Entering {0}" to "Entrant a {0}",
+        "Emergency: {0} · {1} {2}" to "Emergències: {0} · {1} {2}",
+        "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "Límits habituals per a turismes (urbà / interurbà / autopista): {0}. Emergències: {1}. Seguiu els senyals locals; els límits poden variar segons la via, les condicions i el vehicle.",
     )
 }
