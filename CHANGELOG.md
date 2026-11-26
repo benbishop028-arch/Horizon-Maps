@@ -5,8 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
-- Avoid motorways on short trips: Avoid motorways can now be Never, Always or Short trips, with how short you choose (10 to 50 miles, or 15 to 80 km). Offline routes now keep off motorways too when asked (thanks to kr-nn, #413)
-- Junction zoom: a new setting (Turn card & lanes › Lanes and junctions) for how close the map comes in at turns, lanes and junctions. Closer and Closest make the lit lanes bigger on a small screen; Further keeps more of the roads round a turn in view (thanks to mini-mie, #415, and José Antonio Arriaga)
+- Junction zoom: a "Further" option keeps more of the roads round a turn in view, as well as Closer and Closest (thanks to José Antonio Arriaga)
 - Hazard sign size: roadworks, closure and hazard signs on the map have their own size setting (On the map › On your route), and are a little bigger to start with (thanks to Strong_Force1302)
 
 ### Improved
@@ -14,10 +13,18 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Traffic when driving without a route: the traffic lines are wider and solid, so slow and stopped traffic stands out (thanks to José Antonio Arriaga)
 - Spanish (Mexico): sharp turns are now "da vuelta cerrada a la derecha / izquierda" instead of the harsher "gira bruscamente" (thanks to José Antonio Arriaga)
 - TomTom map with a key it turns down: the message now says the map is a separate TomTom product to switch on for your key, as the key can still work for routes and search (thanks to José Antonio Arriaga)
-- Prefer main roads for online routes too: of the routes Mapbox offers, one that keeps to main roads rather than residential streets and lanes goes first (labelled Main roads) when it's only a few minutes slower, and faster routes through small roads aren't suggested on the way (thanks to d3stiny999, #402)
 
 ### Fixed
 - Android Auto: Horizon no longer calls out speed limit changes, speeding or cameras while another app such as Waze is on the car screen and no Horizon route is running (it does if Speed alert in the background is on) (thanks to pc4096)
+
+## 1.0.1014 — 26 Nov 2026
+
+### New
+- Avoid motorways on short trips: Avoid motorways can now be Never, Always or Short trips, with how short you choose (10 to 50 miles, or 15 to 80 km). Offline routes now keep off motorways too when asked (thanks to kr-nn, #413)
+- Junction zoom: a new setting (Turn card & lanes › Lanes and junctions) to bring the map closer for lanes and junctions, so the lit lanes are bigger and easier to read on a small screen (thanks to mini-mie, #415)
+
+### Improved
+- Prefer main roads for online routes too: of the routes Mapbox offers, one that keeps to main roads rather than residential streets and lanes goes first (labelled Main roads) when it's only a few minutes slower, and faster routes through small roads aren't suggested on the way (thanks to d3stiny999, #402)
 
 ## 1.0.1012 — 26 Nov 2026
 
