@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1012 — 26 Nov 2026
+
 ### New
 - Junction signs on the turn card: the exit number in its own black badge, and the road number as a small UK-style sign with the towns from the junction sign beside it (#403, #407)
 - Route overview: when a journey has intermediate stops, each route option now shows the distance to each stop and its estimated arrival time as well as the final destination's distance and arrival time. Distances follow the app's selected units (#405).
