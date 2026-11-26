@@ -75,6 +75,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
     /** The flat traffic view after being stopped a while is showing. */
     var stoppedOverview by mutableStateOf(false)
+    /** Circling the car while stopped (Settings › Light & 3D › Circle the car when stopped, #376). */
+    @Volatile private var orbiting = false
+    /** Degrees a second the camera circles at (+ clockwise), read when it starts. */
+    private var orbitRate = 6.0
     private var lastDrivingAt = 0L
     private var overviewDismissed = false
 
@@ -735,6 +739,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // (the traffic view when stopped shouldn't depend on the GPS still sending positions while you're stationary)
                 if (stoppedSince > 0L && !stoppedOverview && following && android.os.SystemClock.elapsedRealtime() - stoppedSince > 30_500L &&
                     prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true)) fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
+                // (the circling camera, likewise: to start it, and to keep it going, as the camera stops after 4 s without a new target)
+                else if (stoppedSince > 0L && following && prefs.b(PreferenceKeys.ORBIT, false) &&
+                    (orbiting || android.os.SystemClock.elapsedRealtime() - stoppedSince > orbitAfterMs() + 500L)) fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
             }
         }
         // look for a newer app and newer map data straight after starting (the checks are a few small requests)
@@ -2699,6 +2706,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var mwFor: LL? = null
     private var mwTripM: Double? = null
 
+    /** How long stopped before the camera starts circling the car (Settings, 15 s to 1 min). */
+    private fun orbitAfterMs(): Long = (prefs.s(PreferenceKeys.ORBIT_AFTER, "30").toLongOrNull() ?: 30L).coerceIn(10L, 120L) * 1000L
+
     /** Settings › Junction zoom: -1 further, 0 usual, 1 closer, 2 closest (#415). */
     private fun junctionZoomLevel(): Int = (prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0").toIntOrNull() ?: 0).coerceIn(-1, 2)
 
@@ -4635,6 +4645,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         camT = ease(camT, tTilt, 0.8)
         camPad = ease(camPad, tPad, 0.8)
         camLeft = ease(camLeft, tLeft, 0.9)
+        // circling the car while stopped (#376): the view turns steadily round it; once you move off, the usual easing below brings
+        // it back round to the way you're going
+        if (tBMode == 3) camB = ((camB + orbitRate * dt) % 360.0 + 360.0) % 360.0 else {
         val tb = when (tBMode) { 0 -> 0.0; 1 -> lookB; else -> camB }
         var d = angDiff(tb, camB)
         // a small dead-band and a gentle turn rate: slight wheel movements and small roundabouts no longer swing the map around
@@ -4646,6 +4659,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // fell behind on every bend and showed fields off to the side of the route, GitHub #271)
         val maxStep = (if (camCatchUp) 140.0 else 32.0 * max(1, simMode)) * dt
         camB = ((camB + step.coerceIn(-maxStep, maxStep)) % 360.0 + 360.0) % 360.0
+        }
         // nothing has moved (parked, or waiting at lights): don't ask the map to draw the same picture again,
         // which lets it sit idle instead of redrawing every frame (a big saving in heat and battery)
         val lc = lastCamSet
@@ -5028,11 +5042,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val nearEnd = navigating && ((eta?.dist ?: Double.MAX_VALUE) < 400.0 || (turn?.dist ?: Double.MAX_VALUE) < 200.0)
             // only stopped in traffic: you were driving within the last 10 minutes (not the phone lying still at home, which brought
             // it up while sharing a place from another app), and not after you've tapped it away
-            val ov = prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true) && stoppedSince > 0L && nowMs - stoppedSince > 30_000L &&
-                lastDrivingAt > 0L && nowMs - lastDrivingAt < 10 * 60_000L && !overviewDismissed &&
+            val stoppedInTraffic = stoppedSince > 0L && lastDrivingAt > 0L && nowMs - lastDrivingAt < 10 * 60_000L && !overviewDismissed &&
                 !nearEnd && arrival == null && abs(zoomOffset) < 0.01
+            // the circling camera (#376) takes the traffic overview's place when it's switched on
+            val orbitOn = prefs.b(PreferenceKeys.ORBIT, false)
+            val ov = !orbitOn && prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true) && stoppedInTraffic && nowMs - stoppedSince > 30_000L
             if (ov != stoppedOverview) stoppedOverview = ov
             if (ov) { tilt = 0.0; pad = 0.0 }
+            // (not in Settings' small preview, nor in the picture-in-picture window)
+            val orb = orbitOn && stoppedInTraffic && nowMs - stoppedSince > orbitAfterMs() && !settingsPreview && pipPad < 0.0
+            if (orb && !orbiting) orbitRate = (if (prefs.s(PreferenceKeys.ORBIT_SPEED, "slow") == "medium") 12.0 else 6.0) * (if (prefs.s(PreferenceKeys.ORBIT_DIR, "cw") == "ccw") -1.0 else 1.0)
+            orbiting = orb
+            // your car in the middle of the screen while the map turns round it
+            if (orb) { pad = 0.0; tBMode = 3 }
         }
         // the small live preview in Settings: the full screen's steep tilt and low arrow showed little but sky in a short, wide box,
         // so there the view is gentler, with your arrow in the middle
@@ -5087,7 +5109,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 // the screen panels have been measured.
                 tLeft = sideShiftSeen ?: 0.0
         }
-        if (settingsPreview) tLeft = 0.0
+        if (settingsPreview || orbiting) tLeft = 0.0
         map.cardsMirrored = layoutMirrored && !isCar // (Android Auto always has its cards on the left)
         camTargetAt = android.os.SystemClock.elapsedRealtime()
     }

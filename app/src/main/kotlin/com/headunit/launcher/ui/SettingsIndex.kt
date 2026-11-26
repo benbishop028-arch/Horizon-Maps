@@ -51,6 +51,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Saved places on the map", "Home, Work, favourites and starred places. Tap one to go there", "Saved places", 3),
     SettingRef("Saved places icons", "", "Saved places", 3),
     SettingRef("Traffic overview when stopped", "A top-down view of the traffic after 30 seconds stopped", "Map view", 1),
+    SettingRef("Circle the car when stopped", "The camera slowly circles your car while you're stopped", "Map view", 1),
     SettingRef("Only show traffic on your route while navigating", "Off shows traffic on the roads around you too, as Google Maps does", "Traffic", 3),
     SettingRef("Light traffic in green", "Free-flowing roads shown green", "Traffic", 3),
     SettingRef("Blend traffic colours", "The traffic colours on your route run into each other", "Traffic", 3),

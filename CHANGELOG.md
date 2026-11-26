@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Circle the car when stopped: an optional setting (Light & 3D › Map view) that slowly circles the camera round your car after you've been stopped a while, and comes back round as soon as you move off. Choose when it starts, how fast it goes and which way (thanks to ZarulOfficial, #376)
 - Android Auto uses the car's own data: its speed (the dashboard's figure) for the speedometer and speed warnings, and on an electric car its real battery level for the arrival estimate, charging stops and eco routes. Allow it in Settings › Android Auto › Car data; without it, GPS and the battery % you set are used as before (thanks to notz, #409)
 
 ## 1.0.1016 — 26 Nov 2026

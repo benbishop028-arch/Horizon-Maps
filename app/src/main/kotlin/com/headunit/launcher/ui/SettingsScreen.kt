@@ -424,7 +424,14 @@ private fun LightSection(prefs: Prefs) {
         STilt(L.t("Tilt on Android Auto"), L.t("The car screen"), prefs, PreferenceKeys.TILT_CAR)
         SToggle(prefs, L.t("Flatten the map to 2D at turns"), "turn2d", true)
         SToggle(prefs, L.t("Tilt with speed"), "speedtilt", true, L.t("Flatter when slow, a longer view at speed"))
-        SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
+        SToggle(prefs, L.t("Circle the car when stopped"), PreferenceKeys.ORBIT, false,
+            L.t("After you've been stopped a while, the camera slowly circles your car, and comes back round as soon as you move off. It takes the place of the traffic overview. More work for a slow head unit"))
+        if (prefs.b(PreferenceKeys.ORBIT, false)) {
+            SChoice(L.t("Start after"), listOf("15" to "15 s", "30" to "30 s", "60" to L.t("{0} min", 1)), prefs.s(PreferenceKeys.ORBIT_AFTER, "30")) { prefs.put(PreferenceKeys.ORBIT_AFTER, it) }
+            SChoice(L.t("Circling speed"), listOf("slow" to L.t("Slow"), "medium" to L.t("Medium")), prefs.s(PreferenceKeys.ORBIT_SPEED, "slow")) { prefs.put(PreferenceKeys.ORBIT_SPEED, it) }
+            SChoice(L.t("Direction"), listOf("cw" to L.t("Clockwise"), "ccw" to L.t("Anticlockwise")), prefs.s(PreferenceKeys.ORBIT_DIR, "cw")) { prefs.put(PreferenceKeys.ORBIT_DIR, it) }
+        }
+        if (!prefs.b(PreferenceKeys.ORBIT, false)) SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
     }
     SGroup(L.t("Turn card")) {
         SChoice(L.t("Turn card colour"), listOf("green" to L.t("Green"), "black" to L.t("Black"), "grey" to L.t("Dark grey"), "navy" to L.t("Navy"), "purple" to L.t("Purple")),

@@ -400,6 +400,11 @@ internal object PreferenceKeys {
     const val NORTH_UP_CAR = "northupcar"
     /** Stopped for 30 s: the map pulls back to a top-down view of the traffic round you. */
     const val STOPPED_OVERVIEW = "stopview"
+    /** Circle the car when stopped (ZarulOfficial #376): on, after how many seconds, how fast ("slow" / "medium"), which way ("cw" / "ccw"). */
+    const val ORBIT = "orbitstopped"
+    const val ORBIT_AFTER = "orbitafter"
+    const val ORBIT_SPEED = "orbitspeed"
+    const val ORBIT_DIR = "orbitdir"
     /** Where you left the car, "lat,lon,time" (saved on the phone when Android Auto disconnects). */
     const val PARKED_SPOT = "parkedspot"
     /** Phone-to-car link: the pairing code, this device's part ("car" receives, "phone" sends), and the last message taken. */
