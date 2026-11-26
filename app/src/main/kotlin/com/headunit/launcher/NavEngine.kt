@@ -496,13 +496,18 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // (Settings > Routes > Prefer simpler routes off: the quickest always comes first)
         if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false)) return rs
         var out = if (prefs.b(PreferenceKeys.PREFER_SIMPLE, true)) simplerFirst(rs) else rs
-        // Settings > Routes > Prefer main roads: of Mapbox's routes, one that keeps off small roads goes first (#402)
-        if (prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false)) {
-            val i = MainRoadPolicy.pick(out.map { it.time }, out.map { it.minorM })
-            if (i > 0) { val pick = out[i]; out.forEach { it.simpler = false }; pick.mainRoads = true; out = listOf(pick) + out.filter { it !== pick } }
-        }
+        out = mainRoadsFirst(out)
         if (out.first() !== rs.first() && out.first().from.isNotBlank()) lastRouteProvider = out.first().from
         return out
+    }
+
+    /** Settings > Routes > Prefer main roads: of Mapbox's routes, one that keeps off small roads goes first (#402). */
+    private fun mainRoadsFirst(rs: List<Route>): List<Route> {
+        if (rs.size < 2 || !prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false)) return rs
+        val i = MainRoadPolicy.pick(rs.map { it.time }, rs.map { it.minorM })
+        if (i <= 0) return rs
+        val pick = rs[i]; rs.forEach { it.simpler = false }; pick.mainRoads = true
+        return listOf(pick) + rs.filter { it !== pick }
     }
 
     /** The turns a driver actually makes on [r]: every step but "carry on", the start and the end. */
@@ -3305,6 +3310,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * came from the downloaded map.
      */
     private suspend fun fetchReroute(from: LL, to: LL, viaPts: List<LL>, hd: Double): Pair<List<Route>, Boolean> = withContext(Dispatchers.IO) {
+        // (Prefer main roads: a reroute asks for the other ways too and keeps to main roads like a new route does; asking for the
+        // quickest alone sent you back through the side streets as soon as you missed a turn, #402)
+        val alts = prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false) && viaPts.isEmpty()
         val haveOffline = OfflineRouter.installed(ctx)
         if (haveOffline && (!hasOnline || !online())) return@withContext offlineRoutes(from, to, viaPts, hd) to true
         val now = System.currentTimeMillis()
@@ -3314,7 +3322,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val ch = kotlinx.coroutines.channels.Channel<Pair<String, List<Route>>>(2)
             val jobs = listOf("tomtom", "mapbox").map { p ->
                 launch {
-                    val rs = try { routesFrom(p, from, to, false, 0L, viaPts, hd, true) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList() }
+                    val rs = try { mainRoadsFirst(routesFrom(p, from, to, alts, 0L, viaPts, hd, true)).take(1) } catch (e: Exception) { if (e is kotlinx.coroutines.CancellationException) throw e; emptyList() }
                     ch.trySend(p to rs)
                 }
             }
@@ -3324,7 +3332,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val g = got
             if (g != null) { lastRouteProvider = g.first; return@withContext g.second to false }
         }
-        try { netRoutes(from, to, false, 0L, viaPts, hd, true) to false }
+        try { mainRoadsFirst(netRoutes(from, to, alts, 0L, viaPts, hd, true)).take(1) to false }
         catch (e: Exception) {
             if (haveOffline && NavigationFallbackPolicy.shouldUseOffline(e)) offlineRoutes(from, to, viaPts, hd) to true else throw e
         }
@@ -4720,12 +4728,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (!zebraOn) { if (freeCrossShown) { map.setCrossings(emptyList()); freeCrossShown = false }; freeCrossAt = null; return }
         // only where they matter and only once: moving at town speeds (under about 40 mph), on the screen that's showing, not the
         // phone while the car screen does the lookups, and with a connection
-        if (simMode != 0 || p.speed > 18.0 || freeCrossBusy || Net.offline || !online()) return
-        if ((!isCar && RouteSync.carConnected()) || (!isCar && !appVisible)) return
+        if (simMode != 0 || p.speed > 18.0 || freeCrossBusy || Net.offline) return
         val last = freeCrossAt
         val now = System.currentTimeMillis()
         if (last != null && Geo.dist(last, p.pos) < 500.0) return
         if (now - freeCrossTime < 45_000L) return
+        // (the dearer checks last, only once a lookup is due)
+        if ((!isCar && RouteSync.carConnected()) || (!isCar && !appVisible) || !online()) return
         freeCrossBusy = true; freeCrossTime = now
         val at = p.pos
         scope.launch {
