@@ -445,4 +445,55 @@ class I18nCoreCoverageTest {
         }
     }
 
+
+    @Test fun crashRecoveryAndUpdaterMessagesAreTranslatedInEveryShortPack() {
+        val keys = listOf(
+            "Horizon Nav froze or closed unexpectedly. To be safe, the map now draws in a gentler way, at 30 frames a second, without the heaviest 3D extras. If it happens again, please send a feedback report from Settings > About & backup",
+            "Horizon Nav froze or closed again, so the map is now on Lite with a lower sharpness. Please send a feedback report from Settings > About & backup so this unit can be fixed",
+            "Horizon Nav keeps freezing or closing, so the map is now on its lightest setting. Please send a feedback report from Settings > About & backup so this unit can be fixed",
+            "Horizon Nav {0}",
+            "Verifying download…",
+            "Saving to Downloads…",
+            "Opening the installer…",
+            "Downloading… {0}% ({1} / {2} MB)",
+            "Downloading… {0} MB",
+            "No download service",
+            "No storage",
+            "Update URL must use HTTPS",
+            "Update checksum is invalid",
+            "Download timed out; please try again",
+            "Download was cancelled",
+            "Download missing",
+            "Downloaded APK is unexpectedly large",
+            "Could not read downloaded APK",
+            "APK checksum verification failed; download removed",
+            "Download failed",
+            "Update download cancelled",
+            "Couldn't save to Downloads",
+            "Downloading…"
+        )
+        val placeholder = Regex("""\{\d+}""")
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in keys) {
+                    val translated = L.t(key)
+                    // "Horizon Nav {0}" is a product name followed by a version, so it is intentionally unchanged.
+                    if (key != "Horizon Nav {0}") {
+                        assertNotEquals("$code still falls back for '$key'", key, translated)
+                    }
+                    assertEquals("$code changed placeholders in '$key'",
+                        placeholder.findAll(key).map { it.value }.toSet(),
+                        placeholder.findAll(translated).map { it.value }.toSet())
+                }
+                assertTrue("$code lost the update version", L.t("Horizon Nav {0}", "1.0.999").contains("1.0.999"))
+                assertTrue("$code lost the download percentage", L.t("Downloading… {0}% ({1} / {2} MB)", "75", "12.3", "16.0").contains("75"))
+                assertTrue("$code lost the downloaded size", L.t("Downloading… {0} MB", "12.3").contains("12.3"))
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
+
 }

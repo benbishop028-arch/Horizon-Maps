@@ -301,42 +301,42 @@ object Updater {
      * waiting here until it's done, then opens the installer. [progress] gets short status lines. Throws when it can't.
      */
     fun downloadAndInstall(ctx: Context, u: Update, toDownloads: Boolean = false, progress: (String) -> Unit) {
-        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: throw IllegalStateException("No download service")
-        val dir = ctx.getExternalFilesDir(null) ?: throw IllegalStateException("No storage")
-        require(UpdaterPolicy.isHttpsUrl(u.url)) { "Update URL must use HTTPS" }
-        require(UpdaterPolicy.parseSha256(u.sha256) != null) { "Update checksum is invalid" }
+        val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager ?: throw IllegalStateException(L.t("No download service"))
+        val dir = ctx.getExternalFilesDir(null) ?: throw IllegalStateException(L.t("No storage"))
+        require(UpdaterPolicy.isHttpsUrl(u.url)) { L.t("Update URL must use HTTPS") }
+        require(UpdaterPolicy.parseSha256(u.sha256) != null) { L.t("Update checksum is invalid") }
         val name = "HorizonNav-${u.version}.apk"
         // a file left from an earlier try (of this version or another) goes first: with one already there, Android saves the new
         // download as "HorizonNav-1.0.355-1.apk", and the tidy-up below then deleted that new file as "not the one we wanted",
         // so every later try failed with "open failed: ENOENT (No such file or directory)"
         try { dir.listFiles()?.filter { it.name.startsWith("HorizonNav-") && it.name.endsWith(".apk") }?.forEach { it.delete() } } catch (e: Exception) { }
         val req = DownloadManager.Request(Uri.parse(u.url))
-            .setTitle("Horizon Nav ${u.version}")
+            .setTitle(L.t("Horizon Nav {0}", u.version))
             .setMimeType("application/vnd.android.package-archive")
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             .setDestinationInExternalFilesDir(ctx, null, name)
         val id = dm.enqueue(req)
         val startedAt = android.os.SystemClock.elapsedRealtime()
-        progress("Downloading…")
+        progress(L.t("Downloading…"))
         try {
           while (true) {
             if (Thread.currentThread().isInterrupted) throw InterruptedException("Update download interrupted")
             if (android.os.SystemClock.elapsedRealtime() - startedAt > MAX_DOWNLOAD_WAIT_MS) {
                 dm.remove(id)
-                throw IllegalStateException("Download timed out; please try again")
+                throw IllegalStateException(L.t("Download timed out; please try again"))
             }
             Thread.sleep(DOWNLOAD_POLL_INTERVAL_MS)
             dm.query(DownloadManager.Query().setFilterById(id)).use { cur ->
-                if (cur == null || !cur.moveToFirst()) throw IllegalStateException("Download was cancelled")
+                if (cur == null || !cur.moveToFirst()) throw IllegalStateException(L.t("Download was cancelled"))
                 val status = cur.getInt(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
                 val done = cur.getLong(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
                 val total = cur.getLong(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
                 when (status) {
                     DownloadManager.STATUS_SUCCESSFUL -> {
-                        val uri = dm.getUriForDownloadedFile(id) ?: throw IllegalStateException("Download missing")
+                        val uri = dm.getUriForDownloadedFile(id) ?: throw IllegalStateException(L.t("Download missing"))
                         // the name Android actually saved it under (it can differ from the one asked for)
                         val savedAs = try { cur.getString(cur.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))?.let { Uri.parse(it).lastPathSegment } } catch (e: Exception) { null }
-                        progress("Verifying download…")
+                        progress(L.t("Verifying download…"))
                         val digest = java.security.MessageDigest.getInstance("SHA-256")
                         var bytesRead = 0L
                         ctx.contentResolver.openInputStream(uri)?.use { input ->
@@ -345,14 +345,14 @@ object Updater {
                                 val n = input.read(buffer)
                                 if (n < 0) break
                                 bytesRead += n
-                                if (bytesRead > MAX_APK_BYTES) throw IllegalStateException("Downloaded APK is unexpectedly large")
+                                if (bytesRead > MAX_APK_BYTES) throw IllegalStateException(L.t("Downloaded APK is unexpectedly large"))
                                 digest.update(buffer, 0, n)
                             }
-                        } ?: throw IllegalStateException("Could not read downloaded APK")
+                        } ?: throw IllegalStateException(L.t("Could not read downloaded APK"))
                         val actualSha256 = digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
                         if (!actualSha256.equals(u.sha256, ignoreCase = true)) {
                             dm.remove(id)
-                            throw IllegalStateException("APK checksum verification failed; download removed")
+                            throw IllegalStateException(L.t("APK checksum verification failed; download removed"))
                         }
                         // Keep the previous APK until this download has passed verification.
                         // (never the file just downloaded, whatever name it ended up with)
@@ -360,11 +360,11 @@ object Updater {
                         // installed with AAEnabler: the checked file goes to Downloads for AAEnabler to install, so the app stays in
                         // Android Auto (installing it here would take it out)
                         if (toDownloads && android.os.Build.VERSION.SDK_INT >= 29) {
-                            progress("Saving to Downloads…")
+                            progress(L.t("Saving to Downloads…"))
                             saveToDownloads(ctx, uri, name)
                             return
                         }
-                        progress("Opening the installer…")
+                        progress(L.t("Opening the installer…"))
                         // Android Auto only lists an app outside Google Play when its install record says Play installed it (and the
                         // system installer did the installing). Opening the installer the ordinary way recorded the system installer
                         // instead, so updating from here took Horizon Nav out of Android Auto. Asking the installer to record Play as
@@ -387,14 +387,14 @@ object Updater {
                         }
                         return
                     }
-                    DownloadManager.STATUS_FAILED -> { dm.remove(id); throw IllegalStateException("Download failed") }
+                    DownloadManager.STATUS_FAILED -> { dm.remove(id); throw IllegalStateException(L.t("Download failed")) }
                     else -> if (total > 0) {
                         val percent = (done * 100 / total).coerceIn(0, 100)
                         val doneMb = done / (1024.0 * 1024.0)
                         val totalMb = total / (1024.0 * 1024.0)
-                        progress("Downloading… $percent% (${"%.1f".format(java.util.Locale.UK, doneMb)} / ${"%.1f".format(java.util.Locale.UK, totalMb)} MB)")
+                        progress(L.t("Downloading… {0}% ({1} / {2} MB)", percent, "%.1f".format(java.util.Locale.UK, doneMb), "%.1f".format(java.util.Locale.UK, totalMb)))
                     } else if (done > 0) {
-                        progress("Downloading… ${"%.1f".format(java.util.Locale.UK, done / (1024.0 * 1024.0))} MB")
+                        progress(L.t("Downloading… {0} MB", "%.1f".format(java.util.Locale.UK, done / (1024.0 * 1024.0))))
                     }
                 }
             }
@@ -402,7 +402,7 @@ object Updater {
         } catch (e: InterruptedException) {
             dm.remove(id)
             Thread.currentThread().interrupt()
-            throw IllegalStateException("Update download cancelled", e)
+            throw IllegalStateException(L.t("Update download cancelled"), e)
         } catch (e: Exception) {
             // Avoid leaving partial/failed downloads behind when querying or verification fails.
             dm.remove(id)
@@ -447,10 +447,10 @@ object Updater {
             put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS)
             put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
         }
-        val out = res.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv) ?: throw IllegalStateException("Couldn't save to Downloads")
+        val out = res.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, cv) ?: throw IllegalStateException(L.t("Couldn't save to Downloads"))
         try {
-            val o = res.openOutputStream(out) ?: throw IllegalStateException("Couldn't save to Downloads")
-            o.use { os -> (res.openInputStream(src) ?: throw IllegalStateException("Could not read downloaded APK")).use { it.copyTo(os) } }
+            val o = res.openOutputStream(out) ?: throw IllegalStateException(L.t("Couldn't save to Downloads"))
+            o.use { os -> (res.openInputStream(src) ?: throw IllegalStateException(L.t("Could not read downloaded APK"))).use { it.copyTo(os) } }
             res.update(out, android.content.ContentValues().apply { put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
         } catch (e: Exception) {
             try { res.delete(out, null, null) } catch (x: Exception) { }

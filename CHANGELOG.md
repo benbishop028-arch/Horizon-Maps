@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Improved
+- Localise app-update progress, installer notifications and failure messages in Catalan, Korean, Tamil and Telugu; add crash-recovery and placeholder regression coverage.
+
 ### Fixed
 - Allow legitimate identical Catalan wording for “Vehicle” in the settings localisation regression test.
 
