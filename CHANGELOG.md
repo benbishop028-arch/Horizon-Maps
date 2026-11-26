@@ -20,6 +20,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - More of the app in Catalan, Korean, Tamil and Telugu: settings, Android Auto, offline maps, alerts, notifications, weather, fuel prices and the start-up screens, with English only where a translation is still missing
 
 ### Fixed
+- Screen brightness at night: the Brightness slider now works like your phone's own, so a low setting is really dim, and "Dim the screen at night" no longer overrides auto-brightness (thanks to benkkwok, #417)
 - Android Auto: a route started on the car screen (Home, Work or any other) no longer cancels itself after a few seconds. The phone app, whose GPS rests while it's put away, still thought you were where you last opened it (often home), so it decided you'd already arrived and ended the trip on both screens (thanks to carlb051, #419, #360)
 - Changelog: each release's changes are listed under its own version and date again, so you can see which fix is in the version you have (thanks to ILDEMONICO, #420)
 - Junction place names are back on the turn card: the towns on the sign (Southampton, Portsmouth) show beside the small road sign, or on a short line underneath when the card is narrow
