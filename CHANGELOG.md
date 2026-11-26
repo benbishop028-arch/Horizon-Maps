@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1019 — 26 Nov 2026
+
 ### New
 - Zebra crossings without a route: in towns, the crossings round you are now painted on the road too (with Belisha beacons at zebras), not only those on a route. They're looked up as you drive under about 40 mph, about every 500 m (thanks to karthikeyansr-lgtm, #427)
 - Circle the car when stopped: an optional setting (Light & 3D › Map view) that slowly circles the camera round your car after you've been stopped a while, and comes back round as soon as you move off. Choose when it starts, how fast it goes and which way (thanks to ZarulOfficial, #376)
