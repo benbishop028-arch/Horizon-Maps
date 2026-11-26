@@ -138,6 +138,46 @@ object RouteExtras {
         return out
     }
 
+    /**
+     * Marked crossings within [radiusM] of [p], for driving with no route (karthikeyansr-lgtm #427): where each is, which way the road
+     * runs there (so the stripes go across it), and whether it's a zebra (with Belisha beacons). Blocking.
+     */
+    fun crossingsNear(p: LL, radiusM: Int = 800): List<Triple<LL, Double, Boolean>> {
+        val at = String.format(java.util.Locale.US, "%d,%.6f,%.6f", radiusM, p.lat, p.lon)
+        val q = "[out:json][timeout:20];" +
+            "(node(around:$at)[\"highway\"=\"crossing\"][\"crossing\"~\"^(zebra|marked|uncontrolled)$\"];node(around:$at)[\"highway\"=\"crossing\"][\"crossing:markings\"=\"zebra\"];)->.c;.c out body 300;" +
+            // (the roads they cross, for their direction: not the footpath that crosses them)
+            "way(bn.c)[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service)(_link)?$\"]->.w;.w out body geom 600;"
+        val els = Overpass.query(q, 10000, 25000, 2)
+        val zebra = HashMap<Long, Boolean>()
+        val pos = HashMap<Long, LL>()
+        val ways = ArrayList<JSONObject>()
+        for (i in 0 until els.length()) {
+            val e = els.getJSONObject(i)
+            if (e.optString("type") == "way") { ways += e; continue }
+            if (e.optString("type") != "node" || !e.has("lat")) continue
+            val t = e.optJSONObject("tags") ?: continue
+            val id = e.optLong("id")
+            pos[id] = LL(e.getDouble("lat"), e.getDouble("lon"))
+            zebra[id] = t.optString("crossing:markings").equals("zebra", true) || t.optString("crossing") == "zebra"
+        }
+        val out = LinkedHashMap<Long, Triple<LL, Double, Boolean>>()
+        for (w in ways) {
+            val ids = w.optJSONArray("nodes") ?: continue
+            val g = w.optJSONArray("geometry") ?: continue
+            if (g.length() != ids.length() || g.length() < 2) continue
+            fun ptAt(k: Int) = g.getJSONObject(k).let { LL(it.getDouble("lat"), it.getDouble("lon")) }
+            for (k in 0 until ids.length()) {
+                val id = ids.optLong(k)
+                val here = pos[id] ?: continue
+                if (id in out) continue
+                val a = ptAt(maxOf(0, k - 1)); val b = ptAt(minOf(g.length() - 1, k + 1))
+                out[id] = Triple(here, Geo.bearing(a, b), zebra[id] == true)
+            }
+        }
+        return out.values.toList()
+    }
+
     /** Speed bumps and schools right next to the route, and average speed checks around it (blocking). */
     fun hazards(line: List<LL>): Pair<List<RoutePoi>, List<AvgDef>> {
         if (line.size < 2) return emptyList<RoutePoi>() to emptyList()

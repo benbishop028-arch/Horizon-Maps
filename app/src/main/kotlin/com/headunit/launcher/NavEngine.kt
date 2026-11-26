@@ -4709,8 +4709,36 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The last direction of travel the GPS gave while really moving. */
     private var goodHead: Double? = null
 
+    // ---- zebra crossings with no route (#427): looked up round you in towns, again after about 500 m ----
+    private var freeCrossAt: LL? = null
+    private var freeCrossTime = 0L
+    @Volatile private var freeCrossBusy = false
+    private var freeCrossShown = false
+    private fun freeCrossings(p: Fix) {
+        val zebraOn = prefs.b(PreferenceKeys.ZEBRAS, true)
+        if (route != null) { freeCrossAt = null; freeCrossShown = false; return }   // (the route's own lookup draws them then)
+        if (!zebraOn) { if (freeCrossShown) { map.setCrossings(emptyList()); freeCrossShown = false }; freeCrossAt = null; return }
+        // only where they matter and only once: moving at town speeds (under about 40 mph), on the screen that's showing, not the
+        // phone while the car screen does the lookups, and with a connection
+        if (simMode != 0 || p.speed > 18.0 || freeCrossBusy || Net.offline || !online()) return
+        if ((!isCar && RouteSync.carConnected()) || (!isCar && !appVisible)) return
+        val last = freeCrossAt
+        val now = System.currentTimeMillis()
+        if (last != null && Geo.dist(last, p.pos) < 500.0) return
+        if (now - freeCrossTime < 45_000L) return
+        freeCrossBusy = true; freeCrossTime = now
+        val at = p.pos
+        scope.launch {
+            try {
+                val list = withContext(Dispatchers.IO) { RouteExtras.crossingsNear(at) }
+                if (route == null && prefs.b(PreferenceKeys.ZEBRAS, true)) { map.setCrossings(list.take(300)); freeCrossShown = true; freeCrossAt = at }
+            } catch (e: Exception) { } finally { freeCrossBusy = false }
+        }
+    }
+
     private fun onPosition(p: Fix, force: Boolean) {
         fix = p
+        if (p !== lastMeasured) try { freeCrossings(p) } catch (e: Exception) { }
         val newFix = p !== lastMeasured
         if (newFix) try { noteDriven(p.pos) } catch (e: Exception) { }
         if (newFix) isStill = try { stillCheck(p) } catch (e: Exception) { false }

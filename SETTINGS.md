@@ -96,7 +96,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 **On your route**
 - **Traffic lights**: the ones on your route.
 - **Speed cameras and roadworks**: their icons on the map (the warnings are under [Alerts](#alerts)). **Speed camera size** sets the camera badge's size, and **Hazard sign size** the roadworks, closure and hazard signs'.
-- **Zebra crossings**: crossings on your route painted on the road, with Belisha beacons at zebras.
+- **Zebra crossings**: crossings painted on the road, with Belisha beacons at zebras: on your route, and round you in towns when there's no route.
 - **Stop signs**: STOP and Give Way signs on your route, with a short chime before STOP signs (where OpenStreetMap has them).
 - **Number-plate cameras**: Flock and other automatic number-plate cameras from OpenStreetMap. Map only, no alerts.
 

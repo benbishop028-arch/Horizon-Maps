@@ -60,7 +60,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Speed cameras and roadworks", "", "On your route", 3),
     SettingRef("Speed camera size", "Make the red camera badge on the map bigger or smaller", "On your route", 3),
     SettingRef("Hazard sign size", "Make the roadworks, closure and hazard signs on the map bigger or smaller", "On your route", 3),
-    SettingRef("Zebra crossings", "Painted on the road with beacons", "On your route", 3),
+    SettingRef("Zebra crossings", "Painted on the road with beacons, on your route and round you in towns", "On your route", 3),
     SettingRef("Stop signs", "Stop signs on your route, with a chime", "On your route", 3),
     SettingRef("3D street lamps, traffic lights and cameras", "Real 3D models", "3D street furniture", 3),
     SettingRef("Street lamps", "3D lamp posts, lit at night", "3D street furniture", 3),
