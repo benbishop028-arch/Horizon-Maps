@@ -678,7 +678,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             when {
                 // Right by default for right-hand drive; left by default for left-hand drive.
                 routeSheet -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
-                    .padding(horizontal = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
+                    .padding(start = 16.dp, end = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
                 speedOnCardSide -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
                     .padding(start = 16.dp, end = 16.dp, bottom = if (speedShareTrip) tripH + 8.dp else 16.dp)
                 speedPos == "top" -> Modifier.align(side(Alignment.TopEnd)).sides(end = besideButtons, top = 16.dp)
