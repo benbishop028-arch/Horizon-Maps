@@ -438,7 +438,8 @@ object MapboxRest {
         val arr = o.optJSONArray("routes") ?: JSONArray()
         val got0 = (0 until arr.length()).mapNotNull { try { parseT(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
         // the best route has tolls: a toll-free one is asked for too, and offered next to it (when it's a different road, and not far slower)
-        val got = if (!quick && offerNoToll && got0.isNotEmpty() && got0[0].toll && !ex.split(',').contains("toll")) try {
+        val got = if (!quick && offerNoToll && got0.isNotEmpty() && got0[0].toll && !ex.split(',').contains("toll")) {
+          try {
             val ex2 = (ex.split(',').filter { it.isNotBlank() } + "toll").joinToString(",")
             val o2 = JSONObject(get("$base&exclude=$ex2" + (if (departApplied) dep else ""), 8000, 15000))
             val nt = if (o2.optString("code") == "Ok") o2.optJSONArray("routes")?.optJSONObject(0)?.let { parseT(it, leftHand) } else null
@@ -447,7 +448,8 @@ object MapboxRest {
                 nt.noToll = true
                 (listOf(top, nt) + got0.drop(1)).take(3)
             } else got0
-        } catch (e: Exception) { got0 } else got0
+          } catch (e: Exception) { got0 }
+        } else got0
         // arriving on your side can mean going round the block (left, right, right) to come back along the other side of the road,
         // when going straight on and turning across into the drive is the obvious way. When the end of the route looks like such a
         // loop, it's asked again without that: if that's clearly quicker or shorter, it's used instead
