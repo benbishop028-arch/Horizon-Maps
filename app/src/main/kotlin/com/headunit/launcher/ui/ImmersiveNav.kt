@@ -261,14 +261,6 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val narrow = maxWidth < 720.dp
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
-        var alertPx by remember { mutableStateOf(0) }
-        val currentAlert = engine.alert
-        val lastAlert = remember { mutableStateOf(currentAlert) }
-        if (currentAlert != null) lastAlert.value = currentAlert
-        androidx.compose.runtime.SideEffect {
-            engine.portraitLayout = narrow
-            if (currentAlert == null && alertPx != 0) alertPx = 0
-        }
         // the trip card's and speedometer's widths, and the media bar's height (for fitting the media bar between them)
         var tripWPx by remember { mutableStateOf(0) }
         var speedWPx by remember { mutableStateOf(0) }
@@ -283,13 +275,6 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             .let { if (!narrow && (engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") != "auto") && ((engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto") == "left") != engine.layoutMirrored)) "bottom" else it }
         val tripH = with(dens) { tripPx.toDp() }
         val screenH = maxHeight
-        // The popup sits above the trip card. Its height is temporary camera coverage, lifting
-        // the locator above it while shown and restoring the normal position afterwards.
-        LaunchedEffect(narrow, tripPx, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
-            val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
-            val tripHeight = if (narrow) 0.dp else tripH
-            engine.popupCover = if (currentAlert != null) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
-        }
         // Other routes on a phone held upright (smikkelvriend): the routes come up as a panel along the bottom, the turn card goes
         // to one line, and the speed, Re-centre and trip card step aside, so the map between shows the routes clearly
         val altSheet = narrow && !previewing && engine.altListOpen && engine.route != null
@@ -452,7 +437,34 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     // "under" the turn card covered its top, the turn and the distance)
                                     Column {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                       }
+                                        if (routeSheet && !altFocus) {
+                                            val baseDensity = LocalDensity.current
+                                            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density * 0.92f, baseDensity.fontScale)) {
+                                                ImmTurnCard(engine, t, slim = false, footer = {
+                                                    RouteHazardLines(engine)
+                                                    if (!hudMin) TurnCardExtras(engine, turnExtraMax, advice = false, parking = false)
+                                                })
+                                            }
+                                        } else {
+                                            ImmTurnCard(engine, t, slim = altFocus || slimHold[0], footer = {
+                                                if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, advice = true, parking = false)
+                                            })
+                                        }
+                                        // In portrait, services and live alerts live in the bottom trip sheet, not over the map.
+                                        if (!altFocus && !routeSheet && !hudMin) ServicesCard(engine)
+                                        // car parks remain in the portrait trip sheet; landscape keeps its existing card.
+                                        if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
+                                    }
+                                    if (routeSheet && !altFocus) {
+                                        val currentAlert = engine.alert
+                                        val lastAlert = remember { mutableStateOf(currentAlert) }
+                                        if (currentAlert != null) lastAlert.value = currentAlert
+                                        AnimatedVisibility(currentAlert != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
+                                            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+                                            lastAlert.value?.let { Box(Modifier.padding(top = 5.dp)) { AlertBanner(it, compact = true) } }
+                                        }
+                                    }
+                                    }
                                 }
                             }
                         }
