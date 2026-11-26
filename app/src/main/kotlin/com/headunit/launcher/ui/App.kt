@@ -324,17 +324,23 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     val radarOn = prefs.b(PreferenceKeys.RAIN_RADAR, false)
     LaunchedEffect(radarOn) { engine.setRadarOn(radarOn) }
 
-    // Automatically choose a comfortable UI scale for the main app based on the current
-    // window's dp dimensions. A saved legacy uiscale is treated as a deliberate manual choice;
-    // fresh installs default to automatic scaling.
+    // Migrate saved manual values from the old absolute-percent scale to the new 85%-based
+    // baseline once. For example, an old 85% setting becomes the new 100% setting.
+    remember {
+        if (!prefs.b(PreferenceKeys.UI_SCALE_BASELINE_V2, false)) {
+            val oldValue = prefs.s(PreferenceKeys.UI_SCALE, "").toIntOrNull()
+            if (oldValue != null) prefs.put(PreferenceKeys.UI_SCALE, ((oldValue * 100f / 85f).toInt()).coerceIn(60, 140))
+            prefs.put(PreferenceKeys.UI_SCALE_BASELINE_V2, true)
+        }
+    }
     val configuration = LocalConfiguration.current
     val hasManualScale = prefs.s(PreferenceKeys.UI_SCALE, "").isNotBlank()
     val autoScaleEnabled = prefs.b(PreferenceKeys.UI_AUTO_SCALE, !hasManualScale)
     val autoScalePercent = remember(configuration.screenWidthDp, configuration.screenHeightDp) {
         recommendedMainUiScale(configuration.screenWidthDp, configuration.screenHeightDp)
     }
-    val scale = (if (autoScaleEnabled) autoScalePercent else prefs.i(PreferenceKeys.UI_SCALE, autoScalePercent))
-        .coerceIn(60, 140) / 100f
+    val selectedScale = if (autoScaleEnabled) autoScalePercent else prefs.i(PreferenceKeys.UI_SCALE, autoScalePercent)
+    val scale = 0.85f * selectedScale.coerceIn(60, 140) / 100f
     val baseDensity = androidx.compose.ui.platform.LocalDensity.current
     val mainTextScale = prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).coerceIn(70, 150) / 100f
     androidx.compose.runtime.CompositionLocalProvider(
