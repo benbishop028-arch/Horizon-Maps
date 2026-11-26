@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### Improved
+- Translate Android Auto report confirmations and country-border driving notifications in Catalan, Korean, Tamil and Telugu, with placeholder-preservation regression coverage.
+
 ### Fixed
 - Fix the localisation coverage test compilation by importing JUnit's `assertEquals` assertion.
 ### Fixed
