@@ -7,7 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 
 ### Improved
-- UK fuel prices update by themselves: with your Fuel Finder details added, prices now refresh in the background about every half hour, on the same Wi-Fi or mobile data setting as the offline data (Settings › Offline maps › Update automatically), and Settings › Fuel prices shows when they were last updated, even after an app update (thanks to ricres77, #428)
+- UK fuel prices update by themselves: with your Fuel Finder details added, prices now refresh in the background when the app is opened or comes back to the screen (at most every half hour), on the same Wi-Fi or mobile data setting as the offline data (Settings › Offline maps › Update automatically), and Settings › Fuel prices shows when they were last updated, even after an app update (thanks to ricres77, #428)
 - Routes to a house address plan quicker: the street the house is on is looked up while the search results are showing, so picking one doesn't wait for it (it could wait 10 seconds or more), and search results come up a little faster as you type
 - Alerts (speed cameras, traffic, hazards) no longer cover the speed limit sign: they stop short of its corner
 - Speed limit signs on the route are a little smaller
