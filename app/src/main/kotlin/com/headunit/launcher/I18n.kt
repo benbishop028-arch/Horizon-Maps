@@ -780,6 +780,8 @@ object L {
         addOwn(m, "esmx", I18nEsMx.rows())
         // Stage 3 audit: targeted corrections for English labels found in the first five established packs.
         for (code in m.keys) addOwn(m, code, I18nAuditBatch1.rows(code))
+        // Stage 3 audit: targeted corrections for Portuguese, Polish, Romanian, Basque and Slovenian.
+        for (code in m.keys) addOwn(m, code, I18nAuditBatch2.rows(code))
         for (code in m.keys) addOwn(m, code, I18nMapDiagnostics.rows(code))
         for (code in m.keys) addOwn(m, code, I18nFavouriteSort.rows(code))
         for (code in m.keys) addOwn(m, code, I18nPhoneParking.rows(code))
