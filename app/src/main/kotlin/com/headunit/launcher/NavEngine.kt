@@ -3286,7 +3286,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val r = route ?: return
         try { pushJams() } catch (e: Exception) { }
         map.setRoute(r.pts, routes.filterIndexed { i, _ -> i != active }.map { it.pts }, r.sev)
-        map.setStopFlags(via.map { it.pos })
+        map.setStopFlags(via.map { it.pos }); map.setStopPins(via.map { it.pos to it.name })
         map.setTunnels(r.tunnels.map { (a, b) -> slice(r, a, b) })
         drawBends(r)
     }
@@ -6665,7 +6665,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             liveAlts = list
             // the plain grey lines make way for the ones with cards
             map.setRoute(cur.pts, emptyList(), cur.sev)
-            map.setStopFlags(via.map { it.pos })
+            map.setStopFlags(via.map { it.pos }); map.setStopPins(via.map { it.pos to it.name })
             map.setTunnels(cur.tunnels.map { (a, b) -> slice(r = cur, a = a, b = b) })
             map.setLiveAlts(list.map { it.line() }, list.map { it.bubble }, list.map { it.diffMin }, list.map { it.traffic }); syncPicked()
         }
