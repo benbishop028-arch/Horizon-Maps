@@ -321,7 +321,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val mir = engine.layoutMirrored
         // where the trip card and speedometer go (Card positions): "left", "right" (or "centre" for the trip card), on a wide screen
         val tripAt = if (narrow) "" else engine.prefs.s(PreferenceKeys.TRIP_POS, "auto").let { if (it == "auto") (if (mir) "right" else "left") else it }
-        val speedAt = engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto").let { if (narrow || it == "auto") (if (mir) "left" else "right") else it }
+        val speedAt = engine.prefs.s(PreferenceKeys.SPEED_SIDE, "auto").let { if (it == "auto") (if (mir) "left" else "right") else it }
         // the speed on the cards' side can only be at the bottom (the turn card has the top)
         val speedOnCardSide = (speedAt == "left") != mir
         // Settings > sizes > map buttons: scales the button column on the right
@@ -678,7 +678,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         if (!previewing && !altFocus && !hudOff) Box(
             when {
                 // Right by default for right-hand drive; left by default for left-hand drive.
-                routeSheet -> Modifier.align(if (mir) Alignment.BottomStart else Alignment.BottomEnd)
+                routeSheet -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
                     .padding(horizontal = 16.dp, bottom = if (tripPx > 0) tripH + 8.dp else 16.dp)
                 speedOnCardSide -> Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd)
                     .padding(start = 16.dp, end = 16.dp, bottom = if (speedShareTrip) tripH + 8.dp else 16.dp)
