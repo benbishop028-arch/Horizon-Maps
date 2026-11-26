@@ -30,15 +30,16 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
  */
 data class Place(val name: String, val sub: String, val pos: LL, val web: String = "", val onStreet: Boolean = false) {
     /** "28 wrengardens" for "28 Wren Gardens, Alder Holt": the house number and street, to tell one address from two. Blank when not an address. */
-    val addressKey: String get() {
+    // (worked out once per place: search results are compared with each other many times as you type)
+    val addressKey: String by lazy {
         // (only a number then a street: "Flat 2" or "Unit 4" could be in a different building next door)
         val first = name.substringBefore(',').trim().lowercase()
-        if (!Regex("^\\d+[a-z]?(?:[-/]\\d+[a-z]?)?\\s+\\p{L}").containsMatchIn(first)) return ""
-        return first.filter { it.isLetterOrDigit() }
+        if (!HOUSE_NUMBER_STREET.containsMatchIn(first)) "" else first.filter { it.isLetterOrDigit() }
     }
     /** The same house as [o]: the same number and street, close together (two search services, spelt a little differently). */
-    fun sameAddress(o: Place): Boolean = addressKey.isNotEmpty() && addressKey == o.addressKey && Geo.dist(pos, o.pos) < 300.0
+    fun sameAddress(o: Place): Boolean { val k = addressKey; return k.isNotEmpty() && k == o.addressKey && Geo.dist(pos, o.pos) < 300.0 }
 }
+private val HOUSE_NUMBER_STREET = Regex("^\\d+[a-z]?(?:[-/]\\d+[a-z]?)?\\s+\\p{L}")
 
 /** A live incident. [mag]: how much it holds traffic up, 0 unknown, 1 minor, 2 moderate, 3 major (TomTom's magnitude / Mapbox's impact). */
 class Incident(val id: String, val cat: String, val text: String, val delaySec: Int, val pts: List<LL>, val mag: Int = 0)

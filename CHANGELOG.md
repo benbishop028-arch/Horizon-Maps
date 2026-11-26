@@ -7,7 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 
 ### Improved
-- Route to a house address plans faster: it no longer waits up to 10 seconds or more to find the house's street first when the search already gave its entrance, and never waits more than 3 seconds otherwise
+- Routes to a house address plan quicker: the street the house is on is looked up while the search results are showing, so picking one doesn't wait for it (it could wait 10 seconds or more), and search results come up a little faster as you type
 - Alerts (speed cameras, traffic, hazards) no longer cover the speed limit sign: they stop short of its corner
 - Speed limit signs on the route are a little smaller
 - Signs on the map the same size on every screen: saved places, speed limit signs, give way and stop signs, cameras, roadworks, closures, speed bumps and traffic lights are now sized like the rest of the screen's buttons and text, so they're easy to read and grow with bigger screens (and the car screen), and they're always a little wider than the route line. They change less as you zoom in and out. They were tiny on some screens and huge on others. The size sliders still make them bigger or smaller
