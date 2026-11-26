@@ -96,7 +96,7 @@ class I18nCoreCoverageTest {
         "Leave now to arrive by {0}",
         "Leave by {0} to arrive by {1}. I'll remind you.",
         "Free space: {0}", "arrive {0}",
-        "Weather check failed: {0}. Using Open-Meteo instead.", "OK {0}: {1} (Met Office code {2}), {3}°C, rain {4} mm/h, for {5}{6}", "near {0}", "Trace rain", "Clear night", "Sunny", "Partly cloudy", "Mist", "Fog", "Cloudy", "Overcast", "Light rain shower", "Drizzle", "Light rain", "Heavy rain shower", "Heavy rain", "Sleet shower", "Sleet", "Hail shower", "Hail", "Light snow shower", "Light snow", "Heavy snow shower", "Heavy snow", "Thunder shower", "Thunder", "Unknown", "Prices updated {0} · {1} stations", "Fuel prices failed: {0}", "just now", "{0} h ago", "{0} days ago", "Super unleaded", "Diesel", "Bioethanol (E85)", "LPG", "Electric", "Unleaded", "No zones found in the map data", "{0} zones: {1}", "Zone download failed: {0}", "Low emission zone", "Google Play billing isn't available: {0}", "Plus isn't on sale yet",
+        "Weather check failed: {0}. Using Open-Meteo instead.", "OK {0}: {1} (Met Office code {2}), {3}°C, rain {4} mm/h, for {5}{6}", "near {0}", "Trace rain", "Clear night", "Sunny", "Partly cloudy", "Mist", "Fog", "Cloudy", "Overcast", "Light rain shower", "Drizzle", "Light rain", "Heavy rain shower", "Heavy rain", "Sleet shower", "Sleet", "Hail shower", "Hail", "Light snow shower", "Light snow", "Heavy snow shower", "Heavy snow", "Thunder shower", "Thunder", "Unknown", "Prices updated {0} · {1} stations", "Fuel prices failed: {0}", "just now", "{0} h ago", "{0} days ago", "Super unleaded", "Diesel", "Bioethanol (E85)", "Electric", "Unleaded", "No zones found in the map data", "{0} zones: {1}", "Zone download failed: {0}", "Low emission zone", "Google Play billing isn't available: {0}", "Plus isn't on sale yet",
     )
 
     @Test fun incompleteLanguagePacksTranslateCoreInterfaceActions() {
@@ -127,7 +127,7 @@ class I18nCoreCoverageTest {
                 "Google Play billing isn't available: {0}", "Plus isn't on sale yet")) {
                 assertTrue("$code is missing '$key'", !translations[key].isNullOrBlank())
             }
-            for (key in listOf("Sunny", "Heavy rain", "Fog", "Heavy snow", "Diesel", "Electric", "Super unleaded")) {
+            for (key in listOf("Sunny", "Heavy rain", "Fog", "Heavy snow", "Diesel", "Electric", "Super unleaded", "LPG")) {
                 assertTrue("$code is missing '$key'", !translations[key].isNullOrBlank())
             }
         }
