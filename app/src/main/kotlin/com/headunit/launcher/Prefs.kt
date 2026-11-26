@@ -332,6 +332,8 @@ internal object PreferenceKeys {
     const val CAM_SIZE = "camsize"
     /** Roadworks, closures and hazard signs on the map (50 to 300%; Strong_Force1302, Reddit). */
     const val HAZ_SIZE = "hazsize"
+    /** The speed limit signs drawn on the route (50 to 250%, of a size half as big again as they used to be). */
+    const val ROUTE_LIMIT_SIZE = "routelimsize"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
     const val MOONLIT = "moonlit"
     /** Light and weather (Settings > Map look): night brightness and moon strength in percent (100 as Mapbox / as first made). */

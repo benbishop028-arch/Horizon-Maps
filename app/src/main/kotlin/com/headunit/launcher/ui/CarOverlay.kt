@@ -179,6 +179,8 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     OnChange(camSize) { map.setCameraSize(camSize) }
     val hazSize = prefs.i(PreferenceKeys.HAZ_SIZE, 100)
     OnChange(hazSize) { map.setHazardSize(hazSize) }
+    val routeLimSize = prefs.i(PreferenceKeys.ROUTE_LIMIT_SIZE, 100)
+    OnChange(routeLimSize) { map.setRouteLimitSize(routeLimSize) }
     val flags3d = prefs.b(PreferenceKeys.FLAGS_3D, true)
     val hills = prefs.b(PreferenceKeys.HILLSHADE, false)
     OnChange(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }

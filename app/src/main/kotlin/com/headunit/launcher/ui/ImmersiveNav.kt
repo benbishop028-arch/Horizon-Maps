@@ -2261,8 +2261,11 @@ private fun ParkedCard(engine: NavEngine) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val here = engine.fix?.pos
     if (spot == null || at == null || ageMin > 48 * 60) {
-        // nothing saved (or too old): a button to save where you are now (joel941703-hash, #359)
-        if (here == null) return
+        // nothing saved (or too old): a button to save where you are now (joel941703-hash, #359). Only once you've driven and
+        // stopped (it showed all the time, even at home), and not on the phone while Android Auto is connected: the car screen is
+        // in use then, and the spot is saved by itself when you unplug with the car stopped
+        if (here == null || !engine.justParked()) return
+        if (!engine.isCar && com.headunit.launcher.RouteSync.carConnected()) return
         Row(Modifier.fillMaxWidth().panel(10.dp, RoundedCornerShape(22.dp), c.surface).padding(start = 14.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(Modifier.size(38.dp).clip(CircleShape).background(c.accent.copy(alpha = 0.18f)), contentAlignment = Alignment.Center) {

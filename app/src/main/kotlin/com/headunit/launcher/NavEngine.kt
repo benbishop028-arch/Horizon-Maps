@@ -80,6 +80,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Degrees a second the camera circles at (+ clockwise), read when it starts. */
     private var orbitRate = 6.0
     private var lastDrivingAt = 0L
+    /** Driven in the last 30 minutes and stopped now: when "Park here" is worth offering (it showed all the time before). */
+    fun justParked(): Boolean = lastDrivingAt > 0L && android.os.SystemClock.elapsedRealtime() - lastDrivingAt < 30 * 60_000L &&
+        (fix?.speed ?: 0.0) < 2.0
     private var overviewDismissed = false
 
     /** Tapped the "Traffic round you" note: back to the normal view until you've moved off and stopped again. */

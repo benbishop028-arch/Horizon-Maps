@@ -5,8 +5,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### Improved
+- Saved places on the map: their icons are twice the size, so they're easier to spot
+- "Park here": only offered once you've driven and stopped, not all the time, and not on the phone while Android Auto is connected (where you parked is saved by itself when you unplug)
 - Automatic UI size on the phone and head unit: it now really goes by the screen, as Settings says. Ordinary phones and head units stay as they are; narrow phones and small or squarish screens get the cards a little smaller (down to 85%), so the map has room
 - Prefer main roads after a missed turn: the new route keeps to main roads too, instead of sending you back through side streets (#402)
+
+### New
+- Limit sign size on the route: a size setting (On the map › On your route) for the speed limit signs drawn where the limit changes, which are also half as big again to start with
 
 ## 1.0.1019 — 26 Nov 2026
 

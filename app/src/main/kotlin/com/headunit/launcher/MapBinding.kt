@@ -2882,12 +2882,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0)
             // (the zoom has to be the outermost part: Mapbox refuses a zoom curve inside a case, and then the whole layer was
             // never added, so neither the speed limit sign on the route nor the lorry signs ever showed)
-            .iconSize(run {
-                val isSpeed = Expression.eq(Expression.get("k"), lit(0))
-                fun both(speed: Double, lorry: Double) = Expression.switchCase(isSpeed, lit(speed), lit(lorry))
-                zoomedExpr(1.0, 8 to both(0.75, 0.3), 10 to both(0.75, 0.35), 12 to both(0.825, 0.4), 14 to both(0.9, 0.533),
-                    15 to both(0.933, 0.6), 17 to both(1.0, 0.733), 18 to both(1.0, 0.8))
-            }))
+            .iconSize(limSizeExpr()))
         pushLimits()
         addS(st, GeoJsonSource.Builder("dl-cams").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-cams", "dl-cams")
@@ -2913,7 +2908,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         favImgs.clear()
         addS(st, GeoJsonSource.Builder("dl-favs").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-favs-l", "dl-favs").iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true)
-            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).minZoom(10.0).iconSize(zoomed(1.0, 10 to 0.75, 14 to 0.9, 17 to 1.0)))
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).minZoom(10.0).iconSize(zoomed(1.0, 10 to 1.5, 14 to 1.8, 17 to 2.0)))
         pushFavs()
         if (im) {
             addImg(st, "dl-pin", pinBitmap())
@@ -3392,6 +3387,24 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     @Volatile private var limitBoard = "round"
 
 
+    // ---- the speed limit signs on the route: half as big again as they were, times Settings › On the map › Limit signs on the route ----
+    private var limScale = 1.5
+    fun setRouteLimitSize(pct: Int) {
+        val v = pct.coerceIn(50, 250) / 100.0 * 1.5
+        if (v == limScale) return
+        limScale = v
+        val st = style ?: return
+        try { if (st.styleLayerExists("dl-lim")) (layer("dl-lim") as? SymbolLayer)?.iconSize(limSizeExpr()) } catch (e: Throwable) { }
+    }
+    // (the zoom has to be the outermost part: Mapbox refuses a zoom curve inside a case, and then the whole layer was never added,
+    // so neither the speed limit sign on the route nor the lorry signs ever showed. Lorry signs keep their own size)
+    private fun limSizeExpr(): Expression {
+        val isSpeed = Expression.eq(Expression.get("k"), lit(0))
+        fun both(speed: Double, lorry: Double) = Expression.switchCase(isSpeed, lit(speed * limScale), lit(lorry))
+        return zoomedExpr(1.0, 8 to both(0.75, 0.3), 10 to both(0.75, 0.35), 12 to both(0.825, 0.4), 14 to both(0.9, 0.533),
+            15 to both(0.933, 0.6), 17 to both(1.0, 0.733), 18 to both(1.0, 0.8))
+    }
+
     private fun pushLimits() {
         val st = style ?: return
         val s = src("dl-lim") ?: return
@@ -3419,14 +3432,16 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * tiny on a sharp screen).
      */
     private fun routeLimitBitmap(text: String, board: String): Bitmap {
-        val d = mapView.resources.displayMetrics.density
+        // (drawn at twice the detail and marked so, the same size on the map: it's shown half as big again or more now, and
+        // stayed sharp only when drawn bigger)
+        val d = mapView.resources.displayMetrics.density * 2f
         val tf = if (android.os.Build.VERSION.SDK_INT >= 28) android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, 900, false) else android.graphics.Typeface.DEFAULT_BOLD
         val n0 = text.toIntOrNull() ?: 0
         fun p(col: Int) = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = col }
         if (board == "us" || board == "ca") {
             val w = (44f * d).toInt(); val h = (54f * d).toInt(); val m = 3f * d
             val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-            bmp.density = mapView.resources.displayMetrics.densityDpi
+            bmp.density = mapView.resources.displayMetrics.densityDpi * 2
             val c = Canvas(bmp)
             c.drawRoundRect(RectF(m, m + 1.5f * d, w - m, h - m + 1.5f * d), 7f * d, 7f * d, p(0x55000000))
             c.drawRoundRect(RectF(0f, 0f, w.toFloat(), h - 1.5f * d), 8f * d, 8f * d, p(0xFFFFFFFF.toInt()))
@@ -3443,7 +3458,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         // marked with the map's own screen density, as it's drawn at it: left unmarked it took the phone's, so on the car screen (a
         // lower density) the sign came out a fraction of its size (as the "what's here" card did, #240)
         val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        bmp.density = mapView.resources.displayMetrics.densityDpi
+        bmp.density = mapView.resources.displayMetrics.densityDpi * 2
         val c = Canvas(bmp)
         val cx = size / 2f; val cy = size / 2f - 1f * d
         val halo = size / 2f - 1.5f * d

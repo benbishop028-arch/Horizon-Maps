@@ -393,6 +393,7 @@ class CarNavSession : Session() {
         map.setCustom(mapCols == "custom", prefs.s(PreferenceKeys.CUSTOM_DAY, ""), prefs.s(PreferenceKeys.CUSTOM_NIGHT, ""), prefs.i(PreferenceKeys.CUSTOM_ROUTE_W, 100))
         map.setCameraSize(prefs.i(PreferenceKeys.CAM_SIZE, 100))
         map.setHazardSize(prefs.i(PreferenceKeys.HAZ_SIZE, 100))
+        map.setRouteLimitSize(prefs.i(PreferenceKeys.ROUTE_LIMIT_SIZE, 100))
         map.setFlags(prefs.b(PreferenceKeys.FLAGS_3D, true))
         map.setHillShading(prefs.b(PreferenceKeys.HILLSHADE, false))
         map.setCarTint(prefs.s(PreferenceKeys.CAR_TINT, "#8A5AD0"), prefs.i(PreferenceKeys.CAR_TINT_STR, 40))
