@@ -13,6 +13,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### Improved
 
 ### Fixed
+- Route overview while driving: it now fills all the map left clear by the turn card, the trip card and the map buttons, instead of being squeezed small and partly hidden under the turn card
 - Android Auto route overview too small: the route preview, the overview and the other-routes view on the car screen squeezed the route into the top third, as if the phone's route panel were covering the rest. They now fit it into the space beside the cards, using the whole height (thanks to neilch0111, #441)
 
 ## 1.0.1034 — 26 Nov 2026
