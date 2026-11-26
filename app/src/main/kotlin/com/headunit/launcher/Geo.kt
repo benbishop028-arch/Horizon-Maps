@@ -24,8 +24,21 @@ data class Step(val off: Double, val maneuver: String, val street: String, val m
     val sides: List<Double>? = null,
     /** The road number (169, E39) when the road has a name too, shown beside the name; never spoken (desko1973, #297). */
     val ref: String = "")
-/** A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). */
-data class Place(val name: String, val sub: String, val pos: LL, val web: String = "")
+/**
+ * A place found or saved. [web]: its website when the search gave one (for its logo; not saved with favourites). [onStreet]: the
+ * search service gave the point on the street in front of it (an address's entrance), so it needn't be looked for again.
+ */
+data class Place(val name: String, val sub: String, val pos: LL, val web: String = "", val onStreet: Boolean = false) {
+    /** "28 wrengardens" for "28 Wren Gardens, Alder Holt": the house number and street, to tell one address from two. Blank when not an address. */
+    val addressKey: String get() {
+        // (only a number then a street: "Flat 2" or "Unit 4" could be in a different building next door)
+        val first = name.substringBefore(',').trim().lowercase()
+        if (!Regex("^\\d+[a-z]?(?:[-/]\\d+[a-z]?)?\\s+\\p{L}").containsMatchIn(first)) return ""
+        return first.filter { it.isLetterOrDigit() }
+    }
+    /** The same house as [o]: the same number and street, close together (two search services, spelt a little differently). */
+    fun sameAddress(o: Place): Boolean = addressKey.isNotEmpty() && addressKey == o.addressKey && Geo.dist(pos, o.pos) < 300.0
+}
 
 /** A live incident. [mag]: how much it holds traffic up, 0 unknown, 1 minor, 2 moderate, 3 major (TomTom's magnitude / Mapbox's impact). */
 class Incident(val id: String, val cat: String, val text: String, val delaySec: Int, val pts: List<LL>, val mag: Int = 0)
@@ -266,9 +279,30 @@ object TomTomRest {
             val addr = x.optJSONObject("address")
             val poi = x.optJSONObject("poi")
             val free = addr?.optString("freeformAddress").orEmpty()
-            val name = poi?.optString("name")?.takeIf { it.isNotBlank() } ?: free.ifBlank { q }
-            val sub = if (poi != null) free else addr?.optString("country").orEmpty()
-            val p = Place(name, sub, LL(pos.getDouble("lat"), pos.getDouble("lon")), poi?.optString("url").orEmpty())
+            // a house address: "28 Wren Gardens" with the town, postcode and country under it, as the other search services give it
+            // (it was "28 Wren Gardens, Alder Holt" with just the country, so the same house could be listed twice, looking different)
+            val num = addr?.optString("streetNumber").orEmpty(); val street = addr?.optString("streetName").orEmpty()
+            val house = poi == null && num.isNotBlank() && street.isNotBlank()
+            val name = poi?.optString("name")?.takeIf { it.isNotBlank() } ?: (if (house) "$num $street" else free.ifBlank { q })
+            val sub = when {
+                poi != null -> free
+                house -> listOf(addr?.optString("municipality").orEmpty(), addr?.optString("postalCode").orEmpty(), addr?.optString("country").orEmpty())
+                    .filter { it.isNotBlank() }.distinct().joinToString(", ")
+                else -> addr?.optString("country").orEmpty()
+            }
+            // the address's entrance on its street, when TomTom gives one: the address point itself can be in the middle of the
+            // plot, nearer a road behind the house than the one it's on
+            var at = LL(pos.getDouble("lat"), pos.getDouble("lon")); var onStreet = false
+            val eps = x.optJSONArray("entryPoints")
+            if (eps != null) for (e in 0 until eps.length()) {
+                val ep = eps.optJSONObject(e) ?: continue
+                val ppos = ep.optJSONObject("position") ?: continue
+                val la = ppos.optDouble("lat"); val lo = ppos.optDouble("lon")
+                if (la.isNaN() || lo.isNaN() || Geo.dist(at, LL(la, lo)) > 200.0) continue
+                if (!onStreet || ep.optString("type") == "main") { at = LL(la, lo); onStreet = true }
+                if (ep.optString("type") == "main") break
+            }
+            val p = Place(name, sub, at, poi?.optString("url").orEmpty(), onStreet)
             if (out.none { it.name == p.name && Geo.dist(it.pos, p.pos) < 60 }) out += p
         }
     }
