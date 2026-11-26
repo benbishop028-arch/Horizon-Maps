@@ -555,6 +555,8 @@ object MapboxRest {
         val rbOthers = ArrayList<Double>()
         // tunnels: each junction marked "tunnel" starts one, running to the next junction (or the end of its step)
         val tunnelSpots = ArrayList<Pair<LL, LL?>>()
+        // metres on small roads, from the class of road at each junction (each junction's share of its step), for Prefer main roads
+        var minorM = 0.0; var classSeen = false
         for (li in 0 until legs.length()) {
             val leg = legs.getJSONObject(li)
             var off = legStart
@@ -601,6 +603,19 @@ object MapboxRest {
                         val a = LL(loc.getDouble(1), loc.getDouble(0))
                         val nx = ints.optJSONObject(ii + 1)?.optJSONArray("location")
                         tunnelSpots += a to nx?.let { LL(it.getDouble(1), it.getDouble(0)) }
+                    }
+                } catch (e: Exception) { }
+                try {
+                    val ints = s.optJSONArray("intersections")
+                    val sd = s.optDouble("distance", 0.0)
+                    if (ints != null && ints.length() > 0 && sd > 0.0) {
+                        val share = sd / ints.length()
+                        for (ii in 0 until ints.length()) {
+                            val cls = ints.optJSONObject(ii)?.optJSONObject("mapbox_streets_v8")?.optString("class") ?: continue
+                            if (cls.isEmpty()) continue
+                            classSeen = true
+                            if (MainRoadPolicy.isMinor(cls)) minorM += share
+                        }
                     }
                 } catch (e: Exception) { }
                 // the lights along this step after its turn: passed on the way to the next one
@@ -780,6 +795,7 @@ object MapboxRest {
             // Only use segment timings when they map one-for-one to the returned route geometry.
             if (segEtaComplete && segEta.size == max(0, cum.size - 1)) it.segmentTimes = segEta.toDoubleArray()
             it.limits = limits; it.incidents = incidents; it.tunnels = tun
+            if (classSeen) it.minorM = minorM
         }
     }
 

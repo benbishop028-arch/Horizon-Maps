@@ -5,11 +5,14 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Avoid motorways on short trips: Avoid motorways can now be Never, Always or Short trips, with how short you choose (10 to 50 miles, or 15 to 80 km). Offline routes now keep off motorways too when asked (thanks to kr-nn, #413)
+- Junction zoom: a new setting (Turn card & lanes › Lanes and junctions) to bring the map closer for lanes and junctions, so the lit lanes are bigger and easier to read on a small screen (thanks to mini-mie, #415)
 - Junction signs on the turn card: the exit number in its own black badge, and the road number as a small UK-style sign with the towns from the junction sign beside it (#403, #407)
 - Route overview: when a journey has intermediate stops, each route option now shows the distance to each stop and its estimated arrival time as well as the final destination's distance and arrival time. Distances follow the app's selected units (#405).
 - Chargers along your route: the route overview now retains TomTom charger power, connector types and provider names, and adds live free/total connector counts when the operator supplies them. Availability checks run in small batches after the list appears. Provider, speed and detour filters apply to charger-specific results (#343)
 
 ### Improved
+- Prefer main roads for online routes too: of the routes Mapbox offers, one that keeps to main roads rather than residential streets and lanes goes first (labelled Main roads) when it's only a few minutes slower, and faster routes through small roads aren't suggested on the way (thanks to d3stiny999, #402)
 - Smaller app: the download leaves out code and pictures the app never uses, so it installs and updates faster
 - Smaller route downloads: routes no longer fetch road-shield picture data that the app doesn't show, which helps on a weak signal
 - Smoother on slow head units: an alert popping up or going away now redraws only the popup, not the whole map screen

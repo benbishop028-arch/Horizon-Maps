@@ -639,7 +639,21 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
                 }
             }
         }
-        SToggle(prefs, L.t("Avoid motorways"), "avoid_motorway", false)
+        // Never / Always / Short trips (kr-nn #413): "Always" is the old switch, so the car's settings and "avoid motorways" by voice
+        // still work as before
+        val mwMode = if (prefs.b(PreferenceKeys.AVOID_MOTORWAY, false)) "always" else if (prefs.b(PreferenceKeys.AVOID_MOTORWAY_SHORT, false)) "short" else "never"
+        SChoice(L.t("Avoid motorways"), listOf("never" to L.t("Never"), "always" to L.t("Always"), "short" to L.t("Short trips")), mwMode,
+            if (mwMode == "short") L.t("Motorways are avoided when where you're going is less than this far away") else null) {
+            prefs.put(PreferenceKeys.AVOID_MOTORWAY, it == "always"); prefs.put(PreferenceKeys.AVOID_MOTORWAY_SHORT, it == "short")
+        }
+        if (mwMode == "short") {
+            val steps = if (engine.imperial) listOf(10, 20, 30, 50).map { Math.round(it * 1609.344).toInt() to L.t("{0} miles", it) }
+                else listOf(15, 30, 50, 80).map { it * 1000 to "$it km" }
+            val now = prefs.i(PreferenceKeys.AVOID_MOTORWAY_UNDER, 32187)
+            // (the nearest step, so switching between miles and km still shows one picked)
+            val shown = steps.minByOrNull { kotlin.math.abs(it.first - now) }!!.first
+            SChoice(L.t("Short trips: under"), steps.map { it.first.toString() to it.second }, shown.toString()) { prefs.put(PreferenceKeys.AVOID_MOTORWAY_UNDER, it.toInt()) }
+        }
         SToggle(prefs, L.t("Avoid ferries"), "avoid_ferry", false)
         SToggle(prefs, L.t("Avoid car trains"), PreferenceKeys.AVOID_TRAIN, false, L.t("Trains that carry your car, like the Channel Tunnel shuttle or the Alpine tunnel trains"))
         SToggle(prefs, L.t("Avoid unpaved roads"), "avoid_unpaved", true)
@@ -649,8 +663,8 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
     SGroup(L.t("Choosing a route")) {
         SToggle(prefs, L.t("Eco routes"), "route_eco", false, L.t("Fuel-efficient instead of fastest"))
         SToggle(prefs, L.t("Prefer simpler routes"), "prefer_simple", true, L.t("When a route is only a minute or so slower but has far fewer turns, it's picked first (labelled Simplest). Off always picks the fastest"))
-        SToggle(prefs, L.t("Prefer main roads (offline)"), PreferenceKeys.PREFER_MAIN_ROADS, false,
-            L.t("Offline car routes gently favour higher-class roads where supported. Online routes and lorry routes are unchanged."))
+        SToggle(prefs, L.t("Prefer main roads"), PreferenceKeys.PREFER_MAIN_ROADS, false,
+            L.t("Keeps to main roads rather than residential streets and lanes, even if it takes a few minutes longer (labelled Main roads). Online, it picks from the routes Mapbox offers; offline car routes favour bigger roads"))
         SToggle(prefs, L.t("Offer faster routes"), "fasterroute", true)
         if (prefs.b(PreferenceKeys.FASTER_ROUTE, true)) SToggle(prefs, L.t("Keep other routes on the map"), "livealts", true, L.t("Grey lines with +/− minutes you can tap any time. Off shows a \"Faster route found\" card instead"))
         SToggle(prefs, L.t("Suggest where you're going"), "predict", true, L.t("With the live journey time, including home and work at your usual times"))
@@ -785,6 +799,9 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         ) { prefs.put(PreferenceKeys.LANE_MAP_STYLE, it) }
         SToggle(prefs, L.t("Zoom in on lanes before a junction"), "laneview", true)
         SToggle(prefs, L.t("Junction close-up"), "junctionview", true, L.t("At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m"))
+        if (prefs.b(PreferenceKeys.LANE_VIEW, true) || prefs.b(PreferenceKeys.JUNCTION_VIEW, true))
+            SChoice(L.t("Junction zoom"), listOf("0" to L.t("Usual"), "1" to L.t("Closer"), "2" to L.t("Closest")), prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0"),
+                L.t("How close the map zooms in for lanes and junctions. Closer helps on a small screen")) { prefs.put(PreferenceKeys.JUNCTION_ZOOM, it) }
     }
     SGroup(L.t("Trip card")) {
         SToggle(prefs, L.t("Route bar on the trip card"), "routebar", true, L.t("Traffic, cameras, services and stops, with your progress"))

@@ -23,6 +23,8 @@ object Vehicle {
     @Volatile var topSpeedMs = 0.0
     /** Valhalla's soft preference for higher-class roads; online providers do not currently support this setting. */
     @Volatile var preferMainRoads = false
+    /** Keeping off motorways on this trip (set with the route's other choices): offline routes keep off them too (#413). */
+    @Volatile var avoidMotorways = false
     fun topMs(): Double = topSpeedMs
     /** The steps offered for it, in mph and in km/h (0 = off). */
     val TOP_MPH = listOf(0, 40, 45, 50, 52, 55, 56, 60, 62, 65, 70)
@@ -74,7 +76,9 @@ object Vehicle {
             req.put("costing", "auto")
             val options = JSONObject()
             if (topKmh > 0) options.put("top_speed", topKmh)
-            OfflineRoadPreference.useHighways(preferMainRoads)?.let { options.put("use_highways", it) }
+            // (avoiding motorways: Valhalla's strongest "keep off highways"; it still takes one where there's no other way)
+            if (avoidMotorways) options.put("use_highways", 0.0)
+            else OfflineRoadPreference.useHighways(preferMainRoads)?.let { options.put("use_highways", it) }
             if (options.length() > 0) req.put("costing_options", JSONObject().put("auto", options))
             return
         }

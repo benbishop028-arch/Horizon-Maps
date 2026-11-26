@@ -490,8 +490,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                           askBoth: Boolean = false, simple: Boolean = false): List<Route> {
         val rs = netRoutesRaw(from, to, alternatives, departAtMs, via, headingDeg, quick, askBoth)
         // (Settings > Routes > Prefer simpler routes off: the quickest always comes first)
-        if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false) || !prefs.b(PreferenceKeys.PREFER_SIMPLE, true)) return rs
-        val out = simplerFirst(rs)
+        if (!simple || rs.size < 2 || prefs.b(PreferenceKeys.ROUTE_ECO, false)) return rs
+        var out = if (prefs.b(PreferenceKeys.PREFER_SIMPLE, true)) simplerFirst(rs) else rs
+        // Settings > Routes > Prefer main roads: of Mapbox's routes, one that keeps off small roads goes first (#402)
+        if (prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false)) {
+            val i = MainRoadPolicy.pick(out.map { it.time }, out.map { it.minorM })
+            if (i > 0) { val pick = out[i]; out.forEach { it.simpler = false }; pick.mainRoads = true; out = listOf(pick) + out.filter { it !== pick } }
+        }
         if (out.first() !== rs.first() && out.first().from.isNotBlank()) lastRouteProvider = out.first().from
         return out
     }
@@ -2681,7 +2686,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Pushes the route preferences from Settings into the routing client. */
-    private fun syncRoutePrefs(from: LL? = null, to: LL? = null) {
+    /** The destination the short-trip motorway choice was made for, and the trip's straight-line length then (#413). */
+    private var mwFor: LL? = null
+    private var mwTripM: Double? = null
+
+    private fun syncRoutePrefs(from: LL? = null, to: LL? = null, newTrip: Boolean = false) {
+        // Avoid motorways on short trips: judged once, from where the trip started (a reroute plans from where you are, and a long
+        // trip would otherwise start avoiding them near the end)
+        if (to != null && (newTrip || mwFor?.let { Geo.dist(it, to) > 50.0 } != false)) { mwFor = to; mwTripM = from?.let { Geo.dist(it, to) } }
+        val avoidMw = NavigationPolicy.avoidMotorways(prefs.b(PreferenceKeys.AVOID_MOTORWAY, false), prefs.b(PreferenceKeys.AVOID_MOTORWAY_SHORT, false),
+            prefs.i(PreferenceKeys.AVOID_MOTORWAY_UNDER, 32187), mwTripM)
         // areas to keep out of: roads you asked to avoid on this trip, and clean air zones when that is switched on
         // (a zone you start or finish in cannot be avoided, so it is left out)
         val rects = ArrayList<Pair<LL, LL>>(sessionAvoid)
@@ -2749,10 +2763,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         TomTomRest.avoidRects = rects.take(10)
         // a lorry: every route source plans for its size and weight (Vehicle)
         Vehicle.load(prefs)
+        Vehicle.avoidMotorways = avoidMw
         OfflineRouter.exclude = rings
         TomTomRest.avoid = listOfNotNull(
             if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) "tollRoads" else null,
-            if (prefs.b(PreferenceKeys.AVOID_MOTORWAY, false)) "motorways" else null,
+            if (avoidMw) "motorways" else null,
             if (prefs.b(PreferenceKeys.AVOID_FERRY, false)) "ferries" else null,
             if (prefs.b(PreferenceKeys.AVOID_TRAIN, false)) "carTrains" else null,
             if (prefs.b(PreferenceKeys.AVOID_UNPAVED, true)) "unpavedRoads" else null,
@@ -2984,7 +2999,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val progressBase = if (startNow && route != null && !previewing) routeFrac else 0f
         // (a new destination ends driving a GPX track; re-planning the same trip keeps it)
         if (!fromTrack && !keepVia) stopTrackDrive()
-        syncRoutePrefs(fix?.pos ?: map.center(), to.pos)
+        syncRoutePrefs(fix?.pos ?: map.center(), to.pos, newTrip = !keepVia)
         resume = null
         if (!keepVia) via = emptyList()
         if (!hasOnline && !OfflineRouter.installed(ctx)) { toast(L.t("To plan routes, add a free TomTom key or Mapbox token in Settings > Keys & accounts, or download the offline pack"), 7000); return }
@@ -4913,12 +4928,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // Leave headroom for the lane-guidance floor applied by followCamera().
         var top = 19.0
         val lt = turn
+        // Settings › Turn card & lanes › Junction zoom: Closer and Closest come in half a zoom step and a whole one more, for the
+        // lanes on a small screen (mini-mie #415)
+        val jz = 0.5 * (prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0").toIntOrNull() ?: 0).coerceIn(0, 2)
         if (navigating && laneKey != null && lt != null && lt.dist < (if (laneFast) 1300.0 else 450.0) && prefs.b(PreferenceKeys.LANE_VIEW, true)) {
             val laneNear = ((if (laneFast) 1300.0 else 450.0) - lt.dist) / (if (laneFast) 1300.0 else 450.0)
-            z = max(z, 16.9 + 0.9 * laneNear.coerceIn(0.0, 1.0))
-            top = 18.2
+            z = max(z, 16.9 + jz + 0.9 * laneNear.coerceIn(0.0, 1.0))
+            top = 18.2 + jz
         }
-        if (navigating && closeF > 0.0) { z = max(z, 17.5 + 0.35 * closeF); top = max(top, 18.2) }
+        if (navigating && closeF > 0.0) { z = max(z, 17.5 + jz + 0.35 * closeF); top = max(top, 18.2 + jz) }
         // (the first-open overview zoom-out is applied once, in followCamera; applying it here too doubled it)
         val target = (z - (if (navigating) 0.45 else 0.15))
             .coerceIn(if (navigating) 13.5 else 14.6, top - 0.3)
@@ -6157,10 +6175,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     return s.count { p -> ahead.any { Geo.dist(p, it) < 40.0 } }.toDouble() / s.size
                 }
                 val same = rs.maxByOrNull { overlap(it) } ?: return@launch
+                // (Prefer main roads: a quicker way through small roads isn't offered, or it would undo the choice, #402)
+                val mainOnly = prefs.b(PreferenceKeys.PREFER_MAIN_ROADS, false)
+                fun allowed(r: Route) = !mainOnly || !MainRoadPolicy.clearlyMoreMinor(r.minorM, same.minorM)
                 try { refreshTraffic(cur, same) } catch (e: Exception) { }
                 if (live) {
                     // live comparison: every other way stays on the map in grey with how it compares, to tap any time
-                    val others = rs.filter { it !== same && overlap(it) < 0.8 }.take(2)
+                    val others = rs.filter { it !== same && overlap(it) < 0.8 && allowed(it) }.take(2)
                     val list = withContext(Dispatchers.Default) { altsFor(cur, same, others, curProgress) }
                     if (route !== cur) return@launch
                     liveAlts = list
@@ -6170,7 +6191,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (best != null && best.diffMin <= -3 && liveSaid.add(best.diffMin / 2)) speak(L.t("A faster route is available, saving {0} minutes. Tap it on the map to switch.", -best.diffMin), true)
                     return@launch
                 }
-                val best = rs.filter { it !== same && overlap(it) < 0.8 }.minByOrNull { it.time } ?: return@launch
+                val best = rs.filter { it !== same && overlap(it) < 0.8 && allowed(it) }.minByOrNull { it.time } ?: return@launch
                 val saved = ((same.time - best.time) / 60.0).toInt()
                 if (saved >= 3 && best.time < same.time * 0.95) {
                     faster = FasterRoute(best, saved)

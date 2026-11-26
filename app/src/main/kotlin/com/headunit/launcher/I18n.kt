@@ -793,6 +793,7 @@ object L {
         for (code in m.keys) addOwn(m, code, I18nMapButtons.rows(code))
         for (code in m.keys) addOwn(m, code, I18nKeepOn.rows(code))
         for (code in m.keys) addOwn(m, code, I18nCoolRunning.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nRoutePrefs.rows(code))
         for (code in m.keys) addOwn(m, code, I18nChargerDetour.rows(code))
         for (code in m.keys) addOwn(m, code, I18nSearchCard.rows(code))
         // Fill navigation phrases missing from individual language packs without replacing existing translations.

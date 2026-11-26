@@ -1111,7 +1111,7 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
     val cards: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
         rs.forEachIndexed { i, r ->
             val sel = i == engine.active
-            val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
+            val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].mainRoads) "Main roads" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
             Column(Modifier.weight(1f).inset(18.dp, if (sel) c.accent else null).carTap("route-$i") { engine.selectRoute(i) }.padding(horizontal = 12.dp, vertical = 9.dp)) {
                 Text(label.uppercase(), color = if (sel) c.accent else c.sub, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, maxLines = 1)
                 Text(Geo.fmtDur(r.time), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold, maxLines = 1)
@@ -1194,7 +1194,7 @@ private fun CarRoutePreview(engine: NavEngine, side: Boolean = false) {
             Column(Modifier.weight(1f, fill = false).verticalScroll(androidx.compose.foundation.rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             rs.forEachIndexed { i, r ->
                 val sel = i == engine.active
-                val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
+                val label = L.t(if (r.mine.isNotBlank()) "Your route" else if (i == fastest) "Fastest" else if (rs[i].mainRoads) "Main roads" else if (rs[i].simpler) "Simplest" else if (i == shortest) "Shortest" else "Alternative")
                 val via = viaOf(r)
                 val delayMin = Math.round(r.delay / 60.0).toInt()
                 Column(Modifier.fillMaxWidth().inset(14.dp, if (sel) c.accent else null).carTap("route-$i") { engine.selectRoute(i) }.padding(horizontal = 10.dp, vertical = 5.dp)) {

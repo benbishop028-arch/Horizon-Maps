@@ -62,6 +62,13 @@ internal object NavigationPolicy {
         else -> true
     }
 
+    /**
+     * Whether a trip keeps off motorways: always, or with "Short trips" when where you're going is less than [underM] away in a
+     * straight line from where the trip started ([tripM], null when not known) (kr-nn #413).
+     */
+    fun avoidMotorways(always: Boolean, shortTrips: Boolean, underM: Int, tripM: Double?): Boolean =
+        always || (shortTrips && tripM != null && tripM < underM)
+
     /** Unknown accuracy is allowed for compatibility; known poor fixes should not trigger a reroute. */
     fun gpsReliableForReroute(accuracyMeters: Double): Boolean =
         !accuracyMeters.isFinite() || accuracyMeters <= 0.0 || accuracyMeters <= 45.0

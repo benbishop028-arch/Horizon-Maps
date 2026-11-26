@@ -147,6 +147,8 @@ internal object PreferenceKeys {
     const val RIBBON = "ribbon"
     const val LANE_VIEW = "laneview"
     const val JUNCTION_VIEW = "junctionview"
+    /** How close the lane view and junction close-up come in: "0" usual, "1" closer, "2" closest (#415). */
+    const val JUNCTION_ZOOM = "junctionzoom"
     const val PERFORMANCE_METER = "perfmeter"
     const val UPDATE_LAST_CHECK = "updlast"
     const val WHATS_NEW_SEEN_VERSION = "whatsnew_seen_version"
@@ -171,6 +173,9 @@ internal object PreferenceKeys {
     const val AUTO_BACKUP_KEEP = "autobackupkeep"
     const val AUTO_BACKUP_AT = "autobackupat"
     const val AVOID_MOTORWAY = "avoid_motorway"
+    /** Avoid motorways only on short trips (with [AVOID_MOTORWAY] off), and how short, in metres in a straight line (#413). */
+    const val AVOID_MOTORWAY_SHORT = "avoid_motorway_short"
+    const val AVOID_MOTORWAY_UNDER = "avoid_motorway_under"
     const val AVOID_TOLL = "avoid_toll"
     const val AVOID_UNPAVED = "avoid_unpaved"
     /** Soft preference for higher-class roads in offline Valhalla car routes only. */
