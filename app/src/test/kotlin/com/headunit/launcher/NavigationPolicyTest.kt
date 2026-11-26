@@ -6,6 +6,29 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class NavigationPolicyTest {
+    @Test fun demoDriveRestoresLatestRealGpsFix() {
+        val before = Fix(LL(50.0, -1.0), 90.0, 0.0, 0.0, 5.0)
+        val during = Fix(LL(50.001, -1.001), 95.0, 4.0, 0.0, 4.0)
+        val state = DemoGpsFixState()
+
+        state.begin(before)
+        state.update(during)
+        val restored = state.finish()
+        assertEquals(during.pos.lat, restored?.pos?.lat ?: Double.NaN, 0.000001)
+        assertEquals(during.pos.lon, restored?.pos?.lon ?: Double.NaN, 0.000001)
+        assertEquals(95.0, restored?.heading ?: Double.NaN, 0.000001)
+    }
+
+    @Test fun demoDriveWithoutNewGpsRestoresPositionCapturedAtStart() {
+        val before = Fix(LL(50.0, -1.0), 90.0, 0.0, 0.0, 5.0)
+        val state = DemoGpsFixState()
+        state.begin(before)
+
+        val restored = state.finish()
+        assertEquals(before.pos.lat, restored?.pos?.lat ?: Double.NaN, 0.000001)
+        assertEquals(before.pos.lon, restored?.pos?.lon ?: Double.NaN, 0.000001)
+    }
+
     @Test fun speedZoomIsCloserWhenSlowAndWiderAtSpeed() {
         assertEquals(18.4, NavigationPolicy.speedZoom(0.0), 0.0001)
         assertEquals(15.7, NavigationPolicy.speedZoom(40.0), 0.0001)
