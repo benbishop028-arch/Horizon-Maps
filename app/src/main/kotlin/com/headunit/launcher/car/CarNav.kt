@@ -1326,7 +1326,7 @@ class ReportScreen(carContext: CarContext, private val holder: CarHolder) : Scre
             return
         }
         try { e.report(kind) } catch (x: Exception) { }
-        try { androidx.car.app.CarToast.makeText(carContext, "${e.reportName(kind)} report saved here", androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (x: Exception) { }
+        try { androidx.car.app.CarToast.makeText(carContext, L.t("{0} report saved here", e.reportName(kind)), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (x: Exception) { }
         screenManager.pop()
     }
 }
