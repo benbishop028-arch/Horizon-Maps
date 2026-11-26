@@ -720,14 +720,14 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         }
         else androidx.compose.runtime.SideEffect { if (tripPx != 0) tripPx = 0; if (tripWPx != 0) tripWPx = 0; engine.setPanel(1, 0f, 0f, 0f, 0f) }
 
-        // Alerts sit opposite the speed-limit sign. The sign is on the inner edge of the speed cluster,
-        // so the cluster's side is the clear side for the alert; keep the same height above the trip panel.
+        // Alerts sit on the opposite side of the screen from the speed-limit sign.
+        // speedAt follows the mirrored layout and any manual speedometer-side choice.
         if (!previewing && !altFocus && !hudOff) {
             Box(
-                Modifier.align(if (speedAt == "left") Alignment.BottomStart else Alignment.BottomEnd).zIndex(9f)
+                Modifier.align(if (speedAt == "left") Alignment.BottomEnd else Alignment.BottomStart).zIndex(9f)
                     .padding(
-                        start = if (speedAt == "left") 16.dp else 0.dp,
-                        end = if (speedAt == "right") 16.dp else 0.dp,
+                        start = if (speedAt == "right") 16.dp else 0.dp,
+                        end = if (speedAt == "left") 16.dp else 0.dp,
                         bottom = tripH + 12.dp,
                     ),
                 contentAlignment = Alignment.Center,
