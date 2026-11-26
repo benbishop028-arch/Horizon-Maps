@@ -4037,11 +4037,34 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             if (cardsMirrored) btn + halfW else side + halfW, h * 0.14f + cardH,
             if (cardsMirrored) w - side - halfW else w - btn - halfW, h * 0.84f)
         val loose = floatArrayOf(halfW + 12f * dp, cardH + 12f * dp, w - halfW - 12f * dp, h - 24f * dp)
-        // Keep each card on the actual branch point, not an arbitrary visible stretch farther along.
+        // Each card sits a little way along its own line, not right at the branch point, so cards of other routes that leave the
+        // same junction in different directions don't pile on top of each other (as Google Maps does). It goes on the first spot 56 dp
+        // along that doesn't overlap a card already placed, moving further along its line when it would; none when the branch is off
+        // the screen.
+        val placed = ArrayList<FloatArray>()
+        val cw = 80f * dp; val ch = 52f * dp; val gap = 4f * dp
         val spots = liveLines.map { line ->
-            val branch = line.firstOrNull() ?: return@map null
-            val p = pixels(listOf(branch)).firstOrNull() ?: return@map null
-            if (p.x >= loose[0] && p.x <= loose[2] && p.y >= loose[1] && p.y <= loose[3]) branch else null
+            if (line.isEmpty()) return@map null
+            val pts = line.take(220)
+            val px = pixels(pts)
+            if (px.size != pts.size) return@map null
+            fun ok(i: Int) = px[i].x.toFloat() >= loose[0] && px[i].x.toFloat() <= loose[2] && px[i].y.toFloat() >= loose[1] && px[i].y.toFloat() <= loose[3]
+            fun far(i: Int) = Math.hypot(px[i].x - px[0].x, px[i].y - px[0].y).toFloat()
+            if (!ok(0)) return@map null
+            fun rect(i: Int) = floatArrayOf(px[i].x.toFloat() - cw - gap, px[i].y.toFloat() - ch - gap, px[i].x.toFloat() + cw + gap, px[i].y.toFloat() + gap)
+            fun free(i: Int): Boolean { val r = rect(i); return placed.none { o -> r[0] < o[2] && r[2] > o[0] && r[1] < o[3] && r[3] > o[1] } }
+            var first = -1; var clear = -1
+            for (i in 1 until pts.size) {
+                val d = far(i)
+                if (!ok(i)) { if (d >= 56f * dp) break else continue }
+                if (d < 56f * dp) continue
+                if (first < 0) first = i
+                if (free(i)) { clear = i; break }
+                if (d > 420f * dp) break
+            }
+            val pick = if (clear >= 0) clear else if (first >= 0) first else 0
+            placed += rect(pick)
+            pts[pick]
         }
         val zoom = try { mbMap.cameraState.zoom } catch (e: Throwable) { 15.0 }
         val moved = spots.size != cardSpots.size || spots.indices.any { k ->
