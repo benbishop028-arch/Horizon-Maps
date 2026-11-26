@@ -804,6 +804,10 @@ object L {
         m
     }
 
+    /** Read-only snapshot used by localisation regression tests. */
+    internal fun auditSnapshot(): Map<String, Map<String, String>> =
+        table.mapValues { (_, translations) -> translations.toMap() }
+
     // English, then Dutch, German, French, Spanish. (German directions use the infinitive, as German sat navs do:
     // "In 200 Metern links abbiegen"; distances after "In" take the dative, "Metern".) Split into parts of 200, as one
     // list this long is too big for a single method once compiled.

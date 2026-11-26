@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Improved
+- Add an automated audit across all 45 non-English language tables, checking that every language option is wired up and that translations are non-empty and preserve every formatting placeholder.
+
+### Improved
 - Localise navigation foreground notifications, channel details, turn prompts and arrival labels in Catalan, Korean, Tamil and Telugu.
 
 ### Improved

@@ -331,4 +331,24 @@ class I18nCoreCoverageTest {
         assertEquals("Škola", I18nAuditBatch3.rows("sr").toMap()["School"])
         assertEquals("Veb-sajt", I18nAuditBatch3.rows("sr").toMap()["Website"])
     }
+
+    @Test fun everySupportedLanguageIsRegisteredAndAllTemplatesKeepTheirPlaceholders() {
+        val expectedCodes = L.supported.map { it.first }.filterNot { it == "en" }.toSet()
+        val translations = L.auditSnapshot()
+        assertEquals("Every non-English language option must have a translation table",
+            expectedCodes, translations.keys)
+
+        val placeholder = Regex("""\\{\\d+}""")
+        for ((code, rows) in translations) {
+            assertTrue("$code has an empty translation table", rows.isNotEmpty())
+            for ((source, translated) in rows) {
+                assertTrue("$code has a blank source key", source.isNotBlank())
+                assertTrue("$code has a blank translation for '$source'", translated.isNotBlank())
+                assertEquals("$code changed template placeholders in '$source'",
+                    placeholder.findAll(source).map { it.value }.toSet(),
+                    placeholder.findAll(translated).map { it.value }.toSet())
+            }
+        }
+    }
+
 }
