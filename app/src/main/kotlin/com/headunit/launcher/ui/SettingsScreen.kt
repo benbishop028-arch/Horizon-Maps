@@ -1337,7 +1337,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
             if (autoScale) L.t("Uses screen size and shape (currently {0}%)", autoPercent) else L.t("Manual text and button size is enabled")
         ) {
             Switch(checked = autoScale, onCheckedChange = { enabled ->
-                if (!enabled) prefs.put(PreferenceKeys.UI_SCALE, autoPercent)
+                if (!enabled) prefs.put(PreferenceKeys.UI_SCALE, 100)
                 prefs.put(PreferenceKeys.UI_AUTO_SCALE, enabled)
             })
         }
