@@ -107,7 +107,8 @@ class I18nCoreCoverageTest {
                     val value = L.t(key)
                     assertTrue("$code is missing '$key'", value.isNotBlank())
                     // Catalan legitimately spells the negative response exactly like English.
-                    if (!(code == "ca" && key == "No")) {
+                    // These two source strings are valid unchanged Catalan wording.
+                    if (!(code == "ca" && key in setOf("No", "{0} zones: {1}"))) {
                         assertNotEquals("$code still falls back for '$key'", key, value)
                     }
                 }
