@@ -19,7 +19,7 @@ internal data class BorderDrivingInfo(
 ) {
     fun notificationText(): String {
         val speed = if (unit.isBlank()) limits else "$limits $unit"
-        return "Typical car limits (urban / rural / motorway): $speed. Emergency: $emergency. Follow local signs; limits can vary by road, conditions and vehicle."
+        return L.t("Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle.", speed, emergency)
     }
 
     companion object {
@@ -101,8 +101,8 @@ internal object BorderCrossingNotifier {
                 Notification.Builder(ctx)
             }
             val notification = builder.setSmallIcon(R.drawable.ic_stat_nav)
-                .setContentTitle("Entering ${info.country}")
-                .setContentText("Emergency: ${info.emergency} · ${info.limits} ${info.unit}".trim())
+                .setContentTitle(L.t("Entering {0}", info.country))
+                .setContentText(L.t("Emergency: {0} · {1} {2}", info.emergency, info.limits, info.unit).trim())
                 .setStyle(Notification.BigTextStyle().bigText(body))
                 .setContentIntent(pending)
                 .setCategory(Notification.CATEGORY_NAVIGATION)
