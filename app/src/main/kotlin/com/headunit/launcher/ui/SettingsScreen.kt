@@ -1256,6 +1256,8 @@ private fun FuelSection(prefs: Prefs, engine: NavEngine) {
         SFieldItem(L.t("Client ID"), prefs.s(PreferenceKeys.FFID, "")) { prefs.put(PreferenceKeys.FFID, it.trim()) }
         SFieldItem(L.t("Client secret"), prefs.s(PreferenceKeys.FFSECRET, ""), password = true) { prefs.put(PreferenceKeys.FFSECRET, it.trim()) }
         var st by remember { mutableStateOf(FuelFinder.status) }
+        // (what's kept on the device, read off the main thread, when nothing has happened yet this session)
+        androidx.compose.runtime.LaunchedEffect(Unit) { if (st.isBlank()) st = withContext(Dispatchers.IO) { FuelFinder.savedStatus(ctx) } }
         var busy by remember { mutableStateOf(false) }
         SItem(L.t("Prices"), st.ifBlank { if (FuelFinder.configured(prefs)) L.t("Not downloaded yet") else L.t("Add your details first") }) {
             SButton(if (busy) L.t("Updating…") else L.t("Update now"), primary = true) {

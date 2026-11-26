@@ -27,6 +27,20 @@ object FuelFinder {
     /** What happened last time, for the settings page. */
     @Volatile var status = ""
 
+    /**
+     * "Prices updated 14:05 · 8,312 stations" from the prices kept on the device (with the date when not today). The settings page
+     * shows it after a restart or an app update too: it used to say "Not downloaded yet" then, as if they'd gone (ricres77, #428).
+     */
+    fun savedStatus(ctx: Context): String = try {
+        val pf = pricesFile(ctx)
+        if (!pf.exists()) "" else {
+            val at = pf.lastModified()
+            val today = android.text.format.DateUtils.isToday(at)
+            val f = if (today) Clock.format() else Clock.format("d MMM, ")
+            L.t("Prices updated {0} · {1} stations", f.format(java.util.Date(at)), stations(ctx).size)
+        }
+    } catch (e: Exception) { "" }
+
     private var token: String? = null
     private var tokenType = "Bearer"
     private var tokenUntil = 0L
@@ -161,7 +175,7 @@ object FuelFinder {
                 for ((id, m) in cur) for ((t, p) in m) sb.append(id).append('\t').append(t).append('\t').append(p.pence).append('\t').append(clean(p.updated)).append('\n')
                 if (cur.isNotEmpty()) { pf.writeText(sb.toString()); priceCache = null }
             }
-            status = L.t("Prices updated {0} · {1} stations", Clock.format().format(java.util.Date(pricesFile(ctx).lastModified())), stations(ctx).size)
+            status = savedStatus(ctx)
         } catch (e: Exception) {
             status = L.t("Fuel prices failed: {0}", (e.message ?: e.javaClass.simpleName).take(160))
             throw e
