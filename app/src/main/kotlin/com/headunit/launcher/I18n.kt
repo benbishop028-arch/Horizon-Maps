@@ -807,6 +807,7 @@ object L {
         for (code in m.keys) addOwn(m, code, I18nDataAuto.rows(code))
         for (code in m.keys) addOwn(m, code, I18nPhoneBattery.rows(code))
         for (code in m.keys) addOwn(m, code, I18nSignColours.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nCamWarn.rows(code))
         // (Macedonian's share of the per-feature files above, kept together, #432)
         addOwn(m, "mk", I18nMkExtra.rows())
         for (code in m.keys) addOwn(m, code, I18nChargerDetour.rows(code))

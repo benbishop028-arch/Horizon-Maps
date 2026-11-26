@@ -592,6 +592,11 @@ internal fun NearbyCard(engine: NavEngine) {
             Text(L.t("Filter: {0}", ft), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 8.dp).fillMaxWidth().clip(RoundedCornerShape(50)).background(c.accent.copy(alpha = 0.55f)).padding(horizontal = 12.dp, vertical = 6.dp))
         }
+        // services: all of them, or motorway services only (without rest and picnic areas, d3stiny999 #437)
+        if (engine.nearbyKind == "services") Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Pill(L.t("All"), !engine.servicesMotorwayOnly, { engine.setServicesFilter(false) })
+            Pill(L.t("Motorway services"), engine.servicesMotorwayOnly, { engine.setServicesFilter(true) })
+        }
         if (hasPrices) Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
             Pill(if (along) L.t("Soonest") else L.t("Nearest"), engine.nearbySort != "cheap", { engine.changeNearbySort("near") })
             Pill(L.t("Cheapest"), engine.nearbySort == "cheap", { engine.changeNearbySort("cheap") })

@@ -302,8 +302,17 @@ class MainActivity : ComponentActivity() {
         if (::engine.isInitialized) handleShared(intent)
     }
 
+    /** Ends any route, stops the GPS and the notification (unless Android Auto is still using them) and closes the app. */
+    private fun closeApp() {
+        try { if (engine.route != null || engine.previewing) engine.endRoute() } catch (e: Exception) { }
+        try { if (!RouteSync.carConnected()) { engine.stopLocation(); NavService.stop(applicationContext) } } catch (e: Exception) { }
+        try { finishAndRemoveTask() } catch (e: Exception) { }
+    }
+
     /** A destination shared from another app (a Google Maps link, a geo: link or an address). */
     private fun handleShared(i: android.content.Intent?) {
+        // the Close button on the notification (desko1973, #439): as Close Horizon Nav in the app's menu
+        if (i?.action == NavService.ACTION_CLOSE) { closeApp(); return }
         val text = ExternalLinks.textOf(i) ?: return
         lifecycleScope.launch {
             val t = try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { ExternalLinks.parse(text) } } catch (e: Exception) { null }

@@ -102,6 +102,12 @@ internal object PreferenceKeys {
     const val ALT_ROUTE_COLOUR = "altroutecolour"
     const val FASTER_ROUTE = "fasterroute"
     const val CAMERA_WARNINGS = "cameras"
+    /** How speed cameras are warned about (#436): "both" (chime and voice), "voice", "chime" or "silent" (the screen only). */
+    const val CAM_HOW = "camhow"
+    /** The camera banner on screen as you come up to one (#436). */
+    const val CAM_POPUP = "campopup"
+    /** The services list along the route: motorway services only, without rest and picnic areas (#437). */
+    const val SERVICES_MW_ONLY = "svcmwonly"
     const val VOICE = "voice"
     const val TRIPS = "trips"
     const val PLACES_CUSTOM = "places_custom"
