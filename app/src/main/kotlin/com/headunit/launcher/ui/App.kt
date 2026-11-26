@@ -356,6 +356,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     val selectedScale = if (autoScaleEnabled) autoScalePercent else prefs.i(PreferenceKeys.UI_SCALE, autoScalePercent)
     val scale = 0.85f * selectedScale.coerceIn(60, 140) / 100f
     val baseDensity = androidx.compose.ui.platform.LocalDensity.current
+    // the signs on the map grow with the screen as the buttons and text do
+    val uiPx = baseDensity.density * scale
+    LaunchedEffect(uiPx) { map.setUiPx(uiPx) }
     val mainTextScale = prefs.i(PreferenceKeys.MAIN_TEXT_SIZE, 100).coerceIn(70, 150) / 100f
     androidx.compose.runtime.CompositionLocalProvider(
         androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(baseDensity.density * scale, baseDensity.fontScale * mainTextScale),
