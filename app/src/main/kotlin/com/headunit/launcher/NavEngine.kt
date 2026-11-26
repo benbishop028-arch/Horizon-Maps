@@ -2117,6 +2117,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // updated by itself: the first now, the others one after another as each finishes (as Update does)
             if (found.isNotEmpty() && autoDataNow() && !packBusy) { autoPending = found.drop(1); dataUpdates = emptyList(); updateData(found.first()) }
             else dataUpdates = found
+            // UK pump prices (with your Fuel Finder details): only what's changed since last time, so a small download. On the same
+            // Wi-Fi / mobile data setting as the rest, but while driving too, as prices are what you want on the way (ricres77, #428)
+            val dataMode = prefs.s(PreferenceKeys.DATA_AUTO, "wifi")
+            if (FuelFinder.configured(prefs) && dataMode != "off" && (dataMode == "always" || onWifi()))
+                try { withContext(Dispatchers.IO) { FuelFinder.refresh(ctx, prefs) } } catch (e: Exception) { }
             // the town and village names too, once they're a month old
             if (autoDataNow() && OfflinePlaces.installed(ctx) && OfflinePlaces.ageMs(ctx) > 30L * 86_400_000L) {
                 val cc = chosenPack().country.ifBlank { detectedCountry }.ifBlank { "GB" }
