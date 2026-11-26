@@ -1122,11 +1122,15 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
     val eta = engine.eta
     val radarOn = engine.prefs.b(PreferenceKeys.HAZARDRADAR, false)
     if (inc == null && cam == null && eta == null && (!radarOn || engine.radar.isEmpty())) return
+    // (the trip card's width, for the hazard radar above it)
+    var tripCardWPx by remember { mutableStateOf(0) }
     val mir = alignEnd
     Column(Modifier.padding(start = if (mir || centred) 0.dp else 16.dp, end = if (mir && !centred) 16.dp else 0.dp, bottom = 16.dp).animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalAlignment = if (centred) Alignment.CenterHorizontally else if (mir) Alignment.End else Alignment.Start) {
-        // hazard radar: the next two miles at a glance (replaces the separate camera and incident badges)
-        if (radarOn) HazardRadar(engine)
+        // hazard radar: the next two miles at a glance (replaces the separate camera and incident badges). Landscape: as wide as the
+        // trip card under it (it reached well past it, bijindas #425)
+        val radarDens = androidx.compose.ui.platform.LocalDensity.current
+        if (radarOn) HazardRadar(engine, if (!narrow && eta != null && tripCardWPx > 0) Modifier.width(with(radarDens) { tripCardWPx.toDp() }) else Modifier)
         else if ((inc != null && engine.alert?.kind != "incident") || (cam != null && engine.alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             if (inc != null && engine.alert?.kind != "incident") HazardBadge("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
             if (cam != null && engine.alert?.kind != "camera") HazardBadge("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
@@ -1139,7 +1143,7 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
             val dens = androidx.compose.ui.platform.LocalDensity.current
             var rowPx by remember { mutableStateOf(0) }
             val rowW = with(dens) { rowPx.toDp() }
-            TextSides { Column(Modifier.then(if (narrow) Modifier.fillMaxWidth() else Modifier).panel(10.dp, shape, c.surface).animateContentSize()) {
+            TextSides { Column(Modifier.then(if (narrow) Modifier.fillMaxWidth() else Modifier).onSizeChanged { if (it.width != tripCardWPx) tripCardWPx = it.width }.panel(10.dp, shape, c.surface).animateContentSize()) {
                 val barMod = if (narrow) Modifier.fillMaxWidth() else Modifier.width(rowW)
                 // "Faster route found" across the top of the card (it was a box of its own floating above it)
                 if (narrow || rowPx > 0) FasterStrip(engine, barMod)

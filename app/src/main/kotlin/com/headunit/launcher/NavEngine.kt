@@ -4592,8 +4592,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else if (np < gProg && abs(err) <= 60.0) np = gProg
             gProg = min(np, r.len)
             val cur = pointAt(r, gProg).first
-            val ahead = pointAt(r, gProg + 12.0).first
-            if (Geo.dist(cur, ahead) > 2.0) gHead = easeAngle(gHead, Geo.bearing(cur, ahead), dt, 0.18)
+            // the way the road runs here, from a little behind to a little ahead, eased: from just 12 m ahead, every small kink in the
+            // route's line turned the arrow or car a few degrees and back, so it wobbled on straight roads (karthikeyansr-lgtm #424)
+            val behind = pointAt(r, max(0.0, gProg - 6.0)).first
+            val ahead = pointAt(r, gProg + 18.0).first
+            if (Geo.dist(behind, ahead) > 2.0) gHead = easeAngle(gHead, Geo.bearing(behind, ahead), dt, 0.3)
             gPos = cur
             // the camera looks further ahead (and further still through a roundabout) so it follows the road, not every wiggle of the wheel
             val round = turn?.let { it.maneuver.uppercase().contains("ROUNDABOUT") && it.dist < 90.0 } == true

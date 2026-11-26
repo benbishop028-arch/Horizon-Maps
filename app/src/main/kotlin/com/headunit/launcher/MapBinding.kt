@@ -4196,6 +4196,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private var spriteDrawing: String? = null
     private var spriteYaw = 0.0
     private var spriteRot = 0.0
+    /** The car picture's heading relative to the map's bearing (degrees), for turning it about its rear wheels. */
+    private var spriteRel = 0.0
     private var spriteWanted: String? = null
 
     fun setLocator(styleName: String, color: String) {
@@ -4692,6 +4694,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             // (while a picture is being drawn, the current one stays up, turned to the right angle)
         }
         spriteRot = if (upright) 0.0 else ((rel - spriteYaw + 540.0) % 360.0) - 180.0
+        spriteRel = if (upright) 0.0 else rel
         placeLocator()
     }
 
@@ -4824,7 +4827,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             val discHalf = if (theme == "immersive") 0f else 15f * 0.625f * arrowScale * dens * Math.cos(Math.toRadians(tilt)).toFloat()
             // the picture has empty space round the arrow / car: measure where its drawing really ends at the bottom
             val below = if (modelOn) (modelPxPerCarUnit() * (if (carLike) 2.3 else 0.85) * Math.cos(Math.toRadians(tilt))).toFloat()
-                        else if (locatorStyle != "flat" && bmp != null) drawnBelowCentre(bmp) * spriteSize()
+                        // (the car picture sits ahead of your position now, turning about its rear wheels: its back is nearer)
+                        else if (locatorStyle != "flat" && bmp != null) drawnBelowCentre(bmp) * spriteSize() * (if (locatorStyle == "car") 0.4f else 1f)
                         else flatArrow?.let { drawnBelowCentre(it) * (if (theme == "immersive") 0.25f else 0.625f) * arrowScale * Math.cos(Math.toRadians(tilt)).toFloat() } ?: 0f
             roadView.translationY = pt.y + maxOf(discHalf, below) + 3f * dens
             if (roadView.visibility != android.view.View.VISIBLE) roadView.visibility = android.view.View.VISIBLE
@@ -4836,8 +4840,20 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val w = Math.round(bmp.width * k); val h = Math.round(bmp.height * k)
         val lp = v.layoutParams
         if (lp == null || lp.width != w || lp.height != h) v.layoutParams = android.widget.FrameLayout.LayoutParams(w, h)
-        v.translationX = pt.x - w / 2f
-        v.translationY = pt.y - h / 2f
+        // the car picture turns about its rear wheels, like a real car, not its middle: your position is where the rear axle is and
+        // the car sits ahead of it, so in a turn the front swings round and the back follows (it swung the back out, karthikeyansr-lgtm #424)
+        var ox = 0f; var oy = 0f
+        if (locatorStyle == "car") {
+            val tilt = try { mbMap.cameraState.pitch } catch (e: Throwable) { tiltNow }
+            val cosT = Math.cos(Math.toRadians(tilt)).coerceAtLeast(0.3)
+            // (the rear axle is about 60% of the way from the middle to the back; the measured drawing below the middle is foreshortened by the tilt)
+            val half = drawnBelowCentre(bmp) * k / cosT
+            val d = (0.6 * half).toFloat()
+            val r = Math.toRadians(spriteRel)
+            ox = (d * Math.sin(r)).toFloat(); oy = (-d * Math.cos(r) * cosT).toFloat()
+        }
+        v.translationX = pt.x - w / 2f + ox
+        v.translationY = pt.y - h / 2f + oy
         v.rotation = spriteRot.toFloat()
         if (v.visibility != android.view.View.VISIBLE) v.visibility = android.view.View.VISIBLE
     }
