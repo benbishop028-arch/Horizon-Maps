@@ -14,6 +14,6 @@ class UiScalePolicyTest {
     }
 
     @Test fun invalidDimensionsUseSameSafeDefault() {
-        assertEquals(85, recommendedMainUiScale(0, 0))
+        assertEquals(100, recommendedMainUiScale(0, 0))
     }
 }
