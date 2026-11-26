@@ -7754,6 +7754,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
     /** The road name pill would show (worked out on the map screen), for the portrait sheet to show it in its place. */
     var cruisePillWanted by mutableStateOf(false)
+    /** How wide the speedometer is (dp) when it sits in a bottom corner of the phone / head unit screen, else 0: the road name
+     *  pill along the bottom keeps clear of it (a long name ran under it, ILDEMONICO #421). */
+    var speedCornerDp by mutableIntStateOf(0)
     /** When the map was last moved by hand (elapsed ms), for going back to following the car once it drives off (GitHub #273). */
     @Volatile private var gestureAt = 0L
     @Volatile var isCar = false

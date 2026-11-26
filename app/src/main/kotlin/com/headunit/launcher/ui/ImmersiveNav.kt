@@ -511,11 +511,12 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             // just two buttons on the map: the compass and map options. 3D / 2D and sound are at the top of map options, voice and sound
             // are on the trip card while navigating, Settings is beside these when you're not (and in map options' header when you are)
             val railItems = ArrayList<@Composable () -> Unit>()
-            // (the portrait route layout: compass, report and map options are in the trip sheet, only sound and other routes stay here)
+            // (the portrait route layout: report is in the trip sheet; the compass and map options stay here. The compass had gone with
+            // report but was never put in the sheet, so it, and its tap for North up, vanished on a route, ILDEMONICO #421)
             // Settings > Map buttons: which of these show (Map options always does, it's the way to everything else) (#335)
             val railHidden = engine.prefs.s(PreferenceKeys.RAIL_HIDDEN, "overview").split(",")
-            if (!routeSheet) {
             if ("compass" !in railHidden) railItems.add(@Composable { ImmCompass(engine) })
+            if (!routeSheet) {
             // #275: keep one-tap reports on the map itself, rather than making drivers open Map options first.
             if ("report" !in railHidden) railItems.add(@Composable { ImmIcon(Icons.Rounded.Campaign, { sheet = false; quickReportOpen = !quickReportOpen }, active = quickReportOpen, desc = L.t("Report")) })
             railItems.add(@Composable { ImmIcon(Icons.Rounded.Layers, { quickReportOpen = false; sheet = !sheet }, active = sheet, desc = L.t("Map options")) })
@@ -712,6 +713,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
             val speedSize = 1f
             CompositionLocalProvider(LocalDensity provides Density(baseSpeedDensity.density * speedSize, baseSpeedDensity.fontScale)) { ImmSpeed(engine) }
         }
+        // (for the road name pill along the bottom: how much room the speedometer takes in its corner, #421)
+        val speedCorner = if (!previewing && !altFocus && !hudOff && (routeSheet || speedOnCardSide || (speedPos != "top" && speedPos != "middle")))
+            with(dens) { speedWPx.toDp() }.value.toInt() else 0
+        androidx.compose.runtime.SideEffect { if (engine.speedCornerDp != speedCorner) engine.speedCornerDp = speedCorner }
 
         // ---- bottom left: hazards and the trip card (not while the "all locations" / add-a-stop panel is open: it's in the same
         // corner and the panel lets the map show through, so the trip card's figures showed through it)

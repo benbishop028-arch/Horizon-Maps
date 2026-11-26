@@ -419,7 +419,9 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                     val mediaUp = prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.showing()
                     androidx.compose.runtime.SideEffect { val w = !engine.deadReckoning && cruiseShows; if (engine.cruisePillWanted != w) engine.cruisePillWanted = w }
                     // (with the portrait sheet up, the pill is the top line of the sheet instead)
-                    if (!engine.deadReckoning && cruiseShows && !engine.portraitSheetOn && !PipUi.on) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) maxOf(84f, engine.mediaLiftDp + 10f).dp else 18.dp))
+                    if (!engine.deadReckoning && cruiseShows && !engine.portraitSheetOn && !PipUi.on) CruisePill(engine, Modifier.align(Alignment.BottomCenter).padding(bottom = if (mediaUp) maxOf(84f, engine.mediaLiftDp + 10f).dp else 18.dp)
+                        // (clear of the speedometer in its bottom corner, on both sides so it stays centred; a long name is cut short, #421)
+                        .padding(horizontal = if (mediaUp || engine.speedCornerDp == 0) 16.dp else (engine.speedCornerDp + 24).dp))
                     // that pill has the road name, so the one under your arrow steps aside while it's up (they overlapped)
                     val cruisePillUp = !engine.deadReckoning && cruiseShows
                     LaunchedEffect(cruisePillUp) { map.setRoadNameHidden(cruisePillUp) }
