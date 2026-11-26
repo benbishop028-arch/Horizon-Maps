@@ -18,7 +18,7 @@ internal object RouteMatcher {
      * route only when the local result is more than 60 m away. The limits intentionally match the old
      * NavEngine implementation to avoid changing snapping behaviour.
      */
-    fun snap(route: Route, position: LL, previousIndex: Int, heading: Double? = null): RouteSnap {
+    fun snap(route: Route, position: LL, previousIndex: Int, heading: Double? = null, maxProgressMeters: Double? = null): RouteSnap {
         val pts = route.pts
         require(pts.size >= 2) { "A route needs at least two points to snap a position" }
         require(route.cum.size >= pts.size) { "Route cumulative distances do not cover its points" }
@@ -32,6 +32,8 @@ internal object RouteMatcher {
 
         fun scan(from: Int, until: Int) {
             for (i in from until min(until, pts.size - 1)) {
+                // On the very first GPS fix, don't match a nearby return leg further along a looping route.
+                if (maxProgressMeters != null && route.cum[i] > maxProgressMeters) break;
                 val ax = (pts[i].lon - position.lon) * longitudeScale
                 val ay = (pts[i].lat - position.lat) * latitudeScale
                 val bx = (pts[i + 1].lon - position.lon) * longitudeScale
@@ -60,7 +62,7 @@ internal object RouteMatcher {
         }
 
         scan(max(0, previousIndex - 20), previousIndex + 500)
-        if (bestDistance > 60.0) scan(0, pts.size)
+        if (bestDistance > 60.0 && maxProgressMeters == null) scan(0, pts.size)
 
         val a = pts[bestIndex]
         val b = pts[bestIndex + 1]
