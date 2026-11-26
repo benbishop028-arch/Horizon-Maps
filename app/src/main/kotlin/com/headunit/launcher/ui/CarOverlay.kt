@@ -111,6 +111,9 @@ fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: Sta
     // [scale] is worked out from the car screen's size (see CarSurface); the Android Auto size setting adjusts it either way
     val user = engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300) / 100f
     val textScale = engine.prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).coerceIn(75, 150) / 100f
+    // the signs on the car's map grow with the car screen as its cards and text do
+    val uiPx = base.density * scale.value * user
+    LaunchedEffect(uiPx) { engine.map.setUiPx(uiPx) }
     CompositionLocalProvider(LocalDensity provides Density(base.density * scale.value * user, base.fontScale * textScale)) {
         // dark cards when the car says it's night, or when the map's light has gone dim (dusk) before the car switches
         // (not with "Always day" picked in the car's settings)
