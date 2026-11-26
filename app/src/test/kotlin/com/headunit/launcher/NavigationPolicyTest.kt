@@ -29,6 +29,15 @@ class NavigationPolicyTest {
         assertEquals(15.6, NavigationPolicy.routeSpeedZoom(36.0, null), 0.0001)
     }
 
+    @Test fun initialRouteSnapWindowStaysUntilMovingAndCloseToOpeningSection() {
+        assertFalse(NavigationPolicy.shouldReleaseInitialRouteSnap(0.0, 5.0))
+        assertFalse(NavigationPolicy.shouldReleaseInitialRouteSnap(2.5, 5.0))
+        assertFalse(NavigationPolicy.shouldReleaseInitialRouteSnap(3.0, 60.1))
+        assertTrue(NavigationPolicy.shouldReleaseInitialRouteSnap(2.6, 60.0))
+        assertFalse(NavigationPolicy.shouldReleaseInitialRouteSnap(Double.NaN, 10.0))
+        assertFalse(NavigationPolicy.shouldReleaseInitialRouteSnap(5.0, Double.NaN))
+    }
+
     @Test fun poorGpsAccuracyCannotTriggerReroute() {
         assertTrue(NavigationPolicy.gpsReliableForReroute(0.0)) // unknown accuracy from older providers
         assertTrue(NavigationPolicy.gpsReliableForReroute(45.0))
