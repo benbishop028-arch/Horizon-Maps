@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -226,7 +227,7 @@ fun AlertBanner(a: AlertInfo, modifier: Modifier = Modifier, compact: Boolean = 
     LaunchedEffect(a) { prog.animateTo(0f, tween(a.ms.toInt().coerceAtLeast(500), easing = LinearEasing)) }
     val shape = RoundedCornerShape(if (compact) 18.dp else 24.dp)
     Column(
-        modifier.widthIn(max = if (compact) 330.dp else 420.dp).shadow(if (compact) 8.dp else 14.dp, shape).clip(shape)
+        modifier.widthIn(max = if (compact) 330.dp else 420.dp).wrapContentWidth().shadow(if (compact) 8.dp else 14.dp, shape).clip(shape)
             .background(Color(0xF2121922)).border(if (compact) 1.dp else 1.5.dp, col.copy(alpha = 0.7f), shape),
     ) {
         Row(Modifier.padding(start = if (compact) 8.dp else 12.dp, end = if (compact) 12.dp else 18.dp,
