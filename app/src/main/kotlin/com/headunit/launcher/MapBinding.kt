@@ -2966,7 +2966,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconImage(Expression.get("img")).iconAnchor(IconAnchor.BOTTOM)
             .iconAllowOverlap(true).iconIgnorePlacement(false).iconEmissiveStrength(1.0)
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
-            .iconSize(zoomed(1.0, 9 to 0.45, 14 to 0.5, 18 to 0.56)))
+            // (sized with the screen like the other signs: 46 of the app's own units tall at close zoom, about 30% smaller than it was,
+            // and the picture is 130 units tall at full size; joel941703-hash, #444)
+            .iconSize(sized("dl-live-bub") { zoomed(1.0, 9 to 46.0 * 0.9 * uiK / 130.0, 14 to 46.0 * uiK / 130.0, 18 to 46.0 * 1.12 * uiK / 130.0) }))
         // "See all locations": a dotted line from you to the one picked, and every branch as its logo with the drive time
         addL(st, LineLayer("dl-chain-line", "dl-chain-line").lineColor("#4C8DFF").lineWidth(5.0).lineOpacity(0.9)
             .lineCap(LineCap.ROUND).lineDasharray(listOf(0.1, 2.2)).lineEmissiveStrength(1.0))
