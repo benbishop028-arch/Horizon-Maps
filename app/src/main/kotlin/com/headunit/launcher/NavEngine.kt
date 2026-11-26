@@ -4774,8 +4774,28 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
     }
 
+    // ---- the road under you for "Match road signs" (#431): motorway or not, switching only after ~6 s of the new road ----
+    /** On a motorway (for the turn card's sign colours); null until known. */
+    var onMotorway by mutableStateOf<Boolean?>(null)
+    private var mwSeenAt = 0L
+    private var mwRun = 0
+    private var mwRunValue = false
+    private fun updateMotorway(p: Fix) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - mwSeenAt < 2000L) return
+        mwSeenAt = now
+        if (prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green") != "signs") return
+        val cls = try { map.roadAt(p.pos, p.heading)?.cls } catch (e: Throwable) { null } ?: return
+        // (a slip road changes nothing: you're still joining or leaving)
+        if (cls.endsWith("_link")) return
+        val mw = cls.startsWith("motorway")
+        if (mw == mwRunValue) mwRun++ else { mwRunValue = mw; mwRun = 1 }
+        if ((mwRun >= 3 || onMotorway == null) && onMotorway != mw) onMotorway = mw
+    }
+
     private fun onPosition(p: Fix, force: Boolean) {
         fix = p
+        if (p !== lastMeasured) try { updateMotorway(p) } catch (e: Exception) { }
         if (p !== lastMeasured) try { freeCrossings(p) } catch (e: Exception) { }
         val newFix = p !== lastMeasured
         if (newFix) try { noteDriven(p.pos) } catch (e: Exception) { }

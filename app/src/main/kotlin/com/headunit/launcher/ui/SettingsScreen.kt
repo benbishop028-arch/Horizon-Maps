@@ -434,8 +434,10 @@ private fun LightSection(prefs: Prefs) {
         if (!prefs.b(PreferenceKeys.ORBIT, false)) SToggle(prefs, L.t("Traffic overview when stopped"), PreferenceKeys.STOPPED_OVERVIEW, true, L.t("After 30 seconds stopped (lights, a queue), the map pulls back to a top-down view of the traffic round you, and back again when you move off"))
     }
     SGroup(L.t("Turn card")) {
-        SChoice(L.t("Turn card colour"), listOf("green" to L.t("Green"), "black" to L.t("Black"), "grey" to L.t("Dark grey"), "navy" to L.t("Navy"), "purple" to L.t("Purple")),
-            prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green"), L.t("The colour behind the next turn. The writing stays white")) { prefs.put(PreferenceKeys.TURN_CARD_COLOUR, it) }
+        SChoice(L.t("Turn card colour"), listOf("green" to L.t("Green"), "black" to L.t("Black"), "grey" to L.t("Dark grey"), "navy" to L.t("Navy"), "purple" to L.t("Purple"), "signs" to L.t("Match road signs")),
+            prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green"),
+            if (prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green") == "signs") L.t("The card takes the colour of the road signs where you're driving: motorway colour on motorways, the usual colour elsewhere")
+            else L.t("The colour behind the next turn. The writing stays white"), wrap = true) { prefs.put(PreferenceKeys.TURN_CARD_COLOUR, it) }
     }
     SGroup("3D") {
         SToggle(prefs, L.t("Hill shading"), PreferenceKeys.HILLSHADE, false, L.t("Soft shading on hillsides, so valleys and ridges show even on a flat map. Lighter work than 3D hills"))

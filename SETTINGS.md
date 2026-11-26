@@ -57,7 +57,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Tilt with speed**: flatter when slow, a longer view at speed.
 - **Traffic overview when stopped**: after 30 seconds stopped, the map pulls back to a top-down view of the traffic round you.
 - **Circle the car when stopped**: instead, the camera slowly circles your car after you've been stopped a while (**Start after** 15 s, 30 s or 1 min; **Circling speed** slow or medium; **Direction**), and comes back round when you move off. More work for a slow head unit.
-- **Turn card colour**: the colour behind the next turn (the writing stays white).
+- **Turn card colour**: the colour behind the next turn (the writing stays white), or *Match road signs*: the colour of the country's signs for the road you're on, motorway colour on motorways.
 
 **3D**
 - **Hill shading**: soft shading on hillsides, even on a flat map. Lighter work than 3D hills.

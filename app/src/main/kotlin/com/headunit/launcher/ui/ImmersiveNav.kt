@@ -1583,14 +1583,19 @@ internal fun ImmTurnCard(
     // is above and below the writing (70% is a tight card, 130% a roomy one)
     val arrowK = engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_ARROW else PreferenceKeys.TURN_ARROW, 100).coerceIn(80, 200) / 100f
     val padK = (1f + (engine.prefs.i(if (car) PreferenceKeys.CAR_TURN_HEIGHT else PreferenceKeys.TURN_HEIGHT, 100).coerceIn(70, 130) / 100f - 1f) * 2.5f).coerceIn(0.25f, 1.75f)
-    // Settings › Map look › Turn card colour: all with white writing
-    val (Teal, TealDeep) = when (engine.prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green")) {
+    // Settings › Map look › Turn card colour: all with white writing. "Match road signs": the colours of the country's signs for
+    // the road you're on (motorway or not), fading across when that changes (desko1973 #431)
+    val signs = if (engine.prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green") == "signs")
+        com.headunit.launcher.SignColours.card(engine.detectedCountry, engine.onMotorway == true) else null
+    val (teal0, deep0) = when (engine.prefs.s(PreferenceKeys.TURN_CARD_COLOUR, "green")) {
         "black" -> Color(0xFF0A0A0A) to Color(0xFF000000)
         "grey" -> Color(0xFF373A40) to Color(0xFF26282C)
         "navy" -> Color(0xFF142864) to Color(0xFF0C1A44)
         "purple" -> Color(0xFF462870) to Color(0xFF2E1A4C)
-        else -> GmGreen to GmGreenDeep
+        else -> if (signs != null) Color(signs.first) to Color(signs.second) else GmGreen to GmGreenDeep
     }
+    val Teal by androidx.compose.animation.animateColorAsState(teal0, androidx.compose.animation.core.tween(900), label = "cardTop")
+    val TealDeep by androidx.compose.animation.animateColorAsState(deep0, androidx.compose.animation.core.tween(900), label = "cardDeep")
     val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.exitNo.isNotBlank())
     // (worked out once per sign, not on every distance update)
     val signPlaces = remember(t.sign, t.street, ukSign) { if (ukSign) junctionSignPlaces(t.sign, t.street) else "" }
