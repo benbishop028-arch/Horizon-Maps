@@ -5035,7 +5035,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
         // "Keep the arrow to the side" (GitHub): on a wide screen the arrow stays where the cards put it when they fold away, rather
         // than gliding back to the middle (the side the cards were last on; at first the usual side for this screen)
-        if (bottomCover <= 0.0 && !stoppedOverview) {
+        if (bottomCover <= 0.0 && !stoppedOverview && !portraitLayout) {
             if (abs(tLeft) > 0.06 && !idleSoft) sideShiftSeen = tLeft
             else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
                 tLeft = sideShiftSeen ?: (if (layoutMirrored && !isCar) -0.3 else 0.3)
