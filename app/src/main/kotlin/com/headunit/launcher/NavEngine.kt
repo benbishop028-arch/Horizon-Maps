@@ -3091,7 +3091,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         tripBase = route?.baseTime ?: 0.0
         // the other screen (phone or car) follows onto the same trip
         dest?.let { d -> try { RouteSync.started(this, d, via) } catch (e: Exception) { } }
-        said.clear(); lastIdx = 0; zoomOffset = 0.0
+        said.clear(); lastIdx = 0; initialRouteSnapPending = true; zoomOffset = 0.0
         navStartMs = System.currentTimeMillis(); navStartDist = tripDist
         try { startDriven() } catch (e: Exception) { }
         lastFasterCheck = System.currentTimeMillis(); faster = null; lastTrafficAt = 0L
@@ -4283,10 +4283,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     // ---- guidance ----
+    private var initialRouteSnapPending = false
+
     private fun snap(r: Route, p: LL): RouteSnap {
         val heading = fix?.takeIf { it.speed > 2.5 }?.heading ?: goodHead
-        val result = RouteMatcher.snap(r, p, lastIdx, heading)
+        val result = RouteMatcher.snap(
+            r, p, lastIdx, heading,
+            maxProgressMeters = if (initialRouteSnapPending) 300.0 else null,
+        )
         lastIdx = result.segmentIndex
+        // Keep the start-only window until GPS is actually close to the opening section.
+        if (initialRouteSnapPending && result.dist <= 60.0) initialRouteSnapPending = false
         return result
     }
 
