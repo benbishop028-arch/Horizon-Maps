@@ -5283,10 +5283,32 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
      * (neilch0111, #441).
      */
     private fun fitMap(pts: List<LL>, panel: Boolean = true) {
-        if (!isCar) { map.fit(pts, panel); return }
-        var left = 0.0
-        for (p in panels) if (p[2] - p[0] >= 0.02 && p[3] - p[1] >= 0.02 && p[0] < 0.5f) left = max(left, p[2].toDouble())
-        map.fitFrac(pts, (left + 0.04).coerceIn(0.06, 0.6), 0.10, 0.06, 0.10)
+        // the phone's route choice has its own panel (the map leaves room for it); otherwise, around the cards actually showing
+        if (!isCar && (previewing || !panel)) { map.fit(pts, panel); return }
+        fitAroundCards(pts)
+    }
+
+    /**
+     * Fits [pts] into the map left clear by the cards on screen (the turn card, the trip card, the map buttons), using all of it:
+     * the overview while driving was fitted as if the route choice's panel covered the bottom 60%, so the route ended up small
+     * and under the turn card. A card across most of the width takes a band off the top or bottom; a narrower one, a strip off
+     * its side.
+     */
+    private fun fitAroundCards(pts: List<LL>) {
+        var l = 0.0; var t = 0.0; var r = 0.0; var b = 0.0
+        for (p in panels) {
+            val w = (p[2] - p[0]).toDouble(); val h = (p[3] - p[1]).toDouble()
+            if (w < 0.02 || h < 0.02) continue
+            if (w >= 0.5 && !isCar) {
+                if ((p[1] + p[3]) / 2.0 < 0.5) t = max(t, p[3].toDouble()) else b = max(b, 1.0 - p[1])
+            } else if (isCar || (p[0] + p[2]) / 2.0 < 0.5) l = max(l, p[2].toDouble()) else r = max(r, 1.0 - p[0])
+        }
+        // (a little room round the edges, and never less than a third of the map either way)
+        fun side(v: Double) = (v + 0.03).coerceIn(0.05, 0.6)
+        var fl = side(l); var fr = side(r); var ft = side(t); var fb = side(b)
+        if (fl + fr > 0.67) { val k = 0.67 / (fl + fr); fl *= k; fr *= k }
+        if (ft + fb > 0.67) { val k = 0.67 / (ft + fb); ft *= k; fb *= k }
+        map.fitFrac(pts, fl, ft, fr, fb)
     }
 
     // outlines of the cards on screen, as parts of its width and height (left, top, right, bottom), reported by the screen

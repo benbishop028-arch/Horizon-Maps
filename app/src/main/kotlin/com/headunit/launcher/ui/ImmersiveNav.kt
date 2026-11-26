@@ -1772,6 +1772,8 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         // (well in from the screen's edges: 22 dp each side)
         FasterStrip(engine, Modifier.fillMaxWidth(), edge = 22.dp)
         if (engine.showRouteBar) RouteBar(engine, Modifier.fillMaxWidth().padding(start = 22.dp, end = 22.dp, top = 6.dp, bottom = 2.dp))
+        // the next stop (#437): here too, as a phone held upright shows this sheet rather than the trip card
+        NextStopLine(engine, Modifier.fillMaxWidth().padding(start = 18.dp, end = 18.dp, top = 8.dp))
         Row(Modifier.fillMaxWidth().padding(start = 22.dp, end = 18.dp, top = 8.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             // (the figures take what room is left and are clipped if the screen is too narrow or its text too large, so the buttons
