@@ -12,6 +12,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ### Improved
 - Android Auto driver's display: the next turn (arrow, distance and road) now shows with the time left, distance and arrival, in a bar at the top where the car's own bar along the bottom can't hide it, and the map zooms in a little for a turn (thanks to joel941703-hash, #430)
+- Signs on the map the same size on every screen: saved places, speed limit signs, give way and stop signs, cameras, roadworks, closures, speed bumps and traffic lights are now sized from the route line (about one and a half times as wide) and grow a little on bigger screens, like the rest of the app. They were tiny on sharp phone screens and huge on some head units. The size sliders still make them bigger or smaller
 - Other-route bubbles on the map ("Same time", "+3 min") are about a quarter smaller, and road names no longer run over them or over the lane sign at a junction (thanks to karthikeyansr-lgtm, #429)
 
 ### Fixed
