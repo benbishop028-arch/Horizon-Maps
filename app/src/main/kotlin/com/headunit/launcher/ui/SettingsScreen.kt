@@ -1400,6 +1400,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
 
     }
     SGroup(L.t("Speed display")) {
+        SToggle(prefs, L.t("Show speed limits"), PreferenceKeys.SHOW_LIMITS, true, L.t("Off hides the speed limit sign, the warnings for going over it and the limit signs on the map"))
         SToggle(prefs, L.t("Your speed next to the limit"), "mapspeed", true)
         SToggle(prefs, L.t("Speedometer ring"), "speedring", true, L.t("Fills towards the limit, turning amber then red"))
         SToggle(prefs, L.t("Big speed limit sign"), PreferenceKeys.SPEED_SWAP, false, L.t("Swaps them round: the limit sign big, your speed small beside it"))

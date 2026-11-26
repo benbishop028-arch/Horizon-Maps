@@ -211,6 +211,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Button size", "", "Sizes", 13),
     SettingRef("Text size", "", "Sizes", 13),
     SettingRef("Road name size", "", "Sizes", 13),
+    SettingRef("Show speed limits", "Off hides the speed limit sign, the warnings for going over it and the limit signs on the map", "Speed display", 13),
     SettingRef("Your speed next to the limit", "", "Speed display", 13),
     SettingRef("Speedometer ring", "Fills towards the limit, turning amber then red", "Speed display", 13),
     SettingRef("Big speed limit sign", "Swaps them round: the limit sign big, your speed small beside it", "Speed display", 13),

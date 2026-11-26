@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Hide speed limits: Settings › Screen & sizes › Speed display › Show speed limits switches the limit sign, the warnings for going over it and the limit signs on the map off, for roads where the limits shown aren't right (thanks to a tester in Germany)
 - A route without tolls: when the fastest route uses toll roads, the route choice also offers a "No tolls" route, with how much longer it takes, and marks the routes that have tolls. Switch it off under Settings › Routes › Avoid › Offer a route without tolls (thanks to Luís Pedro Antunes)
 
 ### Improved
