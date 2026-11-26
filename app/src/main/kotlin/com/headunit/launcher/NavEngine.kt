@@ -4620,6 +4620,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var movingNow = false
     /** In portrait: the share of the screen height covered by the trip card at the bottom (the locator is kept above it). */
     var bottomCover = 0.0
+    /** Extra bottom coverage from a temporary alert popup, so the locator rises above it while visible. */
+    var popupCover = 0.0
+    /** Portrait layout is known before the first trip-card measurement completes. */
+    var portraitLayout = false
 
     // Standing still (parked, at lights): the first position while stopped, kept until you've clearly moved off. GPS (and the
     // car's own GPS over Android Auto) wanders a few metres and reports small made-up speeds while stopped; following that
@@ -4967,7 +4971,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
         }
         // portrait: keep the locator clear of the trip card (its centre sits at (1 + pad) / 2 of the height)
-        if (bottomCover > 0.0) pad = minOf(pad, 2.0 * (1.0 - bottomCover - 0.09) - 1.0).coerceAtLeast(0.0)
+        val combinedCover = (bottomCover + popupCover).coerceIn(0.0, 0.85)
+        if (combinedCover > 0.0) pad = minOf(pad, 2.0 * (1.0 - combinedCover - 0.09) - 1.0).coerceAtLeast(0.0)
         tBMode = if (northUp) 0 else if (navigating || sp > 2.0) 1 else 2
         // stopped for 30 s (lights, a queue): a flat top-down view of the traffic round you, back to normal as soon as you move.
         // Not when you've moved the map yourself, nor in the last 400 m of a route
@@ -5026,7 +5031,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the buttons, whatever height they reach to, so it's always in the middle of what's left of the map.
         // (Android Auto too: there the outlines are measured within the part of the screen its own buttons leave clear)
         idleSoft = false
-        tLeft = if (!navigating && !previewing) idleShift(bottomCover > 0.0, (1.0 + pad) / 2.0)
+        tLeft = if (!navigating && !previewing) idleShift(portraitLayout || bottomCover > 0.0, (1.0 + pad) / 2.0)
                 else if (bottomCover <= 0.0) arrowShift((1.0 + pad) / 2.0) else 0.0
         // "Keep the arrow to the side" (GitHub): on a wide screen the arrow stays where the cards put it when they fold away, rather
         // than gliding back to the middle (the side the cards were last on; at first the usual side for this screen)
@@ -5090,6 +5095,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var idleSoft = false
 
     private fun idleShift(portrait: Boolean, arrowY: Double = 0.5): Double {
+        // Portrait keeps the locator horizontally centred; the vertical control rail must not
+        // push it sideways during the first layout pass.
+        if (portrait) return 0.0
         var left = 0.0; var right = 1.0
         var softL = 0.0; var softR = 1.0
         idleSoft = false
