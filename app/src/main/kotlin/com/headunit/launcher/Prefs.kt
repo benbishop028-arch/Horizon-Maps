@@ -45,6 +45,8 @@ internal object PreferenceKeys {
     const val MAP_FPS = "mapfps"
     const val UI_SCALE = "uiscale"
     const val UI_AUTO_SCALE = "uiauto"
+    /** One-time migration marker for the 85%-based UI scale baseline. */
+    const val UI_SCALE_BASELINE_V2 = "uiscalebaselinev2"
     const val SOUND_MODE = "soundmode"
     const val FUEL_TYPE = "fueltype"
     const val PACK_REGION = "packregion"
