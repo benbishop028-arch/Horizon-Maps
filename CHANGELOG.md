@@ -11,10 +11,14 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Motorway services only: the Services list along the route can show just motorway services, without rest and picnic areas. Your choice is remembered (thanks to d3stiny999, #437)
 
 ### Improved
-- UK fuel prices update by themselves: with your Fuel Finder details added, prices now refresh in the background when the app is opened or comes back to the screen (at most every half hour), on the same Wi-Fi or mobile data setting as the offline data (Settings › Offline maps › Update automatically), and Settings › Fuel prices shows when they were last updated, even after an app update (thanks to ricres77, #428)
 
 ### Fixed
 - Android Auto route overview too small: the route preview, the overview and the other-routes view on the car screen squeezed the route into the top third, as if the phone's route panel were covering the rest. They now fit it into the space beside the cards, using the whole height (thanks to neilch0111, #441)
+
+## 1.0.1034 — 26 Nov 2026
+
+### Improved
+- UK fuel prices update by themselves: with your Fuel Finder details added, prices now refresh in the background when the app is opened or comes back to the screen (at most every half hour), on the same Wi-Fi or mobile data setting as the offline data (Settings › Offline maps › Update automatically), and Settings › Fuel prices shows when they were last updated, even after an app update (thanks to ricres77, #428)
 
 ## 1.0.1032 — 26 Nov 2026
 
