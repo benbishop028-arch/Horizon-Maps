@@ -279,7 +279,7 @@ class I18nCoreCoverageTest {
             "sk" to "Automaticky",
             "sr" to "Automatski"
         )
-        val placeholder = Regex("""\\{\\d+}""")
+        val placeholder = Regex("""\{\d+}""")
         for ((code, value) in expected) {
             val rows = I18nAuditBatch3.rows(code)
             val translations = rows.toMap()
