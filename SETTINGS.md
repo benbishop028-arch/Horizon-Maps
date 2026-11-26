@@ -94,7 +94,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 
 **On your route**
 - **Traffic lights**: the ones on your route.
-- **Speed cameras and roadworks**: their icons on the map (the warnings are under [Alerts](#alerts)). **Speed camera size** sets the badge size.
+- **Speed cameras and roadworks**: their icons on the map (the warnings are under [Alerts](#alerts)). **Speed camera size** sets the camera badge's size, and **Hazard sign size** the roadworks, closure and hazard signs'.
 - **Zebra crossings**: crossings on your route painted on the road, with Belisha beacons at zebras.
 - **Stop signs**: STOP and Give Way signs on your route, with a short chime before STOP signs (where OpenStreetMap has them).
 - **Number-plate cameras**: Flock and other automatic number-plate cameras from OpenStreetMap. Map only, no alerts.
@@ -160,7 +160,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Lanes on the map**: your lanes lit on the road.
 - **Zoom in on lanes before a junction**.
 - **Junction close-up**: at slip roads, exits, forks and lane splits the view moves closer and a little flatter for the last 200 m.
-- **Junction zoom**: *Usual*, *Closer* or *Closest*: how close the map comes in for lanes and junctions (closer makes the lit lanes bigger on a small screen).
+- **Junction zoom**: *Further*, *Usual*, *Closer* or *Closest*: how close the map comes in for turns, lanes and junctions. Further keeps more of the roads round a turn in view; closer makes the lit lanes bigger on a small screen.
 
 **Trip card**
 - **Route bar on the trip card**: traffic, cameras, services and stops, with your progress.
@@ -341,7 +341,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Trip card**, **Trip card in split screen**, **Speedometer**, **Speedometer style on the car screen** (*Compact* is a small dark pill with the limit and your speed side by side).
 
 **Sizes on the car screen**
-- **Overall size on the car screen**, **Speedometer and speed-limit sign size**, **Speed-limit sign size**, and **Advanced car-screen sizes** (card, turn arrow, turn card width and height, buttons, bar height, text, navigation arrow, road name).
+- **Overall size on the car screen**, **Speedometer and speed-limit sign size**, **Speed-limit sign size** (also the upcoming limit and the limit pop-up), and **Advanced car-screen sizes** (card, turn arrow, turn card width and height, buttons, bar height, text, navigation arrow, road name).
 
 **Setting it up**
 - **Android Auto settings** and **Android Auto app info** (to force stop it after changing its settings).

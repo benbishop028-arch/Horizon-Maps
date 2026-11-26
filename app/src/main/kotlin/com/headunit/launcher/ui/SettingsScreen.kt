@@ -509,6 +509,7 @@ private fun OnTheMapSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Traffic lights"), "signals", true, if (prefs.b(PreferenceKeys.SIGNALS, true)) L.t("Only the ones on your route. Now: ") + engine.map.signalInfo() else null)
         SToggle(prefs, L.t("Speed cameras and roadworks"), "hazardicons", true, L.t("Their icons on the map. The warnings are in Settings > Alerts"))
         if (prefs.b("hazardicons", true)) SPercent(L.t("Speed camera size"), L.t("The red camera badge on the map"), prefs, PreferenceKeys.CAM_SIZE, 50, 350)
+        if (prefs.b("hazardicons", true)) SPercent(L.t("Hazard sign size"), L.t("Roadworks, closures and hazard signs on the map"), prefs, PreferenceKeys.HAZ_SIZE, 50, 300)
         SToggle(prefs, L.t("Zebra crossings"), "zebras", true, L.t("Crossings on your route painted on the road, with Belisha beacons at zebras (close in)"))
         SToggle(prefs, L.t("Stop signs"), PreferenceKeys.STOP_SIGNS, true, L.t("STOP and Give Way signs on your route shown on the map; a short chime before STOP signs (where OpenStreetMap has them)"))
         SToggle(prefs, L.t("Number-plate cameras"), PreferenceKeys.ALPR_CAMS, true, L.t("Flock and other automatic number-plate cameras mapped on OpenStreetMap. Shown on the map only, no alerts"))
@@ -800,8 +801,8 @@ private fun GuidanceSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Zoom in on lanes before a junction"), "laneview", true)
         SToggle(prefs, L.t("Junction close-up"), "junctionview", true, L.t("At slip roads, motorway exits, forks and lane splits the view moves closer and a little flatter for the last 200 m"))
         if (prefs.b(PreferenceKeys.LANE_VIEW, true) || prefs.b(PreferenceKeys.JUNCTION_VIEW, true))
-            SChoice(L.t("Junction zoom"), listOf("0" to L.t("Usual"), "1" to L.t("Closer"), "2" to L.t("Closest")), prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0"),
-                L.t("How close the map zooms in for lanes and junctions. Closer helps on a small screen")) { prefs.put(PreferenceKeys.JUNCTION_ZOOM, it) }
+            SChoice(L.t("Junction zoom"), listOf("-1" to L.t("Further"), "0" to L.t("Usual"), "1" to L.t("Closer"), "2" to L.t("Closest")), prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0"),
+                L.t("How close the map zooms in for turns, lanes and junctions. Further keeps more of the roads round them in view; Closer helps on a small screen")) { prefs.put(PreferenceKeys.JUNCTION_ZOOM, it) }
     }
     SGroup(L.t("Trip card")) {
         SToggle(prefs, L.t("Route bar on the trip card"), "routebar", true, L.t("Traffic, cameras, services and stops, with your progress"))
@@ -1494,7 +1495,7 @@ private fun AndroidAutoSection(prefs: Prefs) {
     SGroup(L.t("Sizes on the car screen")) {
         SSlider(L.t("Overall size on the car screen"), prefs.i(PreferenceKeys.CARSCALE, 100).toFloat(), 40f..300f, "%", sub = L.t("Base scale for the whole overlay") + (prefs.i(PreferenceKeys.CARSCALE_MAX, 0).takeIf { it in 100..299 }?.let { " · " + L.t("Up to {0}% fits this car's screen", it) } ?: ""), steps = 25, reset = 100f) { prefs.put(PreferenceKeys.CARSCALE, it) }
         SSlider(L.t("Speedometer and speed-limit sign size"), prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).toFloat(), 40f..180f, "%", sub = L.t("Automatically shrinks further if the available screen area is too small"), reset = 100f) { prefs.put(PreferenceKeys.CAR_SPEED_SIZE, it) }
-        SSlider(L.t("Speed-limit sign size"), prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).toFloat(), 80f..170f, "%", sub = L.t("Makes the limit sign bigger or smaller next to the speedometer"), reset = 100f) { prefs.put(PreferenceKeys.CAR_LIMIT_SIZE, it) }
+        SSlider(L.t("Speed-limit sign size"), prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).toFloat(), 80f..170f, "%", sub = L.t("The limit sign next to the speedometer, the upcoming limit and the limit pop-up"), reset = 100f) { prefs.put(PreferenceKeys.CAR_LIMIT_SIZE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
             SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }

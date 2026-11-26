@@ -206,6 +206,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     LaunchedEffect(customOn, customDay, customNight, customW) { map.setCustom(customOn, customDay, customNight, customW) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     LaunchedEffect(camSize) { map.setCameraSize(camSize) }
+    val hazSize = prefs.i(PreferenceKeys.HAZ_SIZE, 100)
+    LaunchedEffect(hazSize) { map.setHazardSize(hazSize) }
     val flags3d = prefs.b(PreferenceKeys.FLAGS_3D, true)
     val hills = prefs.b(PreferenceKeys.HILLSHADE, false)
     LaunchedEffect(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }

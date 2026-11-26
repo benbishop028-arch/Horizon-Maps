@@ -2685,9 +2685,9 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, LineLayer("dl-traffic", "dl-traffic-src").sourceLayer("traffic").inSlot(MID)
             .filter(trafficFilter())
             .lineColor(Expression.fromRaw("[\"match\",[\"get\",\"congestion\"],\"low\",\"#1EA362\",\"moderate\",\"#F9AB00\",\"heavy\",\"#E8453C\",\"severe\",\"#A51D1D\",\"#F9AB00\"]"))
-            .lineWidth(zoomed(1.5, 8 to 1.0, 13 to 2.5, 16 to 4.5, 19 to 9.0))
-            .lineOffset(zoomed(1.5, 10 to 0.5, 16 to 2.5, 19 to 5.0))
-            .lineOpacity(0.85).lineEmissiveStrength(1.0)
+            .lineWidth(trafficWidth())
+            .lineOffset(trafficOffset())
+            .lineOpacity(trafficOpacity()).lineEmissiveStrength(1.0)
             .lineCap(LineCap.ROUND).lineJoin(LineJoin.ROUND)
             .minZoom(8.0)
             .visibility(vis(trafficOn && !(routing && hideTraffic))))
@@ -3066,7 +3066,15 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     private fun applyTraffic() {
         try { layer("dl-traffic")?.visibility(vis(trafficOn && !(routing && hideTraffic))) } catch (e: Throwable) { }
+        try { (layer("dl-traffic") as? LineLayer)?.let { it.lineWidth(trafficWidth()); it.lineOffset(trafficOffset()); it.lineOpacity(trafficOpacity()) } } catch (e: Throwable) { }
     }
+    // Driving with no route, the traffic lines are all there is to show it: they're drawn about 1.6 times as wide and fully solid,
+    // where on a route the route line itself carries the traffic colours (they were thin and faint then, José Antonio Arriaga)
+    private fun trafficK() = if (routing) 1.0 else 1.6
+    private fun trafficWidth(): Expression { val k = trafficK(); return zoomed(1.5, 8 to 1.0 * k, 13 to 2.5 * k, 16 to 4.5 * k, 19 to 9.0 * k) }
+    // (moved out from the road's middle with the extra width, so the two directions still sit side by side)
+    private fun trafficOffset(): Expression { val k = trafficK(); return zoomed(1.5, 10 to 0.5 * k, 16 to 2.5 * k, 19 to 5.0 * k) }
+    private fun trafficOpacity() = if (routing) 0.85 else 1.0
 
     /** Light map: no points of interest and no route glow, so there is less to draw and place every frame. */
     private var poiMoving = false
@@ -3605,13 +3613,23 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         return "[\"interpolate\",[\"linear\"],[\"zoom\"],8,${f(0.36)},12,${f(0.44)},15,${f(0.68)},18,${f(0.9)}]"
     }
 
+    // ---- the other signs on the route (roadworks, closures, hazards and reports): Settings > On the map > Hazard sign size ----
+    // (5% bigger than they were at 100%: they were hard to make out, Strong_Force1302, Reddit)
+    private var hazScale = 1.05
+    fun setHazardSize(pct: Int) {
+        val v = pct.coerceIn(50, 300) / 100.0 * 1.05
+        if (v == hazScale) return
+        hazScale = v
+        pushHazards()
+    }
+
     private fun pushHazards() {
         val s = src("dl-hazards") ?: return
         val fs = hazards.map { (p, k) ->
             Feature.fromGeometry(Point.fromLngLat(p.lon, p.lat)).also {
                 it.addStringProperty("img", hazardNames[k.coerceIn(0, hazardNames.size - 1)])
-                // the speed camera badge follows the size setting; roadworks, closures and reports stay as they are
-                it.addNumberProperty("sc", if (k == 0) camScale else 1.0)
+                // the speed camera badge follows its size setting; roadworks, closures and reports follow theirs
+                it.addNumberProperty("sc", if (k == 0) camScale else hazScale)
             }
         }
         s.featureCollection(FeatureCollection.fromFeatures(fs))

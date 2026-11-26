@@ -147,7 +147,7 @@ internal object PreferenceKeys {
     const val RIBBON = "ribbon"
     const val LANE_VIEW = "laneview"
     const val JUNCTION_VIEW = "junctionview"
-    /** How close the lane view and junction close-up come in: "0" usual, "1" closer, "2" closest (#415). */
+    /** How close the lane view and junction close-up come in: "-1" further, "0" usual, "1" closer, "2" closest (#415). */
     const val JUNCTION_ZOOM = "junctionzoom"
     const val PERFORMANCE_METER = "perfmeter"
     const val UPDATE_LAST_CHECK = "updlast"
@@ -330,6 +330,8 @@ internal object PreferenceKeys {
     const val CLUSTER_ZOOM = "clusterzoom"
     /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */
     const val CAM_SIZE = "camsize"
+    /** Roadworks, closures and hazard signs on the map (50 to 300%; Strong_Force1302, Reddit). */
+    const val HAZ_SIZE = "hazsize"
     /** Moonlight at night: a low blue light with long shadows in place of Mapbox's flat night light. */
     const val MOONLIT = "moonlit"
     /** Light and weather (Settings > Map look): night brightness and moon strength in percent (100 as Mapbox / as first made). */

@@ -1312,9 +1312,12 @@ private fun SpeedWithNext(engine: NavEngine) {
     // with the speedometer ring, the limit sign pokes up above the ring's top corner: the gap leaves room for it, so the two
     // don't overlap (on the car screen they did)
     val ringSign = engine.prefs.b(PreferenceKeys.SPEEDRING, true) && engine.speedLimit != null && engine.prefs.b(PreferenceKeys.MAPSPEED, true) && !carCompactSpeed(engine)
+    // (on the car screen the upcoming limit follows Speed-limit sign size, like the main sign: it was small on an 8-inch screen)
+    val ls = if (engine.isCar) engine.prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).coerceIn(80, 170) / 100f else 1f
+    val dNext = LocalDensity.current
     Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(if (ringSign) 26.dp else 6.dp)) {
         if (atTop) SpeedBlock(engine)
-        Row(
+        CompositionLocalProvider(LocalDensity provides Density(dNext.density * ls, dNext.fontScale)) { Row(
             Modifier.panel(6.dp, RoundedCornerShape(20.dp), c.surface).padding(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -1323,7 +1326,7 @@ private fun SpeedWithNext(engine: NavEngine) {
             // (drawn exactly like the main sign, just smaller)
             LimitSignFace(num.toInt(), engine.limitSignStyle, if (engine.limitSignStyle != "round") 40.dp else 36.dp)
             Text(L.t("in {0}", Geo.fmtDist(nx.second, engine.imperial)), color = c.text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-        }
+        } }
         if (!atTop) SpeedBlock(engine)
     }
 }

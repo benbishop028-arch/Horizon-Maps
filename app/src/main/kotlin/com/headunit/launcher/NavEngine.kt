@@ -2694,6 +2694,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private var mwFor: LL? = null
     private var mwTripM: Double? = null
 
+    /** Settings › Junction zoom: -1 further, 0 usual, 1 closer, 2 closest (#415). */
+    private fun junctionZoomLevel(): Int = (prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0").toIntOrNull() ?: 0).coerceIn(-1, 2)
+
     private fun syncRoutePrefs(from: LL? = null, to: LL? = null, newTrip: Boolean = false) {
         // Avoid motorways on short trips: judged once, from where the trip started (a reroute plans from where you are, and a long
         // trip would otherwise start avoiding them near the end)
@@ -4907,7 +4910,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (t != null) {
                 // Ease closer on approach to a real manoeuvre, then hold a useful junction view.
                 val near = ((650.0 - t.dist) / 650.0).coerceIn(0.0, 1.0)
-                z += 0.38 * near
+                // (Junction zoom › Further: only a little closer for an ordinary turn, so the roads round it stay in view, José Antonio Arriaga)
+                z += (if (junctionZoomLevel() < 0) 0.12 else 0.38) * near
                 if (sp > 18) z -= 0.3 * ((t.dist - 2500.0) / 2500.0).coerceIn(0.0, 1.0)
 
                 // Painted lane arrows can be visible well before the turn card is in its final
@@ -4934,7 +4938,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val lt = turn
         // Settings › Turn card & lanes › Junction zoom: Closer and Closest come in half a zoom step and a whole one more, for the
         // lanes on a small screen (mini-mie #415)
-        val jz = 0.5 * (prefs.s(PreferenceKeys.JUNCTION_ZOOM, "0").toIntOrNull() ?: 0).coerceIn(0, 2)
+        // (Further, -1: half a step less, for a wider view round junctions)
+        val jz = 0.5 * junctionZoomLevel()
         if (navigating && laneKey != null && lt != null && lt.dist < (if (laneFast) 1300.0 else 450.0) && prefs.b(PreferenceKeys.LANE_VIEW, true)) {
             val laneNear = ((if (laneFast) 1300.0 else 450.0) - lt.dist) / (if (laneFast) 1300.0 else 450.0)
             z = max(z, 16.9 + jz + 0.9 * laneNear.coerceIn(0.0, 1.0))

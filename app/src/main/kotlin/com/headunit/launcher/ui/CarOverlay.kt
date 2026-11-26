@@ -177,6 +177,8 @@ private fun CarLiveSettings(engine: NavEngine, dark: State<Boolean>) {
     OnChange(customOn, customDay, customNight, customW) { map.setCustom(customOn, customDay, customNight, customW) }
     val camSize = prefs.i(PreferenceKeys.CAM_SIZE, 100)
     OnChange(camSize) { map.setCameraSize(camSize) }
+    val hazSize = prefs.i(PreferenceKeys.HAZ_SIZE, 100)
+    OnChange(hazSize) { map.setHazardSize(hazSize) }
     val flags3d = prefs.b(PreferenceKeys.FLAGS_3D, true)
     val hills = prefs.b(PreferenceKeys.HILLSHADE, false)
     OnChange(flags3d, hills) { map.setFlags(flags3d); map.setHillShading(hills) }
@@ -627,7 +629,11 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                 start = if (showTurn && turnW > 0) left + with(dens) { turnW.toDp() } + 10.dp else if (guiding) maxWidth * 0.42f + left else left, end = maxOf(rightTop, maxWidth * 0.30f))
         // (only that roadworks pop-up: another one, "Road closed ahead", still shows)
         val worksPopup = worksOnCard && alert?.kind == "incident" && alert?.text?.startsWith(L.t("Roadworks")) == true
-        AnimatedVisibility(alert != null && !altsOpen && !worksPopup, modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { AlertBanner(it) } }
+        AnimatedVisibility(alert != null && !altsOpen && !worksPopup, modifier = alertMod, enter = fadeIn(), exit = fadeOut()) { alert?.let { a ->
+            // (the speed limit pop-up follows Speed-limit sign size, like the sign itself: it was small on an 8-inch screen, José Antonio Arriaga)
+            val ls = if (a.kind == "limit") engine.prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).coerceIn(80, 170) / 100f else 1f
+            if (ls == 1f) AlertBanner(a) else CompositionLocalProvider(LocalDensity provides Density(dens.density * ls, dens.fontScale)) { AlertBanner(a) }
+        } }
 
         // the search card: over the map from the left edge to Android Auto's zoom buttons (its other buttons give way to one
         // Close button while it's open, see MapScreen)
