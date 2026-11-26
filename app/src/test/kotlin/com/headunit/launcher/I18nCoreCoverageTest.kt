@@ -266,4 +266,33 @@ class I18nCoreCoverageTest {
             L.set("en")
         }
     }
+
+    @Test fun thirdStageThreeAuditBatchHasCorrectAutomaticLabelsAndPreservesPlaceholders() {
+        val expected = mapOf(
+            "da" to "Automatisk",
+            "fi" to "Automaattinen",
+            "nb" to "Automatisk",
+            "sv" to "Automatiskt",
+            "cs" to "Automaticky",
+            "hr" to "Automatski",
+            "hu" to "Automatikus",
+            "sk" to "Automaticky",
+            "sr" to "Automatski"
+        )
+        val placeholder = Regex("""\\{\\d+}""")
+        for ((code, value) in expected) {
+            val rows = I18nAuditBatch3.rows(code)
+            val translations = rows.toMap()
+            assertEquals("$code has the wrong automatic label", value, translations["Auto"])
+            assertTrue("$code batch has duplicate keys", rows.map { it.first }.distinct().size == rows.size)
+            for ((source, translated) in rows) {
+                assertTrue("$code has an empty translation for '$source'", translated.isNotBlank())
+                assertEquals("$code changed placeholders in '$source'",
+                    placeholder.findAll(source).map { it.value }.toSet(),
+                    placeholder.findAll(translated).map { it.value }.toSet())
+            }
+        }
+        assertEquals("Škola", I18nAuditBatch3.rows("sr").toMap()["School"])
+        assertEquals("Veb-sajt", I18nAuditBatch3.rows("sr").toMap()["Website"])
+    }
 }
