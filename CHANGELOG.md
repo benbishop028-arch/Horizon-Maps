@@ -12,6 +12,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Car picture as your arrow: it now turns about its rear wheels like a real car, so the front leads round a corner instead of the back swinging out, and the arrow or car no longer wobbles on straight roads (thanks to karthikeyansr-lgtm, #424)
 - Hazard radar card: in landscape it's now the same width as the trip card under it (thanks to bijindas, #425)
 
+### Fixed
+- Add-stop button on the portrait trip sheet: no more ragged octagon-shaped shadow round it with Glass panels on
+
 ## 1.0.1016 — 26 Nov 2026
 
 ### New

@@ -1710,7 +1710,8 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
                 ImmStat(Geo.fmtDist(e.dist, engine.imperial), L.t("to go"), c.text, compact = true)
             }
             // add a stop, then End: both big enough to hit while driving
-            Box(Modifier.size(50.dp).shadow(6.dp, CircleShape).clip(CircleShape).background(c.tile).pressClick { engine.stopsEditor = true; open = false },
+            // (panel: no shadow under a see-through tile, where Android drew it as a ragged octagon round the button)
+            Box(Modifier.size(50.dp).panel(6.dp, CircleShape, c.tile).pressClick { engine.stopsEditor = true; open = false },
                 contentAlignment = Alignment.Center) {
                 Icon(Icons.Rounded.AddLocationAlt, if (engine.via.isEmpty()) L.t("Add stop") else L.t("Stops"), tint = c.accent, modifier = Modifier.size(25.dp))
             }
