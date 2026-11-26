@@ -469,7 +469,6 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                         if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
                                     }
                                     }
-                                    }
                                 }
                             }
                         }
