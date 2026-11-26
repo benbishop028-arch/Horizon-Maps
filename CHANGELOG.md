@@ -4,6 +4,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1014 — 26 Nov 2026
+
 ### New
 - Avoid motorways on short trips: Avoid motorways can now be Never, Always or Short trips, with how short you choose (10 to 50 miles, or 15 to 80 km). Offline routes now keep off motorways too when asked (thanks to kr-nn, #413)
 - Junction zoom: a new setting (Turn card & lanes › Lanes and junctions) to bring the map closer for lanes and junctions, so the lit lanes are bigger and easier to read on a small screen (thanks to mini-mie, #415)
