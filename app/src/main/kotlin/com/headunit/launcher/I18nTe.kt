@@ -278,5 +278,9 @@ object I18nTe {
         "Low emission zone" to "తక్కువ ఉద్గారాల మండలం",
         "Google Play billing isn't available: {0}" to "Google Play చెల్లింపు సేవ అందుబాటులో లేదు: {0}",
         "Plus isn't on sale yet" to "Plus ఇంకా అమ్మకానికి అందుబాటులో లేదు",
+        "{0} report saved here" to "నివేదిక {0} ఇక్కడ సేవ్ చేయబడింది",
+        "Entering {0}" to "{0}లోకి ప్రవేశిస్తోంది",
+        "Emergency: {0} · {1} {2}" to "అత్యవసర నంబర్: {0} · {1} {2}",
+        "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "సాధారణ కార్ల వేగ పరిమితులు (పట్టణం / గ్రామీణం / మోటార్‌వే): {0}. అత్యవసర నంబర్: {1}. స్థానిక రహదారి సూచికలను అనుసరించండి; రహదారి, పరిస్థితులు, వాహనాన్ని బట్టి పరిమితులు మారవచ్చు.",
     )
 }
