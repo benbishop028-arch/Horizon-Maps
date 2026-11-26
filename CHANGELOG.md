@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased
+
+### Fixed
+- Navigation start: keep GPS matching constrained to the opening part of the route until the vehicle is moving, and ignore remembered travel direction while stationary, preventing a nearby return leg from making the journey jump ahead.
 - Prevent initial GPS matching from jumping to a later, nearby section of a looping route.
 - Correct the Catalan translation coverage test for valid unchanged wording.
 
