@@ -1343,7 +1343,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         }
         SSlider(
             L.t("Text and button size"),
-            (if (autoScale) autoPercent else prefs.i(PreferenceKeys.UI_SCALE, autoPercent)).toFloat(),
+            (if (autoScale) autoPercent else prefs.i(PreferenceKeys.UI_SCALE, 100)).toFloat(),
             60f..140f, "%", sub = if (autoScale) L.t("Move the slider to switch to a manual size") else L.t("Adjust manually, or turn automatic scaling back on"), steps = 15, reset = 100f
         ) {
             prefs.put(PreferenceKeys.UI_AUTO_SCALE, false)
