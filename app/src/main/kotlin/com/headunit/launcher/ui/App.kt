@@ -64,16 +64,10 @@ internal fun findActivity(c: android.content.Context): android.app.Activity? {
 }
 
 /**
- * Conservative automatic UI scale for the main app. Keep Android's normal dp sizing (100%) on
- * ordinary screens, like Google Maps, and only shrink slightly when the available short edge is
- * genuinely compact. Large/high-resolution displays must not make controls larger just because
- * they have more pixels or dp available.
+ * The automatic UI baseline. The app applies the established 85% physical scale underneath this
+ * user-facing 100% baseline, so manual values are intuitive increases or decreases from it.
  */
-internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
-    // Keep automatic sizing predictable across phones and head units.
-    // Manual UI scaling remains independently adjustable.
-    return 85
-}
+internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int = 100
 
 /** The whole app: the map full screen with its overlays, and the settings screen on top when it is open. */
 @Composable
