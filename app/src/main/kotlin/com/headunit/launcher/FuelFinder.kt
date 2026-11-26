@@ -161,10 +161,9 @@ object FuelFinder {
                 for ((id, m) in cur) for ((t, p) in m) sb.append(id).append('\t').append(t).append('\t').append(p.pence).append('\t').append(clean(p.updated)).append('\n')
                 if (cur.isNotEmpty()) { pf.writeText(sb.toString()); priceCache = null }
             }
-            status = "Prices updated " + Clock.format().format(java.util.Date(pricesFile(ctx).lastModified())) +
-                " · ${stations(ctx).size} stations"
+            status = L.t("Prices updated {0} · {1} stations", Clock.format().format(java.util.Date(pricesFile(ctx).lastModified())), stations(ctx).size)
         } catch (e: Exception) {
-            status = "Fuel prices failed: " + (e.message ?: e.javaClass.simpleName).take(160)
+            status = L.t("Fuel prices failed: {0}", (e.message ?: e.javaClass.simpleName).take(160))
             throw e
         }
     }
@@ -221,9 +220,9 @@ object FuelFinder {
             f.timeZone = java.util.TimeZone.getTimeZone("UTC")
             val ms = System.currentTimeMillis() - (f.parse(t)?.time ?: return "")
             val h = ms / 3_600_000L
-            if (h < 1) "just now" else if (h < 48) "${h} h ago" else "${h / 24} days ago"
+            if (h < 1) L.t("just now") else if (h < 48) L.t("{0} h ago", h) else L.t("{0} days ago", h / 24)
         } catch (e: Exception) { "" }
     }
 
-    fun fuelName(fuel: String) = when (fuel) { "E5" -> "Super unleaded"; "B7" -> "Diesel"; "E85" -> "Bioethanol (E85)"; "LPG" -> "LPG"; "EV" -> "Electric"; else -> "Unleaded" }
+    fun fuelName(fuel: String) = L.t(when (fuel) { "E5" -> "Super unleaded"; "B7" -> "Diesel"; "E85" -> "Bioethanol (E85)"; "LPG" -> "LPG"; "EV" -> "Electric"; else -> "Unleaded" })
 }
