@@ -634,7 +634,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (stale()) { mbJob.cancel(true); return emptyList() }
             val mb = try { mbJob.get(1L, java.util.concurrent.TimeUnit.MILLISECONDS) } catch (e: Exception) { mbJob.cancel(true); emptyList() }
             val out = ArrayList(tt ?: emptyList())
-            for (p in mb) if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p
+            for (p in mb) {
+                // the same house from both: listed once, in TomTom's place, with Mapbox's wording (it has the postcode) unless only
+                // TomTom's has the point on the street
+                val same = out.indexOfFirst { it.sameAddress(p) }
+                if (same >= 0) { if (p.onStreet || !out[same].onStreet) out[same] = p; continue }
+                if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p
+            }
             return out
         }
         if (hasMapbox) {
@@ -2255,7 +2261,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val all = ArrayList<Pair<Place, Int>>()
         net.forEachIndexed { i, p -> all += p to i }
         // (a GPX track is always kept, even where a search result sits near its start)
-        extra.forEachIndexed { i, p -> if (p.web.startsWith("gpx:") || all.none { it.first.name.equals(p.name, true) && Geo.dist(it.first.pos, p.pos) < 300 || Geo.dist(it.first.pos, p.pos) < 40 }) all += p to (1000 + i) }
+        extra.forEachIndexed { i, p -> if (p.web.startsWith("gpx:") || all.none { it.first.name.equals(p.name, true) && Geo.dist(it.first.pos, p.pos) < 300 || Geo.dist(it.first.pos, p.pos) < 40 || it.first.sameAddress(p) }) all += p to (1000 + i) }
         fun strong(p: Place) = p.name.lowercase().let { it == full || it.startsWith(full) }
         fun d(p: Place) = if (near != null) Geo.dist(near, p.pos) else 0.0
         val top = all.filter { strong(it.first) }.sortedBy { d(it.first) }
@@ -3041,8 +3047,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Where a route to [to] should end: for a house address, the nearest point on the street it's on (see Overpass.nearestOnStreet). */
     private fun streetTarget(to: Place): LL {
-        if (!hasOnline || to.web.startsWith("gpx:")) return to.pos
-        val street = Overpass.streetOf(to.name) ?: return to.pos
+        if (!hasOnline || to.web.startsWith("gpx:") || to.onStreet) return to.pos
+        val street = Overpass.streetOf(to.name) ?: Overpass.streetOf(to.name.substringBefore(',')) ?: return to.pos
         if (!try { online() } catch (e: Exception) { false }) return to.pos
         val p = Overpass.nearestOnStreet(to.pos, street) ?: return to.pos
         return if (Geo.dist(p, to.pos) < 150.0) p else to.pos
@@ -3067,7 +3073,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 val departMs = if (departInMin > 0) System.currentTimeMillis() + departInMin * 60_000L else 0L
                 var usedOffline = false
                 // a house address: the route ends on the street the house is on, not whichever road is nearest the middle of its plot
-                val target = withContext(Dispatchers.IO) { streetTarget(to) }
+                // (3 s at most: the lookup could take 10 s or more when the map server was slow, and the route waited for it. If
+                // it's slow, the route goes to the address as found and the lookup finishes by itself in the background)
+                val look = scope.async(Dispatchers.IO) { try { streetTarget(to) } catch (e: Exception) { to.pos } }
+                val target = kotlinx.coroutines.withTimeoutOrNull(3000L) { look.await() } ?: to.pos
                 var rs = withContext(Dispatchers.IO) {
                     val haveOffline = OfflineRouter.installed(ctx)
                     // the free version on Play plans routes from the downloaded country pack (no route service): say what's needed

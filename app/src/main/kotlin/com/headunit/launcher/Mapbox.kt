@@ -816,7 +816,7 @@ object MapboxRest {
         // the middle of the plot, nearer a road behind the house than the one it's on)
         if (pr.optString("feature_type") == "address") co?.optJSONArray("routable_points")?.optJSONObject(0)?.let { rp ->
             val la = rp.optDouble("latitude"); val lo = rp.optDouble("longitude")
-            if (!la.isNaN() && !lo.isNaN() && Geo.dist(LL(la, lo), LL(lat, lon)) < 200.0) return Place(name, sub, LL(la, lo), web)
+            if (!la.isNaN() && !lo.isNaN() && Geo.dist(LL(la, lo), LL(lat, lon)) < 200.0) return Place(name, sub, LL(la, lo), web, onStreet = true)
         }
         return Place(name, sub, LL(lat, lon), web)
     }
@@ -951,7 +951,7 @@ object MapboxRest {
         if (stale()) return emptyList()
         lastError = (box.error ?: geo.error)?.message?.takeIf { boxArr == null && geoArr == null }
         val out = ArrayList<Place>()
-        fun addOne(p: Place) { if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 }) out += p }
+        fun addOne(p: Place) { if (out.none { (it.name.equals(p.name, true) && Geo.dist(it.pos, p.pos) < 80) || Geo.dist(it.pos, p.pos) < 15 || it.sameAddress(p) }) out += p }
         fun add(arr: JSONArray?) {
             if (arr == null) return
             for (i in 0 until arr.length()) addOne(feature(arr.optJSONObject(i) ?: continue, q) ?: continue)

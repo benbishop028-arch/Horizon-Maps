@@ -3245,8 +3245,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         for ((id, f) in signLayers) try { if (st.styleLayerExists(id)) (layer(id) as? SymbolLayer)?.iconSize(f()) } catch (e: Throwable) { }
     }
     // the signs' widths at full size, in the app's own screen units (a button's icon is about 24): before their size settings
-    private val SIGN_LIMIT = 64.0
-    private val SIGN_LORRY = 46.0
+    private val SIGN_LIMIT = 56.0
+    private val SIGN_LORRY = 42.0
     private val SIGN_CAM = 40.0
     private val SIGN_HAZ = 34.0
     private val SIGN_SMALL = 28.0

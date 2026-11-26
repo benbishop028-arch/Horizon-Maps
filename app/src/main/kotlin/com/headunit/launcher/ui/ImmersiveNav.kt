@@ -748,9 +748,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // Alerts sit on the opposite side of the screen from the speed-limit sign.
         // speedAt follows the mirrored layout and any manual speedometer-side choice.
         // (the popup reads the alert itself, so an alert coming or going redraws only the popup, not this whole screen)
+        // (and it stops short of the speed limit sign's corner, rather than running over the sign on a narrow screen)
+        val keepClear = if (speedCorner > 0) speedCorner.dp + 28.dp else 0.dp
         if (!previewing && !altFocus && !hudOff) AlertPopup(engine,
             Modifier.align(if (speedAt == "left") Alignment.BottomEnd else Alignment.BottomStart).zIndex(9f)
-                .padding(start = if (speedAt == "right") 16.dp else 0.dp, end = if (speedAt == "left") 16.dp else 0.dp, bottom = tripH + 12.dp),
+                .padding(start = if (speedAt == "right") 16.dp else keepClear, end = if (speedAt == "left") 16.dp else keepClear, bottom = tripH + 12.dp),
             narrow, tripH, screenH)
 
         // ---- the media bar (Reddit, mrEnmi): back, play / pause and next for whatever is playing on the head unit, with the song
