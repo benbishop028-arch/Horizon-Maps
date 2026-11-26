@@ -1439,7 +1439,7 @@ private fun WhileDrivingSection(prefs: Prefs) {
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         if (android.os.Build.VERSION.SDK_INT >= 26) SToggle(prefs, L.t("Picture in picture"), PreferenceKeys.PIP, true, L.t("On a phone, on a route: going to the home screen or another app keeps the map, the next turn and the time left in a small window"))
         SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
-        SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
+        SToggle(prefs, L.t("Lock typing while driving"), "drivelock", false, L.t("Voice search still works"))
         SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, false, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
         if (prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.songInfoPossible) {
             val ctx = androidx.compose.ui.platform.LocalContext.current

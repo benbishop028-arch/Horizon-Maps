@@ -4,6 +4,13 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+
+### Improved
+- Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)
+
+### Fixed
+
 ## 1.0.1038 — 26 Nov 2026
 
 ### Fixed

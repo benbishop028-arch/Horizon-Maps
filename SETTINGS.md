@@ -237,7 +237,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Fewer buttons while driving**.
 - **Picture in picture**: on a phone, on a route, going to another app keeps the map, next turn and time left in a small window.
 - **Clock on the map**: the time with the speedometer, handy when the status bar is covered.
-- **Lock typing while driving**: voice search still works.
+- **Lock typing while driving**: off by default. When on, the search box locks above about 7 mph and only voice search works.
 - **Media controls**: back, play / pause and next at the bottom of the screen while music plays, from any app.
 - **Song and artwork**: shows what's playing (needs notification access; Google Play edition only).
 
