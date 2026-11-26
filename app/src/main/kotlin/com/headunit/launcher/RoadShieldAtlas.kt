@@ -16,6 +16,8 @@ object RoadShieldAtlas {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Bitmap>?) = size > 32
     }
 
+    @Volatile private var metaIndex: Pair<String, JSONObject>? = null
+
     fun cached(atlas: String, reference: String): Bitmap? = synchronized(memory) { memory["$atlas|$reference"] }
 
     suspend fun load(context: Context, atlas: String, reference: String): Bitmap? = withContext(Dispatchers.IO) {
@@ -43,17 +45,28 @@ object RoadShieldAtlas {
             }
             val base = atlas.trimEnd('/') + "/"
             download(base + "sprite.json", jsonFile, 2_000_000)
-            val meta = JSONObject(jsonFile.readText()).optJSONObject(reference) ?: return@withContext null
+            // (the list of shields is read once per atlas and kept, not re-read for every new shield)
+            val index = metaIndex?.takeIf { it.first == atlas }?.second ?: JSONObject(jsonFile.readText()).also { metaIndex = atlas to it }
+            val meta = index.optJSONObject(reference) ?: return@withContext null
             val x = meta.optInt("x", -1); val y = meta.optInt("y", -1)
             val w = meta.optInt("width", 0); val h = meta.optInt("height", 0)
             if (x < 0 || y < 0 || w <= 0 || h <= 0) return@withContext null
             download(base + "sprite.png", pngFile, 12_000_000)
-            val atlasBitmap = BitmapFactory.decodeFile(pngFile.path) ?: return@withContext null
-            if (x + w > atlasBitmap.width || y + h > atlasBitmap.height) return@withContext null
-            val cropped = Bitmap.createBitmap(atlasBitmap, x, y, w, h)
-            atlasBitmap.recycle()
+            // Decode only this shield's small rectangle, never the whole sheet: the full picture can take tens of MB of memory,
+            // which a head unit can't spare while navigating.
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(pngFile.path, bounds)
+            if (bounds.outWidth <= 0 || x + w > bounds.outWidth || y + h > bounds.outHeight) return@withContext null
+            val decoder = regionDecoder(pngFile.path) ?: return@withContext null
+            val cropped = try { decoder.decodeRegion(android.graphics.Rect(x, y, x + w, y + h), null) } finally { decoder.recycle() }
+                ?: return@withContext null
             synchronized(memory) { memory[key] = cropped }
             cropped
-        } catch (_: Exception) { null }
+        } catch (_: Exception) { null } catch (_: OutOfMemoryError) { null }
     }
+
+    @Suppress("DEPRECATION")
+    private fun regionDecoder(path: String): android.graphics.BitmapRegionDecoder? =
+        if (android.os.Build.VERSION.SDK_INT >= 31) android.graphics.BitmapRegionDecoder.newInstance(path)
+        else android.graphics.BitmapRegionDecoder.newInstance(path, false)
 }

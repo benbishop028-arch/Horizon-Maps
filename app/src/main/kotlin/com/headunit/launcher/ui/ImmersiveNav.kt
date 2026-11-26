@@ -1535,6 +1535,9 @@ internal fun ImmTurnCard(
         else -> GmGreen to GmGreenDeep
     }
     val ukSign = engine.prefs.b(PreferenceKeys.UKSIGNS, true) && (t.sign.isNotBlank() && t.sign != t.street || t.tag.startsWith("Exit") || t.shields.isNotEmpty() || t.exitNo.isNotBlank())
+    // (worked out once per sign, not on every distance update)
+    val signPlaces = remember(t.sign, t.street, ukSign) { if (ukSign) junctionSignPlaces(t.sign, t.street) else "" }
+    var placesBelow by remember(signPlaces) { mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth()
             // (grows from its top middle, evenly both ways: grown from its left edge, a card the full width of an upright phone went off
@@ -1587,7 +1590,15 @@ internal fun ImmTurnCard(
                                 .border(1.dp, Color.White.copy(alpha = 0.9f), exitShape).padding(horizontal = 7.dp, vertical = 3.dp))
                     }
                     RoadLine(if (lmk) Geo.fmtDist(t.dist, engine.imperial) + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, if (compact) 16.sp else 19.sp, ref = if (!lmk) t.ref else "")
+                    // the places on the junction's sign (Southampton, Portsmouth) beside the small road sign, on the same line while they
+                    // fit; on a narrow card they move to one short line underneath instead of being cut off
+                    if (signPlaces.isNotEmpty() && !placesBelow) Text(signPlaces, color = Color.White, fontSize = if (compact) 14.sp else 16.sp,
+                        fontWeight = FontWeight.SemiBold, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
+                        onTextLayout = { if (it.hasVisualOverflow) placesBelow = true })
                 }
+                if (signPlaces.isNotEmpty() && placesBelow) Text(signPlaces, color = Color.White.copy(alpha = 0.9f), fontSize = if (compact) 13.sp else 15.sp,
+                    fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             // the turn straight after, as a small arrow (the "Then" line below is used instead when that style is chosen)
             if (thenIcon && t.thenManeuver != null) Column(Modifier.padding(start = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2586,6 +2597,17 @@ internal fun TextSides(content: @Composable () -> Unit) {
 internal fun FixedSides(content: @Composable () -> Unit) {
     if (!L.rtl) { content(); return }
     CompositionLocalProvider(androidx.compose.ui.platform.LocalLayoutDirection provides androidx.compose.ui.unit.LayoutDirection.Ltr) { content() }
+}
+
+/** The place names on a junction's sign ("M27: Southampton, Portsmouth" gives "Southampton, Portsmouth"), without road numbers,
+ *  junction numbers or the road you're turning onto; "" when there are none. */
+internal fun junctionSignPlaces(sign: String, street: String): String {
+    if (sign.isBlank()) return ""
+    val refRx = Regex("\\b[A-Z]{1,3}[0-9]{1,4}\\b(?:\\(M\\))?")
+    return refRx.replace(sign, " ").split(',', ';', ':', '/')
+        .map { it.trim().trim('-', '–').trim() }
+        .filter { it.length > 1 && !it.equals("J", true) && !Regex("^J?[0-9]+[A-Z]?$").matches(it) && !it.equals(street, true) }
+        .distinct().take(3).joinToString(", ")
 }
 
 /**

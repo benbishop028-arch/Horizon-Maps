@@ -3,9 +3,12 @@
 ## Unreleased
 
 ### Improved
+- Live charger availability: checks up to 15 chargers at a time, so a long route doesn't use up a lot of your TomTom allowance
 - Localise app-update progress, installer notifications and failure messages in Catalan, Korean, Tamil and Telugu; add crash-recovery and placeholder regression coverage.
 
 ### Fixed
+- Junction place names are back on the turn card: the towns on the sign (Southampton, Portsmouth) show beside the small road sign, or on a short line underneath when the card is narrow
+- Route overview no longer tilts into 3D when the map changes between day and night
 - Allow legitimate identical Catalan wording for “Vehicle” in the settings localisation regression test.
 
 ### Improved

@@ -859,8 +859,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         map.onStyleLoaded = {
             styleRetry = 0
             mapWatchJob?.cancel()
-            // A style replacement can reset the camera pitch. Restore the driver's saved 2D / 3D choice.
-            map.setTilt(if (tilt3d) 55.0 else 0.0)
+            // A style replacement can reset the camera pitch. Restore the driver's saved 2D / 3D choice, but only while the map
+            // is following you: the route overview, route choice, the flat stopped view and a chain list keep their own flat view.
+            if (following && !previewing && !stoppedOverview && chain == null) map.setTilt(if (tilt3d) 55.0 else 0.0)
         }
         try {
             val o = org.json.JSONObject(prefs.s(PreferenceKeys.PLANNED, "{}"))
@@ -2514,7 +2515,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             following = false
             drawChain()
             if (chargers && hasKey && online()) {
-                val ids = spots.map { it.chargerId }.filter { it.isNotBlank() }.distinct()
+                val ids = spots.map { it.chargerId }.filter { it.isNotBlank() }.distinct().take(MAX_LIVE_CHARGERS)
                 if (ids.isNotEmpty()) scope.launch {
                     val live = withContext(Dispatchers.IO) {
                         val out = LinkedHashMap<String, Pair<Int, Int>?>()
@@ -2528,7 +2529,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     }
                     if (chain !== view) return@launch
                     val updated = view.spots.map { s ->
-                        if (s.chargerId.isBlank()) s else s.copy(chargerFree = live[s.chargerId]?.let { (free, total) -> "$free of $total free" } ?: "No live info")
+                        if (s.chargerId.isBlank() || s.chargerId !in live) s else s.copy(chargerFree = live[s.chargerId]?.let { (free, total) -> "$free of $total free" } ?: "No live info")
                     }
                     chain = view.copy(spots = updated)
                     chainSel = chainSel?.let { selected -> updated.firstOrNull { it.place.pos == selected.place.pos } } ?: updated.firstOrNull()
@@ -4263,12 +4264,15 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun sortNearby(l: List<Nearby>): List<Nearby> =
         if (nearbySort == "cheap" && l.any { it.price != null }) l.sortedWith(compareBy<Nearby> { it.price ?: 9999.0 }.thenBy { it.dist }) else l.sortedBy { it.dist }
 
+    /** The most chargers asked about live availability at once: each one is a TomTom request on the user's own key. */
+    private val MAX_LIVE_CHARGERS = 15
+
     /** Live connector counts, with no more than three TomTom requests in flight at once. */
     private fun fillChargerAvailability() {
         val list = nearby
         if (!hasKey || !online() || list.none { it.chargeId.isNotBlank() }) return
         scope.launch {
-            val ids = list.map { it.chargeId }.filter { it.isNotBlank() }.distinct()
+            val ids = list.map { it.chargeId }.filter { it.isNotBlank() }.distinct().take(MAX_LIVE_CHARGERS)
             val got = withContext(Dispatchers.IO) {
                 val out = LinkedHashMap<String, Pair<Int, Int>?>()
                 for (batch in ids.chunked(3)) {
