@@ -278,5 +278,9 @@ object I18nTa {
         "Low emission zone" to "குறைந்த மாசு வெளியீட்டு மண்டலம்",
         "Google Play billing isn't available: {0}" to "Google Play கட்டணச் சேவை கிடைக்கவில்லை: {0}",
         "Plus isn't on sale yet" to "Plus இன்னும் விற்பனைக்கு வரவில்லை",
+        "{0} report saved here" to "அறிக்கை {0} இங்கே சேமிக்கப்பட்டது",
+        "Entering {0}" to "{0} நாட்டிற்குள் நுழைகிறது",
+        "Emergency: {0} · {1} {2}" to "அவசர எண்: {0} · {1} {2}",
+        "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "வழக்கமான கார் வேக வரம்புகள் (நகரம் / கிராமப்புறம் / நெடுஞ்சாலை): {0}. அவசர எண்: {1}. உள்ளூர் சாலைப் பலகைகளைப் பின்பற்றவும்; சாலை, சூழ்நிலை மற்றும் வாகனத்தைப் பொறுத்து வரம்புகள் மாறலாம்.",
     )
 }
