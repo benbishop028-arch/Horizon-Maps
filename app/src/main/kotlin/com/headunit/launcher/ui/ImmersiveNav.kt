@@ -361,7 +361,7 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         Box(Modifier.matchParentSize().onGloballyPositioned { boxTopPx = it.positionInRoot().y })
         // Settings › sizes › Turn card width (ZarulOfficial #317): the card size slider scales what's in the cards, this how wide they are
         val turnWK = engine.prefs.i(PreferenceKeys.TURN_WIDTH, 100).coerceIn(60, 130) / 100f
-        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(if (routeSheet) Alignment.TopCenter else side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth(if (routeSheet) 0.90f else turnWK.coerceAtMost(1f)).sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp * turnWK))
+        if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(if (routeSheet) Alignment.TopCenter else side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth(if (routeSheet) 1f else turnWK.coerceAtMost(1f)).sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp * turnWK))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
             .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -439,8 +439,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                     Column(Modifier.onGloballyPositioned { turnBottomPx = it.boundsInRoot().bottom }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (routeSheet && !altFocus) {
                                             val baseDensity = LocalDensity.current
-                                            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density * 0.82f, baseDensity.fontScale)) {
-                                                ImmTurnCard(engine, t, slim = slimHold[0], footer = {
+                                            CompositionLocalProvider(LocalDensity provides Density(baseDensity.density * 0.92f, baseDensity.fontScale)) {
+                                                ImmTurnCard(engine, t, slim = false, footer = {
                                                     RouteHazardLines(engine)
                                                     if (!hudMin) TurnCardExtras(engine, turnExtraMax, advice = false, parking = false)
                                                 })
@@ -601,13 +601,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                     (mid - railHPx / 2f).coerceAtMost(gapBottom - railHPx).coerceAtLeast(gapTop).coerceAtLeast(16.dp.toPx()).toDp()
                 }
                 if (settingsAbove) Column(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }.graphicsLayer {
-                     if (routeSheet) { scaleX = 0.78f; scaleY = 0.78f; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f) }
+                     if (routeSheet || sheetMode) { scaleX = 0.90f; scaleY = 0.90f; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f) }
                  }, verticalArrangement = Arrangement.spacedBy(10.dp), horizontalAlignment = if (mir) Alignment.Start else Alignment.End) {
                     settings(); panelAndZoom()
                 }
                 // (the same with no Settings button above the panel: the panel itself goes under the turn card, Duddon Close)
                 else Row(Modifier.align(side(Alignment.TopEnd)).padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = railTop).onGloballyPositioned { report(2, it.boundsInParent()); buttonsWPx = it.size.width; railHPx = it.size.height }.graphicsLayer {
-                     if (routeSheet) { scaleX = 0.78f; scaleY = 0.78f; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f) }
+                     if (routeSheet || sheetMode) { scaleX = 0.90f; scaleY = 0.90f; transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 0f) }
                  }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
                     if (mir) { panelAndZoom(); settings() } else { settings(); panelAndZoom() }
                 }
