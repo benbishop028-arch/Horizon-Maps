@@ -265,10 +265,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         val currentAlert = engine.alert
         val lastAlert = remember { mutableStateOf(currentAlert) }
         if (currentAlert != null) lastAlert.value = currentAlert
-        androidx.compose.runtime.SideEffect {
-            engine.portraitLayout = narrow
-            if (currentAlert == null && alertPx != 0) alertPx = 0
-        }
+        engine.portraitLayout = narrow
+        androidx.compose.runtime.SideEffect { if (currentAlert == null && alertPx != 0) alertPx = 0 }
         // the trip card's and speedometer's widths, and the media bar's height (for fitting the media bar between them)
         var tripWPx by remember { mutableStateOf(0) }
         var speedWPx by remember { mutableStateOf(0) }
