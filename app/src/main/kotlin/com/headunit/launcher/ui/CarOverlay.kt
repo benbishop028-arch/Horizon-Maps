@@ -284,9 +284,10 @@ private fun CarScreen(engine: NavEngine, a: android.graphics.Rect?, actions: Car
         val most = scale.maximumPercent
         androidx.compose.runtime.SideEffect { if (engine.prefs.i(PreferenceKeys.CARSCALE_MAX, 0) != most) engine.prefs.put(PreferenceKeys.CARSCALE_MAX, most) }
         val d = LocalDensity.current
-        // Overall size is a physical UI scale. Dividing by the requested value cancelled the scale whenever it fit,
-        // leaving the saved slider value with no visible effect (#397).
-        CompositionLocalProvider(LocalDensity provides Density(d.density * eff, d.fontScale)) {
+        // CarOverlay has already drawn everything at the requested size: here it's brought to the size the screen fits (the same
+        // when there's room). Multiplying by it again, as for a day after #397, applied Overall size twice (130% came out as 169%,
+        // 70% as 49%), and made the cards far too big on cars where it had been raised (#418)
+        CompositionLocalProvider(LocalDensity provides Density(d.density * eff / user, d.fontScale)) {
             CarScreenBody(engine, a, actions, onCover, eff)
         }
     }

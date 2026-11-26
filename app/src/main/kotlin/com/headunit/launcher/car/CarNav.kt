@@ -456,7 +456,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
         val narrow = width < 760 || width < height
         // a small, low-resolution screen (7" 1024x600, 800x480) gets smaller cards, text and arrow so the map stays usable (#367)
         val perUnit = (short / 1050f).coerceIn(dens * (if (narrow) 0.45f else 0.5f), dens * 0.98f)
-        uiScale.value = perUnit / dens
+        // (a squarer screen, like Renault's upright ones, smaller again for its shape: #418)
+        uiScale.value = perUnit / dens * com.headunit.launcher.CarScalePolicy.shapeFactor(width, height)
         val fit = (short / 900f).coerceIn(0.55f, 1f)
         if (fit != carScreenFit) {
             carScreenFit = fit

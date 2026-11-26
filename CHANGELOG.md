@@ -22,6 +22,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### Fixed
 - Compass on a route in the new portrait layout: the compass (and its tap for North up) is back on the side of the map while navigating (thanks to ILDEMONICO, #421)
 - Road name while driving without a route: the name at the bottom no longer runs under the speedometer; a long name is shortened instead (thanks to ILDEMONICO, #421)
+- Android Auto Overall size: the setting was being applied twice since the last update (130% looked like 169%, 70% like 49%). It's the size you pick again; if things now look smaller, turn it up a little (#418)
+- Android Auto on squarer car screens (such as Renault's upright ones): the cards are sized for the screen's shape, so they no longer fill it (thanks to joel941703-hash, #418)
 - Screen brightness at night: the Brightness slider now works like your phone's own, so a low setting is really dim, and "Dim the screen at night" no longer overrides auto-brightness (thanks to benkkwok, #417)
 - Android Auto 3D view on a warm phone: cool running now keeps a gentler 3D view instead of a flat map, and your Android Auto tilt setting still applies, up to a moderate tilt (thanks to nonoclub, #414)
 - Android Auto: a route started on the car screen (Home, Work or any other) no longer cancels itself after a few seconds. The phone app, whose GPS rests while it's put away, still thought you were where you last opened it (often home), so it decided you'd already arrived and ended the trip on both screens (thanks to carlb051, #419, #360)
