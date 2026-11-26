@@ -290,6 +290,16 @@ object I18nTa {
         "Exit left" to "இடப்புறம் வெளியேறவும்",
         "Exit right" to "வலப்புறம் வெளியேறவும்",
         "Arrive {0}" to "{0} வந்தடைவு",
+        "Save" to "சேமி",
+        "Next" to "அடுத்து",
+        "Open" to "திற",
+        "Share" to "பகிர்",
+        "Location" to "இருப்பிடம்",
+        "Traffic" to "போக்குவரத்து",
+        "Clear" to "அழி",
+        "Remove" to "அகற்று",
+        "Rename" to "மறுபெயரிடு",
+        "Update" to "புதுப்பி",
 
     )
 }

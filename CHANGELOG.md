@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Improved
+- Expand Catalan, Korean, Tamil and Telugu coverage for essential actions, location and traffic labels, and common map controls; add regression coverage.
+
+### Improved
 - Add an automated audit across all 45 non-English language tables, checking that every language option is wired up and that translations are non-empty and preserve every formatting placeholder.
 
 ### Improved

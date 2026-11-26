@@ -290,6 +290,16 @@ object I18nTe {
         "Exit left" to "ఎడమవైపు నిష్క్రమించండి",
         "Exit right" to "కుడివైపు నిష్క్రమించండి",
         "Arrive {0}" to "{0} చేరుకున్నారు",
+        "Save" to "సేవ్ చేయి",
+        "Next" to "తదుపరి",
+        "Open" to "తెరువు",
+        "Share" to "భాగస్వామ్యం",
+        "Location" to "స్థానం",
+        "Traffic" to "ట్రాఫిక్",
+        "Clear" to "క్లియర్ చేయి",
+        "Remove" to "తొలగించు",
+        "Rename" to "పేరు మార్చు",
+        "Update" to "నవీకరించు",
 
     )
 }

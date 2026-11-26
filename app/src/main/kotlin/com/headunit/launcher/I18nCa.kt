@@ -297,6 +297,16 @@ object I18nCa {
         "Exit left" to "Sortiu a l’esquerra",
         "Exit right" to "Sortiu a la dreta",
         "Arrive {0}" to "Arribada {0}",
+        "Save" to "Desa",
+        "Next" to "Següent",
+        "Open" to "Obre",
+        "Share" to "Comparteix",
+        "Location" to "Ubicació",
+        "Traffic" to "Trànsit",
+        "Clear" to "Esborra",
+        "Remove" to "Elimina",
+        "Rename" to "Canvia el nom",
+        "Update" to "Actualitza",
 
     )
 }

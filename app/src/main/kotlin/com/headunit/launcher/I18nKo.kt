@@ -290,6 +290,16 @@ object I18nKo {
         "Exit left" to "왼쪽으로 나가세요",
         "Exit right" to "오른쪽으로 나가세요",
         "Arrive {0}" to "{0} 도착",
+        "Save" to "저장",
+        "Next" to "다음",
+        "Open" to "열기",
+        "Share" to "공유",
+        "Location" to "위치",
+        "Traffic" to "교통",
+        "Clear" to "지우기",
+        "Remove" to "삭제",
+        "Rename" to "이름 변경",
+        "Update" to "업데이트",
 
     )
 }

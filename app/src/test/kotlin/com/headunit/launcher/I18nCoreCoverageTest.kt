@@ -351,4 +351,20 @@ class I18nCoreCoverageTest {
         }
     }
 
+
+    @Test fun essentialActionsAndPlaceLabelsAreTranslatedInEveryShortPack() {
+        val keys = listOf("Save", "Next", "Open", "Share", "Location", "Traffic",
+            "Clear", "Remove", "Rename", "Update")
+        try {
+            for (code in listOf("ca", "ko", "ta", "te")) {
+                L.set(code)
+                for (key in keys) {
+                    assertNotEquals("$code still falls back for '$key'", key, L.t(key))
+                }
+            }
+        } finally {
+            L.set("en")
+        }
+    }
+
 }
