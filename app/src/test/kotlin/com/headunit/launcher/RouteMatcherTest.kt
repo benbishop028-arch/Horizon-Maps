@@ -29,6 +29,23 @@ class RouteMatcherTest {
         assertEquals(0.0, result.dist, 0.01)
     }
 
+    @Test fun restoringPreDemoMatcherIndexAvoidsSnappingToDemoEndpoint() {
+        // The genuine vehicle was around segment 100 before the demo. A later segment loops
+        // back to the same coordinates, where the demo eventually stopped.
+        val points = (0..700).map { i -> LL(50.0, -1.0 + i * 0.0001) }.toMutableList()
+        points[650] = LL(50.00002, -0.99)
+        points[651] = LL(50.0, -0.99)
+        val r = route(points)
+        val genuinePosition = points[100]
+
+        val restoredBaseline = RouteMatcher.snap(r, genuinePosition, previousIndex = 100)
+        val staleDemoBaseline = RouteMatcher.snap(r, genuinePosition, previousIndex = 650)
+
+        assertEquals(99, restoredBaseline.segmentIndex)
+        assertTrue(staleDemoBaseline.segmentIndex >= 649)
+        assertTrue(restoredBaseline.progress < staleDemoBaseline.progress)
+    }
+
     @Test fun headingChoosesTheCorrectDirectionOnOverlappingRoadGeometry() {
         val west = LL(50.0, -0.99)
         val east = LL(50.0, -1.0)
