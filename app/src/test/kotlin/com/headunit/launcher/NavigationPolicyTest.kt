@@ -185,4 +185,18 @@ class NavigationPolicyTest {
         assertTrue(wide in -0.90..-0.15)
         assertTrue(compact < wide)
     }
+
+    @Test fun phoneDoesNotDeclareArrivalWhileCarScreenIsConnected() {
+        assertFalse(NavigationPolicy.mayDeclareArrival(isCar = false, carConnected = true, simulating = false, navStartMs = 1_000L, liveFixAtMs = 2_000L))
+        assertTrue(NavigationPolicy.mayDeclareArrival(isCar = true, carConnected = true, simulating = false, navStartMs = 1_000L, liveFixAtMs = 2_000L))
+        assertTrue(NavigationPolicy.mayDeclareArrival(isCar = false, carConnected = false, simulating = false, navStartMs = 1_000L, liveFixAtMs = 2_000L))
+    }
+
+    @Test fun arrivalNeedsARealFixSinceTheRouteStarted() {
+        // the last fix came before the route was started (a stale position): not arrived yet
+        assertFalse(NavigationPolicy.mayDeclareArrival(isCar = true, carConnected = true, simulating = false, navStartMs = 5_000L, liveFixAtMs = 4_000L))
+        assertFalse(NavigationPolicy.mayDeclareArrival(isCar = false, carConnected = false, simulating = false, navStartMs = 5_000L, liveFixAtMs = 0L))
+        // a demo drive arrives on its simulated position
+        assertTrue(NavigationPolicy.mayDeclareArrival(isCar = false, carConnected = true, simulating = true, navStartMs = 5_000L, liveFixAtMs = 0L))
+    }
 }

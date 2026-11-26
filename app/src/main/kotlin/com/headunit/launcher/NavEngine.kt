@@ -210,6 +210,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Destination of a trip that was still running when the app last closed. */
     var resume by mutableStateOf<Place?>(null)
     private var navStartMs = 0L
+    /** When the last real GPS fix arrived (ms, wall clock; not a remembered position or the demo). */
+    private var liveFixAt = 0L
     private var navStartDist = 0.0
     var brakeFlash by mutableStateOf(false)
     /** True for a few seconds after the speed limit changes, so the sign can pulse. */
@@ -1515,6 +1517,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val speed = if (l.hasSpeed()) l.speed.toDouble() else 0.0
         val realFix = Fix(cur, h, speed, if (l.hasAltitude()) l.altitude else 0.0, if (l.hasAccuracy()) l.accuracy.toDouble() else 0.0)
         demoGpsFix.update(realFix)
+        // (when the last real fix came in, so arrival is never decided on an old position: #419)
+        if (!stale) liveFixAt = now
         // Keep collecting genuine GPS while the demo owns the displayed position. Do not feed it
         // through onPosition(), which would compete with the simulated vehicle.
         if (simMode != 0) return
@@ -6701,7 +6705,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val dNow = dest
         val atDoor = f0 != null && dNow != null && Geo.dist(f0.pos, dNow.pos) < 40.0 && f0.speed <= 1.5 && simMode == 0
         if (!atDoor) atDoorSince = 0L else if (atDoorSince == 0L) atDoorSince = nowP
-        val atEnd = nearEnd || parked || (atDoor && nowP - atDoorSince > 15_000L)
+        val atEnd = (nearEnd || parked || (atDoor && nowP - atDoorSince > 15_000L)) &&
+            NavigationPolicy.mayDeclareArrival(isCar, RouteSync.carConnected(), simMode != 0, navStartMs, liveFixAt)
         if (atEnd && said.add("end")) {
             toast(L.t("You have arrived"), 5000)
             // (why it counted as arrived, for the problem report: distances only, never places; carlb051, #360)

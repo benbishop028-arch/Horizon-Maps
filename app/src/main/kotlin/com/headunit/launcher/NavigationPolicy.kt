@@ -48,6 +48,20 @@ internal object NavigationPolicy {
     fun shouldReleaseInitialRouteSnap(speedMps: Double, distanceMeters: Double): Boolean =
         speedMps.isFinite() && distanceMeters.isFinite() && speedMps > 2.5 && distanceMeters <= 60.0
 
+    /**
+     * Whether this screen may decide the trip has arrived (which ends it on both screens). Not the phone while Android Auto is
+     * connected: the phone app's GPS rests while it's put away, so its
+     * position is where it was last open (often home), and a route started on the
+     * car screen counted as arrived at once and ended both a few seconds later (carlb051, #360, #419). The car screen decides
+     * then. And never on a position older than the route: there has to be a real fix since it started. Demo drives always may.
+     */
+    fun mayDeclareArrival(isCar: Boolean, carConnected: Boolean, simulating: Boolean, navStartMs: Long, liveFixAtMs: Long): Boolean = when {
+        simulating -> true
+        !isCar && carConnected -> false
+        navStartMs > 0L && liveFixAtMs < navStartMs -> false
+        else -> true
+    }
+
     /** Unknown accuracy is allowed for compatibility; known poor fixes should not trigger a reroute. */
     fun gpsReliableForReroute(accuracyMeters: Double): Boolean =
         !accuracyMeters.isFinite() || accuracyMeters <= 0.0 || accuracyMeters <= 45.0
