@@ -121,11 +121,11 @@ class I18nCoreCoverageTest {
 
     @Test fun firstStageThreeAuditBatchHasTranslatedLabelsAndPreservesPlaceholders() {
         val expected = mapOf(
-            "nl" to listOf("Stops", "+ Stop", "Feedback", "Version", "School"),
-            "de" to listOf("Auto", "Feedback", "Version", "Name (optional)"),
-            "fr" to listOf("Parking", "Notifications", "Microphone"),
+            "nl" to listOf("Stops", "+ Stop", "Version"),
+            "de" to listOf("Auto", "Feedback"),
+            "fr" to listOf("Parking"),
             "es" to listOf("Auto", "Demo"),
-            "it" to listOf("Auto", "Hatchback", "Feedback", "Demo")
+            "it" to listOf("Auto", "Hatchback", "Demo")
         )
         val placeholder = Regex("""\{\d+}""")
         try {
