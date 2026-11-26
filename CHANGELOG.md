@@ -5,12 +5,20 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+
+### Improved
+
+### Fixed
+- Route overview while driving: it now fills all the map left clear by the turn card, the trip card and the map buttons, instead of being squeezed small and partly hidden under the turn card
+- The next stop's arrival time now shows on a phone held upright too, under the route bar (it only showed on wider screens)
+
+## 1.0.1036 — 26 Nov 2026
+
+### New
 - Choose how speed cameras are warned about: Settings › Alerts › Cameras › How picks chime and voice, voice only, chime only or the screen only, and Camera pop-up turns the banner on screen on or off (thanks to jvetsuypens, #436)
 - Close from the notification: the app's notification has a Close button, which ends the route and closes the app, as Close Horizon Nav in the menu does (thanks to desko1973, #439)
 - Stops easier to follow: each stop on the way now has an orange numbered pin with its name on the map, seen at every zoom (on the route overview too), and while driving the trip card shows the next stop with when you'll get there and how far it is (thanks to d3stiny999, #437)
 - Motorway services only: the Services list along the route can show just motorway services, without rest and picnic areas. Your choice is remembered (thanks to d3stiny999, #437)
-
-### Improved
 
 ### Fixed
 - Route overview while driving: it now fills all the map left clear by the turn card, the trip card and the map buttons, instead of being squeezed small and partly hidden under the turn card
