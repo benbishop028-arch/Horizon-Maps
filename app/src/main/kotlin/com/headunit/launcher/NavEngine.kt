@@ -5038,7 +5038,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (bottomCover <= 0.0 && !stoppedOverview && !portraitLayout) {
             if (abs(tLeft) > 0.06 && !idleSoft) sideShiftSeen = tLeft
             else if (prefs.b(PreferenceKeys.ARROW_SIDE, false))
-                tLeft = sideShiftSeen ?: (if (layoutMirrored && !isCar) -0.3 else 0.3)
+                // No remembered side yet: start centred instead of guessing a 30% offset before
+                // the screen panels have been measured.
+                tLeft = sideShiftSeen ?: 0.0
         }
         if (settingsPreview) tLeft = 0.0
         map.cardsMirrored = layoutMirrored && !isCar // (Android Auto always has its cards on the left)
