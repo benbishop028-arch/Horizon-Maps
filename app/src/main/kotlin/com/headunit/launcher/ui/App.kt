@@ -483,29 +483,6 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
                         ) { Text(L.t("Keep"), color = navVw(c).text, fontSize = 15.sp) }
                     }
                 }
-                // alerts (camera, speed limit, incident, rain, break) get a large banner that is hard to miss
-                if (!settings) {
-                    val curAlert = engine.alert
-                    val lastAlert = remember { mutableStateOf(curAlert) }
-                    if (curAlert != null) lastAlert.value = curAlert
-                    // landscape: centred in the gap between the turn card (left) and the round buttons (right), so it never covers them.
-                    // Portrait: just above the trip card at the bottom.
-                    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
-                        val narrow = maxWidth < 720.dp
-                        Box(
-                            if (narrow) Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 250.dp)
-                            else Modifier.align(Alignment.TopStart).fillMaxWidth().padding(start = if (engine.mirrored) 290.dp else 412.dp, end = if (engine.mirrored) 412.dp else 290.dp, top = 16.dp),
-                            contentAlignment = if (narrow) Alignment.BottomCenter else Alignment.TopCenter,
-                        ) {
-                            // (the portrait route layout draws them under its turn card instead)
-                            androidx.compose.animation.AnimatedVisibility(
-                                visible = curAlert != null && !engine.alertsUnderTurn,
-                                enter = androidx.compose.animation.slideInVertically(initialOffsetY = { if (narrow) it else -it }) + androidx.compose.animation.fadeIn(),
-                                exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { if (narrow) it else -it }) + androidx.compose.animation.fadeOut(),
-                            ) { lastAlert.value?.let { AlertBanner(it) } }
-                        }
-                    }
-                }
             }
         }
     }
