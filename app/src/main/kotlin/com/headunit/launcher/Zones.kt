@@ -42,7 +42,7 @@ object Zones {
             }
         } catch (e: Exception) { }
         cache = out
-        status = if (out.isEmpty()) "No zones found in the map data" else "${out.size} zones: " + out.joinToString(", ") { it.name }.take(200)
+        status = if (out.isEmpty()) L.t("No zones found in the map data") else L.t("{0} zones: {1}", out.size, out.joinToString(", ") { it.name }.take(200))
         return out
     }
 
@@ -97,7 +97,7 @@ object Zones {
             for (i in 0 until els.length()) {
                 val e = els.getJSONObject(i)
                 val tags = e.optJSONObject("tags") ?: JSONObject()
-                val name = tags.optString("name").ifBlank { tags.optString("official_name") }.ifBlank { "Low emission zone" }
+                val name = tags.optString("name").ifBlank { tags.optString("official_name") }.ifBlank { L.t("Low emission zone") }
                 val ways = ArrayList<List<LL>>()
                 if (e.optString("type") == "way") {
                     val g = e.optJSONArray("geometry") ?: continue
@@ -121,9 +121,9 @@ object Zones {
             file(ctx).writeText(out.toString())
             cache = null
             all(ctx)
-            if (n == 0) status = "No zones found in the map data"
+            if (n == 0) status = L.t("No zones found in the map data")
         } catch (e: Exception) {
-            status = "Zone download failed: " + (e.message ?: e.javaClass.simpleName).take(120)
+            status = L.t("Zone download failed: {0}", (e.message ?: e.javaClass.simpleName).take(120))
         } finally { fetching = false }
     }
 
