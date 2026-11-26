@@ -1637,15 +1637,6 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         // what the trip has cost so far (#316)
         LiveFuelLine(engine, Modifier.padding(start = 22.dp, end = 18.dp, bottom = 10.dp))
         SheetChips(engine)
-        // Keep live camera, traffic and condition alerts with the trip information rather than
-        // adding another floating card beneath the turn instruction.
-        val currentAlert = engine.alert
-        val lastAlert = remember { mutableStateOf(currentAlert) }
-        if (currentAlert != null) lastAlert.value = currentAlert
-        AnimatedVisibility(currentAlert != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
-            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-            lastAlert.value?.let { AlertBanner(it) }
-        }
         // arriving: the side of the road, and car parks near the destination (tap one to go there instead)
         if (arriving) {
             val side = remember(engine.route) { engine.destSide() }
@@ -1741,7 +1732,8 @@ private fun SheetChips(engine: NavEngine) {
     val c = LocalVw.current
     val svc = engine.servicesAhead.firstOrNull()?.takeIf { servicesShown(engine) }
     val advice = engine.advice
-    if (svc == null && advice == null) return
+    val alert = engine.alert
+    if (svc == null && advice == null && alert == null) return
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         svc?.let { s ->
             Row(Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(c.tile).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1750,6 +1742,7 @@ private fun SheetChips(engine: NavEngine) {
                     overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 6.dp).widthIn(max = 230.dp))
             }
         }
+        alert?.let { AlertChip(it) }
         advice?.let { a ->
             Row(Modifier.height(36.dp).clip(RoundedCornerShape(18.dp)).background(c.tile).padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Rounded.WaterDrop, null, tint = Color(0xFF7FB2FF), modifier = Modifier.size(18.dp))

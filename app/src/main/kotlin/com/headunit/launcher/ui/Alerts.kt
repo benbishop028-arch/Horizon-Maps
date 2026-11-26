@@ -219,6 +219,25 @@ fun AlertSign(a: AlertInfo, size: Dp) {
 }
 
 /** Large alert banner with a road-sign badge and a countdown bar. */
+/** Small notification chip used inside the portrait trip bar, rather than a separate alert card. */
+@Composable
+fun AlertChip(a: AlertInfo) {
+    val c = LocalVw.current
+    val col = alertColor(a.kind)
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        Modifier.height(32.dp).clip(shape).background(c.tile).border(1.dp, col.copy(alpha = 0.42f), shape)
+            .padding(horizontal = 9.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        AlertSign(a, 18.dp)
+        Text(alertLabel(a.kind), color = col, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+            maxLines = 1, modifier = Modifier.padding(start = 6.dp))
+        Text(a.text, color = c.text, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+            maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start = 5.dp).widthIn(max = 190.dp))
+    }
+}
+
 @Composable
 fun AlertBanner(a: AlertInfo, modifier: Modifier = Modifier) {
     val col = alertColor(a.kind)
