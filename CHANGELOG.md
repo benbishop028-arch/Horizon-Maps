@@ -4,7 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
+## 1.0.1032 — 26 Nov 2026
 
 ### Improved
 - Routes to a house address plan quicker: the street the house is on is looked up while the search results are showing, so picking one doesn't wait for it (it could wait 10 seconds or more), and search results come up a little faster as you type
