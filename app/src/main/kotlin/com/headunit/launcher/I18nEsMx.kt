@@ -19,8 +19,9 @@ object I18nEsMx {
         "continue" to "sigue",
         "turn left" to "gira a la izquierda",
         "turn right" to "gira a la derecha",
-        "turn sharp left" to "gira bruscamente a la izquierda",
-        "turn sharp right" to "gira bruscamente a la derecha",
+        // (Mexican drivers say "vuelta cerrada"; "bruscamente" sounded harsh: José Antonio Arriaga, by email)
+        "turn sharp left" to "da vuelta cerrada a la izquierda",
+        "turn sharp right" to "da vuelta cerrada a la derecha",
         "bear left" to "gira ligeramente a la izquierda",
         "bear right" to "gira ligeramente a la derecha",
         "keep left" to "mantente a la izquierda",

@@ -1419,7 +1419,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     map.recolourBase = true
                     map.setStyleUrl(TomTomRest.styleUrl(apiKey, dark, prefs.b(PreferenceKeys.TRAFFIC, true)))
                 } else {
-                    toast(L.t(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Keys & accounts for TomTom's map. Showing Mapbox's map"), 5000)
+                    // (a key that plans routes and searches can still be turned down for the map, which is a product of its own at TomTom,
+                    // so the key looked fine in Settings while the map kept falling back: José Antonio Arriaga, by email)
+                    val mapOnly = hasKey && refusedKey != apiKey && ttMapRefusedKey == apiKey
+                    toast(L.t(if (hasKey) "TomTom turned down the key for its map, so Mapbox's map is showing" else "Add a TomTom key in Settings > Keys & accounts for TomTom's map. Showing Mapbox's map") +
+                        (if (mapOnly) ". " + L.t("TomTom's map is a separate product from its routes and search: check it's switched on for your key at developer.tomtom.com") else ""), if (mapOnly) 9000 else 5000)
                     map.setStyleUrl(map.baseStyle())
                 }
             }
@@ -1596,7 +1600,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     // one tone generator, kept and reused: making a new one for every beep leaked audio resources and caused hiccups over time
     private var toneGen: android.media.ToneGenerator? = null
     private fun chime(tone: Int = android.media.ToneGenerator.TONE_PROP_ACK) {
-        if (soundMode == 2 || quiet()) return
+        if (soundMode == 2 || quiet() || carHiddenQuiet()) return
         // on Android Auto the phone's media sound only reaches the car's speakers while Android Auto is the car's sound source
         // (with the radio or the car's own music on, the speeding beep was never heard): there it goes out on the navigation
         // channel instead, like the spoken directions, which plays over whatever is on
@@ -1609,7 +1613,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** The over-the-limit and top-speed alert, in the sound chosen in Settings › Alerts › Speed alert sound (ILDEMONICO, #335). */
     private fun speedChime() {
-        if (soundMode == 2 || quiet()) return
+        if (soundMode == 2 || quiet() || carHiddenQuiet()) return
         guidanceBeep(true, prefs.s(PreferenceKeys.SPEED_ALERT_SOUND, "double"))
     }
 
@@ -7785,6 +7789,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** The phone keeps quiet while the car screen is connected: the car says the directions and alerts. */
     private fun quiet() = !isCar && RouteSync.carConnected()
 
+    /**
+     * The car screen with another app in front of Horizon (Waze, music) and no Horizon route: its engine keeps running, so it kept
+     * calling out speed limit changes, speeding and cameras over the other app (pc4096). It stays quiet then, unless Settings ›
+     * Alerts › Speed alert in the background is on. A route still speaks behind another app, as in other sat navs.
+     */
+    @Volatile var carHidden = false
+    private fun carHiddenQuiet() = isCar && carHidden && (route == null || previewing) && !prefs.b(PreferenceKeys.BG_SPEED_ALERT, false)
+
     /** The phone's app is showing its own map (set by the screen; with Android Auto connected it normally shows the trip in brief). */
     @Volatile var showingMap = true
 
@@ -7978,7 +7990,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     fun speak(text: String, alert: Boolean = false) {
-        if (quiet()) return
+        if (quiet() || carHiddenQuiet()) return
         val m = soundMode
         if (m == 2 || (m == 1 && !alert) || !ttsReady) return
         // the same words twice within 6 s are one prompt said once (a prompt asked for again and again used to loop)

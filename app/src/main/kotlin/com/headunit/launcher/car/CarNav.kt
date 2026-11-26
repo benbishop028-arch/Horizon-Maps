@@ -279,6 +279,9 @@ class CarNavSession : Session() {
         surface.onAreaDoubt = { try { screen.invalidate() } catch (e: Exception) { } }
         try { carContext.getCarService(AppManager::class.java).setSurfaceCallback(surface) } catch (e: Exception) { }
         lifecycle.addObserver(object : DefaultLifecycleObserver {
+            // (Horizon's screen in front on the car, or another app over it: with no route it keeps quiet behind another app)
+            override fun onStart(owner: LifecycleOwner) { holder.engine?.carHidden = false }
+            override fun onStop(owner: LifecycleOwner) { holder.engine?.carHidden = true }
             override fun onDestroy(owner: LifecycleOwner) {
                 screen.stop()
                 sunHandler.removeCallbacks(sunTick)
@@ -350,6 +353,7 @@ class CarNavSession : Session() {
         val engine = NavEngine(app, prefs, map)
         // the car screen does the talking while it's connected, and shares the trip with the phone
         engine.isCar = true
+        engine.carHidden = !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
         ClusterLink.engine = engine
         // (the app's own short messages don't show on the car screen: a tapped number-plate camera says what it is with Android Auto's)
         map.onAlprTap = { who -> try { androidx.car.app.CarToast.makeText(carContext, L.t("Number-plate camera") + (if (who.isNotBlank()) " · $who" else ""), androidx.car.app.CarToast.LENGTH_SHORT).show() } catch (e: Exception) { } }

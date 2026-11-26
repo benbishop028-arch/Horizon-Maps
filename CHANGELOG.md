@@ -9,7 +9,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Junction zoom: a new setting (Turn card & lanes › Lanes and junctions) to bring the map closer for lanes and junctions, so the lit lanes are bigger and easier to read on a small screen (thanks to mini-mie, #415)
 
 ### Improved
+- Spanish (Mexico): sharp turns are now "da vuelta cerrada a la derecha / izquierda" instead of the harsher "gira bruscamente" (thanks to José Antonio Arriaga)
+- TomTom map with a key it turns down: the message now says the map is a separate TomTom product to switch on for your key, as the key can still work for routes and search (thanks to José Antonio Arriaga)
 - Prefer main roads for online routes too: of the routes Mapbox offers, one that keeps to main roads rather than residential streets and lanes goes first (labelled Main roads) when it's only a few minutes slower, and faster routes through small roads aren't suggested on the way (thanks to d3stiny999, #402)
+
+### Fixed
+- Android Auto: Horizon no longer calls out speed limit changes, speeding or cameras while another app such as Waze is on the car screen and no Horizon route is running (it does if Speed alert in the background is on) (thanks to pc4096)
 
 ## 1.0.1012 — 26 Nov 2026
 
