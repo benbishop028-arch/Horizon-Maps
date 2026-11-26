@@ -640,6 +640,7 @@ private fun RoutesSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Avoid toll roads"), "avoid_toll", false, if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) L.t("Everywhere") else null)
         // ...or only in some countries: a route that would use a toll road in one of them is planned without toll roads
         if (!prefs.b(PreferenceKeys.AVOID_TOLL, false)) {
+            SToggle(prefs, L.t("Offer a route without tolls"), PreferenceKeys.OFFER_NO_TOLL, true, L.t("When the fastest route uses toll roads, also show one without them, with how much longer it takes"))
             val chosen = prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').filter { it.isNotBlank() }.toSet()
             SItem(L.t("Avoid tolls only in"), if (chosen.isEmpty()) L.t("Pick countries: a route that would pay a toll in one of them is planned without toll roads") else L.t("A route that would pay a toll in one of these is planned without toll roads"))
             androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 8.dp),
@@ -1439,7 +1440,7 @@ private fun WhileDrivingSection(prefs: Prefs) {
         SToggle(prefs, L.t("Fewer buttons while driving"), "drivesimple", true)
         if (android.os.Build.VERSION.SDK_INT >= 26) SToggle(prefs, L.t("Picture in picture"), PreferenceKeys.PIP, true, L.t("On a phone, on a route: going to the home screen or another app keeps the map, the next turn and the time left in a small window"))
         SToggle(prefs, L.t("Clock on the map"), PreferenceKeys.CLOCK_MAP, false, L.t("The time, with the speedometer. Handy when the head unit's status bar is covered"))
-        SToggle(prefs, L.t("Lock typing while driving"), "drivelock", true, L.t("Voice search still works"))
+        SToggle(prefs, L.t("Lock typing while driving"), "drivelock", false, L.t("Voice search still works"))
         SToggle(prefs, L.t("Media controls"), PreferenceKeys.MEDIA_BAR, false, L.t("Back, play / pause and next at the bottom of the screen while music or radio plays on this device, from any app"))
         if (prefs.b(PreferenceKeys.MEDIA_BAR, false) && com.headunit.launcher.MediaNow.songInfoPossible) {
             val ctx = androidx.compose.ui.platform.LocalContext.current

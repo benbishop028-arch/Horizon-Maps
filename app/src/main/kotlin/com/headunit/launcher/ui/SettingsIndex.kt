@@ -93,6 +93,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Vehicle", "Car or lorry: routes for a lorry's height, width, length and weight", "Vehicle", 5),
     SettingRef("Hazardous goods", "Lorry routes that avoid roads closed to hazardous loads", "Vehicle", 5),
     SettingRef("Avoid toll roads", "", "Avoid", 5),
+    SettingRef("Offer a route without tolls", "When the fastest route uses toll roads, also show one without them, with how much longer it takes", "Avoid", 5),
     SettingRef("Avoid tolls only in", "Pick countries where toll roads are avoided", "Avoid", 5),
     SettingRef("Avoid motorways", "Never, always, or only on short trips", "Avoid", 5),
     SettingRef("Short trips: under", "How short a trip has to be to keep off motorways", "Avoid", 5),

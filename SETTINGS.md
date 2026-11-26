@@ -128,7 +128,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Top speed for arrival times**: routes are timed no faster than this, for vans, lorries or towing.
 
 **Avoid**
-- **Avoid toll roads**, or **Avoid tolls only in** chosen countries.
+- **Avoid toll roads**, or **Avoid tolls only in** chosen countries. **Offer a route without tolls** (on by default, not shown with Avoid toll roads on): when the fastest route uses toll roads, the route choice also has a "No tolls" route, with how much longer it takes. Routes with tolls are marked "Tolls". The routing services give where the tolls are, not what they cost.
 - **Avoid motorways**: *Never*, *Always*, or *Short trips*, when where you're going is less than a distance you choose away (**Short trips: under**, 10 to 50 miles or 15 to 80 km).
 - **Avoid ferries**, **Avoid car trains** (like the Channel Tunnel shuttle), **Avoid unpaved roads**.
 - **Avoid Clean Air Zones and ULEZ** (a zone you start or finish in can't be avoided), and **Clean air zones on this unit** (the zone data kept on the device).
@@ -237,7 +237,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Fewer buttons while driving**.
 - **Picture in picture**: on a phone, on a route, going to another app keeps the map, next turn and time left in a small window.
 - **Clock on the map**: the time with the speedometer, handy when the status bar is covered.
-- **Lock typing while driving**: voice search still works.
+- **Lock typing while driving**: off by default. When on, the search box locks above about 7 mph and only voice search works.
 - **Media controls**: back, play / pause and next at the bottom of the screen while music plays, from any app.
 - **Song and artwork**: shows what's playing (needs notification access; Google Play edition only).
 

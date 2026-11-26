@@ -2852,6 +2852,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 k * 0.7, k, k * 1.45, now, batt)
         } else ""
         // tolls avoided only in chosen countries (when "Avoid toll roads" itself is off)
+        MapboxRest.offerNoToll = prefs.b(PreferenceKeys.OFFER_NO_TOLL, true) && !prefs.b(PreferenceKeys.AVOID_TOLL, false)
         MapboxRest.tollCountries = if (prefs.b(PreferenceKeys.AVOID_TOLL, false)) emptySet()
             else prefs.s(PreferenceKeys.AVOID_TOLL_COUNTRIES, "").split(',').map { it.trim().uppercase() }.filter { it.length == 2 }.toSet()
     }

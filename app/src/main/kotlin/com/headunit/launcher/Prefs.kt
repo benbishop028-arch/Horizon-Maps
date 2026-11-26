@@ -486,6 +486,8 @@ internal object PreferenceKeys {
     /** Directions that name the traffic lights or stop sign at the turn ("At the traffic lights, turn right"), on the card and in the voice. */
     const val LANDMARK_DIRS = "landmarkdirs"
     const val AVOID_TOLL_COUNTRIES = "avoid_toll_cc"
+    /** Also show a route without tolls when the fastest one has them (Luís Pedro Antunes). On unless switched off. */
+    const val OFFER_NO_TOLL = "offernotoll"
     const val ROAD_NAME_SIZE = "roadnamesize"
     const val CAR_ROAD_NAME_SIZE = "carroadnamesize"
     const val CAR_MODEL = "carmodel"

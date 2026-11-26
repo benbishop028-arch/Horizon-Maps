@@ -257,6 +257,26 @@ object MapboxRest {
     /** Countries (two-letter codes) where toll roads are avoided even though "Avoid toll roads" is off. */
     @Volatile var tollCountries: Set<String> = emptySet()
 
+    /** Also ask for a toll-free route when the best one has tolls, as a further choice (Settings › Routes › Offer a route without tolls). */
+    @Volatile var offerNoToll = false
+
+    /** The route goes along a toll road at all (Mapbox marks its junctions "toll"). */
+    private fun hasToll(route: JSONObject): Boolean {
+        val legs = route.optJSONArray("legs") ?: return false
+        for (li in 0 until legs.length()) {
+            val steps = legs.optJSONObject(li)?.optJSONArray("steps") ?: continue
+            for (si in 0 until steps.length()) {
+                val ints = steps.optJSONObject(si)?.optJSONArray("intersections") ?: continue
+                for (ii in 0 until ints.length()) {
+                    val cl = ints.optJSONObject(ii)?.optJSONArray("classes") ?: continue
+                    for (k in 0 until cl.length()) if (cl.optString(k) == "toll") return true
+                }
+            }
+        }
+        return false
+    }
+    private fun parseT(json: JSONObject, leftHand: Boolean): Route = parse(json, leftHand).also { it.toll = hasToll(json) }
+
     /** The route pays a toll in one of [countries]: a toll stretch (Mapbox marks its junctions "toll") in that country. */
     private fun tollIn(route: JSONObject, countries: Set<String>): Boolean {
         val legs = route.optJSONArray("legs") ?: return false
@@ -416,7 +436,20 @@ object MapboxRest {
             }
         }
         val arr = o.optJSONArray("routes") ?: JSONArray()
-        val got = (0 until arr.length()).mapNotNull { try { parse(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+        val got0 = (0 until arr.length()).mapNotNull { try { parseT(arr.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+        // the best route has tolls: a toll-free one is asked for too, and offered next to it (when it's a different road, and not far slower)
+        val got = if (!quick && offerNoToll && got0.isNotEmpty() && got0[0].toll && !ex.split(',').contains("toll")) {
+          try {
+            val ex2 = (ex.split(',').filter { it.isNotBlank() } + "toll").joinToString(",")
+            val o2 = JSONObject(get("$base&exclude=$ex2" + (if (departApplied) dep else ""), 8000, 15000))
+            val nt = if (o2.optString("code") == "Ok") o2.optJSONArray("routes")?.optJSONObject(0)?.let { parseT(it, leftHand) } else null
+            val top = got0[0]
+            if (nt != null && !nt.toll && (Math.abs(nt.len - top.len) > 0.01 * top.len || Math.abs(nt.time - top.time) > 30.0) && nt.time <= top.time * 2.0 + 900.0) {
+                nt.noToll = true
+                (listOf(top, nt) + got0.drop(1)).take(3)
+            } else got0
+          } catch (e: Exception) { got0 }
+        } else got0
         // arriving on your side can mean going round the block (left, right, right) to come back along the other side of the road,
         // when going straight on and turning across into the drive is the obvious way. When the end of the route looks like such a
         // loop, it's asked again without that: if that's clearly quicker or shorter, it's used instead
@@ -428,7 +461,7 @@ object MapboxRest {
                 val o3 = JSONObject(get(plain, 8000, 15000))
                 if (o3.optString("code") == "Ok") {
                     val a3 = o3.optJSONArray("routes") ?: JSONArray()
-                    val alt = (0 until a3.length()).mapNotNull { try { parse(a3.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
+                    val alt = (0 until a3.length()).mapNotNull { try { parseT(a3.getJSONObject(it), leftHand) } catch (e: Exception) { null } }
                     val p0 = alt.firstOrNull()
                     // (going right past the door and round to come back: the plain way is used unless it's actually slower)
                     if (p0 != null && (p0.time <= r0.time - 40.0 || p0.len <= r0.len - 300.0 || (pastIt && p0.time <= r0.time + 15.0))) return alt

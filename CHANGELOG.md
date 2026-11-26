@@ -4,6 +4,14 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- A route without tolls: when the fastest route uses toll roads, the route choice also offers a "No tolls" route, with how much longer it takes, and marks the routes that have tolls. Switch it off under Settings › Routes › Avoid › Offer a route without tolls (thanks to Luís Pedro Antunes)
+
+### Improved
+- Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)
+
+### Fixed
+
 ## 1.0.1038 — 26 Nov 2026
 
 ### Fixed
@@ -19,6 +27,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Motorway services only: the Services list along the route can show just motorway services, without rest and picnic areas. Your choice is remembered (thanks to d3stiny999, #437)
 
 ### Fixed
+- Route overview while driving: it now fills all the map left clear by the turn card, the trip card and the map buttons, instead of being squeezed small and partly hidden under the turn card
 - Android Auto route overview too small: the route preview, the overview and the other-routes view on the car screen squeezed the route into the top third, as if the phone's route panel were covering the rest. They now fit it into the space beside the cards, using the whole height (thanks to neilch0111, #441)
 
 ## 1.0.1034 — 26 Nov 2026
