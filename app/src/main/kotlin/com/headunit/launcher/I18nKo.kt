@@ -278,5 +278,9 @@ object I18nKo {
         "Low emission zone" to "저배출 구역",
         "Google Play billing isn't available: {0}" to "Google Play 결제를 사용할 수 없습니다: {0}",
         "Plus isn't on sale yet" to "Plus를 아직 구매할 수 없습니다",
+        "{0} report saved here" to "여기에 {0} 보고서가 저장되었습니다",
+        "Entering {0}" to "{0} 진입 중",
+        "Emergency: {0} · {1} {2}" to "긴급 전화: {0} · {1} {2}",
+        "Typical car limits (urban / rural / motorway): {0}. Emergency: {1}. Follow local signs; limits can vary by road, conditions and vehicle." to "일반 승용차 제한 속도(도심 / 교외 / 고속도로): {0}. 긴급 전화: {1}. 현지 표지판을 따르세요. 도로와 상황, 차량에 따라 제한 속도가 달라질 수 있습니다.",
     )
 }
