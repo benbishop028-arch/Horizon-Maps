@@ -37,7 +37,7 @@ object PlusBilling {
         c.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
                 if (result.responseCode == BillingClient.BillingResponseCode.OK) { loadOffers(); refresh() }
-                else main.post { Plus.problem = "Google Play billing isn't available (${result.debugMessage})" }
+                else main.post { Plus.problem = L.t("Google Play billing isn't available: {0}", result.debugMessage) }
             }
             override fun onBillingServiceDisconnected() {}
         })
@@ -58,7 +58,7 @@ object PlusBilling {
         c.queryProductDetailsAsync(params) { result, details ->
             val pd = details.productDetailsList.firstOrNull()
             if (result.responseCode != BillingClient.BillingResponseCode.OK || pd == null) {
-                main.post { Plus.problem = "Plus isn't on sale yet" }
+                main.post { Plus.problem = L.t("Plus isn't on sale yet") }
                 return@queryProductDetailsAsync
             }
             val out = ArrayList<Plus.Offer>()
@@ -71,7 +71,7 @@ object PlusBilling {
                 val trial = phases.firstOrNull { it.priceAmountMicros == 0L }?.billingPeriod?.let { days(it) } ?: 0
                 out += Plus.Offer(plan, paid.formattedPrice, trial, pd to pick.offerToken)
             }
-            main.post { Plus.offers = out; Plus.problem = if (out.isEmpty()) "Plus isn't on sale yet" else "" }
+            main.post { Plus.offers = out; Plus.problem = if (out.isEmpty()) L.t("Plus isn't on sale yet") else "" }
         }
     }
 
