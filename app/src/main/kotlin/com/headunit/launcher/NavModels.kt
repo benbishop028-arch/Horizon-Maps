@@ -67,3 +67,27 @@ class IncidentAhead(val label: String, val dist: Double, val delaySec: Int)
 class EtaInfo(val arrive: String, val dist: Double, val secs: Double, val delayMin: Int)
 /** A stop on the way: when you get there, how far it is along the route (m) and how long that takes (s). */
 class StopEta(val place: Place, val arrive: String, val dist: Double, val secs: Double)
+
+/** Tracks real GPS independently while demo drive temporarily supplies synthetic positions. */
+internal class DemoGpsFixState {
+    var latest: Fix? = null
+        private set
+    private var atDemoStart: Fix? = null
+
+    fun update(fix: Fix) {
+        latest = fix
+    }
+
+    /** Capture a safe fallback before demo positions begin replacing the engine's displayed fix. */
+    fun begin(currentFix: Fix?): Fix? {
+        atDemoStart = latest ?: currentFix
+        return atDemoStart
+    }
+
+    /** Prefer a real fix received during the demo; otherwise restore the pre-demo position. */
+    fun finish(): Fix? {
+        val result = latest ?: atDemoStart
+        atDemoStart = null
+        return result
+    }
+}
