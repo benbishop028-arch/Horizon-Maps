@@ -1051,7 +1051,7 @@ fun MapboxKeyDialog(prefs: com.headunit.launcher.Prefs, refused: Boolean = false
  * box), green for main roads (yellow road numbers), the roads it leads to and the places on the sign. Only when the route has them.
  */
 @Composable
-fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier, mapboxToken: String = "") {
+fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifier, mapboxToken: String = "", compact: Boolean = false) {
     if (t.dist > 3200.0) return
     val refRx = Regex("\\b([A-Z]{1,3}[0-9]{1,4}(?:\\(M\\))?)\\b")
     val shieldItems = t.shields.take(4)
@@ -1076,9 +1076,9 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
         t.maneuver.contains("RIGHT", true) -> "↗"
         else -> "↑"
     }
-    Column(modifier.fillMaxWidth().widthIn(max = 440.dp).shadow(7.dp, shape)
+    Column(modifier.fillMaxWidth().widthIn(max = if (compact) 340.dp else 440.dp).shadow(if (compact) 4.dp else 7.dp, shape)
         .clip(shape).background(Color.White).padding(2.dp).clip(RoundedCornerShape(7.dp))
-        .background(bg).padding(horizontal = 12.dp, vertical = 8.dp)) {
+        .background(bg).padding(horizontal = if (compact) 9.dp else 12.dp, vertical = if (compact) 5.dp else 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             if (t.exitNo.isNotBlank()) {
                 Box(Modifier.clip(RoundedCornerShape(3.dp)).background(Color.Black).padding(horizontal = 8.dp, vertical = 2.dp)) {
@@ -1087,11 +1087,11 @@ fun JunctionSign(t: com.headunit.launcher.TurnInfo, modifier: Modifier = Modifie
             }
             // Road shields are already shown in the manoeuvre header; don't repeat them in the larger destination panel.
             Spacer(Modifier.weight(1f))
-            Text(arrow, color = ink, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+            Text(arrow, color = ink, fontSize = if (compact) 19.sp else 25.sp, fontWeight = FontWeight.Bold)
         }
-        places.forEach { p -> Text(p, color = ink, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        places.forEach { p -> Text(p, color = ink, fontSize = if (compact) 13.sp else 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis) }
         if (places.isEmpty() && t.sign.isNotBlank() && refs.isEmpty()) {
-            Text(t.sign.take(90), color = ink, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(t.sign.take(90), color = ink, fontSize = if (compact) 12.sp else 15.sp, fontWeight = FontWeight.SemiBold, maxLines = if (compact) 1 else 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }

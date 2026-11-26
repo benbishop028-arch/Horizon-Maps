@@ -442,20 +442,10 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                             // (portrait: the advice line lives in the trip sheet, and the services only appear here once they are close)
                                             if (!altFocus && !hudMin) TurnCardExtras(engine, turnExtraMax, advice = !routeSheet, parking = false)
                                         })
-                                        // the next services: a card of its own under the turn card again, not joined to it
-                                        if (!altFocus && !hudMin) { if (routeSheet) NearServicesPill(engine) else ServicesCard(engine) }
-                                        // car parks near the end: their own card again (the portrait sheet has them in the sheet)
+                                        // In portrait, services and live alerts live in the bottom trip sheet, not over the map.
+                                        if (!altFocus && !routeSheet && !hudMin) ServicesCard(engine)
+                                        // car parks remain in the portrait trip sheet; landscape keeps its existing card.
                                         if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
-                                    }
-                                    // warnings (a camera, a limit, rain...) pop up just under the turn card, joined to it
-                                    if (routeSheet) {
-                                        val curA = engine.alert
-                                        val lastA = remember { mutableStateOf(curA) }
-                                        if (curA != null) lastA.value = curA
-                                        AnimatedVisibility(curA != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
-                                            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
-                                            lastA.value?.let { Box(Modifier.padding(top = 6.dp)) { AlertBanner(it) } }
-                                        }
                                     }
                                     }
                                 }
@@ -1549,7 +1539,8 @@ internal fun ImmTurnCard(
         // (the blue "EXIT" strip that used to sit here is gone: the exit's number badge beside the road name already says it, and its
         // arrows always pointed right, even for an exit on the left: mjdshibly #232)
         // A proper UK direction sign: blue for motorways, green for primary roads, white for local roads.
-        if (ukSign) JunctionSign(t, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp), engine.mbToken)
+        if (ukSign) JunctionSign(t, Modifier.padding(start = if (compact) 12.dp else 16.dp, end = if (compact) 12.dp else 16.dp, bottom = if (compact) 5.dp else 12.dp), engine.mbToken,
+            compact = !car && androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp > androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp)
         // (the lanes stay on a small car screen too: they were left off with everything else, so small screens had no lane guidance)
         if ((!compact || car) && engine.prefs.b(PreferenceKeys.LANE_STRIP, true)) t.lanes?.let { ls ->
             // lane hero view: before a complex junction the lanes grow into a big picture with yours lit; simple ones keep the strip
@@ -1646,6 +1637,15 @@ private fun TripSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOptions:
         // what the trip has cost so far (#316)
         LiveFuelLine(engine, Modifier.padding(start = 22.dp, end = 18.dp, bottom = 10.dp))
         SheetChips(engine)
+        // Keep live camera, traffic and condition alerts with the trip information rather than
+        // adding another floating card beneath the turn instruction.
+        val currentAlert = engine.alert
+        val lastAlert = remember { mutableStateOf(currentAlert) }
+        if (currentAlert != null) lastAlert.value = currentAlert
+        AnimatedVisibility(currentAlert != null, enter = fadeIn(tween(160)) + androidx.compose.animation.expandVertically(tween(200)),
+            exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(200))) {
+            lastAlert.value?.let { AlertBanner(it) }
+        }
         // arriving: the side of the road, and car parks near the destination (tap one to go there instead)
         if (arriving) {
             val side = remember(engine.route) { engine.destSide() }
@@ -1739,7 +1739,7 @@ private fun NearServicesPill(engine: NavEngine) {
 @Composable
 private fun SheetChips(engine: NavEngine) {
     val c = LocalVw.current
-    val svc = engine.servicesAhead.firstOrNull()?.takeIf { servicesShown(engine) && it.dist > SERVICES_NEAR_M }
+    val svc = engine.servicesAhead.firstOrNull()?.takeIf { servicesShown(engine) }
     val advice = engine.advice
     if (svc == null && advice == null) return
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 22.dp, end = 22.dp, bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

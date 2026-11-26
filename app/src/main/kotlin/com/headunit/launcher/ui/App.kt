@@ -72,6 +72,14 @@ internal fun findActivity(c: android.content.Context): android.app.Activity? {
 internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
     if (widthDp <= 0 || heightDp <= 0) return 100
     val shortEdge = minOf(widthDp, heightDp)
+    // Portrait phones have less vertical room for navigation overlays. Keep landscape and
+    // wider head-unit displays at their existing sizes.
+    if (heightDp > widthDp) return when {
+        shortEdge < 320 -> 88
+        shortEdge < 460 -> 90
+        shortEdge < 600 -> 92
+        else -> 96
+    }
     return when {
         shortEdge < 320 -> 92
         shortEdge < 380 -> 96
