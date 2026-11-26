@@ -58,6 +58,26 @@ class RouteMatcherTest {
         assertTrue(initial.dist > unrestricted.dist)
     }
 
+    @Test fun repeatedStationaryStartFixesKeepMatchingTheOpeningRouteSection() {
+        val r = route(listOf(
+            LL(50.001, -1.0),
+            LL(50.001, -0.996),
+            LL(50.00005, -0.996),
+            LL(50.00005, -1.0),
+        ))
+        val position = LL(50.0, -1.0)
+
+        // Both fixes are stationary: keep the initial 300 m window active for each one.
+        val first = RouteMatcher.snap(r, position, 0, heading = null, maxProgressMeters = 300.0)
+        val second = RouteMatcher.snap(r, position, first.segmentIndex, heading = null, maxProgressMeters = 300.0)
+        val unrestrictedWithStaleHeading = RouteMatcher.snap(r, position, 0, heading = 270.0)
+
+        assertEquals(0, first.segmentIndex)
+        assertEquals(0, second.segmentIndex)
+        assertTrue(second.progress < 300.0)
+        assertTrue(unrestrictedWithStaleHeading.progress > 300.0)
+    }
+
     @Test fun degenerateSegmentDoesNotDivideByZero() {
         val r = route(listOf(LL(50.0, -1.0), LL(50.0, -1.0), LL(50.0, -0.99)))
         val result = RouteMatcher.snap(r, LL(50.0, -1.0), 0)
