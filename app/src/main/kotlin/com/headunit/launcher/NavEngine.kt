@@ -4711,7 +4711,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // instead of stopping and then jumping when the signal comes back
         val drOk = glideOnRoute && glideRoute != null && mSpeed > 3.0 && !previewing && simMode == 0
         val rawAge = (now - mAt) / 1000.0
-        val age = rawAge.coerceIn(0.0, if (drOk) 120.0 else 2.5)
+        // On Android Auto the arrow is drawn a little ahead of the last GPS fix: a fix is already about a second old when it arrives,
+        // and the picture takes a moment more to reach the car's screen, so it showed you slightly behind where you were as you went
+        // past a junction (yurividal, #450). Not while nearly stopped.
+        val lead = if (isCar && mSpeed > 4.0) 0.6 else 0.0
+        val age = (rawAge + lead).coerceIn(0.0, if (drOk) 120.0 else 2.5)
         val dr = drOk && rawAge > 3.0 && rawAge < 120.0
         if (dr != deadReckoning) deadReckoning = dr
         if (dr) camTargetAt = now

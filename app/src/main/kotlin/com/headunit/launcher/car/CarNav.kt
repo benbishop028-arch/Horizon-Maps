@@ -1723,6 +1723,10 @@ class CarSettingsScreen(carContext: CarContext, private val holder: CarHolder, p
             .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_MAP, !cluster); invalidate() }.build()
         if (cluster) {
             val cz = prefs.i(PreferenceKeys.CLUSTER_ZOOM, 0).coerceIn(-2, 1)
+            val ct = prefs.i(PreferenceKeys.CLUSTER_TEXT, 0).coerceIn(-1, 2)
+            rows += Row.Builder().setTitle(L.t("Driver's display text size"))
+                .addText(L.t(when (ct) { -1 -> "Smaller"; 1 -> "Larger"; 2 -> "Largest"; else -> "Normal" }) + L.t(" · tap to change"))
+                .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_TEXT, when (ct) { 0 -> 1; 1 -> 2; 2 -> -1; else -> 0 }); invalidate() }.build()
             rows += Row.Builder().setTitle(L.t("Driver's display zoom"))
                 .addText(L.t(when (cz) { 1 -> "Closer"; -1 -> "Further out"; -2 -> "Furthest out"; else -> "Normal" }) + L.t(" · tap to change"))
                 .setOnClickListener { prefs.put(PreferenceKeys.CLUSTER_ZOOM, when (cz) { 0 -> -1; -1 -> -2; -2 -> 1; else -> 0 }); invalidate() }.build()
