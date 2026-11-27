@@ -4,7 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
+## 1.0.1044 — 27 Nov 2026
 
 ### Improved
 - Sending a report: if a newer version of the app is out, the Feedback screen says so and offers Update now first, with a reminder to check the problem is still there before sending (Send anyway is still there). On Google Play, it reminds you to check for a newer version. The problem report also says where the last speed limit came from (the route, TomTom, Mapbox, OpenStreetMap or a downloaded area), to help with wrong limits
