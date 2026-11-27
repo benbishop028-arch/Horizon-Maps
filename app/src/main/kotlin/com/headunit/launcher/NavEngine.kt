@@ -5508,10 +5508,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // the cameras along a route are matched as soon as it's planned (the route choice and demo drives too), not only once
         // you're driving it: a camera far along the route used to show only when you got within 10 km of it
         route?.let { r -> if (camsRoute !== r || camsCount != System.identityHashCode(knownCams) * 31 + System.identityHashCode(aroundCams)) updateRouteCams(r, curProg) }
-        // on a route only the cameras on it are drawn (the ones still ahead); choosing a route, the whole route's and the ones
-        // around you; otherwise every camera around you
+        // on a route only the cameras on it are drawn (the ones still ahead); choosing a route, just the whole route's (not the ones
+        // round you, which cluttered the overview); otherwise every camera around you
         val shown = when {
             navigatingNow() -> routeCams.filter { it.second > curProg - 20.0 }.map { it.first }
+            previewing && route != null -> if (camsRoute === route) routeCams.map { it.first } else emptyList()
             route != null && camsRoute === route -> (routeCams.map { it.first } + out).distinct()
             else -> out
         }

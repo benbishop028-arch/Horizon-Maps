@@ -336,6 +336,7 @@ class CarNavSession : Session() {
         screen.closeSearch = { CarCardLog.note(carContext.applicationContext); voice.finish(""); holder.engine?.pendingSave = null; com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.open = false; screen.invalidate() }
         // (Android Auto works the visible area out again when it lays the screen out)
         surface.onAreaDoubt = { try { screen.invalidate() } catch (e: Exception) { } }
+        surface.onTapped = { try { screen.invalidate() } catch (e: Exception) { } }
         try { carContext.getCarService(AppManager::class.java).setSurfaceCallback(surface) } catch (e: Exception) { }
         lifecycle.addObserver(object : DefaultLifecycleObserver {
             // (Horizon's screen in front on the car, or another app over it: with no route it keeps quiet behind another app)
@@ -469,6 +470,9 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     @Volatile var lastVisible: Rect? = null
     /** Asks Android Auto to lay its screen out again, which makes it report the visible area afresh (set by the session). */
     var onAreaDoubt: () -> Unit = {}
+    /** A tap on the map: the session sends Android Auto its screen again, which brings its own buttons back in full-screen (#455). */
+    var onTapped: () -> Unit = {}
+    private var tapInvalidateAt = 0L
     val dark = androidx.compose.runtime.mutableStateOf(true)
     var engine: NavEngine? = null
         set(v) {
@@ -657,6 +661,10 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     // a tap on the car screen (newer cars): the app's own cards and buttons react, as in the app
     override fun onClick(x: Float, y: Float) {
         com.headunit.launcher.ui.CarButtons.poke()
+        // in full-screen Android Auto hides its buttons, and a tap on the map no longer brought them back as it does in Google Maps
+        // (joebGer19, #455): the screen is sent again, at most every 2.5 s, so the host shows them
+        val nowMs = android.os.SystemClock.uptimeMillis()
+        if (nowMs - tapInvalidateAt > 2500L) { tapInvalidateAt = nowMs; try { onTapped() } catch (e: Exception) { } }
         // this car passes taps on: remembered, so the app's own buttons can stand in for Android Auto's
         if (!tapNoted) { tapNoted = true; try { Prefs(carContext.applicationContext).let { if (!it.b(PreferenceKeys.CAR_TAPS_SEEN, false)) it.put(PreferenceKeys.CAR_TAPS_SEEN, true) } } catch (e: Exception) { } }
         try {
