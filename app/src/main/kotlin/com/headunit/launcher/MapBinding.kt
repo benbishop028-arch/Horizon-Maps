@@ -2927,7 +2927,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         stopPinImgs.clear()
         addS(st, GeoJsonSource.Builder("dl-stoppins").featureCollection(empty()).build())
         addL(st, SymbolLayer("dl-stoppins-l", "dl-stoppins").iconImage(Expression.get("img")).iconAllowOverlap(true).iconIgnorePlacement(true)
-            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(sized("dl-stoppins-l") { lit(uiK) }))
+            .iconPitchAlignment(IconPitchAlignment.VIEWPORT).iconEmissiveStrength(1.0).iconSize(sized("dl-stoppins-l") { lit(kEff) }))
         pushStopPins()
         // the 3D flags (destination red, stops amber), lit from within so they stand out day and night
         if (!satellite) try {
@@ -2968,7 +2968,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconPitchAlignment(IconPitchAlignment.VIEWPORT)
             // (sized with the screen like the other signs: 46 of the app's own units tall at close zoom, about 30% smaller than it was,
             // and the picture is 130 units tall at full size; joel941703-hash, #444)
-            .iconSize(sized("dl-live-bub") { zoomed(1.0, 9 to 46.0 * 0.9 * uiK / 130.0, 14 to 46.0 * uiK / 130.0, 18 to 46.0 * 1.12 * uiK / 130.0) }))
+            .iconSize(sized("dl-live-bub") { zoomed(1.0, 9 to 46.0 * 0.9 * kEff / 130.0, 14 to 46.0 * kEff / 130.0, 18 to 46.0 * 1.12 * kEff / 130.0) }))
         // "See all locations": a dotted line from you to the one picked, and every branch as its logo with the drive time
         addL(st, LineLayer("dl-chain-line", "dl-chain-line").lineColor("#4C8DFF").lineWidth(5.0).lineOpacity(0.9)
             .lineCap(LineCap.ROUND).lineDasharray(listOf(0.1, 2.2)).lineEmissiveStrength(1.0))
@@ -3267,7 +3267,14 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private val signZooms = listOf(10.0 to 0.7, 12.0 to 0.75, 13.0 to 0.8, 15.0 to 0.9, 17.0 to 1.0, 19.0 to 1.05)
 
     /** How wide a sign is at full size, in the app's own screen units, and so how wide it shows on the map at [z]. */
-    private fun signWidth(baseUi: Double, z: Double, f: Double): Double = maxOf(baseUi * uiK * f, 1.5 * routeAt(z))
+    private fun signWidth(baseUi: Double, z: Double, f: Double): Double = maxOf(baseUi * kEff * f, 1.5 * routeAt(z))
+
+    /**
+     * [uiK] for sizing signs and cards on the map. On the car screen the app's own cards are made small on purpose (a small
+     * screen seen from a distance), which left the signs and the cards on other routes tiny there (TheHairforce, #449): the
+     * map's signs keep to the size they have on a phone.
+     */
+    private val kEff: Double get() = if (onCar) maxOf(uiK, 1.0) else uiK
 
     /**
      * The size for a sign on the map drawn from picture [id] (or [fallbackW] map units wide when it isn't added yet): [baseUi]

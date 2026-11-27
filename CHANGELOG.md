@@ -4,6 +4,20 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+
+### Improved
+- Driver's display: its writing is bigger by default and there's a Driver's display text size setting (Android Auto settings: Smaller, Normal, Larger, Largest). The phone battery badge on the car screen has a bigger number and colours: green while charging, amber under 30%, red under 15%. Junction zoom is now in the Android Auto settings too (thanks to joel941703-hash, #451)
+- Android Auto position: the arrow and the distance to the next turn run about half a second ahead of the last GPS fix, so you're no longer drawn slightly behind where you are as you pass a junction (thanks to yurividal, #450)
+- Search box staying put: when search results appear while you type, the field and keyboard stay where they are (thanks to desko1973, #442)
+
+### Fixed
+- Clearing recent destinations also clears the places the app has learned you usually go to, which were still suggested ("Usually around …") after clearing (thanks to Dotancom, #457)
+- Turn card off-centre: with no "Then" line or lanes under it, the arrow and writing sat higher than the middle of the card (the progress bar's room was all below them); they're now centred (thanks to desko1973, #448)
+- Signs and the cards on other routes tiny on Android Auto: after the size update the "Same time" cards, the speed limit signs on the route and the other map signs came out very small on the car screen. They now keep a readable size there (thanks to TheHairforce, #449)
+- Services list: "Motorway services" now finds only real motorway service areas (it showed a block of flats and nothing else), and a search for services with no route looks 30 km round you instead of 6 (thanks to d3stiny999, #446)
+- Charging stations list hidden behind the route panels: when adding a stop while choosing a route, the list now comes in front of the weather, stops and departure bars (thanks to Dixet, #454)
+
 ## 1.0.1041 — 26 Nov 2026
 
 ### New

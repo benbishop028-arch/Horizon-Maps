@@ -174,6 +174,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
     private var tripBar: android.widget.TextView? = null
     private var barDens = 1f
     private var barText = ""
+    private var barSize = 0f
     private var barAt = 0L
 
     override fun onStableAreaChanged(stableArea: Rect) {}
@@ -238,6 +239,9 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
             if (turn == null) trip
             else (arrowFor(turn.maneuver) + "  " + com.headunit.launcher.Geo.fmtDist(turn.dist, e?.imperial == true) + (if (turn.street.isNotBlank()) " · " + turn.street.take(28) else "")) + "\n" + trip
         } catch (x: Exception) { "" }
+        // (the writing's size from Android Auto's settings: it was a fixed 13, very small on some cars, joel941703-hash #451)
+        val size = when (prefs.i(PreferenceKeys.CLUSTER_TEXT, 0).coerceIn(-1, 2)) { -1 -> 14f; 1 -> 22f; 2 -> 28f; else -> 18f }
+        if (size != barSize) { barSize = size; tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_DIP, size) }
         if (t == barText) return
         barText = t
         if (t.isEmpty()) tv.visibility = android.view.View.GONE else { tv.text = t; tv.visibility = android.view.View.VISIBLE }

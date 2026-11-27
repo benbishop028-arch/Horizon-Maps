@@ -18,6 +18,9 @@ class HabitStore(private val prefs: Prefs) {
         } catch (e: Exception) { emptyList() }
     }
 
+    /** Forgets where you usually go (the "Usually around…" suggestion): part of clearing the history in Settings. */
+    fun clear() { prefs.put(PreferenceKeys.HABITS, "") }
+
     fun record(p: Place) {
         if (p.name == "Dropped pin" || p.name == L.t("Dropped pin") || p.name == "My car") return
         val list = (all() + Rec(p.name, p.sub, p.pos.lat, p.pos.lon, System.currentTimeMillis())).takeLast(250)

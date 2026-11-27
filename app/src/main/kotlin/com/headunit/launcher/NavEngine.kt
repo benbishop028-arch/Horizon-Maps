@@ -4067,7 +4067,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // chargers: how far off the route to look (Settings › Your electric car › Charger detour, #343): minutes of detour, 0 = as before
         val evDetour = if (kind == "charging" && alongRoute) prefs.i(PreferenceKeys.EV_DETOUR_MIN, 0) else 0
         val evOffM = if (evDetour > 0) (evDetour - 1) * 330.0 else 0.0
-        val radius = if (nearDest) 900 else if (kind == "parking") 2000 else if (kind == "toilets" || kind == "coffee") 3000 else 6000
+        // (services are miles apart: a 6 km circle found none, or only an apartment block, #446)
+        val radius = if (nearDest) 900 else if (kind == "parking") 2000 else if (kind == "toilets" || kind == "coffee") 3000 else if (kind == "services") 30_000 else 6000
         val fuelType = prefs.s(PreferenceKeys.FUEL_TYPE, "E10")
         // (Fuel Finder has no E85 prices, and its station list would show every station rather than ones selling it)
         val fuelLive = kind == "fuel" && FuelFinder.configured(prefs) && fuelType != "E85" && fuelType != "LPG"
@@ -4084,6 +4085,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                         val mine = pl?.services.orEmpty().filter { it.poi.kind == "services" && it.off > progress - 100.0 && it.side < 1200.0 }
                             .sortedBy { it.off }.map { Nearby(Place(it.poi.name, "", it.poi.pos), it.off - progress, "", detourMin = detour(it.side), ahead = true) }
                         if (mine.isNotEmpty()) return@async mine
+                    }
+                    // motorway services only: straight from OpenStreetMap's service areas (not the shops and flats the other services
+                    // searches bring back), along the route ahead or round you (#446)
+                    if (mwOnly) {
+                        if (alongRoute && rt != null) {
+                            val line = RouteExtras.line(rt, progress, progress + 120_000.0, 1500.0, 60)
+                            val raw = Overpass.nearbyAlong("services_mw", line, 1200)
+                            return@async raw.mapNotNull { n ->
+                                val pr = RouteExtras.project(rt, n.place.pos, 1500.0, progress) ?: return@mapNotNull null
+                                if (pr.first < progress - 100) null else n.copy(dist = pr.first - progress, detourMin = detour(pr.second), ahead = true)
+                            }
+                        }
+                        return@async Overpass.nearby("services_mw", centre, radius).map { it.copy(dist = Geo.dist(origin, it.place.pos)) }
                     }
                     if (fuelLive) {
                         try { FuelFinder.refresh(ctx, prefs) } catch (e: Exception) { /* use what is stored */ }
@@ -4456,7 +4470,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (nearbyKind == "services") loadNearby("services", false)
     }
     /** Not a rest stop, picnic or play area, lay-by or car park (by its name, for search services that don't say which it is). */
-    private val notServices = Regex("picnic|play|rest ?area|rest stop|lay-?by|toilet|viewpoint|car ?park|parking|rastplatz|parkplatz|aire de repos|aire de pique|area di sosta|área de descanso|rustplaats|parkeerplaats", RegexOption.IGNORE_CASE)
+    private val notServices = Regex("apartment|flats|residen|picnic|play|rest ?area|rest stop|lay-?by|toilet|viewpoint|car ?park|parking|rastplatz|parkplatz|aire de repos|aire de pique|area di sosta|área de descanso|rustplaats|parkeerplaats", RegexOption.IGNORE_CASE)
 
     /** A destination shared from another app: routes straight to coordinates, or puts text in the search box. */
     fun openShared(t: SharedTarget) {
@@ -4697,7 +4711,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         // instead of stopping and then jumping when the signal comes back
         val drOk = glideOnRoute && glideRoute != null && mSpeed > 3.0 && !previewing && simMode == 0
         val rawAge = (now - mAt) / 1000.0
-        val age = rawAge.coerceIn(0.0, if (drOk) 120.0 else 2.5)
+        // On Android Auto the arrow is drawn a little ahead of the last GPS fix: a fix is already about a second old when it arrives,
+        // and the picture takes a moment more to reach the car's screen, so it showed you slightly behind where you were as you went
+        // past a junction (yurividal, #450). Not while nearly stopped.
+        val lead = if (isCar && mSpeed > 4.0) 0.6 else 0.0
+        val age = (rawAge + lead).coerceIn(0.0, if (drOk) 120.0 else 2.5)
         val dr = drOk && rawAge > 3.0 && rawAge < 120.0
         if (dr != deadReckoning) deadReckoning = dr
         if (dr) camTargetAt = now

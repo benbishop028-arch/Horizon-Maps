@@ -272,6 +272,13 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     }
     val typingLocked by remember { derivedStateOf { (engine.fix?.speed ?: 0.0) > 3.0 && engine.prefs.b(PreferenceKeys.DRIVELOCK, false) } }
     val focus = remember { FocusRequester() }
+    // the search field has the keyboard: if it loses it just as results arrive while you're still typing, it's given back (#442)
+    var searchFocused by remember { mutableStateOf(false) }
+    var focusLostAt by remember { mutableStateOf(0L) }
+    LaunchedEffect(engine.results) {
+        if (engine.results.isNotEmpty() && q.isNotEmpty() && !searchFocused && !typingLocked && android.os.SystemClock.uptimeMillis() - focusLostAt < 1200L)
+            try { focus.requestFocus() } catch (_: Exception) { }
+    }
     LaunchedEffect(q) {
         if (q.length >= 3 && engine.prefs.b(PreferenceKeys.SEARCH_AS_TYPE, true)) { delay(700); engine.search(q, typed = true) } else if (q.isEmpty()) engine.results = emptyList()
     }
@@ -399,21 +406,25 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(if (routeSheet) Alignment.TopCenter else side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth(if (routeSheet) 1f else turnWK.coerceAtMost(1f)).sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp * turnWK))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
-            .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // (also while choosing a route with a list of places open: the route panels along the bottom covered the list, Dixet #454)
+            .zIndex(if (engine.itineraryOpen || (previewing && engine.nearbyKind != null)) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // every block slides and fades in and out instead of popping, so the screen changes feel like one piece
             if (compact) CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density * mainButtonScale, LocalDensity.current.fontScale)) {
                 ImmIcon(Icons.Rounded.Search, { searchOpen = true }, desc = L.t("Search"))
             }
             AnimatedVisibility(!routing && !previewing && !compact, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(160)) + androidx.compose.animation.shrinkVertically(tween(220))) {
               Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, showFold = !sheetMode)
+                ImmSearch(engine, q, { q = it }, typingLocked, focus, voice, showFold = !sheetMode,
+                    onFocus = { f -> searchFocused = f; if (!f) focusLostAt = android.os.SystemClock.uptimeMillis() })
                 // (moving the map tucks everything under the search bar away, apart from search results: [NavEngine.homeTucked])
                 val tucked = engine.homeTucked
                 if (!tucked && !sheetMode) engine.phoneDest?.let { pd -> PhoneDestCard(engine, pd) }
                 // a GPX track you're looking at (Settings › Places & trips › GPX tracks › Show)
                 if (!tucked) engine.shownTrack?.let { t -> TrackCard(engine, t) }
                 val showResults = engine.results.isNotEmpty()
-                AnimatedVisibility(showResults, enter = fadeIn(tween(180)) + androidx.compose.animation.expandVertically(tween(240)), exit = fadeOut(tween(120)) + androidx.compose.animation.shrinkVertically(tween(180))) {
+                // (fading in and out without growing: a list growing under the search field while you type moved things under the keyboard,
+                // and the field could lose it, desko1973 #442)
+                AnimatedVisibility(showResults, enter = fadeIn(tween(160)), exit = fadeOut(tween(120))) {
                     ImmResults(engine, q) { q = "" }
                 }
                 AnimatedVisibility(!sheetMode && !showResults && q.isEmpty() && engine.nearbyKind == null && !tucked, enter = fadeIn(tween(220)) + androidx.compose.animation.expandVertically(tween(260)), exit = fadeOut(tween(140)) + androidx.compose.animation.shrinkVertically(tween(200))) {
@@ -1329,10 +1340,11 @@ private fun PhoneBattery() {
         }
     }
     if (level < 0) return
-    val col = if (level <= 15 && !charging) Bad else c.text
-    Row(Modifier.panel(6.dp, RoundedCornerShape(50), c.surface).padding(horizontal = 12.dp, vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(if (charging) Icons.Rounded.BatteryChargingFull else Icons.Rounded.BatteryStd, null, tint = col, modifier = Modifier.size(18.dp))
-        Text("$level%", color = col, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
+    // a bigger number, and a colour that says something: green charging, amber under 30%, red under 15% (joel941703-hash, #451)
+    val col = if (charging) Good else if (level <= 15) Bad else if (level <= 30) Warn else c.text
+    Row(Modifier.panel(6.dp, RoundedCornerShape(50), c.surface).padding(horizontal = 14.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Icon(if (charging) Icons.Rounded.BatteryChargingFull else Icons.Rounded.BatteryStd, null, tint = col, modifier = Modifier.size(22.dp))
+        Text("$level%", color = col, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(start = 4.dp))
     }
 }
 
@@ -1648,13 +1660,25 @@ internal fun ImmTurnCard(
             // tap for the list of every turn on the route
             .clickable { engine.itineraryOpen = true },
     ) {
-        if (slim) Row(Modifier.padding(horizontal = 14.dp, vertical = 9.dp * padK), verticalAlignment = Alignment.CenterVertically) {
+        // the progress bar's space is always at the bottom of the card: with nothing else under the writing, the writing sat higher
+        // than the middle of the card, so the room above and below it is balanced (desko1973, #448)
+        val barSpace = 5.dp * padK.coerceAtMost(1f) + 4.dp + 9.dp * padK.coerceIn(0.5f, 1.2f)
+        if (slim) Row(Modifier.padding(start = 14.dp, end = 14.dp,
+            top = 9.dp * padK + (if (footer == null) barSpace / 2 else 0.dp), bottom = (9.dp * padK - (if (footer == null) barSpace / 2 else 0.dp)).coerceAtLeast(0.dp)), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size(34.dp * arrowK), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), sides = t.sides)
             RollText(Geo.fmtDist(t.dist, engine.imperial), Color.White, 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(start = 10.dp))
             RoadLine(if (t.landmark.isNotBlank()) t.landmark + (if (t.street.isNotBlank()) " · " + t.street else "") else t.street, engine.ukRoadBadges, 16.sp, Modifier.padding(start = 12.dp), ref = if (t.landmark.isBlank()) t.ref else "")
         } else {
         val thenIcon = t.thenManeuver != null && engine.prefs.s(PreferenceKeys.THEN_STYLE, "row") == "icon"
-        Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = (if (compact) 9.dp else 16.dp) * padK, bottom = (if (compact) 8.dp else 12.dp) * padK), verticalAlignment = Alignment.CenterVertically) {
+        // anything under the writing (the Then line, lanes, lane advice, hazards): if not, the room above and below is balanced
+        val laneOn = engine.prefs.b(PreferenceKeys.LANE_STRIP, true)
+        val heroOn = !car && laneOn && engine.prefs.s(PreferenceKeys.LANE_STYLE, "hero") == "hero" && (t.lanes?.lanes?.size ?: 0) >= 2 && t.dist < 900.0
+        val hasBelow = ((!compact || car) && t.thenManeuver != null && !thenIcon) || ((!compact || car) && laneOn && t.lanes != null) ||
+            (!compact && !heroOn && !(car && t.lanes != null && laneOn) && t.laneAdvice != null) || footer != null
+        val topB = (if (compact) 9.dp else 16.dp) * padK
+        val botB = (if (compact) 8.dp else 12.dp) * padK
+        val shift = if (hasBelow) 0.dp else ((botB + barSpace - topB) / 2).coerceIn(0.dp, botB)
+        Row(Modifier.padding(start = if (compact) 12.dp else 18.dp, end = if (compact) 12.dp else 16.dp, top = topB + shift, bottom = botB - shift), verticalAlignment = Alignment.CenterVertically) {
             ManeuverArrow(t.maneuver, Geo.maneuverAngle(t.maneuver), Modifier.size((if (compact) 42.dp else 60.dp) * arrowK), roundaboutExit = t.exit, roundaboutClockwise = engine.roundaboutClockwise, exitAngle = roundaboutTurn(t.rbIn, t.rbOut), exitNumber = t.exit, sides = t.sides)
             Column(Modifier.padding(start = if (compact) 9.dp else 16.dp).weight(1f)) {
                 // at traffic lights or a stop sign: that in big ("At the lights"), and the distance moves down beside the road name
@@ -2098,7 +2122,7 @@ private fun HomeSheet(engine: NavEngine, media: Boolean, screenH: Dp, onOffline:
 }
 
 @Composable
-private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: (() -> Unit)? = null, showFold: Boolean = true) { TextSides {
+private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locked: Boolean, focus: FocusRequester, voice: () -> Unit, onSettings: (() -> Unit)? = null, showFold: Boolean = true, onFocus: (Boolean) -> Unit = {}) { TextSides {
     val c = LocalVw.current
     val shape = RoundedCornerShape(30.dp)
     Box(Modifier.fillMaxWidth().height(60.dp).panel(10.dp, shape, c.surface)) {
@@ -2137,7 +2161,7 @@ private fun ImmSearch(engine: NavEngine, q: String, onQ: (String) -> Unit, locke
                 focusedPlaceholderColor = c.sub, unfocusedPlaceholderColor = c.sub, disabledPlaceholderColor = c.sub,
                 cursorColor = c.accent,
             ),
-            modifier = Modifier.fillMaxSize().focusRequester(focus).onFocusChanged { if (it.isFocused) engine.homeTucked = false },
+            modifier = Modifier.fillMaxSize().focusRequester(focus).onFocusChanged { if (it.isFocused) engine.homeTucked = false; onFocus(it.isFocused) },
         )
     }
 } }
