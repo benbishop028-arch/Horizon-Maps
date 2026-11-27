@@ -1136,7 +1136,7 @@ private fun PlacesSection(engine: NavEngine) {
     ShortcutsGroup(engine)
     SGroup(L.t("History"), footer = L.t("Swipe a place sideways on the Saved & recent list to take it off.")) {
         SItem(L.t("Recent destinations"), L.t("{0} recent, plus places remembered for searching without signal", pl.recents().size)) {
-            SButton(L.t("Clear"), danger = true) { pl.clearHistory(); engine.toast(L.t("History cleared"), 2000) }
+            SButton(L.t("Clear"), danger = true) { pl.clearHistory(); engine.habits.clear(); engine.toast(L.t("History cleared"), 2000) }
         }
     }
     TripsGroup(engine)
