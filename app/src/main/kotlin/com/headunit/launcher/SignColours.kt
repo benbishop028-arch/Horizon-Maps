@@ -15,11 +15,13 @@ internal object SignColours {
     /** Blue motorways; [first] the main roads' colour, null where those signs are white or yellow. */
     private val blueMotorways: Map<String, Pair<Long, Long>?> = mapOf(
         "GB" to ukGreen, "IE" to ukGreen, "FR" to ukGreen,
+        // (Norway, Poland, Austria, Hungary and the Baltic states: blue motorways, green main roads, desko1973 #431)
+        "NO" to ukGreen, "PL" to ukGreen, "AT" to ukGreen, "HU" to ukGreen, "BY" to ukGreen, "LV" to ukGreen, "EE" to ukGreen,
         "DE" to null, "NL" to null, "BE" to null, "LU" to null, "ES" to null, "PT" to null,
     )
 
     /** Green motorways, blue main roads. */
-    private val greenMotorways = setOf("IT", "CH", "SE", "NO", "DK", "FI", "PL", "CZ", "SK", "HU", "SI", "HR", "RO", "BG", "GR")
+    private val greenMotorways = setOf("SE", "FI", "RU", "LT", "UA", "RO", "CZ", "SK", "CH", "IT", "SI", "HR", "BA", "AL", "GR", "BG", "TR")
 
     /** The card's two colours (top, deeper) as ARGB, or null to keep the usual colour. */
     fun card(country: String, motorway: Boolean): Pair<Long, Long>? {

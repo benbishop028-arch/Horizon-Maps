@@ -3271,10 +3271,11 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     /**
      * [uiK] for sizing signs and cards on the map. On the car screen the app's own cards are made small on purpose (a small
-     * screen seen from a distance), which left the signs and the cards on other routes tiny there (TheHairforce, #449): the
-     * map's signs keep to the size they have on a phone.
+     * screen seen from a distance), which left the signs and the cards on other routes tiny there (TheHairforce, #449): there the
+     * map's signs are twice that (about a phone's size at 100%), growing with Overall size and Text size as the cards do, and never
+     * under 0.9 (joebGer19, #455: the other-route cards didn't grow with Overall size).
      */
-    private val kEff: Double get() = if (onCar) maxOf(uiK, 1.0) else uiK
+    private val kEff: Double get() = if (onCar) maxOf(uiK * 2.0, 0.9) else uiK
 
     /**
      * The size for a sign on the map drawn from picture [id] (or [fallbackW] map units wide when it isn't added yet): [baseUi]

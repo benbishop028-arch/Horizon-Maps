@@ -13,6 +13,8 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Search box staying put: when search results appear while you type, the field and keyboard stay where they are (thanks to desko1973, #442)
 
 ### Fixed
+- Turn card colours by country: Match road signs had them the wrong way round for Norway, Poland and Hungary (motorways are blue and main roads green there, as in Britain, Germany, France and Spain) and used the wrong colours in some other countries. The table now follows the list of countries sent in (thanks to desko1973, #431)
+- Other-route cards and signs on Android Auto grow with Overall size: at 180% the "9 min slower" cards stayed tiny (thanks to joebGer19, #455)
 - Clearing recent destinations also clears the places the app has learned you usually go to, which were still suggested ("Usually around …") after clearing (thanks to Dotancom, #457)
 - Turn card off-centre: with no "Then" line or lanes under it, the arrow and writing sat higher than the middle of the card (the progress bar's room was all below them); they're now centred (thanks to desko1973, #448)
 - Signs and the cards on other routes tiny on Android Auto: after the size update the "Same time" cards, the speed limit signs on the route and the other map signs came out very small on the car screen. They now keep a readable size there (thanks to TheHairforce, #449)
