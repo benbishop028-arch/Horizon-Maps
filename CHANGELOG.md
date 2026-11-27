@@ -4,8 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
-
+## 1.0.1046 — 27 Nov 2026
 
 ### Improved
 - Choosing a route shows only the speed cameras on the route, not every camera round you
