@@ -4,6 +4,17 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+
+
+### Improved
+- Choosing a route shows only the speed cameras on the route, not every camera round you
+- Android Auto full-screen: a tap on the map now sends the screen to the car again, to bring Android Auto's own buttons back (they stayed hidden on some cars; please tell me if it helps) (thanks to joebGer19, #455)
+
+### Fixed
+- Turn card colours by country: Match road signs had them the wrong way round for Norway, Poland and Hungary (motorways are blue and main roads green there, as in Britain, Germany, France and Spain) and used the wrong colours in some other countries. The table now follows the list of countries sent in (thanks to desko1973, #431)
+- Other-route cards and signs on Android Auto grow with Overall size: at 180% the "9 min slower" cards stayed tiny (thanks to joebGer19, #455)
+
 ## 1.0.1044 — 27 Nov 2026
 
 ### Improved

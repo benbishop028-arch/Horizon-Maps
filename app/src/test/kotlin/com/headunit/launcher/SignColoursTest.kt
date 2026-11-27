@@ -10,9 +10,17 @@ class SignColoursTest {
         assertEquals(0xFF00703C, SignColours.card("gb", false)?.first)
     }
 
-    @Test fun nordicMotorwaysGreenOtherRoadsBlue() {
-        assertEquals(0xFF007A3D, SignColours.card("NO", true)?.first)
+    @Test fun swedenMotorwaysGreenOtherRoadsBlue() {
+        assertEquals(0xFF007A3D, SignColours.card("SE", true)?.first)
         assertEquals(0xFF0B4EA2, SignColours.card("SE", false)?.first)
+        assertEquals(0xFF007A3D, SignColours.card("CZ", true)?.first)
+    }
+
+    @Test fun norwayAndPolandMotorwaysBlueOtherRoadsGreen() {
+        assertEquals(0xFF0065B3, SignColours.card("NO", true)?.first)
+        assertEquals(0xFF00703C, SignColours.card("NO", false)?.first)
+        assertEquals(0xFF0065B3, SignColours.card("PL", true)?.first)
+        assertEquals(0xFF00703C, SignColours.card("PL", false)?.first)
     }
 
     @Test fun lightSignsAndUnknownCountriesKeepTheUsualColour() {
