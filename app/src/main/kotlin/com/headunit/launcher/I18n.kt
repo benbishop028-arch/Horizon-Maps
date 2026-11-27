@@ -811,6 +811,7 @@ object L {
         for (code in m.keys) addOwn(m, code, I18nNoToll.rows(code))
         for (code in m.keys) addOwn(m, code, I18nShowLimits.rows(code))
         for (code in m.keys) addOwn(m, code, I18nClusterText.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nReportUpdate.rows(code))
         // (Macedonian's share of the per-feature files above, kept together, #432)
         addOwn(m, "mk", I18nMkExtra.rows())
         for (code in m.keys) addOwn(m, code, I18nChargerDetour.rows(code))

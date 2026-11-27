@@ -1866,6 +1866,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
             if (lastPlanTiming.isNotBlank()) appendLine("Last route planned in: $lastPlanTiming")
+            if (limitInfo.isNotBlank()) appendLine("Speed limit last shown: $limitInfo")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { com.headunit.launcher.car.CarCardLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Car search card closed:"); append(it) } } catch (e: Throwable) { }
             try { SoundLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Music lowered and given back:"); append(it) } } catch (e: Throwable) { }
@@ -3668,6 +3669,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun lookUpLimit(p: LL, hd: Double, routeHere: Boolean): Overpass.Limit? {
         // the country you're in (from where you are), not the head unit's language setting, which is often US English anywhere
         val osm = Overpass.speedLimit(p, hd, if (Overpass.countryAt(p) == "GB") "GB" else detectedCountry.ifBlank { Overpass.countryAt(p) })
+        // where the limit shown comes from, for the problem report (#447)
+        limSrc = if (Overpass.lastLocal) "the downloaded area" else "OpenStreetMap"
         // your last few positions, for Mapbox to match to its roads
         synchronized(mbTrail) {
             if (mbTrail.isEmpty() || Geo.dist(mbTrail.last(), p) > 15.0) { mbTrail.add(p); while (mbTrail.size > 5) mbTrail.removeAt(0) }
@@ -3690,6 +3693,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             }
             val v = (if (osm == null || mbWay == way) mbLim else null) ?: return osm
             if (v <= 0.0) return osm
+            limSrc = "Mapbox"
             return Overpass.Limit(v, false, osm?.road ?: "", osm?.wayId ?: 0L, osm?.names ?: emptyList(), true)
         }
         val tNow = System.currentTimeMillis()
@@ -3703,7 +3707,14 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // TomTom's limit whenever it has one (it's the more complete and up-to-date source); OpenStreetMap is the backup
         val tt = (if (osm == null || ttWay == way) ttLim else null) ?: return osm
+        limSrc = "TomTom"
         return Overpass.Limit(tt.ms, false, osm?.road ?: "", osm?.wayId ?: 0L, osm?.names ?: emptyList(), true)
+    }
+    @Volatile private var limSrc = ""
+    /** What the speed limit sign last showed and where it came from, for the problem report (no road names or places). */
+    private var limitInfo = ""
+    private fun noteLimit(ms: Double, src: String, estimated: Boolean) {
+        limitInfo = "%d %s from %s%s".format(Math.round(ms * (if (imperial) 2.23694 else 3.6)), if (imperial) "mph" else "km/h", src, if (estimated) " (estimated from the road type)" else "")
     }
 
     /**
@@ -3722,8 +3733,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (pendHits < 2) return
             }
             pendHits = 0; pendLimit = -2.0
-            if (v <= 0.0) { speedLimit = null; limitEstimated = false }
-            else { speedLimit = v; limitEstimated = r.estimated }
+            if (v <= 0.0) { speedLimit = null; limitEstimated = false; limitInfo = "none shown (" + limSrc + " has no limit for this road)" }
+            else { speedLimit = v; limitEstimated = r.estimated; noteLimit(v, limSrc, r.estimated) }
         }
         // A successful live road lookup takes ownership from the route sections, so later route gaps won't erase it.
         routeLimitShown = false
@@ -3768,7 +3779,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         showNextLimit(r, at, nx)
         routeLimitAt = System.currentTimeMillis(); routeLimitShown = true
         pendHits = 0; pendLimit = -2.0
-        if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false }
+        if (speedLimit != hit.ms || limitEstimated) { speedLimit = hit.ms; limitEstimated = false; noteLimit(hit.ms, "the route (" + r.from.ifBlank { "offline" } + ")", false) }
         checkLimitChange(hit.ms, false)
         limitOkAt = routeLimitAt; limitOkPos = p.pos
     }
