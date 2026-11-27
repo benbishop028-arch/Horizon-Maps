@@ -1490,6 +1490,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Volatile private var carLocationAt = 0L
     fun onCarLocation(location: Location) {
         if (!isCar) return
+        // Settings › Android Auto › Use the car's GPS: off, only the phone's GPS is used (some cars give a slow feed or a wrong
+        // direction, the 3D car turning sideways, AlixzanderDB)
+        if (!prefs.b(PreferenceKeys.CAR_GPS, true)) return
         carLocationAt = System.currentTimeMillis()
         val copy = Location(location).apply { provider = LocationManager.GPS_PROVIDER }
         handleLocation(copy, false)

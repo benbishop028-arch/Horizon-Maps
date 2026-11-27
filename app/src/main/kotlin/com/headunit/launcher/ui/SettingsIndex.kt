@@ -61,6 +61,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Speed camera size", "Make the red camera badge on the map bigger or smaller", "On your route", 3),
     SettingRef("Limit sign size on the route", "Make the speed limit signs on your route bigger or smaller", "On your route", 3),
     SettingRef("Update automatically", "Offline map data and town names update by themselves, on Wi-Fi or mobile data", "Downloaded areas", 12),
+    SettingRef("Use the car's GPS", "Off uses only the phone's GPS for your position and direction. Try off if the arrow turns sideways or lags behind", "Location", 14),
     SettingRef("Phone battery on the car screen", "The phone's battery level beside the speedometer on Android Auto", "Android Auto", 14),
     SettingRef("Hazard sign size", "Make the roadworks, closure and hazard signs on the map bigger or smaller", "On your route", 3),
     SettingRef("Zebra crossings", "Painted on the road with beacons, on your route and round you in towns", "On your route", 3),

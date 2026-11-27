@@ -1492,6 +1492,9 @@ private fun AndroidAutoSection(prefs: Prefs) {
     run {
         var micOk by remember { mutableStateOf(ctx.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) }
         val askMic = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> micOk = granted }
+        SGroup(L.t("Location")) {
+            SToggle(prefs, L.t("Use the car's GPS"), PreferenceKeys.CAR_GPS, true, L.t("Off uses only the phone's GPS for your position and direction. Try off if the arrow turns sideways or lags behind"))
+        }
         SGroup(L.t("Phone battery")) {
             SToggle(prefs, L.t("Phone battery on the car screen"), PreferenceKeys.CAR_PHONE_BATTERY, false, L.t("The phone's battery level beside the speedometer"))
         }

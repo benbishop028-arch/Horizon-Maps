@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
 
 
 ### Improved

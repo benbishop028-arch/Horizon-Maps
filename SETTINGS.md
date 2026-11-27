@@ -338,6 +338,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Search bar and places on the map**: off for a car with a rotary knob (Search, Home and Work move under Places ★). **Hide them after**: they come back when you touch the screen.
 - **Sound button on the map**: sound on / alerts only / muted, when not navigating.
 - **Microphone**: voice search on the car screen.
+- **Use the car's GPS** (on by default; also in the car's own settings): off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction.
 - **Phone battery on the car screen**: your phone's battery level in a small badge beside the speedometer. Off unless switched on.
 - **Car data** › **Speed, battery and position**: lets Android Auto pass on the car's own speed, battery level and position. Without it, the app uses GPS and the battery % you set.
 
