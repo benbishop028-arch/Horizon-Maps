@@ -1776,10 +1776,28 @@ private fun FeedbackDialog(engine: NavEngine, onClose: () -> Unit) {
     val c = LocalVw.current
     val ctx = LocalContext.current
     var note by remember { mutableStateOf("") }
+    // a newer version than this one? Reports from old versions are often about things already fixed, so it's offered first. The GitHub
+    // build can look (the Play edition can't tell, so it only reminds)
+    var newer by remember { mutableStateOf(engine.appUpdate) }
+    var checked by remember { mutableStateOf(engine.appUpdate != null || !com.headunit.launcher.Updater.enabled) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (!checked) {
+            newer = try { withContext(Dispatchers.IO) { com.headunit.launcher.Updater.check() } } catch (e: Exception) { null }
+            checked = true
+        }
+    }
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose) {
         // (scrolls: on a short, wide head unit screen the buttons were below the bottom of the screen and couldn't be reached, bluelions25 #329)
         Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().clip(RoundedCornerShape(26.dp)).background(c.panel).verticalScroll(rememberScrollState()).padding(22.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(L.t("Feedback or a problem"), color = c.text, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            val nv = newer
+            if (nv != null) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Warn.copy(alpha = 0.16f)).padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(L.t("A newer version ({0}) is available", nv.version), color = c.text, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(L.t("Please update first and see if the problem is still there before sending a report. It may already be fixed."), color = c.text, fontSize = 14.sp)
+                if (engine.updateStatus.isNotBlank()) Text(engine.updateStatus, color = c.sub, fontSize = 13.sp)
+                else Row { SButton(L.t("Update now"), primary = true) { if (engine.appUpdate == null) engine.appUpdate = nv; engine.installAppUpdate() } }
+            } else if (!com.headunit.launcher.Updater.enabled) Text(
+                L.t("Before sending, check Google Play for a newer version and see if the problem is still there."), color = c.sub, fontSize = 13.sp)
             Text(L.t("What happened, or what would you like? Where you were and what you tapped helps."), color = c.sub, fontSize = 14.sp)
             SField(note, { note = it.take(600) }, placeholder = L.t("e.g. Rerouted the wrong way near Southampton"), width = 516.dp, fill = true)
             Text(L.t("Sent with it: the app version, your head unit, the main settings, your downloaded areas and the last crash (no places or API keys)."), color = c.sub, fontSize = 12.sp)
@@ -1790,7 +1808,7 @@ private fun FeedbackDialog(engine: NavEngine, onClose: () -> Unit) {
                     cm?.setPrimaryClip(android.content.ClipData.newPlainText(L.t("Horizon Nav report"), engine.feedbackReport(note)))
                     engine.toast(L.t("Report copied: paste it into a message or a Reddit comment"), 3500)
                 }
-                SButton(L.t("Send on GitHub"), primary = true) {
+                SButton(if (newer != null) L.t("Send anyway") else L.t("Send on GitHub"), primary = newer == null) {
                     val title = note.lineSequence().firstOrNull()?.take(80)?.ifBlank { null } ?: L.t("Report from Horizon Nav {0}", com.headunit.launcher.BuildConfig.VERSION_NAME)
                     // a link has a length limit, so a very long report is cut down (Copy always has all of it)
                     val body = engine.feedbackReport(note).take(5000)

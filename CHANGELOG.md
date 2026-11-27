@@ -7,6 +7,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 
 ### Improved
+- Sending a report: if a newer version of the app is out, the Feedback screen says so and offers Update now first, with a reminder to check the problem is still there before sending (Send anyway is still there). On Google Play, it reminds you to check for a newer version. The problem report also says where the last speed limit came from (the route, TomTom, Mapbox, OpenStreetMap or a downloaded area), to help with wrong limits
 - Driver's display: its writing is bigger by default and there's a Driver's display text size setting (Android Auto settings: Smaller, Normal, Larger, Largest). The phone battery badge on the car screen has a bigger number and colours: green while charging, amber under 30%, red under 15%. Junction zoom is now in the Android Auto settings too (thanks to joel941703-hash, #451)
 - Android Auto position: the arrow and the distance to the next turn run about half a second ahead of the last GPS fix, so you're no longer drawn slightly behind where you are as you pass a junction (thanks to yurividal, #450)
 - Search box staying put: when search results appear while you type, the field and keyboard stay where they are (thanks to desko1973, #442)
