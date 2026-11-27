@@ -13,6 +13,9 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)
 
 ### Fixed
+- Signs and the cards on other routes tiny on Android Auto: after the size update the "Same time" cards, the speed limit signs on the route and the other map signs came out very small on the car screen. They now keep a readable size there (thanks to TheHairforce, #449)
+- Services list: "Motorway services" now finds only real motorway service areas (it showed a block of flats and nothing else), and a search for services with no route looks 30 km round you instead of 6 (thanks to d3stiny999, #446)
+- Charging stations list hidden behind the route panels: when adding a stop while choosing a route, the list now comes in front of the weather, stops and departure bars (thanks to Dixet, #454)
 
 ## 1.0.1038 — 26 Nov 2026
 

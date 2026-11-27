@@ -558,12 +558,14 @@ object Overpass {
         "coffee" -> "[\"amenity\"=\"cafe\"]"
         "toilets" -> "[\"amenity\"=\"toilets\"]"
         "services" -> "[\"highway\"~\"^(services|rest_area)$\"]"
+        // motorway service areas only, without rest areas and lay-bys (the Motorway services filter, #446)
+        "services_mw" -> "[\"highway\"=\"services\"]"
         else -> "[\"amenity\"=\"parking\"]"
     }
 
     fun kindLabel(kind: String): String = when (kind) {
         "fuel" -> "Fuel station"; "fuel_e85" -> "E85 station"; "fuel_lpg" -> "LPG station"; "charging" -> "Charging point"; "food" -> "Food"; "coffee" -> "Coffee"
-        "toilets" -> "Toilets"; "services" -> "Services"; "lorrypark" -> "Lorry park"; else -> "Car park"
+        "toilets" -> "Toilets"; "services", "services_mw" -> "Services"; "lorrypark" -> "Lorry park"; else -> "Car park"
     }
 
     /** kind: "fuel", "charging", "parking", "food", "coffee", "toilets" or "services". */

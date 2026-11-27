@@ -399,7 +399,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         if (engine.chain == null && !engine.chainBusy) Column(Modifier.align(if (routeSheet) Alignment.TopCenter else side(Alignment.TopStart)).padding(16.dp).then(if (compact) Modifier else if (narrow) Modifier.fillMaxWidth(if (routeSheet) 1f else turnWK.coerceAtMost(1f)).sides(end = if (railBelow) 0.dp else 52.dp * mainButtonScale + 10.dp) else Modifier.width(380.dp * turnWK))
             .onGloballyPositioned { report(0, it.boundsInParent()) }
             // the turn list opens over the trip card below it
-            .zIndex(if (engine.itineraryOpen) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // (also while choosing a route with a list of places open: the route panels along the bottom covered the list, Dixet #454)
+            .zIndex(if (engine.itineraryOpen || (previewing && engine.nearbyKind != null)) 2f else 0f), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             // every block slides and fades in and out instead of popping, so the screen changes feel like one piece
             if (compact) CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density * mainButtonScale, LocalDensity.current.fontScale)) {
                 ImmIcon(Icons.Rounded.Search, { searchOpen = true }, desc = L.t("Search"))
