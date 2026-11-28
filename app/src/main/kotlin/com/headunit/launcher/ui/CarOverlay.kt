@@ -114,6 +114,7 @@ fun CarOverlay(engine: NavEngine, area: State<android.graphics.Rect?>, dark: Sta
     // the signs on the car's map grow with the car screen as its cards and text do
     val uiPx = base.density * scale.value * user
     LaunchedEffect(uiPx) { engine.map.setUiPx(uiPx) }
+    LaunchedEffect(user) { engine.map.setCarUser(user.toDouble()) }
     CompositionLocalProvider(LocalDensity provides Density(base.density * scale.value * user, base.fontScale * textScale)) {
         // dark cards when the car says it's night, or when the map's light has gone dim (dusk) before the car switches
         // (not with "Always day" picked in the car's settings)
