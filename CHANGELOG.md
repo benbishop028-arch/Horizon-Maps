@@ -4,6 +4,17 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+- Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
+
+### Improved
+- Lighter on slow head units: standing still (at a red light or parked with a route), the route isn't re-drawn every second, the driven line isn't re-sent, the flowing light and blinking lane arrows pause, and it no longer re-plans over and over when parked beside the road. In the background the map isn't asked to draw at all and the app wakes up ten times a second instead of at every screen refresh. Driving with the app in front is unchanged (thanks to stingone, #463)
+- Search finds places abroad: when a search in your own country finds nothing (or only a couple of places once you've finished typing), it's asked again everywhere, so a city in another country is found without changing the Search country setting (thanks to hvdwolf, #469)
+- Signs and cards on the Android Auto map are sized from the car screen itself (the same share of it on every car screen) and grow with Overall size: they were huge on some screens and tiny on others (thanks to desko1973, #470)
+
+### Fixed
+- Wrong school warnings: a school is only warned about when it's close to your road (about 60 m), not when it's 90 m off, such as one near a roundabout at the end of the street (thanks to joel941703-hash, #462)
+
 ## 1.0.1046 — 27 Nov 2026
 
 ### Improved

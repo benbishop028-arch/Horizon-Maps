@@ -336,6 +336,8 @@ internal object PreferenceKeys {
     const val LAMPS_INVERT = "lampsinvert"
     /** How close the map on the driver's display is: -2 (furthest out) to 1 (closest), 0 normal. */
     const val CLUSTER_ZOOM = "clusterzoom"
+    /** Android Auto: use the car's own GPS (position and direction) when it gives one; off uses only the phone's (on by default). */
+    const val CAR_GPS = "cargps"
     /** The writing on the driver's display (the turn, time left, distance and arrival): -1 smaller, 0 normal (bigger than it was), 1 larger, 2 largest. */
     const val CLUSTER_TEXT = "clustertext"
     /** The speed camera badge's size on the map, in percent (50 to 350, 100 as it always was). */

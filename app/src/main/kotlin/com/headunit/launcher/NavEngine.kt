@@ -75,6 +75,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
     /** The flat traffic view after being stopped a while is showing. */
     var stoppedOverview by mutableStateOf(false)
+    /** The stop (its start time) the overview was last asked for, so it's asked once for each stop. */
+    private var stopKickFor = 0L
     /** Circling the car while stopped (Settings › Light & 3D › Circle the car when stopped, #376). */
     @Volatile private var orbiting = false
     /** Degrees a second the camera circles at (+ clockwise), read when it starts. */
@@ -751,8 +753,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 PerfStats.on = prefs.b(PreferenceKeys.PERFORMANCE_METER, false)
                 if (PerfStats.on) perfSample() else if (perfLine.isNotEmpty()) perfLine = ""
                 // (the traffic view when stopped shouldn't depend on the GPS still sending positions while you're stationary)
-                if (stoppedSince > 0L && !stoppedOverview && following && android.os.SystemClock.elapsedRealtime() - stoppedSince > 30_500L &&
-                    prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true)) fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
+                // (once for each stop: where the overview wasn't allowed (near a turn or the end, after the map was moved) this repeated
+                // every second for as long as you stood still, re-drawing the whole route each time, stingone #463)
+                if (stoppedSince > 0L && stopKickFor != stoppedSince && !stoppedOverview && following && android.os.SystemClock.elapsedRealtime() - stoppedSince > 30_500L &&
+                    prefs.b(PreferenceKeys.STOPPED_OVERVIEW, true)) { stopKickFor = stoppedSince; fix?.let { try { onPosition(it, true) } catch (e: Exception) { } } }
                 // (the circling camera, likewise: to start it, and to keep it going, as the camera stops after 4 s without a new target)
                 else if (stoppedSince > 0L && following && prefs.b(PreferenceKeys.ORBIT, false) &&
                     (orbiting || android.os.SystemClock.elapsedRealtime() - stoppedSince > orbitAfterMs() + 500L)) fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
@@ -1490,6 +1494,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     @Volatile private var carLocationAt = 0L
     fun onCarLocation(location: Location) {
         if (!isCar) return
+        // Settings › Android Auto › Use the car's GPS: off, only the phone's GPS is used (some cars give a slow feed or a wrong
+        // direction, the 3D car turning sideways, AlixzanderDB)
+        if (!prefs.b(PreferenceKeys.CAR_GPS, true)) return
         carLocationAt = System.currentTimeMillis()
         val copy = Location(location).apply { provider = LocationManager.GPS_PROVIDER }
         handleLocation(copy, false)
@@ -2307,7 +2314,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                 if (local.size >= (if (typed) 3 else 5)) { results = postcodeFirst(postcodeJob(q), rankResults(q, near, emptyList(), local)); return@launch }
                 if (local.isNotEmpty()) results = rankResults(q, near, emptyList(), local)
                 val pcJob = postcodeJob(q)
-                val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed, gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+                val net = widenSearch(try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, typed, gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }, q, near, typed, gen)
                 val merged = postcodeFirst(pcJob, rankResults(q, near, net ?: emptyList(), local))
                 results = merged
                 prefetchStreets(merged)
@@ -2317,7 +2324,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // the online search and the saved / downloaded places run at the same time, and their results are merged
             val localJob = async { offlineMatches(q, near) }
             val pcJob = postcodeJob(q)
-            val net = try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, gen = gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }
+            val net = widenSearch(try { withContext(Dispatchers.IO) { netGeocode(countryCode(), q, near, gen = gen) } } catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { null }, q, near, typed, gen)
             // the online results are shown straight away if the downloaded lists are still being searched; those are merged in after
             var local = kotlinx.coroutines.withTimeoutOrNull(500L) { localJob.await() }
             if (local == null) {
@@ -2331,6 +2338,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             if (merged.isEmpty()) toast(if (net == null) L.t("Search failed: weak or no signal") else L.t("No matches. Try adding a town or postcode."), 3500)
             else if (net == null) toast(L.t("Weak signal: showing saved places and offline towns"), 3500)
         }
+    }
+
+    /**
+     * Search is limited to the country you're in (Settings › Search country). When that finds nothing (or only a couple of places
+     * once you've finished typing), it's asked again everywhere, so a city abroad is found without changing the setting
+     * (hvdwolf, #469). While you're still typing, only when nothing at all came back, so typing doesn't double the requests.
+     */
+    private suspend fun widenSearch(net: List<Place>?, q: String, near: LL?, typed: Boolean, gen: Long): List<Place>? {
+        if (net == null || countryCode().isBlank()) return net
+        if (!(net.isEmpty() && q.trim().length >= 4) && (typed || net.size >= 3)) return net
+        val more = try { withContext(Dispatchers.IO) { netGeocode("", q, near, typed, gen) } }
+            catch (e: kotlinx.coroutines.CancellationException) { throw e } catch (e: Exception) { return net }
+        return net + more.filter { m -> net.none { n -> n.name.equals(m.name, true) && Geo.dist(n.pos, m.pos) < 80.0 } }
     }
 
     /** A search that looks like a UK postcode also looks the postcode itself up (at the same time as the other searches). */
@@ -4584,7 +4604,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     if (PerfStats.ticks != before) { val d = System.nanoTime() - t0; PerfStats.tickNsSum += d; PerfStats.tickNsMax = maxOf(PerfStats.tickNsMax, d) }
                 }
                 lastFrame = frameTimeNanos
-                ch.postFrameCallback(this)
+                // (behind another app: ten times a second is plenty, instead of at every screen refresh, stingone #463)
+                if (appVisible) ch.postFrameCallback(this) else ch.postFrameCallbackDelayed(this, 100L)
             }
         })
     }
@@ -4706,13 +4727,16 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val fps = if (appVisible) glideFps else 5
         // update on a steady beat of whole screen frames (every frame at 60, every 2nd at 30, ...), so the map draws at perfectly even
         // intervals; skipping by elapsed time drifted against the screen's own timing and gave an uneven, slightly jumpy motion
-        if (frameNs - vsyncLastNs in 1..100_000_000L) vsyncNs = vsyncNs * 0.9 + (frameNs - vsyncLastNs) * 0.1
+        if (appVisible && frameNs - vsyncLastNs in 1..100_000_000L) vsyncNs = vsyncNs * 0.9 + (frameNs - vsyncLastNs) * 0.1
         vsyncLastNs = frameNs
         val every = Math.round(1e9 / fps / vsyncNs).toInt().coerceIn(1, 4)
-        if (++frameCount % every != 0L) return
+        if (++frameCount % (if (appVisible) every else 1) != 0L) return
         PerfStats.ticks++
         // the flowing light only while you're driving the route (in the overview it kept the map redrawing while tiles loaded)
-        if (following && !previewing && appVisible) map.flowFrame()
+        // (standing still, the flowing light and the blinking pause too: they kept the map drawing at every red light, stingone #463)
+        val standing = gSpeed < 0.3 && mSpeed < 0.5
+        map.setStill(standing)
+        if (following && !previewing && appVisible && !standing) map.flowFrame()
         autoPace(frameNs)
         val now = android.os.SystemClock.elapsedRealtime()
         val dt = if (gLastNs == 0L) 0.016 else ((frameNs - gLastNs) / 1e9).coerceIn(0.002, 0.1)
@@ -4776,9 +4800,11 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             lookB = gHead
         }
         val gp = gPos ?: return
-        map.setMe(gp, gHead, 0)
+        // (with the app behind another one nobody sees the map: it isn't asked to draw, which kept the GPU busy for nothing in the
+        // background, stingone #463. The first frame back in front catches up)
+        if (appVisible) map.setMe(gp, gHead, 0)
         if (glideOnRoute && r != null && !previewing) {
-            if (now - gDoneAt >= (if (following) 350L else 1500L)) { gDoneAt = now; updateDone(r, gProg) }
+            if (appVisible && now - gDoneAt >= (if (following) 350L else 1500L)) { gDoneAt = now; updateDone(r, gProg) }
         } else if (doneShown) { map.setDone(emptyList()); doneShown = false }
 
         // guidance (distance to the next turn, lane info, spoken prompts) follows the glided position, a few times a second
@@ -4820,6 +4846,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         val maxStep = (if (camCatchUp) 140.0 else 32.0 * max(1, simMode)) * dt
         camB = ((camB + step.coerceIn(-maxStep, maxStep)) % 360.0 + 360.0) % 360.0
         }
+        if (!appVisible) { lastCamSet = null; return }
         // nothing has moved (parked, or waiting at lights): don't ask the map to draw the same picture again,
         // which lets it sit idle instead of redrawing every frame (a big saving in heat and battery)
         val lc = lastCamSet
@@ -5045,7 +5072,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (newFix && trackPassed < trackVia.size) {
             for (i in trackPassed until min(trackVia.size, trackPassed + 3)) if (Geo.dist(trackVia[i], p.pos) < 150.0) trackPassed = i + 1
         }
-        if (gpsReliableForReroute && (s.dist > offLim || jump)) {
+        // (not while standing still off the road, in a driveway or a car park: the new route starts on the road, you're still off it,
+        // and it re-planned about every 5 s for as long as you stood there, stingone #463)
+        if (gpsReliableForReroute && (s.dist > offLim || jump) && (jump || p.speed >= 1.0)) {
             if (newFix) {
                 // well off the route counts double, so a wrong turn is noticed in about two seconds instead of four or more
                 offCount += NavigationPolicy.offRouteStrikeCount(jump, s.dist, offLim)
@@ -7985,7 +8014,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     chime(android.media.ToneGenerator.TONE_PROP_ACK)
                     raiseAlert("bump", L.t("Speed bump ahead"), 5000)
                 }
-            } else if (prefs.b(PreferenceKeys.SCHOOLS, true) && ahead < 300.0 && RouteExtras.schoolTime(now) && hzAlerted.add(key)) {
+            // (only a school close to the road: one found within 90 m, measured to the middle of its grounds, was warned about too, with
+            // the school well away from the street, joel941703-hash #462)
+            } else if (prefs.b(PreferenceKeys.SCHOOLS, true) && ahead < 300.0 && h.side < 60.0 && RouteExtras.schoolTime(now) && hzAlerted.add(key)) {
                 raiseAlert("school", L.t("School ahead: {0}", h.poi.name), 5000)
                 speak(L.t("School ahead"), true)
             }
@@ -8851,12 +8882,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     private var gDoneAt = 0L
     private var doneShown = false
+    private var doneRoute: Route? = null
+    private var doneProg = 0.0
+    private var doneStart = 0.0
 
     private fun updateDone(r: Route, prog: Double) {
         // grey right back to where the blue line starts (it's drawn from a little behind the car), so no blue shows behind you;
         // with the whole route on screen (map moved by hand), the whole driven part is grey
         val start = if (!following) 0.0 else max(0.0, min(prog - 800.0, lastDrawProg - 950.0))
         if (prog - start < 2.0) { if (doneShown) { map.setDone(emptyList()); doneShown = false }; return }
+        // nothing moved (standing still): the line isn't sent to the map again, which re-parsed its tiles about three times a second
+        // (stingone #463)
+        if (doneShown && r === doneRoute && abs(prog - doneProg) < 1.0 && abs(start - doneStart) < 1.0) return
+        doneRoute = r; doneProg = prog; doneStart = start
         val pts = ArrayList<LL>()
         pts += pointAt(r, start).first
         var i = idxAt(r, start) + 1

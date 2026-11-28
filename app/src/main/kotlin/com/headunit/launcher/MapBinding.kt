@@ -3249,8 +3249,19 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         val v = pxPerUnit / pixelRatioUsed.coerceAtLeast(0.5f).toDouble()
         if (Math.abs(v - uiK) < 0.01) return
         uiK = v
+        refreshSigns()
+    }
+    private fun refreshSigns() {
         val st = style ?: return
         for ((id, f) in signLayers) try { if (st.styleLayerExists(id)) (layer(id) as? SymbolLayer)?.iconSize(f()) } catch (e: Throwable) { }
+    }
+    /** Android Auto: Settings › Overall size (1 = 100%), which the signs and cards on the map follow. */
+    private var carUser = 1.0
+    fun setCarUser(u: Double) {
+        val v = u.coerceIn(0.4, 3.0)
+        if (Math.abs(v - carUser) < 0.01) return
+        carUser = v
+        if (onCar) refreshSigns()
     }
     // the signs' widths at full size, in the app's own screen units (a button's icon is about 24): before their size settings
     private val SIGN_LIMIT = 56.0
@@ -3270,12 +3281,15 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private fun signWidth(baseUi: Double, z: Double, f: Double): Double = maxOf(baseUi * kEff * f, 1.5 * routeAt(z))
 
     /**
-     * [uiK] for sizing signs and cards on the map. On the car screen the app's own cards are made small on purpose (a small
-     * screen seen from a distance), which left the signs and the cards on other routes tiny there (TheHairforce, #449): there the
-     * map's signs are twice that (about a phone's size at 100%), growing with Overall size and Text size as the cards do, and never
-     * under 0.9 (joebGer19, #455: the other-route cards didn't grow with Overall size).
+     * [uiK] for sizing signs and cards on the map. On the car screen they're sized from the screen itself: the speed limit sign (56
+     * units wide) takes about 7.5% of the screen's short edge at Overall size 100%, whatever the screen's resolution, growing with
+     * Overall size. Sizing them from the app's own card scale (which is made small on purpose there) left them tiny on one car
+     * screen and huge on another (TheHairforce #449, joebGer19 #455, desko1973 #470).
      */
-    private val kEff: Double get() = if (onCar) maxOf(uiK * 2.0, 0.9) else uiK
+    private val carBase: Double by lazy {
+        try { val dm = ctx.resources.displayMetrics; minOf(dm.widthPixels, dm.heightPixels) / (pixelRatioUsed.coerceAtLeast(1f) * 747.0) } catch (e: Throwable) { 1.0 }
+    }
+    private val kEff: Double get() = if (onCar) (carBase * carUser).coerceIn(0.4, 3.0) else uiK
 
     /**
      * The size for a sign on the map drawn from picture [id] (or [fallbackW] map units wide when it isn't added yet): [baseUi]
@@ -3942,6 +3956,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                     if (step != lastStep) { lastStep = step; try { layer?.iconOpacity(0.7 + 0.3 * step / 3.0) } catch (e: Throwable) { } }
                 }
                 start()
+                if (standing) pause()
             }
         }
     }
@@ -4292,6 +4307,19 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
 
     private var pulseAnim: android.animation.ValueAnimator? = null
 
+    /**
+     * Standing still (at a red light): the blinking lane arrows and the turn pulse are paused, and come back when you move. Each
+     * kept the map drawing about ten times a second for nothing, which a slow head unit feels (stingone #463).
+     */
+    @Volatile private var standing = false
+    fun setStill(still: Boolean) {
+        if (still == standing) return
+        standing = still
+        main0.post {
+            try { for (a in listOf(lanePulse, pulseAnim)) if (a != null && a.isStarted) { if (still) a.pause() else a.resume() } } catch (e: Throwable) { }
+        }
+    }
+
     /** Pulses the glow under the route line (used when a turn is close; the Modern look keeps the glow steady). */
     fun setTurnPulse(on: Boolean) {
         if (theme == "immersive") return
@@ -4309,6 +4337,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
                         try { layer?.lineOpacity(0.35 + 0.55 * v); layer?.lineWidth(18.0 + 16.0 * v) } catch (e: Throwable) { }
                     }
                     start()
+                    if (standing) pause()
                 }
             }
         }
