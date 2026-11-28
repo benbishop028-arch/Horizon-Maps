@@ -4,8 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
-
+## 1.0.1051 — 28 Nov 2026
 
 ### Improved
 - The problem report says where a crash in the map's own code happened (the signal and the first library or function names), to track down crashes that leave nothing else behind (thanks to MAIS-dev, #460)
