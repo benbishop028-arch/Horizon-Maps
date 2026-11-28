@@ -7,19 +7,18 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 - Dim the screen in tunnels: Settings › Screen › "Dim the screen in tunnels" dims the screen while your route goes through a tunnel, day or night (it needs the route to know about the tunnel, which Mapbox routes do) (thanks to desko1973, #471)
 - Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
-- Dim the screen in tunnels: Settings › Screen › "Dim the screen in tunnels" dims the screen while your route goes through a tunnel, day or night (it needs the route to know about the tunnel, which Mapbox routes do) (thanks to desko1973, #471)
 
 ### Improved
+- The problem report says where a crash in the map's own code happened (the signal and the first library or function names), to track down crashes that leave nothing else behind (thanks to MAIS-dev, #460)
 - OpenStreetMap map not appearing: the check that explains a blank map now asks about OpenFreeMap (where that map comes from) instead of Mapbox, and says what's wrong: its server not answering, nothing being drawn, or the connection being blocked. The problem report says the result too (thanks to karthikeyansr-lgtm, #464)
 - Lighter on slow head units: standing still (at a red light or parked with a route), the route isn't re-drawn every second, the driven line isn't re-sent, the flowing light and blinking lane arrows pause, and it no longer re-plans over and over when parked beside the road. In the background the map isn't asked to draw at all and the app wakes up ten times a second instead of at every screen refresh. Driving with the app in front is unchanged (thanks to stingone, #463)
 - Search finds places abroad: when a search in your own country finds nothing (or only a couple of places once you've finished typing), it's asked again everywhere, so a city in another country is found without changing the Search country setting (thanks to hvdwolf, #469)
 - Signs and cards on the Android Auto map are sized from the car screen itself (the same share of it on every car screen) and grow with Overall size: they were huge on some screens and tiny on others (thanks to desko1973, #470)
-- OpenStreetMap map not appearing: the check that explains a blank map now asks about OpenFreeMap (where that map comes from) instead of Mapbox, and says what's wrong: its server not answering, nothing being drawn, or the connection being blocked. The problem report says the result too (thanks to karthikeyansr-lgtm, #464)
 
 ### Fixed
+- Map stuck in night light: choosing Day or Night in Settings could leave the map as it was when the app already looked that way, and the map is never left in the settings preview's Day or Night light now
 - Warnings about things above a tunnel: speed bumps, schools and crossings on a road over or beside a tunnel are no longer warned about, or drawn, while you drive through it (thanks to desko1973, #471)
 - Wrong school warnings: a school is only warned about when it's close to your road (about 60 m), not when it's 90 m off, such as one near a roundabout at the end of the street (thanks to joel941703-hash, #462)
-- Warnings about things above a tunnel: speed bumps, schools and crossings on a road over or beside a tunnel are no longer warned about, or drawn, while you drive through it (thanks to desko1973, #471)
 
 ## 1.0.1046 — 27 Nov 2026
 
