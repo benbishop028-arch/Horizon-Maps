@@ -4,9 +4,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
-### New
-- Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
-
+## 1.0.1046 — 27 Nov 2026
 
 ### Improved
 - Choosing a route shows only the speed cameras on the route, not every camera round you
@@ -19,16 +17,12 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## 1.0.1044 — 27 Nov 2026
 
 ### Improved
-- Choosing a route shows only the speed cameras on the route, not every camera round you
-- Android Auto full-screen: a tap on the map now sends the screen to the car again, to bring Android Auto's own buttons back (they stayed hidden on some cars; please tell me if it helps) (thanks to joebGer19, #455)
 - Sending a report: if a newer version of the app is out, the Feedback screen says so and offers Update now first, with a reminder to check the problem is still there before sending (Send anyway is still there). On Google Play, it reminds you to check for a newer version. The problem report also says where the last speed limit came from (the route, TomTom, Mapbox, OpenStreetMap or a downloaded area), to help with wrong limits
 - Driver's display: its writing is bigger by default and there's a Driver's display text size setting (Android Auto settings: Smaller, Normal, Larger, Largest). The phone battery badge on the car screen has a bigger number and colours: green while charging, amber under 30%, red under 15%. Junction zoom is now in the Android Auto settings too (thanks to joel941703-hash, #451)
 - Android Auto position: the arrow and the distance to the next turn run about half a second ahead of the last GPS fix, so you're no longer drawn slightly behind where you are as you pass a junction (thanks to yurividal, #450)
 - Search box staying put: when search results appear while you type, the field and keyboard stay where they are (thanks to desko1973, #442)
 
 ### Fixed
-- Turn card colours by country: Match road signs had them the wrong way round for Norway, Poland and Hungary (motorways are blue and main roads green there, as in Britain, Germany, France and Spain) and used the wrong colours in some other countries. The table now follows the list of countries sent in (thanks to desko1973, #431)
-- Other-route cards and signs on Android Auto grow with Overall size: at 180% the "9 min slower" cards stayed tiny (thanks to joebGer19, #455)
 - Clearing recent destinations also clears the places the app has learned you usually go to, which were still suggested ("Usually around …") after clearing (thanks to Dotancom, #457)
 - Turn card off-centre: with no "Then" line or lanes under it, the arrow and writing sat higher than the middle of the card (the progress bar's room was all below them); they're now centred (thanks to desko1973, #448)
 - Signs and the cards on other routes tiny on Android Auto: after the size update the "Same time" cards, the speed limit signs on the route and the other map signs came out very small on the car screen. They now keep a readable size there (thanks to TheHairforce, #449)
@@ -42,9 +36,6 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - A route without tolls: when the fastest route uses toll roads, the route choice also offers a "No tolls" route, with how much longer it takes, and marks the routes that have tolls. Switch it off under Settings › Routes › Avoid › Offer a route without tolls (thanks to Luís Pedro Antunes)
 
 ### Improved
-- Driver's display: its writing is bigger by default and there's a Driver's display text size setting (Android Auto settings: Smaller, Normal, Larger, Largest). The phone battery badge on the car screen has a bigger number and colours: green while charging, amber under 30%, red under 15%. Junction zoom is now in the Android Auto settings too (thanks to joel941703-hash, #451)
-- Android Auto position: the arrow and the distance to the next turn run about half a second ahead of the last GPS fix, so you're no longer drawn slightly behind where you are as you pass a junction (thanks to yurividal, #450)
-- Search box staying put: when search results appear while you type, the field and keyboard stay where they are (thanks to desko1973, #442)
 - The time cards on the other routes ("Same time", "5 min slower") are about 30% smaller, size with the screen like the other signs on the map, and sit a little way along their own route instead of right on the junction, so cards of routes leaving the same point no longer pile on top of each other (thanks to joel941703-hash, #444)
 - Typing while driving is no longer locked by default: the search box stays open when the speed reads high (a passenger, or a GPS blip). The lock is still there under Settings › Sound & voice › Lock typing while driving (thanks to desko1973, #442)
 
