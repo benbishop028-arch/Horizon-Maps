@@ -4,6 +4,10 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+## 1.0.1053 — 28 Nov 2026
+
+- Small fixes and improvements
+
 ## 1.0.1051 — 28 Nov 2026
 
 ### Improved
