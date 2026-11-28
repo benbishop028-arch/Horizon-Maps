@@ -813,6 +813,8 @@ object L {
         for (code in m.keys) addOwn(m, code, I18nClusterText.rows(code))
         for (code in m.keys) addOwn(m, code, I18nReportUpdate.rows(code))
         for (code in m.keys) addOwn(m, code, I18nCarGps.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nDimTunnel.rows(code))
+        for (code in m.keys) addOwn(m, code, I18nOsmCheck.rows(code))
         // (Macedonian's share of the per-feature files above, kept together, #432)
         addOwn(m, "mk", I18nMkExtra.rows())
         for (code in m.keys) addOwn(m, code, I18nChargerDetour.rows(code))

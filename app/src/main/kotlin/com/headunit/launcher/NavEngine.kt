@@ -75,6 +75,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     val defaultZoom: Double get() = (prefs.s(PreferenceKeys.DEFAULT_ZOOM, "0").toDoubleOrNull() ?: 0.0).coerceIn(-2.0, 2.0)
     /** The flat traffic view after being stopped a while is showing. */
     var stoppedOverview by mutableStateOf(false)
+    /** The route is going through a tunnel right now (from its own data): for Settings › Screen › Dim the screen in tunnels. */
+    var inTunnel by mutableStateOf(false)
+        private set
     /** The stop (its start time) the overview was last asked for, so it's asked once for each stop. */
     private var stopKickFor = 0L
     /** Circling the car while stopped (Settings › Light & 3D › Circle the car when stopped, #376). */
@@ -1232,14 +1235,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun watchMapLoad() {
         // (with Plus set up the tokens are the key server's and change every hour: nothing for the person to check)
         if (Plus.offered) return
-        if (mapCheckedFor == mbToken) return
+        // (the OpenStreetMap map comes from OpenFreeMap: asked about that one, not Mapbox)
+        val osm = prefs.mapSource() == "osm"
+        val tag = if (osm) "osm" else mbToken
+        if (mapCheckedFor == tag) return
         mapWatchJob?.cancel()
         mapWatchJob = scope.launch {
             delay(25_000L)
-            if (map.styleShown || Net.offline || !hasMapbox || mapCheckedFor == mbToken) return@launch
-            mapCheckedFor = mbToken
-            val (code, why) = try { withContext(Dispatchers.IO) { MapboxRest.diagnose(mbToken) } } catch (e: Exception) { "failed" to "" }
-            mapCheckNote = "Map check: $code"
+            if (map.styleShown || Net.offline || (!hasMapbox && !osm) || mapCheckedFor == tag) return@launch
+            mapCheckedFor = tag
+            val (code, why) = try { withContext(Dispatchers.IO) { if (osm) MapboxRest.diagnoseOsm() else MapboxRest.diagnose(mbToken) } } catch (e: Exception) { "failed" to "" }
+            mapCheckNote = (if (osm) "Map check (OpenFreeMap): " else "Map check: ") + code
             if (map.styleShown) return@launch
             if (code == "401") onMbUnauthorised(true)
             else if (why.isNotEmpty()) toast(L.t(why), 12_000)
@@ -4808,7 +4814,13 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         } else if (doneShown) { map.setDone(emptyList()); doneShown = false }
 
         // guidance (distance to the next turn, lane info, spoken prompts) follows the glided position, a few times a second
-        if (glideOnRoute && !previewing && now - gGuideAt >= 250L) { gGuideAt = now; val full = now - gFullAt >= 1000L; if (full) gFullAt = now; updateGuidance(gProg, !full) }
+        if (glideOnRoute && !previewing && now - gGuideAt >= 250L) {
+            gGuideAt = now
+            val rr = glideRoute
+            val tun = rr != null && rr.tunnels.any { gProg >= it.first && gProg <= it.second }
+            if (tun != inTunnel) inTunnel = tun
+            val full = now - gFullAt >= 1000L; if (full) gFullAt = now; updateGuidance(gProg, !full)
+        } else if (inTunnel && !(glideOnRoute && !previewing)) inTunnel = false
 
         // camera
         val fresh = now - camTargetAt < 4000
@@ -7888,6 +7900,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                             }
                         }
                         val hzOn = hz.mapNotNull { poi -> RouteExtras.project(r, poi.pos, if (poi.kind == "school") 90.0 else if (poi.kind == "crossing") 12.0 else 15.0)?.let { (o, side) -> PoiOnRoute(poi, o, side) } }
+                            // (nothing on a road above or beside a tunnel counts: speed bumps there were warned about from inside it, desko1973 #471)
+                            .filter { h -> r.tunnels.none { t -> h.off >= t.first - 10.0 && h.off <= t.second + 10.0 } }
                         val avg = av.mapNotNull { RouteExtras.placeAvg(r, it) }.sortedBy { it.start }
                         val stops = vs.mapNotNull { RouteExtras.project(r, it.pos, 300.0)?.first }
                         val zs = if (zoneWarn) Zones.entries(r, Zones.all(ctx)).map { it.first.name to it.second } else emptyList()

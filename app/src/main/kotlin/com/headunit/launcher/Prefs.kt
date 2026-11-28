@@ -208,6 +208,8 @@ internal object PreferenceKeys {
     const val DATASNOOZE = "datasnooze"
     const val DEMO = "demo"
     const val DIMNIGHT = "dimnight"
+    /** Dim the screen while the route goes through a tunnel, day or night (desko1973 #471). */
+    const val DIMTUNNEL = "dimtunnel"
     const val DRIVELOCK = "drivelock"
     /** The media bar on the driving screen (Reddit, mrEnmi). */
     const val MEDIA_BAR = "media_bar"

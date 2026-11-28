@@ -169,9 +169,11 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     // A head unit keeps it on all the time
     val onPhone = remember { engine.onPhone() }
     val keepOn = prefs.b(PreferenceKeys.KEEPON, true) && (!onPhone || (engine.route != null && !engine.previewing) || prefs.b(PreferenceKeys.KEEPON_NOROUTE, false))
-    LaunchedEffect(bright, dimNight, dark, keepOn) {
+    // (dimmed in a tunnel too, day or night, when Settings › Screen says so: it changes twice a tunnel, not all the time)
+    val dimTunnel = prefs.b(PreferenceKeys.DIMTUNNEL, false) && engine.inTunnel
+    LaunchedEffect(bright, dimNight, dark, keepOn, dimTunnel) {
         val win = findActivity(hostCtx)?.window ?: return@LaunchedEffect
-        val dim = dimNight && dark
+        val dim = (dimNight && dark) || dimTunnel
         // the slider is read like Android's own (how bright it looks), and dimmed at night is half as bright as it looks; with
         // Brightness at 100% it's half the system's level, never brighter, and left to auto-brightness when that's on (#417)
         val cr = hostCtx.contentResolver
