@@ -183,13 +183,36 @@ object SessionWatch {
         return try {
             val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
             val fmt = java.text.SimpleDateFormat("dd MMM HH:mm:ss", java.util.Locale.UK)
+            var nativeShown = false
             am.getHistoricalProcessExitReasons(ctx.packageName, 0, 4).joinToString("") { e ->
                 val desc = e.description.orEmpty()
                 val code = if (e.reason == 13 && desc.contains("remove task", true)) 10 else e.reason
-                fmt.format(java.util.Date(e.timestamp)) + " · " + (if (desc.contains("LockScreenClean", true)) "closed by the phone's cleaner when the screen locked" else reasonName(code)) + (if (desc.isNotBlank()) " · " + desc.take(120) else "") + "\n"
+                fmt.format(java.util.Date(e.timestamp)) + " · " + (if (desc.contains("LockScreenClean", true)) "closed by the phone's cleaner when the screen locked" else reasonName(code)) + (if (e.reason == 5 && !nativeShown) { nativeShown = true; nativeCrash(e) } else "") + (if (desc.isNotBlank()) " · " + desc.take(120) else "") + "\n"
             }
         } catch (e: Throwable) { "" }
     }
+
+    /**
+     * For a crash in native code (the map's own engine, a graphics driver): where it was, from the crash record Android keeps (its
+     * trace, on Android 11 and newer): the signal and the first library or function names in it, without folders or addresses. It's
+     * the only way to see where a crash that leaves nothing else behind happened (MAIS-dev, #460). Only the newest one.
+     */
+    private fun nativeCrash(e: android.app.ApplicationExitInfo): String = try {
+        val bytes = e.traceInputStream?.use { it.readBytes().let { b -> if (b.size > 400_000) b.copyOf(400_000) else b } } ?: return ""
+        val strings = Regex("[ -~]{5,}").findAll(String(bytes, Charsets.ISO_8859_1)).map { it.value.trim() }.toList()
+        val keep = LinkedHashSet<String>()
+        for (s in strings) {
+            val t = when {
+                s.startsWith("SIG") || s.startsWith("SEGV_") || s.startsWith("BUS_") || s.startsWith("ILL_") -> s.take(40)
+                s.contains(".so") -> s.substringAfterLast('/').take(60)
+                s.startsWith("_Z") && s.length > 8 -> s.take(70)
+                else -> null
+            } ?: continue
+            keep += t
+            if (keep.size >= 10) break
+        }
+        if (keep.isEmpty()) "" else " [native: " + keep.joinToString(", ") + "]"
+    } catch (x: Throwable) { "" }
 
     /** Put away or closed normally: not a crash. A good long session clears the count. */
     fun stopped(ctx: Context) {

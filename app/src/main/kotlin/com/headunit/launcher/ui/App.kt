@@ -267,7 +267,8 @@ fun App(prefs: Prefs, engine: NavEngine, map: MapBinding) { SafeArea(prefs) { Te
     // (Horizon Maps Plus: the key server's token arriving, or Plus starting or ending, loads the right map)
     val ksToken = com.headunit.launcher.KeyServer.mapbox
     val plusOn = com.headunit.launcher.Plus.active
-    LaunchedEffect(dark, style, traffic, key, mbToken, mbLook, ksToken, plusOn) { engine.applyStyle(dark) }
+    // (the day / night choice itself too: changing it to Day or Night while the app was already in that look left the map as it was)
+    LaunchedEffect(dark, themeNow, style, traffic, key, mbToken, mbLook, ksToken, plusOn) { engine.applyStyle(dark) }
     // (satellite is Plus's: the free OpenStreetMap version has none)
     val sat = prefs.b(PreferenceKeys.SATELLITE, false) && !com.headunit.launcher.Plus.free
     val b3d = prefs.b(PreferenceKeys.BUILDINGS_3D, true)

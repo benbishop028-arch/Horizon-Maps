@@ -8100,6 +8100,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Settings' live map preview opened or closed: it's re-centred on you (a map you'd moved showed the wrong place, or sky). */
     fun previewInSettings(on: Boolean) {
         settingsPreview = on
+        // (leaving the settings: the map is never left in the preview's Day or Night light)
+        if (!on) try { map.forceLight(null) } catch (e: Throwable) { }
         if (on && fix != null) recenter() else fix?.let { try { onPosition(it, true) } catch (e: Exception) { } }
     }
     /** The road name pill would show (worked out on the map screen), for the portrait sheet to show it in its place. */
