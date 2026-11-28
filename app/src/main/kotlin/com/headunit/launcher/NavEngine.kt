@@ -1235,14 +1235,17 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun watchMapLoad() {
         // (with Plus set up the tokens are the key server's and change every hour: nothing for the person to check)
         if (Plus.offered) return
-        if (mapCheckedFor == mbToken) return
+        // (the OpenStreetMap map comes from OpenFreeMap: asked about that one, not Mapbox)
+        val osm = prefs.mapSource() == "osm"
+        val tag = if (osm) "osm" else mbToken
+        if (mapCheckedFor == tag) return
         mapWatchJob?.cancel()
         mapWatchJob = scope.launch {
             delay(25_000L)
-            if (map.styleShown || Net.offline || !hasMapbox || mapCheckedFor == mbToken) return@launch
-            mapCheckedFor = mbToken
-            val (code, why) = try { withContext(Dispatchers.IO) { MapboxRest.diagnose(mbToken) } } catch (e: Exception) { "failed" to "" }
-            mapCheckNote = "Map check: $code"
+            if (map.styleShown || Net.offline || (!hasMapbox && !osm) || mapCheckedFor == tag) return@launch
+            mapCheckedFor = tag
+            val (code, why) = try { withContext(Dispatchers.IO) { if (osm) MapboxRest.diagnoseOsm() else MapboxRest.diagnose(mbToken) } } catch (e: Exception) { "failed" to "" }
+            mapCheckNote = (if (osm) "Map check (OpenFreeMap): " else "Map check: ") + code
             if (map.styleShown) return@launch
             if (code == "401") onMbUnauthorised(true)
             else if (why.isNotEmpty()) toast(L.t(why), 12_000)

@@ -85,6 +85,30 @@ object MapboxRest {
         "no answer (${e.javaClass.simpleName})" to "Mapbox's server isn't answering from this device. Check the internet connection: a Wi‑Fi that needs signing in, or a firewall, can block it."
     }
 
+    /**
+     * The same question for the OpenStreetMap map, which comes from OpenFreeMap (not Mapbox): its map description and its picture
+     * sheet are asked for from this device, and what fails says what's in the way (karthikeyansr-lgtm, #464: the Mapbox wording
+     * was shown for a blank OpenStreetMap map).
+     */
+    fun diagnoseOsm(): Pair<String, String> = try {
+        fun code(u: String): Int {
+            val c = URL(u).also { com.headunit.launcher.Net.check() }.openConnection() as HttpURLConnection
+            c.connectTimeout = 10000; c.readTimeout = 15000
+            c.setRequestProperty("User-Agent", "HorizonNav/1.0")
+            return try { c.responseCode } finally { try { c.disconnect() } catch (e: Exception) { } }
+        }
+        val host = com.headunit.launcher.OsmStyle.HOST
+        val tiles = code("https://$host/planet")
+        val sprite = if (tiles in 200..299) code("https://$host/sprites/ofm_f384/ofm.json") else -1
+        when {
+            tiles !in 200..299 -> "tiles HTTP $tiles" to "OpenFreeMap's map server isn't answering properly from this device. Try again later, or switch the map to Mapbox in Settings › Map."
+            sprite !in 200..299 -> "sprite HTTP $sprite" to "OpenFreeMap's map server isn't answering properly from this device. Try again later, or switch the map to Mapbox in Settings › Map."
+            else -> "ok" to "OpenFreeMap answers, but the map isn't drawing on this device. Please send a report from Settings › Feedback so it can be looked into."
+        }
+    } catch (e: Exception) {
+        "no answer (${e.javaClass.simpleName})" to "This device can't reach OpenFreeMap's map server. Check the internet connection: a private DNS, ad blocker or firewall may be blocking tiles.openfreemap.org."
+    }
+
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
 
     private fun httpError(code: Int, body: String): IOException = IOException(when (code) {
