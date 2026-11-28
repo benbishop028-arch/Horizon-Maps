@@ -1356,6 +1356,7 @@ private fun ScreenSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Full screen"), PreferenceKeys.FULLSCREEN, true, L.t("Hides the status and navigation bars. Turn off if your head unit has its own bar (climate, home button) that the map covers"))
         SSlider(L.t("Brightness"), prefs.i(PreferenceKeys.BRIGHT, 100).toFloat(), 10f..100f, "%", sub = L.t("100% leaves it to the system"), live = true) { prefs.put(PreferenceKeys.BRIGHT, it) }
         SToggle(prefs, L.t("Dim the screen at night"), "dimnight", false)
+        SToggle(prefs, L.t("Dim the screen in tunnels"), PreferenceKeys.DIMTUNNEL, false, L.t("While your route goes through a tunnel, day or night, so the screen doesn't dazzle"))
         SToggle(prefs, L.t("Keep the screen on"), "keepon", true)
         SToggle(prefs, L.t("Keep the screen on without a route"), PreferenceKeys.KEEPON_NOROUTE, false, L.t("On a phone the screen stays on only while you navigate. Turn this on to keep it on while you just watch the map and traffic. Uses more battery"))
         SToggle(prefs, L.t("Glass panels"), "glass", true, L.t("See-through cards tinted by the map. Off gives solid cards"))

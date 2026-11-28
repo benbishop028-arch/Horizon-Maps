@@ -5,6 +5,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ## Unreleased
 
 ### New
+- Dim the screen in tunnels: Settings › Screen › "Dim the screen in tunnels" dims the screen while your route goes through a tunnel, day or night (it needs the route to know about the tunnel, which Mapbox routes do) (thanks to desko1973, #471)
 - Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
 
 ### Improved
@@ -13,6 +14,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - Signs and cards on the Android Auto map are sized from the car screen itself (the same share of it on every car screen) and grow with Overall size: they were huge on some screens and tiny on others (thanks to desko1973, #470)
 
 ### Fixed
+- Warnings about things above a tunnel: speed bumps, schools and crossings on a road over or beside a tunnel are no longer warned about, or drawn, while you drive through it (thanks to desko1973, #471)
 - Wrong school warnings: a school is only warned about when it's close to your road (about 60 m), not when it's 90 m off, such as one near a roundabout at the end of the street (thanks to joel941703-hash, #462)
 
 ## 1.0.1046 — 27 Nov 2026

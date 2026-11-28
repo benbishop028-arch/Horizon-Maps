@@ -203,6 +203,7 @@ private val allSettingsIndex = listOf(
     SettingRef("Live fuel cost", "What the trip has cost so far, and the total when you arrive", "Live fuel cost", 11),
     SettingRef("Towns and villages", "", "Place names", 12),
     SettingRef("Brightness", "", "Screen", 13),
+    SettingRef("Dim the screen in tunnels", "While your route goes through a tunnel, day or night, so the screen doesn't dazzle", "Screen", 13),
     SettingRef("Dim the screen at night", "", "Screen", 13),
     SettingRef("Keep the screen on", "", "Screen", 13),
     SettingRef("Card size", "", "Sizes", 13),
