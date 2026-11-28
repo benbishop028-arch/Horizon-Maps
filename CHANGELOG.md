@@ -11,6 +11,7 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - The problem report says where a crash in the map's own code happened (the signal and the first library or function names), to track down crashes that leave nothing else behind (thanks to MAIS-dev, #460)
 
 ### Fixed
+- Belisha beacons at every zebra crossing: crossings drawn with their stripes but no beacons were ones mapped a different way in OpenStreetMap (crossing_ref=zebra, or in Britain any marked crossing with no signals, which is a zebra by law). The beacons are also about 60% bigger and show from further out (thanks to karthikeyansr-lgtm, #427)
 - Map stuck in night light: choosing Day or Night in Settings could leave the map as it was when the app already looked that way, and the map is never left in the settings preview's Day or Night light now
 
 ## 1.0.1049 — 28 Nov 2026

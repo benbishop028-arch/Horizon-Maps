@@ -2754,7 +2754,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconSize(sized("dl-giveway") { signSize("dl-giveway", SIGN_SMALL) }).iconEmissiveStrength(1.0).minZoom(14.0))
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
-            .iconSize(zoomed(1.6, 15 to 0.26, 16 to 0.32, 20 to 0.9)).iconEmissiveStrength(1.0).minZoom(15.0))
+            // (60% bigger than they were: they were hard to make out)
+            .iconSize(zoomed(1.6, 14 to 0.34, 16 to 0.52, 20 to 1.45)).iconEmissiveStrength(1.0).minZoom(14.0))
         // speed bumps and raised tables on the active route, from the same OpenStreetMap data as the warnings
         addImg(st, "dl-bump", speedBumpBitmap())
         addS(st, GeoJsonSource.Builder("dl-bumps").featureCollection(FeatureCollection.fromFeatures(speedBumpFeats())).build())
