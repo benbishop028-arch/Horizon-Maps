@@ -229,14 +229,14 @@ private fun SheetHeading(text: String) {
  * height counts as covered screen, so the locator rises above it, and drops back when it goes.
  */
 @Composable
-private fun AlertPopup(engine: NavEngine, modifier: Modifier, narrow: Boolean, tripH: androidx.compose.ui.unit.Dp, screenH: androidx.compose.ui.unit.Dp) {
+private fun AlertPopup(engine: NavEngine, modifier: Modifier, narrow: Boolean, tripH: androidx.compose.ui.unit.Dp, screenH: androidx.compose.ui.unit.Dp, onGone: () -> Unit = {}) {
     val currentAlert = engine.alert
     val lastAlert = remember { mutableStateOf(currentAlert) }
     if (currentAlert != null) lastAlert.value = currentAlert
     var alertPx by remember { mutableStateOf(0) }
     val dens = LocalDensity.current
     LaunchedEffect(narrow, tripH, alertPx, screenH, currentAlert?.kind, currentAlert?.text) {
-        if (currentAlert == null) { alertPx = 0; engine.popupCover = 0.0; return@LaunchedEffect }
+        if (currentAlert == null) { alertPx = 0; engine.popupCover = 0.0; delay(300); onGone(); return@LaunchedEffect }
         val popupHeight = with(dens) { (alertPx + 12.dp.roundToPx()).toDp() }
         val tripHeight = if (narrow) 0.dp else tripH
         engine.popupCover = if (screenH > 0.dp) ((popupHeight + tripHeight) / screenH).coerceIn(0f, 0.8f).toDouble() else 0.0
@@ -299,7 +299,8 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
     androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxSize()) {
         // portrait (or any narrow window): cards use the full width, the round buttons stack down the right-hand side,
         // and your speed and the re-centre button sit just above the trip card instead of beside it
-        val narrow = maxWidth < 720.dp
+        // (the rooms and their thresholds are in ScreenFit, shared with the car screen and checked against real screens)
+        val narrow = com.headunit.launcher.ScreenFit.phoneNarrow(maxWidth.value)
         val dens = androidx.compose.ui.platform.LocalDensity.current
         var tripPx by remember { mutableStateOf(0) }
         androidx.compose.runtime.SideEffect { engine.portraitLayout = narrow }
@@ -368,6 +369,11 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // the panels' outlines (as parts of the screen) go to the camera, so your arrow is moved clear of whatever is beside it
         val boxW = constraints.maxWidth.toFloat().coerceAtLeast(1f); val boxH = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         fun report(i: Int, r: androidx.compose.ui.geometry.Rect) { engine.setPanel(i, r.left / boxW, r.top / boxH, r.right / boxW, r.bottom / boxH) }
+        // making room (ScreenFit.needsRoom), as on Android Auto: on a landscape screen, when the turn card's column and the trip card
+        // under it cover too much of the map, the turn card is drawn a size smaller and the services and car park cards are left
+        // off. Kept until the screen or the card size changes, so it can't go back and forth as they shrink
+        val mainCard0 = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150)
+        var phoneTight by remember(boxW.toInt(), boxH.toInt(), mainCard0) { mutableStateOf(false) }
         // the "all locations" panel sits in the same corner and lets the map show through, so the search and its results step aside while it's open
         // Settings › Places & trips › Search as a button (GitHub #154): with no route, just a round search button in the corner, so
         // the map (and your arrow, in the middle of it) has the whole screen; tapping it brings the search bar and its buttons back.
@@ -460,7 +466,15 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                 CompositionLocalProvider(LocalDensity provides Density(itineraryDensity.density * itineraryScale, itineraryDensity.fontScale)) { ItineraryCard(engine) }
                             } else {
                                 val turnDensity = LocalDensity.current
-                                val cardSize = engine.prefs.i(PreferenceKeys.MAIN_CARD_SIZE, 100).coerceIn(70, 150) / 100f
+                                val cardSize = mainCard0 / 100f * (if (phoneTight) com.headunit.launcher.ScreenFit.TIGHT_SCALE else 1f)
+                                // (judged once laid out: the turn card's column, and the trip card under it, as a share of the screen)
+                                LaunchedEffect(turnBottomPx, tripPx, narrow) {
+                                    if (phoneTight || narrow || turnBottomPx <= 0f) return@LaunchedEffect
+                                    delay(400)
+                                    val p0 = engine.panelAt(0)
+                                    val cover = (p0[2] - p0[0]) * ((p0[3] - p0[1]) + tripPx / boxH)
+                                    if (com.headunit.launcher.ScreenFit.needsRoom(cover, narrow)) phoneTight = true
+                                }
                                 CompositionLocalProvider(LocalDensity provides Density(turnDensity.density * cardSize, turnDensity.fontScale)) {
                                     // the lines along its bottom (average speed check, services, parking...: they were cards of
                                     // their own under it), as many as keep it clear of the trip card at the bottom of the screen
@@ -497,9 +511,9 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
                                             })
                                         }
                                         // In portrait, services and live alerts live in the bottom trip sheet, not over the map.
-                                        if (!altFocus && !routeSheet && !hudMin) ServicesCard(engine)
+                                        if (!altFocus && !routeSheet && !hudMin && !phoneTight) ServicesCard(engine)
                                         // car parks remain in the portrait trip sheet; landscape keeps its existing card.
-                                        if (!altFocus && !routeSheet && !hudMin) ParkingCard(engine)
+                                        if (!altFocus && !routeSheet && !hudMin && !phoneTight) ParkingCard(engine)
                                     }
                                     }
                                 }
@@ -761,10 +775,21 @@ private fun MapScreen(engine: NavEngine, onSettings: () -> Unit) {
         // (the popup reads the alert itself, so an alert coming or going redraws only the popup, not this whole screen)
         // (and it stops short of the speed limit sign's corner, rather than running over the sign on a narrow screen)
         val keepClear = if (speedCorner > 0) speedCorner.dp + 28.dp else 0.dp
+        // (on a short screen, such as a phone in landscape, the pop-up above the trip card reached up over the turn card and its lanes:
+        // then it goes to the other side, above the speedometer, by email)
+        var popFlip by remember { mutableStateOf(false) }
+        val popStart = speedAt != "left"
+        val popOnStart = if (popFlip) !popStart else popStart
         if (!previewing && !altFocus && !hudOff) AlertPopup(engine,
-            Modifier.align(if (speedAt == "left") Alignment.BottomEnd else Alignment.BottomStart).zIndex(9f)
-                .padding(start = if (speedAt == "right") 16.dp else keepClear, end = if (speedAt == "left") 16.dp else keepClear, bottom = tripH + 12.dp),
-            narrow, tripH, screenH)
+            Modifier.align(if (popOnStart) Alignment.BottomStart else Alignment.BottomEnd).zIndex(9f)
+                .padding(start = if (popFlip) 16.dp else if (speedAt == "right") 16.dp else keepClear, end = if (popFlip) 16.dp else if (speedAt == "left") 16.dp else keepClear,
+                    bottom = if (popFlip) (if (speedCorner > 0) speedCorner.dp + 28.dp else 16.dp) else tripH + 12.dp)
+                .onGloballyPositioned { lc ->
+                    if (popFlip || lc.size.height == 0) return@onGloballyPositioned
+                    val r = lc.boundsInParent(); val t = engine.panelAt(0)
+                    if (t[2] > t[0] && r.top < t[3] * boxH - 4f && r.left < t[2] * boxW && r.right > t[0] * boxW) popFlip = true
+                },
+            narrow, tripH, screenH, onGone = { popFlip = false })
 
         // ---- the media bar (Reddit, mrEnmi): back, play / pause and next for whatever is playing on the head unit, with the song
         // when notification access is given. Only while something plays (or for a few minutes after a pause). It goes in the free
@@ -1166,8 +1191,8 @@ private fun TripArea(engine: NavEngine, shareEta: () -> Unit, narrow: Boolean = 
         // trip card under it (it reached well past it, bijindas #425)
         val radarDens = androidx.compose.ui.platform.LocalDensity.current
         if (radarOn) HazardRadar(engine, if (!narrow && eta != null && tripCardWPx > 0) Modifier.width(with(radarDens) { tripCardWPx.toDp() }) else Modifier)
-        else if ((inc != null && engine.alert?.kind != "incident") || (cam != null && engine.alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (inc != null && engine.alert?.kind != "incident") HazardBadge("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
+        else if ((inc != null && engine.alert?.kind != "incident" && engine.alert?.kind != "jam") || (cam != null && engine.alert?.kind != "camera")) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (inc != null && engine.alert?.kind != "incident" && engine.alert?.kind != "jam") HazardBadge("incident", L.t(inc.label), Geo.fmtDist(inc.dist, engine.imperial))
             if (cam != null && engine.alert?.kind != "camera") HazardBadge("camera", L.t("Speed camera"), Geo.fmtDist(cam.toDouble(), engine.imperial))
         }
         eta?.let { e ->

@@ -188,8 +188,8 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Speed alert sound**: the sound for going over, so it can't be mistaken for camera and hazard beeps.
 - **Speed alert in the background**: keeps the speed alert going while another app is in front, even with no route (uses more battery).
 - **Top speed alert**: a beep when you reach a speed you choose, whatever the limit. **Say "Slow down" at top speed** speaks only then.
-- **Say when the limit changes** and **How** (chime, voice or both).
-- **Pop-up when the limit changes**: the banner with the new limit. Off leaves just the sign by your speedometer.
+- **Say when the limit changes** and **How** (chime, voice or both; voice only to start with); a new limit is said only when it's lower than the one before, unless **Also when it goes up** is on).
+- **Pop-up when the limit changes**: the banner with the new limit (off to start with). Off leaves just the sign by your speedometer.
 - **Upcoming speed limits**: the next limit on your route, on the map and as a small sign with its distance, from about half a mile away.
 - **Show estimated limits**: where no limit is mapped, the usual one for that kind of road (greyed out). Off shows no sign.
 
@@ -199,6 +199,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Average speed checks**: shows your average against the limit.
 
 **Hazards**
+- **Other warnings as pop-ups**: off to start with, so only speed cameras, sharp bends, traffic jams and the wrong-way warning pop up, one at a time. On, schools, speed bumps, average speed checks, weather and the rest pop up too (they're still said or chimed either way).
 - **Roadworks and incidents**, and **Roadworks warnings** (off stops the roadworks warning line and voice; accidents and closures still warn).
 - **Wrong-way warning**: if you turn the wrong way into a one-way street.
 - **Speed bumps**, **Sharp bends** (striped yellow on the route, with a comfortable speed before each), **Schools at school-run times**, **Level crossings and fords**.
@@ -346,7 +347,7 @@ Contents: [Map style](#map-style) · [Light & 3D](#light--3d) · [Weather](#weat
 - **Trip card**, **Trip card in split screen**, **Speedometer**, **Speedometer style on the car screen** (*Compact* is a small dark pill with the limit and your speed side by side).
 
 **Sizes on the car screen**
-- **Overall size on the car screen**, **Speedometer and speed-limit sign size**, **Speed-limit sign size** (also the upcoming limit and the limit pop-up), and **Advanced car-screen sizes** (card, turn arrow, turn card width and height, buttons, bar height, text, navigation arrow, road name).
+- **Overall size on the car screen**, **Speedometer and speed-limit sign size**, **Speed-limit sign size** (also the upcoming limit and the limit pop-up), and **Advanced car-screen sizes** (card, turn arrow, turn card width and height, buttons, bar height, text, navigation arrow, road name). Once the turn card's own sizes are set, Overall size no longer changes the turn card; back at 100% it follows Overall size again.
 
 **Setting it up**
 - **Android Auto settings** and **Android Auto app info** (to force stop it after changing its settings).

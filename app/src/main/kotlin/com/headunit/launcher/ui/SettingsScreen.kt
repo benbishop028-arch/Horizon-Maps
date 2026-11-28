@@ -54,6 +54,7 @@ import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -872,9 +873,10 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         if (prefs.s(PreferenceKeys.ALERT_TOP_SPEED, "0") != "0") SToggle(prefs, L.t("Say \"Slow down\" at top speed"), PreferenceKeys.SAY_TOP_SPEED, true,
             L.t("Speak \"Slow down\" only when you reach your chosen top speed, not whenever you go over a road's speed limit"))
         SToggle(prefs, L.t("Say when the limit changes"), "limitchange", true, L.t("Not said in Warnings only mode, and not again when the limit goes back to the one you just left within a short stretch"))
+        if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SToggle(prefs, L.t("Also when it goes up"), PreferenceKeys.LIMIT_UP_TOO, false, L.t("Off, a new limit is only said when it's lower than the one before"))
         if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SChoice(L.t("How"), listOf("both" to L.t("Chime and voice"), "voice" to L.t("Voice only"), "chime" to L.t("Chime only")),
-            prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
-        if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SToggle(prefs, L.t("Pop-up when the limit changes"), PreferenceKeys.LIMIT_POPUP, true, L.t("The banner with the new limit. Off leaves just the sign by your speedometer, which pulses, and the sign on the route ahead"))
+            prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "voice")) { prefs.put(PreferenceKeys.LIMITCHANGE_HOW, it) }
+        if (prefs.b(PreferenceKeys.LIMITCHANGE, true)) SToggle(prefs, L.t("Pop-up when the limit changes"), PreferenceKeys.LIMIT_POPUP, false, L.t("The banner with the new limit. Off leaves just the sign by your speedometer, which pulses, and the sign on the route ahead"))
         SToggle(prefs, L.t("Upcoming speed limits"), PreferenceKeys.NEXT_LIMIT, true, L.t("The next limit on your route, as a sign on the map where it changes and a small one by your limit sign with how far it is, from about half a mile away"))
         SToggle(prefs, L.t("Show estimated limits"), "limitest", false, L.t("Where no limit is mapped, show the usual one for that kind of road (greyed out). Off shows no sign instead of a guess"))
     }
@@ -888,6 +890,7 @@ private fun AlertsSection(prefs: Prefs, engine: NavEngine) {
         SToggle(prefs, L.t("Average speed checks"), "avgzones", true, L.t("Shows your average against the limit"))
     }
     SGroup(L.t("Hazards"), footer = L.t("Speed bumps, schools, level crossings and fords come from OpenStreetMap, so some may be missing.")) {
+        SToggle(prefs, L.t("Other warnings as pop-ups"), PreferenceKeys.ALL_POPUPS, false, L.t("Schools, speed bumps, average speed checks, weather and the rest. Off, only speed cameras, sharp bends and traffic jams pop up"))
         SToggle(prefs, L.t("Roadworks and incidents"), "incidents", true)
         if (prefs.b("incidents", true)) SToggle(prefs, L.t("Roadworks warnings"), "roadworkswarn", true, L.t("Turn off to stop the warning line and voice for roadworks. Accidents and closures still warn"))
         SToggle(prefs, L.t("Wrong-way warning"), "wrongway", true, L.t("If you turn the wrong way into a one-way street"))
@@ -1538,13 +1541,16 @@ private fun AndroidAutoSection(prefs: Prefs) {
         SSlider(L.t("Speed-limit sign size"), prefs.i(PreferenceKeys.CAR_LIMIT_SIZE, 100).toFloat(), 80f..170f, "%", sub = L.t("The limit sign next to the speedometer, the upcoming limit and the limit pop-up"), reset = 100f) { prefs.put(PreferenceKeys.CAR_LIMIT_SIZE, it) }
         var carAdvanced by rememberSaveable { mutableStateOf(false) }
         SItem(L.t("Advanced car-screen sizes"), L.t("Fine-tune individual elements independently")) {
-            SButton(if (carAdvanced) L.t("Hide") else L.t("Show")) { carAdvanced = !carAdvanced }
+            // (in the app's colour with the number it opens: plain grey it looked like a label and was missed, by email)
+            SButton(if (carAdvanced) L.t("Hide") else L.t("Show {0} more", 9), primary = !carAdvanced, icon = androidx.compose.material.icons.Icons.Rounded.Tune) { carAdvanced = !carAdvanced }
         }
         if (carAdvanced) {
             SSlider(L.t("Card size"), prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Turn, trip and route cards"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_CARD_SIZE, it) }
-            SSlider(L.t("Turn arrow size"), prefs.i(PreferenceKeys.CAR_TURN_ARROW, 100).toFloat(), 80f..200f, "%", sub = L.t("The arrow on the turn card, on its own"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_ARROW, it) }
-            SSlider(L.t("Turn card width"), prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).toFloat(), 60f..130f, "%", sub = L.t("How far the turn card reaches across the map"), steps = 13, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_WIDTH, it) }
-            SSlider(L.t("Turn card height"), prefs.i(PreferenceKeys.CAR_TURN_HEIGHT, 100).toFloat(), 70f..130f, "%", sub = L.t("The room above and below the writing"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_HEIGHT, it) }
+            SSlider(L.t("Turn arrow size"), prefs.i(PreferenceKeys.CAR_TURN_ARROW, 100).toFloat(), 80f..200f, "%", sub = L.t("The arrow on the turn card, on its own"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_ARROW, it); pinTurnCard(prefs) }
+            SSlider(L.t("Turn card width"), prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).toFloat(), 60f..130f, "%", sub = L.t("How far the turn card reaches across the map"), steps = 13, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_WIDTH, it); pinTurnCard(prefs) }
+            SSlider(L.t("Turn card height"), prefs.i(PreferenceKeys.CAR_TURN_HEIGHT, 100).toFloat(), 70f..130f, "%", sub = L.t("The room above and below the writing"), steps = 11, reset = 100f) { prefs.put(PreferenceKeys.CAR_TURN_HEIGHT, it); pinTurnCard(prefs) }
+            Text(L.t("Once you've set the turn card's own sizes, Overall size no longer changes it. Put them back to 100% to have it follow Overall size again"),
+                color = LocalVw.current.sub, fontSize = 13.sp, modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 6.dp))
             SSlider(L.t("Button size"), prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Round controls and tappable buttons"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_BUTTON_SIZE, it) }
             SSlider(L.t("Bar height"), prefs.i(PreferenceKeys.CAR_BAR_HEIGHT, 100).toFloat(), 70f..100f, "%", sub = L.t("The search bar at the top, slimmer to leave more map"), steps = 5, reset = 100f) { prefs.put(PreferenceKeys.CAR_BAR_HEIGHT, it) }
             SSlider(L.t("Text size"), prefs.i(PreferenceKeys.CAR_TEXT_SIZE, 100).toFloat(), 70f..150f, "%", sub = L.t("Independent of card and button sizing"), steps = 16, reset = 100f) { prefs.put(PreferenceKeys.CAR_TEXT_SIZE, it) }
@@ -2103,4 +2109,14 @@ private fun PlayBanner(c: Vw, onClick: () -> Unit) {
         }
         Icon(Icons.Rounded.ChevronRight, null, tint = blue, modifier = Modifier.size(20.dp))
     }
+}
+
+/**
+ * Android Auto: the turn card keeps the size it was given with its own sliders (width, height, arrow): the Overall size at that
+ * moment is kept, and the card is drawn at that whatever Overall size becomes later. All three back at 100% and it follows
+ * Overall size again (changing Overall size undid the turn card's own sizes each time, by email).
+ */
+internal fun pinTurnCard(prefs: Prefs) {
+    val plain = listOf(PreferenceKeys.CAR_TURN_ARROW, PreferenceKeys.CAR_TURN_WIDTH, PreferenceKeys.CAR_TURN_HEIGHT).all { prefs.i(it, 100) == 100 }
+    prefs.put(PreferenceKeys.CAR_TURN_AT_SCALE, if (plain) 0 else prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300))
 }

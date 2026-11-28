@@ -35,6 +35,7 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Traffic
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Eco
@@ -79,6 +80,7 @@ private fun alertLabel(kind: String): String = when (kind) {
     "camera" -> L.t("SPEED CAMERA")
     "limit" -> L.t("SPEED LIMIT")
     "incident" -> L.t("HAZARD AHEAD")
+    "jam" -> L.t("Traffic jam").uppercase(L.locale)
     "rain" -> "WEATHER"
     "break" -> L.t("TAKE A BREAK")
     "avg" -> L.t("AVERAGE SPEED CHECK")
@@ -98,6 +100,7 @@ private fun alertIcon(a: AlertInfo): ImageVector {
     val t = a.text.lowercase()
     return when (a.kind) {
         "camera" -> Icons.Rounded.CameraAlt
+        "jam" -> Icons.Rounded.Traffic
         "incident" -> when {
             t.contains("work") -> Icons.Rounded.Construction
             t.contains("accident") || t.contains("crash") || t.contains("collision") -> Icons.Rounded.CarCrash
@@ -196,7 +199,7 @@ fun AlertSign(a: AlertInfo, size: Dp) {
                     }
                 }
             }
-            "camera", "incident", "bump", "school", "report", "avg" -> {
+            "camera", "incident", "jam", "bump", "school", "report", "avg" -> {
                 Canvas(Modifier.fillMaxSize()) {
                     val w = this.size.width
                     val h = this.size.height

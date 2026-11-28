@@ -223,7 +223,7 @@ private fun StripButton(engine: NavEngine, id: String, text: String, filled: Boo
 internal fun RouteHazardLines(engine: NavEngine) {
     val inc = engine.incidentAhead; val cam = engine.cameraDist
     val alert = engine.alert
-    val incShown = inc != null && alert?.kind != "incident"
+    val incShown = inc != null && alert?.kind != "incident" && alert?.kind != "jam"
     val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
     if (!incShown && !camShown) return
     Column(Modifier.fillMaxWidth().background(GmGreenDeep).padding(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -479,10 +479,12 @@ object MapboxRest {
         // loop, it's asked again without that: if that's clearly quicker or shorter, it's used instead
         val r0 = got.firstOrNull()
         val pastIt = r0 != null && drivesPastEnd(r0)
-        if (curbSide && r0 != null && !quick && usedUrl.contains("&approaches=") && (pastIt || looksLikeLoop(r0))) {
+        // (re-planned routes too, with a shorter wait: a re-plan near the end took a driver right past the door and 800 m round
+        // the block to come back to it, Srikanth1022v #474. The extra request is only made when the end looks like such a loop.)
+        if (curbSide && r0 != null && usedUrl.contains("&approaches=") && (pastIt || looksLikeLoop(r0))) {
             try {
                 val plain = usedUrl.replace(Regex("&approaches=[^&]*"), "")
-                val o3 = JSONObject(get(plain, 8000, 15000))
+                val o3 = JSONObject(if (quick) get(plain, 4000, 6000) else get(plain, 8000, 15000))
                 if (o3.optString("code") == "Ok") {
                     val a3 = o3.optJSONArray("routes") ?: JSONArray()
                     val alt = (0 until a3.length()).mapNotNull { try { parseT(a3.getJSONObject(it), leftHand) } catch (e: Exception) { null } }

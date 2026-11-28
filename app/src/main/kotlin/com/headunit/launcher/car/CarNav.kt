@@ -310,7 +310,14 @@ class CarNavSession : Session() {
         mapScreen = screen
         surface = CarSurface(carContext) { map -> startEngine(map) }
         surface.actions = object : com.headunit.launcher.ui.CarActions {
-            override fun search() { com.headunit.launcher.ui.CarSearch.let { if (!it.open) it.reset(); it.open = true }; com.headunit.launcher.ui.CarStops.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; screen.invalidate() }
+            // (straight to Android Auto's search screen with the car's keyboard, which lists Home, Work, recent and saved places before
+            // anything is typed: the app's own search card came up first and then this one, two screens for one search,
+            // Dry-Secretary2456. The card is still what the microphone opens)
+            override fun search() {
+                com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarStops.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false
+                screen.invalidate()
+                screen.screenManager.push(SearchScreen(carContext, holder, mode = "ask"))
+            }
             override fun stops() { com.headunit.launcher.ui.CarSearch.open = false; com.headunit.launcher.ui.CarSettingsCard.open = false; com.headunit.launcher.ui.CarStops.show(); screen.invalidate() }
             override fun addStopSearch() { com.headunit.launcher.ui.CarStops.open = false; com.headunit.launcher.ui.CarSearch.let { it.reset(); it.forStop = true; it.open = true }; screen.invalidate() }
             override fun voiceSearch() { com.headunit.launcher.ui.CarSearch.let { if (!it.open) it.reset(); it.open = true }; screen.invalidate(); voice.toggle() }
@@ -500,14 +507,8 @@ class CarSurface(private val carContext: CarContext, private val onReady: (MapBi
     private fun fitScale() {
         val dens = displayDensity.coerceAtLeast(0.5f)
         val short = minOf(width, height).toFloat()
-        // Keep Android Auto overlays close to standard navigation UI sizing; large screens should
-        // not inflate buttons/cards. Only allow a small adjustment for unusually compact surfaces.
-        // a narrow part of the screen (Android Auto's split screen) can go smaller still, so the cards fit beside the map
-        val narrow = width < 760 || width < height
-        // a small, low-resolution screen (7" 1024x600, 800x480) gets smaller cards, text and arrow so the map stays usable (#367)
-        val perUnit = (short / 1050f).coerceIn(dens * (if (narrow) 0.45f else 0.5f), dens * 0.98f)
-        // (a squarer screen, like Renault's upright ones, smaller again for its shape: #418)
-        uiScale.value = perUnit / dens * com.headunit.launcher.CarScalePolicy.shapeFactor(width, height)
+        // (the rule, from the size the car reports kept within the pixel rule, and the screens it's checked against: ScreenFit)
+        uiScale.value = com.headunit.launcher.ScreenFit.carUnitPx(width, height, Math.round(dens * 160f)) / dens
         val fit = (short / 900f).coerceIn(0.55f, 1f)
         if (fit != carScreenFit) {
             carScreenFit = fit
@@ -1515,7 +1516,8 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
                 list.addItem(r.build())
             }
         }
-        if (query.length >= 3) for (p in shown.take((limit - (if (onRoute || chainN >= 2) 1 else 0)).coerceIn(1, 12))) {
+        // (not the last search's places under the new words while this one is on its way)
+        if (query.length >= 3 && !waiting) for (p in shown.take((limit - (if (onRoute || chainN >= 2) 1 else 0)).coerceIn(1, 12))) {
             // the shop's logo (once it's been loaded) or a red pin, the name, and how far it is with the address under it
             val r = Row.Builder().setTitle(p.name).setImage(logoIcon(p) ?: rowIcon(carContext, R.drawable.ic_car_pin, 0xFFEA4335.toInt()))
             val line = listOf(distFrom(e, p), p.sub).filter { it.isNotBlank() }.joinToString(" · ")
@@ -1542,8 +1544,11 @@ class SearchScreen(carContext: CarContext, private val holder: CarHolder, initia
             }
         }).setHeaderAction(Action.BACK).setSearchHint(L.t("Search for a place")).setInitialSearchText(query)
             .setShowKeyboardByDefault(keyboard && (query.isEmpty() || typingNow))
-        // still searching: Android Auto's own spinner, rather than the last search's places under the new words
-        return (if (waiting && query.length >= 3) b.setLoading(true) else b.setItemList(list.build())).build()
+        // still searching: "Searching…" in the list, not Android Auto's own spinner: on some cars going to the spinner and back
+        // emptied the search box, so after three letters what had been typed was gone and the search never got further
+        // (Dry-Secretary2456)
+        if (waiting && query.length >= 3) list.setNoItemsMessage(L.t("Searching…"))
+        return b.setItemList(list.build()).build()
     }
 }
 

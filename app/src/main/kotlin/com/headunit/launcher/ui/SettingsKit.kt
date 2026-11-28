@@ -216,12 +216,16 @@ internal fun SSlider(title: String, value: Float, range: ClosedFloatingPointRang
 
 /** A rounded button: plain, filled (primary) or red (danger). */
 @Composable
-internal fun SButton(text: String, primary: Boolean = false, danger: Boolean = false, onClick: () -> Unit) {
+internal fun SButton(text: String, primary: Boolean = false, danger: Boolean = false, icon: androidx.compose.ui.graphics.vector.ImageVector? = null, onClick: () -> Unit) {
     val c = LocalVw.current
     val bg = if (danger) Bad.copy(alpha = 0.16f) else if (primary) c.accent else c.tile
     val fg = if (danger) Bad else if (primary) (if (c.accent.luminance() > 0.6f) Color(0xFF10131C) else Color.White) else c.text
     Box(Modifier.clip(RoundedCornerShape(50)).background(bg).pressClick(onClick).padding(horizontal = 16.dp, vertical = 9.dp), contentAlignment = Alignment.Center) {
-        Text(text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        if (icon == null) Text(text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        else androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Icon(icon, null, tint = fg, modifier = Modifier.size(18.dp))
+            Text(text, color = fg, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, modifier = Modifier.padding(start = 6.dp))
+        }
     }
 }
 

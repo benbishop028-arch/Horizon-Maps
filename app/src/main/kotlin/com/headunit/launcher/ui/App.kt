@@ -72,12 +72,7 @@ internal fun findActivity(c: android.content.Context): android.app.Activity? {
  *   side along it.
  * In 5% steps, down to 85% at most. It used to be a fixed 100% whatever the screen, though Settings said it went by the screen.
  */
-internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int {
-    if (widthDp <= 0 || heightDp <= 0) return 100
-    val short = minOf(widthDp, heightDp).toFloat(); val long = maxOf(widthDp, heightDp).toFloat()
-    val fit = minOf(short / 390f, long / 820f).coerceIn(0.85f, 1f)
-    return (Math.round(fit * 100f / 5f) * 5).coerceIn(85, 100)
-}
+internal fun recommendedMainUiScale(widthDp: Int, heightDp: Int): Int = com.headunit.launcher.ScreenFit.phoneScalePercent(widthDp, heightDp)
 
 /** The whole app: the map full screen with its overlays, and the settings screen on top when it is open. */
 @Composable

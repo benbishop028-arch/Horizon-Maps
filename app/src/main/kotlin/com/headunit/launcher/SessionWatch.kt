@@ -42,6 +42,8 @@ object SessionWatch {
      * the drawing down one step. Returns the new level (1 to 3) when it stepped down this start, so the app can say so; else 0.
      */
     fun onStartup(ctx: Context, prefs: Prefs): Int {
+        // (the newest native crash's record is read now, in the background, so the problem report never waits on it, #475)
+        if (android.os.Build.VERSION.SDK_INT >= 30) try { val app = ctx.applicationContext; Thread({ try { exitHistory(app) } catch (e: Throwable) { } }, "crash-record").apply { priority = Thread.MIN_PRIORITY; isDaemon = true }.start() } catch (e: Throwable) { }
         val p = ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
         var stepped = 0
         try {
@@ -197,21 +199,38 @@ object SessionWatch {
      * trace, on Android 11 and newer): the signal and the first library or function names in it, without folders or addresses. It's
      * the only way to see where a crash that leaves nothing else behind happened (MAIS-dev, #460). Only the newest one.
      */
-    private fun nativeCrash(e: android.app.ApplicationExitInfo): String = try {
-        val bytes = e.traceInputStream?.use { it.readBytes().let { b -> if (b.size > 400_000) b.copyOf(400_000) else b } } ?: return ""
-        val strings = Regex("[ -~]{5,}").findAll(String(bytes, Charsets.ISO_8859_1)).map { it.value.trim() }.toList()
+    @Volatile private var nativeSeen: Pair<Long, String>? = null
+    private fun nativeCrash(e: android.app.ApplicationExitInfo): String = nativeSeen?.takeIf { it.first == e.timestamp }?.second
+        ?: nativeRead(e).also { nativeSeen = e.timestamp to it }
+    /** (read once per crash: the record can be a few hundred KB, and the report is built on a tap, on the main thread of a slow unit) */
+    private fun nativeRead(e: android.app.ApplicationExitInfo): String = try {
+        val bytes = e.traceInputStream?.use { it.readBytes().let { b -> if (b.size > 300_000) b.copyOf(300_000) else b } } ?: return ""
+        // the readable runs of text in it, picked out byte by byte: a regular expression over the whole record froze a slow head
+        // unit's screen for more than 5 seconds while the report was being made (MAIS-dev, #475)
+        val strings = ArrayList<String>()
+        var start = -1
+        for (k in 0..bytes.size) {
+            val b = if (k < bytes.size) bytes[k].toInt() and 0xFF else 0
+            val printable = b in 0x20..0x7E
+            if (printable && start < 0) start = k
+            else if (!printable && start >= 0) { if (k - start >= 5) strings += String(bytes, start, minOf(k - start, 300), Charsets.ISO_8859_1).trim(); start = -1 }
+        }
+        // why it stopped (an abort's own message: "JNI DETECTED ERROR…", "Check failed…", "pthread_create failed…"), which says
+        // far more than the libraries; then the signal and the first libraries and functions, without their build numbers
+        val why = strings.firstOrNull { s -> listOf("Abort message", "JNI DETECTED", "Check failed", "pthread_create", "Out of memory", "java.lang.", "terminating", "FORTIFY", "assert")
+            .any { s.contains(it, ignoreCase = true) } }?.take(200)
         val keep = LinkedHashSet<String>()
         for (s in strings) {
             val t = when {
                 s.startsWith("SIG") || s.startsWith("SEGV_") || s.startsWith("BUS_") || s.startsWith("ILL_") -> s.take(40)
-                s.contains(".so") -> s.substringAfterLast('/').take(60)
+                s.contains(".so") -> s.substringAfterLast('/').substringBefore(".so") + ".so"
                 s.startsWith("_Z") && s.length > 8 -> s.take(70)
                 else -> null
             } ?: continue
             keep += t
             if (keep.size >= 10) break
         }
-        if (keep.isEmpty()) "" else " [native: " + keep.joinToString(", ") + "]"
+        if (keep.isEmpty() && why == null) "" else " [native: " + listOfNotNull(why?.let { "\"$it\"" }).plus(keep).joinToString(", ") + "]"
     } catch (x: Throwable) { "" }
 
     /** Put away or closed normally: not a crash. A good long session clears the count. */

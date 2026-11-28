@@ -2694,7 +2694,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .lineOpacity(trafficOpacity()).lineEmissiveStrength(1.0)
             .lineCap(LineCap.ROUND).lineJoin(LineJoin.ROUND)
             .minZoom(8.0)
-            .visibility(vis(trafficOn && !(routing && hideTraffic))))
+            .visibility(vis(trafficOn && !(routing && hideTraffic))),
+            // (the TomTom and OpenStreetMap maps have no layer slots: the traffic went on top of everything, and the green of the
+            // free-flowing roads beside a motorway covered their names at night. It goes under the map's first names there.)
+            if (slotsOn) null else try { st.styleLayers.firstOrNull { it.type == "symbol" && !it.id.startsWith("dl-") }?.id } catch (e: Throwable) { null })
         addS(st, GeoJsonSource.Builder("dl-alts").featureCollection(empty()).tolerance(0.1).build())
         addS(st, GeoJsonSource.Builder("dl-live-alts").featureCollection(empty()).tolerance(0.1).build())
         addS(st, GeoJsonSource.Builder("dl-live-bub").featureCollection(empty()).build())
@@ -2738,7 +2741,8 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
         addL(st, SymbolLayer("dl-zebra", "dl-zebras").inSlot(MID).iconImage("dl-zebra").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconPitchAlignment(IconPitchAlignment.MAP).iconRotationAlignment(IconRotationAlignment.MAP).iconRotate(Expression.get("r"))
             // (sized to about 9 m across the road: the picture is 200 px wide, shown at the screen's density)
-            .iconSize(run { val d = mapView.resources.displayMetrics.density.toDouble(); zoomed(2.0, 16 to 0.06 * d, 20 to 0.96 * d) })
+            // (the picture's own shrink, not the screen's density: on the car screen the two differ, and the stripes came out the wrong size)
+            .iconSize(run { val d = imgW["dl-zebra"]?.let { 200.0 / it.coerceAtLeast(1f) } ?: mapView.resources.displayMetrics.density.toDouble(); zoomed(2.0, 16 to 0.06 * d, 20 to 0.96 * d) })
             .iconOpacity(0.92).iconEmissiveStrength(0.8).minZoom(16.0))
         // stop signs on the route: a small badge that stands up at the junction (from zoom 14)
         addImg(st, "dl-stop", stopBitmap())
@@ -2754,8 +2758,10 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
             .iconSize(sized("dl-giveway") { signSize("dl-giveway", SIGN_SMALL) }).iconEmissiveStrength(1.0).minZoom(14.0))
         addL(st, SymbolLayer("dl-beacon", "dl-beacons").inSlot(TOP).iconImage("dl-beacon").iconAllowOverlap(true).iconIgnorePlacement(true)
             .iconAnchor(IconAnchor.BOTTOM).iconPitchAlignment(IconPitchAlignment.VIEWPORT)
-            // (60% bigger than they were: they were hard to make out)
-            .iconSize(zoomed(1.6, 14 to 0.34, 16 to 0.52, 20 to 1.45)).iconEmissiveStrength(1.0).minZoom(14.0))
+            // (sized like the stop signs, from the app's own screen scale: a fixed size left them a few pixels across on a sharp
+            // phone screen, where the picture is shrunk to the screen's density, so they seemed to be missing, #427. The globe is
+            // about two thirds the width of a stop sign, the pole three times its height.)
+            .iconSize(sized("dl-beacon") { signSize("dl-beacon", SIGN_BEACON, fallbackW = 40f, routeMin = false) }).iconEmissiveStrength(1.0).minZoom(14.0))
         // speed bumps and raised tables on the active route, from the same OpenStreetMap data as the warnings
         addImg(st, "dl-bump", speedBumpBitmap())
         addS(st, GeoJsonSource.Builder("dl-bumps").featureCollection(FeatureCollection.fromFeatures(speedBumpFeats())).build())
@@ -3270,6 +3276,7 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private val SIGN_CAM = 40.0
     private val SIGN_HAZ = 34.0
     private val SIGN_SMALL = 28.0
+    private val SIGN_BEACON = 26.0
     private val SIGN_FAV = 36.0
     /** Each sign layer and how its size is worked out, so they can all be resized when the screen's scale changes. */
     private val signLayers = LinkedHashMap<String, () -> Expression>()
@@ -3279,18 +3286,24 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
     private val signZooms = listOf(10.0 to 0.7, 12.0 to 0.75, 13.0 to 0.8, 15.0 to 0.9, 17.0 to 1.0, 19.0 to 1.05)
 
     /** How wide a sign is at full size, in the app's own screen units, and so how wide it shows on the map at [z]. */
-    private fun signWidth(baseUi: Double, z: Double, f: Double): Double = maxOf(baseUi * kEff * f, 1.5 * routeAt(z))
+    private fun signWidth(baseUi: Double, z: Double, f: Double, routeMin: Boolean = true): Double =
+        if (routeMin) maxOf(baseUi * kEff * f, 1.5 * routeAt(z)) else baseUi * kEff * f
 
     /**
-     * [uiK] for sizing signs and cards on the map. On the car screen they're sized from the screen itself: the speed limit sign (56
-     * units wide) takes about 7.5% of the screen's short edge at Overall size 100%, whatever the screen's resolution, growing with
-     * Overall size. Sizing them from the app's own card scale (which is made small on purpose there) left them tiny on one car
-     * screen and huge on another (TheHairforce #449, joebGer19 #455, desko1973 #470).
+     * [uiK] for sizing signs and cards on the map. On the car screen they follow the same unit as the car's cards, 1.4 times over,
+     * kept so the speed limit sign is 7 to 9% of the screen's short edge ([ScreenFit.carSignPx]), growing with Overall size. They
+     * used to be worked out from the pixels alone, apart from the cards, and the two didn't agree (TheHairforce #449, joebGer19
+     * #455, desko1973 #470).
      */
-    private val carBase: Double by lazy {
-        try { val dm = ctx.resources.displayMetrics; minOf(dm.widthPixels, dm.heightPixels) / (pixelRatioUsed.coerceAtLeast(1f) * 747.0) } catch (e: Throwable) { 1.0 }
+    private val carShortPx: Int by lazy {
+        try { val dm = ctx.resources.displayMetrics; minOf(dm.widthPixels, dm.heightPixels) } catch (e: Throwable) { 720 }
     }
-    private val kEff: Double get() = if (onCar) (carBase * carUser).coerceIn(0.4, 3.0) else uiK
+    private val kEff: Double get() = if (onCar) {
+        val pr = pixelRatioUsed.coerceAtLeast(0.5f)
+        // (the cards' unit at Overall size 100%: what the car screen sent with setUiPx, without Overall size)
+        val unit = (uiK * pr / carUser).toFloat()
+        (ScreenFit.carSignPx(unit, carShortPx) * carUser / pr).coerceIn(0.4, 3.0)
+    } else uiK
 
     /**
      * The size for a sign on the map drawn from picture [id] (or [fallbackW] map units wide when it isn't added yet): [baseUi]
@@ -3299,12 +3312,12 @@ class MapBinding(private val ctx: Context, fast: Boolean = false, res: Float = 1
      * number of pixels, so they came out a different size on every screen. With [perFeature], each feature's "sc" (its own size
      * setting) multiplies it too.
      */
-    private fun signSize(id: String, baseUi: Double, perFeature: Boolean = false, fallbackW: Float = 48f): Expression {
+    private fun signSize(id: String, baseUi: Double, perFeature: Boolean = false, fallbackW: Float = 48f, routeMin: Boolean = true): Expression {
         val w = (imgW[id] ?: fallbackW).coerceAtLeast(4f).toDouble()
         val args = ArrayList<Expression>()
         args += Expression.linear(); args += Expression.zoom()
         for ((z, f) in signZooms) {
-            val size = signWidth(baseUi, z, f) / w
+            val size = signWidth(baseUi, z, f, routeMin) / w
             args += lit(z)
             args += if (perFeature) Expression.product(lit(size), Expression.coalesce(Expression.get("sc"), lit(1.0))) else lit(size)
         }

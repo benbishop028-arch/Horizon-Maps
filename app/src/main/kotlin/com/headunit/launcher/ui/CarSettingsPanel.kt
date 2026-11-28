@@ -164,7 +164,7 @@ internal fun CarSettingsPanel(engine: NavEngine, actions: CarActions, small: Boo
                         item { SetSwitch("st-soundbtn", L.t("Sound button on the map"), L.t("Off leaves more room for Recent places"), prefs.b(PreferenceKeys.CAR_SOUND_BTN, true)) { prefs.put(PreferenceKeys.CAR_SOUND_BTN, it) } }
                         item { SetSwitch("st-home", L.t("Home button"), L.t("Under the search bar"), prefs.b(PreferenceKeys.HOME_BTN, true)) { prefs.put(PreferenceKeys.HOME_BTN, it) } }
                         item { SetSwitch("st-work", L.t("Work button"), L.t("Under the search bar"), prefs.b(PreferenceKeys.WORK_BTN, true)) { prefs.put(PreferenceKeys.WORK_BTN, it) } }
-                        item { SetSwitch("st-cargps", L.t("Use the car's GPS"), L.t("Off uses only the phone's GPS. Try off if the arrow turns sideways or lags"), prefs.b(PreferenceKeys.CAR_GPS, true)) { prefs.put(PreferenceKeys.CAR_GPS, it) } }
+                        item { SetSwitch("st-cargps", L.t("Use the car's GPS"), L.t("Off uses only the phone's GPS for your position and direction. Try off if the arrow turns sideways or lags behind"), prefs.b(PreferenceKeys.CAR_GPS, true)) { prefs.put(PreferenceKeys.CAR_GPS, it) } }
                         val cluster = prefs.b(PreferenceKeys.CLUSTER_MAP, true)
                         item { SetSwitch("st-clu", L.t("Map on the driver's display"), L.t("On cars that offer it"), cluster) { prefs.put(PreferenceKeys.CLUSTER_MAP, it) } }
                         if (cluster) item {

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Wc
@@ -308,7 +309,13 @@ private val LocalCarWidth = androidx.compose.runtime.compositionLocalOf { 1000.d
 private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions: CarActions, onCover: (Int) -> Unit, sizeScale: Float) {
     BoxWithConstraints(Modifier.fillMaxSize()) { CompositionLocalProvider(LocalCarWidth provides maxWidth) {
         val dens = LocalDensity.current
-        val cardScale = engine.prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).coerceIn(70, 150) / 100f
+        // making room (ScreenFit.needsRoom): when the cards on the left cover too much of the map, they're drawn a size smaller and
+        // the optional cards (services, car parks, advice) are left off. Kept until the screen or the size settings change, so it
+        // can't go back and forth as they shrink
+        val cardSize0 = engine.prefs.i(PreferenceKeys.CAR_CARD_SIZE, 100).coerceIn(70, 150)
+        var tight by remember(maxWidth.value.toInt(), maxHeight.value.toInt(), cardSize0, sizeScale) { mutableStateOf(false) }
+        androidx.compose.runtime.SideEffect { if (engine.carTight != tight) engine.carTight = tight }
+        val cardScale = cardSize0 / 100f * (if (tight) com.headunit.launcher.ScreenFit.TIGHT_SCALE else 1f)
         val buttonScale = engine.prefs.i(PreferenceKeys.CAR_BUTTON_SIZE, 100).coerceIn(70, 150) / 100f
         val requestedSpeedScale = engine.prefs.i(PreferenceKeys.CAR_SPEED_SIZE, 100).coerceIn(40, 180) / 100f
         // Conservative auto-fit for the compact layout; the edge-positioned layout applies a second fit to its exact bounds.
@@ -322,29 +329,22 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // arrangement cramped. Keep this threshold lower than before so medium-width landscape screens retain the map.
         // Infer constrained/split-screen surfaces from the actual available Compose area rather than device model.
         // Android Auto reports its usable surface here, so a split-screen map naturally trips these thresholds.
-        val aspect = maxWidth.value / maxHeight.value.coerceAtLeast(1f)
         // the screen's size at 100% (or as made smaller): which layout to use is picked from this, not from the enlarged units, so a
         // bigger Overall size makes everything bigger in the same layout instead of switching to the cramped small-screen one (#242)
         val layoutW = maxWidth * sizeScale.coerceAtLeast(1f)
         val layoutH = maxHeight * sizeScale.coerceAtLeast(1f)
         // Include shorter usable areas common in split-screen Android Auto and ultra-wide dashboards.
         // Use the available content bounds, not physical display dimensions, so insets are respected.
-        val lowVertical = layoutH < 460.dp
-        val narrow = layoutW < 900.dp
-        val wideLandscape = aspect > 2.0f
-        val compact = lowVertical || narrow || wideLandscape
-        // only a really short screen leaves the junction close-up and advice off (a 7-inch 800 x 480 unit counts as compact, but has room)
-        val tiny = layoutH < 330.dp
-        // short, wide screens (a 7-inch 800 x 480 unit) are laid out side by side, not stacked: stacked, the cards took the whole
-        // width and ran into each other and the speed (#67)
-        val shortWide = lowVertical && aspect >= 1.4f
-        val portrait = maxHeight > maxWidth * 1.1f || (narrow && !shortWide)
         // the layout for the space Android Auto actually leaves (the same car gets the roomy layout full-screen and a small one in
         // a split-screen tile): "short" keeps the essentials and one row of shortcuts; "tile" (split screen) only the turn, a
-        // one-line trip strip and the speed. Text stays its normal size: the layout gets simpler instead of smaller
-        val tile = tiny || (layoutW < 600.dp && lowVertical)
-        val short = !tile && lowVertical
-        val small = tile || short
+        // one-line trip strip and the speed. Text stays its normal size: the layout gets simpler instead of smaller. Picked in
+        // ScreenFit, where it's checked against real car screens
+        val lay = com.headunit.launcher.ScreenFit.carLayout(layoutW.value, layoutH.value, maxWidth.value, maxHeight.value)
+        val compact = lay.compact
+        val portrait = lay.portrait
+        val tile = lay.tile
+        val short = lay.short
+        val small = lay.small
         // Android Auto's split screen: the surface stays full size and only the tile's part of it is visible
         val splitView = a != null && a.width() < wPx * 0.75f
         // A short car screen is laid out as the app on a phone held sideways: the trip card bottom left with the route bar (the
@@ -406,7 +406,10 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         }
         // (the turn card's width, which the trip card under it on the same side takes too, so the two line up)
         // (Settings › Android Auto › sizes › Turn card width, ZarulOfficial #317; never more than about half the screen)
-        val turnWK = engine.prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).coerceIn(60, 130) / 100f
+        // (once sized with its own sliders it keeps that size whatever Overall size becomes: [pinTurnCard], by email)
+        val turnPin = engine.prefs.i(PreferenceKeys.CAR_TURN_AT_SCALE, 0)
+        val turnK = if (turnPin in 40..300) turnPin / engine.prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300).toFloat() else 1f
+        val turnWK = engine.prefs.i(PreferenceKeys.CAR_TURN_WIDTH, 100).coerceIn(60, 130) / 100f * turnK
         val turnCardW = (if (portrait) topW else if (small) minOf(340.dp, maxWidth * 0.42f) else minOf(420.dp, maxWidth * 0.36f)).let { (it * turnWK).coerceAtMost(maxWidth * (if (portrait) 1f else 0.55f)) }
         var turnH by remember { mutableStateOf(0) }
         var turnW by remember { mutableStateOf(0) }
@@ -458,7 +461,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // roadworks on the turn card show once, as the line on the card: the pop-up for them is left out while the card is
         // there (desko1973, #309). Accidents and closures still get their pop-up.
         val worksOnCard = showTurn && inc != null && inc.label == "Roadworks"
-        val incShown = inc != null && (alert?.kind != "incident" || worksOnCard)
+        val incShown = inc != null && ((alert?.kind != "incident" && alert?.kind != "jam") || worksOnCard)
         // (while the average speed card shows under the turn card, it takes the speed camera line's place, so the column
         // doesn't grow too tall on a short car screen: magnazan, #177)
         val camShown = cam != null && alert?.kind != "camera" && engine.avgInfo == null
@@ -509,6 +512,13 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
         // #324). Forgotten when the lines themselves change
         val extraWhat = "${engine.parkingNear.size}|${engine.avgInfo != null}|${engine.lorryWarn != null}|${engine.servicesAhead.size}|${engine.advice != null}"
         val grownH = remember(extraWhat) { intArrayOf(0) }
+        // (judged once the cards have been laid out: their share of the screen beside the map)
+        LaunchedEffect(turnW, aboveH, bottomColH, portrait) {
+            if (tight || turnW == 0 || portrait) return@LaunchedEffect
+            kotlinx.coroutines.delay(400)
+            val cover = turnW.toFloat() * (aboveH + bottomColH) / (wPx * hPx).coerceAtLeast(1f)
+            if (com.headunit.launcher.ScreenFit.needsRoom(cover, portrait)) tight = true
+        }
         val extraFreePx = with(dens) { (maxHeight - top - bottom - 12.dp).toPx() } - bottomColH - aboveH - (if (tripCol) tripColH else 0) - (if (speedUnderTurn) speedUnderH else 0)
         // (judged a moment after each change, once the card has been laid out again: judged straight away, the card's height was
         // still the old, taller one, so every line was taken away in one go and the car parks never came back, Dotancom #324)
@@ -526,7 +536,7 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
             Column(verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
               Column(Modifier.onSizeChanged { aboveH = it.height }, verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 8.dp)) {
                 // (the car's "Navigation arrow size" is the arrow on the map, as on the phone: CarNav applies it there)
-                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale * turnK, dens.fontScale)) {
                     engine.turn?.let { t -> ImmTurnCard(engine, t, compact = compact, car = true, slim = slimNow,
                         footer = {
                             if (incShown || camShown) Column(Modifier.fillMaxWidth().background(GmGreenDeep).padding(horizontal = 14.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -536,12 +546,12 @@ private fun CarScreenBody(engine: NavEngine, a: android.graphics.Rect?, actions:
                             // a lorry's limit ahead, an average speed check (magnazan, #177), the next services, car parks near the
                             // end and advice for the conditions, as lines of the card instead of cards stacked under it
                             // (car parks are their own card again, under it: liked better that way)
-                            TurnCardExtras(engine, extraMax, advice = !small, parking = false)
+                            TurnCardExtras(engine, extraMax, advice = !small && !tight, parking = false)
                         }) }
                 }
                 // the next services: a card of its own under the turn card again, not joined to it (not on a tile: no room)
                 // ...and car parks near the end, a card of their own too, as they were before they joined the turn card
-                if (!tile && !tripCol) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
+                if (!tile && !tripCol && !tight) CompositionLocalProvider(LocalDensity provides Density(dens.density * cardScale, dens.fontScale)) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ServicesCard(engine); ParkingCard(engine) }
                 }
               }
@@ -1028,6 +1038,12 @@ private fun TripCard(engine: NavEngine, actions: CarActions, fill: Boolean, oneL
         if (fill) Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.weight(1f).carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) { stats(true) }
             if (on.isNotEmpty()) Row(Modifier.padding(start = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) { buttons(36.dp) }
+        // three buttons or more: the figures on top and the buttons in a row under them, so the card stays narrow and the road
+        // and the street name under the arrow stay clear (one long row ran right across the bottom of the screen, by email)
+        } else if (on.size >= 3) Column(Modifier.width(IntrinsicSize.Max).widthIn(min = 250.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }
+            .padding(start = 16.dp, end = 12.dp, top = 4.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { stats(false) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) { buttons(40.dp) }
         } else Row(Modifier.widthIn(min = if ((on - "stop").size >= 3) minOf(400.dp, LocalCarWidth.current * 0.45f) else 0.dp).onSizeChanged { if (it.width != rowW) rowW = it.width }.padding(start = 16.dp, end = 10.dp, top = 4.dp, bottom = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(Modifier.carTap("trip-figs") { actions.stops() }, horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) { stats(false) }

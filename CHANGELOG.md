@@ -4,9 +4,32 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 
 ## Unreleased
 
+### New
+
+### Improved
+- Sizes that suit every screen: the rules for how big things are and which layout a screen gets are now in one place, and checked automatically against 20-odd real car screens, phones and head units on every build, so a fix for one screen can't quietly break another. On Android Auto, the signs on the map now follow the same size as the cards (they were worked out separately and didn't always agree), and a small screen that reports a very sharp picture no longer gets cards made for a big one
+- Room for the map: when the cards beside the map would cover too much of it (a large Overall size, or a small landscape screen), they're drawn a size smaller and the services and car park cards are left off, on Android Auto and in the app. The problem report now says the car screen's size and which layout it got
+- Android Auto trip card with several buttons: with three or more buttons on it, the figures go on top and the buttons in a row underneath, so the card stays narrow and the road and the street name under your arrow stay clear
+- Android Auto turn card keeps its size: once you've set its own width, height or arrow size (Settings › Android Auto › Advanced car-screen sizes), changing Overall size no longer changes it. Putting them back to 100% has it follow Overall size again. The button that opens those settings is now in the app's colour, so it's easy to find
+- Pop-ups clear of the turn card: on a short screen, such as a phone in landscape, a pop-up that would cover the turn card and its lanes now shows on the other side, above the speedometer
+- Speed bumps on the map only when close: their markers show about 100 m ahead (a little further at speed), not all along the route from far off (thanks to desko1973, #476)
+- Calmer alerts: only speed cameras, sharp bends, traffic jams and the wrong-way warning pop up on screen to start with, and only one at a time (one that comes while another shows waits its turn; a camera goes first). The other warnings are still said or chimed, and Settings › Alerts › Hazards › "Other warnings as pop-ups" brings their pop-ups back. A new speed limit is now just said, and only when it's lower than the one before, with no chime or pop-up (Settings › Alerts › Speed has "Also when it goes up", and the chime and pop-up can be turned back on there), and isn't said over a direction or another warning: the sign by the speedometer still changes and pulses
+- Fewer repeated directions: the "…then at the roundabout take the 2nd exit" part is no longer added to the early call-out well before a turn, and is only said when the next move really comes straight after (about 10 seconds on), not whenever it was within 450 m
+
+### Fixed
+- Android Auto search: what you'd typed was wiped out after three letters on some cars, so a search never got further. While it searches, the list now says "Searching…" instead of switching to Android Auto's spinner, which emptied the search box. The search button also goes straight to the search screen with the keyboard (and Home, Work, recent and saved places), instead of the app's search card first and then that (thanks to Dry-Secretary2456)
+- Sending a report froze a slow head unit for several seconds after a crash: the crash record is now read quickly, in the background, and the report also says why the app was stopped, where Android recorded it (thanks to MAIS-dev, #475)
+- U-turn arrow the wrong way round where they drive on the left (India, Britain…): the turn card and the driver's display showed a U-turn going round to the left; it now goes round to the right (thanks to Srikanth1022v, #474)
+- Taken past the door and round the block near the destination: a route planned again on the way could go right past where you're going and on for 800 m just to arrive on your side of the road. That's now checked on re-planned routes too, and the plain way is used when it's quicker (thanks to Srikanth1022v, #474)
+- Road names hidden under traffic on the TomTom and OpenStreetMap maps: the green of free-flowing roads (and the other traffic colours) was drawn over the names; it now goes under them, as on the Mapbox map
+- Re-routing on head units whose GPS sends no speed: since the last update, going off the route might not have found a new route on those units, as they looked as if they were standing still
+- Zebra crossing stripes on Android Auto: they're now drawn to the width of the road on the car screen too (they could come out too big or too small there)
+- Belisha beacons that seemed to be missing: on sharp phone screens they were drawn only a few pixels across, so they couldn't be made out at zebra crossings. They're now sized like the stop signs (much bigger on phones, a little bigger on head units and Android Auto), and zebras in Ireland get them too (thanks to karthikeyansr-lgtm, #427)
+
 ## 1.0.1053 — 28 Nov 2026
 
-- Small fixes and improvements
+### Fixed
+- Belisha beacons at every zebra crossing: crossings drawn with their stripes but no beacons were ones mapped a different way in OpenStreetMap (crossing_ref=zebra, or in Britain any marked crossing with no signals, which is a zebra by law). The beacons are also about 60% bigger and show from further out (thanks to karthikeyansr-lgtm, #427)
 
 ## 1.0.1051 — 28 Nov 2026
 
@@ -14,7 +37,6 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 - The problem report says where a crash in the map's own code happened (the signal and the first library or function names), to track down crashes that leave nothing else behind (thanks to MAIS-dev, #460)
 
 ### Fixed
-- Belisha beacons at every zebra crossing: crossings drawn with their stripes but no beacons were ones mapped a different way in OpenStreetMap (crossing_ref=zebra, or in Britain any marked crossing with no signals, which is a zebra by law). The beacons are also about 60% bigger and show from further out (thanks to karthikeyansr-lgtm, #427)
 - Map stuck in night light: choosing Day or Night in Settings could leave the map as it was when the app already looked that way, and the map is never left in the settings preview's Day or Night light now
 
 ## 1.0.1049 — 28 Nov 2026
@@ -22,17 +44,14 @@ Everything that has changed in Horizon Nav, newest first. Each version lists wha
 ### New
 - Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
 - Dim the screen in tunnels: Settings › Screen › "Dim the screen in tunnels" dims the screen while your route goes through a tunnel, day or night (it needs the route to know about the tunnel, which Mapbox routes do) (thanks to desko1973, #471)
-- Use the car's GPS: a switch in Settings › Android Auto and in the car's own settings. Off uses only the phone's GPS for your position and direction, for cars whose own GPS is slow or gives a wrong direction (the 3D car turning sideways, the map lagging). On by default, as it was (thanks to AlixzanderDB)
 
 ### Improved
-- The problem report says where a crash in the map's own code happened (the signal and the first library or function names), to track down crashes that leave nothing else behind (thanks to MAIS-dev, #460)
 - OpenStreetMap map not appearing: the check that explains a blank map now asks about OpenFreeMap (where that map comes from) instead of Mapbox, and says what's wrong: its server not answering, nothing being drawn, or the connection being blocked. The problem report says the result too (thanks to karthikeyansr-lgtm, #464)
 - Lighter on slow head units: standing still (at a red light or parked with a route), the route isn't re-drawn every second, the driven line isn't re-sent, the flowing light and blinking lane arrows pause, and it no longer re-plans over and over when parked beside the road. In the background the map isn't asked to draw at all and the app wakes up ten times a second instead of at every screen refresh. Driving with the app in front is unchanged (thanks to stingone, #463)
 - Search finds places abroad: when a search in your own country finds nothing (or only a couple of places once you've finished typing), it's asked again everywhere, so a city in another country is found without changing the Search country setting (thanks to hvdwolf, #469)
 - Signs and cards on the Android Auto map are sized from the car screen itself (the same share of it on every car screen) and grow with Overall size: they were huge on some screens and tiny on others (thanks to desko1973, #470)
 
 ### Fixed
-- Map stuck in night light: choosing Day or Night in Settings could leave the map as it was when the app already looked that way, and the map is never left in the settings preview's Day or Night light now
 - Warnings about things above a tunnel: speed bumps, schools and crossings on a road over or beside a tunnel are no longer warned about, or drawn, while you drive through it (thanks to desko1973, #471)
 - Wrong school warnings: a school is only warned about when it's close to your road (about 60 m), not when it's 90 m off, such as one near a roundabout at the end of the street (thanks to joel941703-hash, #462)
 

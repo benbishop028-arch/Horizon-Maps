@@ -112,8 +112,20 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     /** Recalculate the camera's automatic zoom for the actual Android Auto display, not just its pixel count.
      * Inputs are surface pixels and the display's DPI. The short edge controls the base adjustment and
      * aspect ratio adds a smaller correction for unusually narrow/tall or very wide screens. */
+    /** The car screen's cards are drawn a size smaller to leave the map room ([ScreenFit.needsRoom]), for the problem report. */
+    @Volatile var carTight = false
+    /** The car screen's size, the dpi it reports, its layout and Overall size, for the problem report ("" before a car screen). */
+    fun carScreenLine(): String {
+        val (w, h, dpi) = carScreen
+        if (w <= 0) return ""
+        val user = prefs.i(PreferenceKeys.CARSCALE, 100).coerceIn(40, 300)
+        return ScreenFit.carNote(w, h, dpi, user / 100f) + ", Overall size $user%" + (if (carTight) ", cards a size smaller to leave the map room" else "")
+    }
+    /** The car screen as it was last reported, for the problem report. */
+    @Volatile private var carScreen = Triple(0, 0, 0)
     fun setCarViewport(widthPx: Int, heightPx: Int, dpi: Int) {
         if (!isCar || widthPx <= 0 || heightPx <= 0 || dpi <= 0) return
+        carScreen = Triple(widthPx, heightPx, dpi)
         // Keep viewport sizing as a pure policy so its boundaries can be unit-tested without a map SDK.
         carViewportZoomOffset = NavigationPolicy.carViewportZoomOffset(widthPx, heightPx, dpi)
     }
@@ -299,6 +311,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val avgAlerted = HashSet<Long>()
     private val hzAlerted = HashSet<String>()
     private var lastBumpAt = 0L
+    /** Which speed bumps the map is showing (see the hazard checks), so the list is only sent when it changes. */
+    private var bumpsShownSig = 0
     private val zoneAlerted = HashSet<String>()
     private var barSig = 0
     private var servicesSig = 0
@@ -1024,10 +1038,52 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     }
 
     /** Puts an alert on screen as a prominent banner. */
+    /**
+     * Shows a pop-up, one at a time. Only speed cameras, sharp bends and traffic jams pop up unless Settings › Alerts › Other
+     * warnings as pop-ups is on (the rest are still said or chimed as set): with everything popping up there was too much to take
+     * in (by email). One that comes while another is showing waits its turn, and is dropped if it has waited too long to still be
+     * true. A camera takes over from the one showing (that one comes back after it: a bend's only if you're not through it yet).
+     */
     fun raiseAlert(kind: String, text: String, ms: Long = 5000) {
-        alert = AlertInfo(kind, text, ms)
+        if (!popupAllowed(kind)) return
+        // (the waiting list is only touched on the main thread)
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) { scope.launch { raiseAlert(kind, text, ms) }; return }
+        val a = AlertInfo(kind, text, ms)
+        val cur = alert
+        when {
+            cur == null || cur.kind == kind -> showAlert(a)
+            // (a camera can't wait: it takes the place of the one showing, which comes back after it)
+            kind == "camera" -> { alertQueue.removeAll { it.first.kind == cur.kind }; alertQueue.addFirst(cur to System.currentTimeMillis()); showAlert(a) }
+            else -> { alertQueue.removeAll { it.first.kind == kind }; alertQueue.addLast(a to System.currentTimeMillis()) }
+        }
+    }
+    private fun popupAllowed(kind: String): Boolean =
+        kind == "camera" || kind.startsWith("bend") || kind == "jam" || kind == "limit" || kind == "wrongway" || prefs.b(PreferenceKeys.ALL_POPUPS, false)
+    /** Pop-ups waiting for the one on screen to go, with when they came. */
+    private val alertQueue = ArrayDeque<Pair<AlertInfo, Long>>()
+    private fun showAlert(a: AlertInfo) {
+        alert = a
         val t = ++alertToken
-        scope.launch { delay(ms); if (t == alertToken) alert = null }
+        scope.launch { delay(a.ms); if (t == alertToken) { alert = null; nextAlert() } }
+    }
+    /** Takes the pop-up on screen away (a bend you're through), and shows the next one waiting, if any. */
+    private fun clearAlert(prefix: String) {
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) { scope.launch { clearAlert(prefix) }; return }
+        alertQueue.removeAll { it.first.kind.startsWith(prefix) }
+        if (alert?.kind?.startsWith(prefix) == true) { alertToken++; alert = null; nextAlert() }
+    }
+    private fun nextAlert() {
+        scope.launch {
+            // (a short gap, so it's clear a new one has come)
+            delay(500)
+            if (alert != null) return@launch
+            val now = System.currentTimeMillis()
+            while (alertQueue.isNotEmpty()) {
+                val (a, at) = alertQueue.removeFirst()
+                // (a bend's "take it at" stays true until you're through it, which takes it off the list; the rest go stale)
+                if (a.kind.startsWith("bend") || now - at < 12_000L) { showAlert(a); return@launch }
+            }
+        }
     }
 
     /** Plays a sample alert (chime, banner and voice) so the sound can be checked. */
@@ -1510,6 +1566,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
 
     /** Speed from the car (Car App API 3, m/s, the dashboard's figure): used instead of the GPS speed while the car gives one. */
     @Volatile private var carSpeedMs: Double? = null
+    /** The last position came with a speed (some head-unit GPS chips send none, so a 0 there doesn't mean standing still). */
+    @Volatile private var speedKnown = true
     fun onCarSpeed(mps: Double?) { carSpeedMs = mps }
 
     override fun onLocationChanged(l: Location) {
@@ -1568,6 +1626,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (prev == null || Geo.dist(prev, cur) > 6) lastRaw = cur
         // (the car's own speed when Android Auto gives one, else the GPS speed: #409)
         val speed = carSpeedMs ?: if (l.hasSpeed()) l.speed.toDouble() else 0.0
+        speedKnown = carSpeedMs != null || l.hasSpeed()
         val realFix = Fix(cur, h, speed, if (l.hasAltitude()) l.altitude else 0.0, if (l.hasAccuracy()) l.accuracy.toDouble() else 0.0)
         demoGpsFix.update(realFix)
         // (when the last real fix came in, so arrival is never decided on an old position: #419)
@@ -1749,15 +1808,21 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val now = System.currentTimeMillis()
             // back to the limit just left within 40 s (50 to 30 to 50 in a short stretch): the sign changes, but it isn't announced again
             val flicker = n == prevAnnouncedLimit && now - announcedLimitAt < 40_000
+            // (a higher limit isn't said unless Also when it goes up is on: the sign changes and pulses. A lower one is what matters)
+            val up = n > announcedLimit && !prefs.b(PreferenceKeys.LIMIT_UP_TOO, false)
             prevAnnouncedLimit = announcedLimit; announcedLimitAt = now
             announcedLimit = n; candidateHits = 0; limitCandidate = -1
             // "Warnings only" (sound mode 1) is for warnings, so a plain limit change isn't spoken or chimed in it
-            if (flicker || soundMode != 0) { limitPulse = true; scope.launch { delay(3500); limitPulse = false }; return }
+            if (flicker || up || soundMode != 0) { limitPulse = true; scope.launch { delay(3500); limitPulse = false }; return }
             // Settings > Alerts > When the limit changes: chime and voice, the voice alone, or the chime alone
             // (Settings › Alerts › Speed limit sounds off: no beep or voice for it, the other alerts as they are; Pop-up when the limit
             // changes off: no banner, the sign by the speedometer still pulses)
-            val how = if (prefs.b(PreferenceKeys.LIMIT_SOUNDS, true)) prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "both") else "none"
-            if (prefs.b(PreferenceKeys.LIMIT_POPUP, true)) raiseAlert("limit", L.t("Speed limit {0}", n))
+            // (not piled on top of other prompts: with a direction just said or about to be, or another warning on screen, the new
+            // limit is shown on the sign by the speedometer, which pulses, but not chimed, said or popped up over the other one.
+            // Everything at once was too much to take in, by email)
+            val busy = now - lastSpokenAt < 5000L || (turn?.dist ?: Double.MAX_VALUE) < 150.0 || alert.let { it != null && it.kind != "limit" }
+            val how = if (busy) "none" else if (prefs.b(PreferenceKeys.LIMIT_SOUNDS, true)) prefs.s(PreferenceKeys.LIMITCHANGE_HOW, "voice") else "none"
+            if (!busy && prefs.b(PreferenceKeys.LIMIT_POPUP, false)) raiseAlert("limit", L.t("Speed limit {0}", n))
             if (how == "both" || how == "chime") chime()
             if (how == "both" || how == "voice") {
                 // after the chime has finished, so the two don't talk over each other (on some units the voice was lost under it)
@@ -1879,6 +1944,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             // what Android Auto checks before listing the app (Play as installer, the system installer as initiating)
             appendLine("Install record: ${Updater.installRecord(ctx)}")
             if (lastPlanTiming.isNotBlank()) appendLine("Last route planned in: $lastPlanTiming")
+            try { (if (isCar) this@NavEngine else com.headunit.launcher.car.ClusterLink.engine)?.carScreenLine()?.takeIf { it.isNotBlank() }?.let { appendLine("Car screen: $it") } } catch (e: Throwable) { }
             if (limitInfo.isNotBlank()) appendLine("Speed limit last shown: $limitInfo")
             try { RouteEnds.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Last routes ended:"); append(it) } } catch (e: Throwable) { }
             try { com.headunit.launcher.car.CarCardLog.text(ctx).takeIf { it.isNotBlank() }?.let { appendLine(); appendLine("Car search card closed:"); append(it) } } catch (e: Throwable) { }
@@ -3352,7 +3418,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private fun bendTick(r: Route, prog: Double) {
         if (bendAlertEnd >= 0.0 && (prog > bendAlertEnd + 10.0 || sharpFor !== r)) {
             bendAlertEnd = -1.0
-            if (alert?.kind?.startsWith("bend") == true) alert = null
+            clearAlert("bend")
         }
         if (sharpFor !== r || sharpBends.isEmpty() || !prefs.b(PreferenceKeys.BEND_WARN, true)) return
         val spd = fix?.speed ?: 0.0
@@ -5086,7 +5152,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         }
         // (not while standing still off the road, in a driveway or a car park: the new route starts on the road, you're still off it,
         // and it re-planned about every 5 s for as long as you stood there, stingone #463)
-        if (gpsReliableForReroute && (s.dist > offLim || jump) && (jump || p.speed >= 1.0)) {
+        if (gpsReliableForReroute && (s.dist > offLim || jump) && (jump || p.speed >= 1.0 || !speedKnown)) {
             if (newFix) {
                 // well off the route counts double, so a wrong turn is noticed in about two seconds instead of four or more
                 offCount += NavigationPolicy.offRouteStrikeCount(jump, s.dist, offLim)
@@ -5403,6 +5469,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
     private val panels = Array(3) { FloatArray(4) }
 
 
+    /** Panel [i]'s outline as parts of the screen (left, top, right, bottom), all 0 when not known. */
+    fun panelAt(i: Int): FloatArray = if (i in panels.indices) panels[i].copyOf() else FloatArray(4)
     fun setPanel(i: Int, l: Float, t: Float, r: Float, b: Float) {
         if (i !in panels.indices) return
         val p = panels[i]; p[0] = l; p[1] = t; p[2] = r; p[3] = b
@@ -5921,7 +5989,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val diff = abs(((Geo.bearing(p.pos, r.pos) - p.heading + 540.0) % 360.0) - 180.0)
             if (diff < 50 && policeAlerted.add(r.t)) {
                 chime(android.media.ToneGenerator.TONE_PROP_PROMPT)
-                raiseAlert(if (r.kind == "mobilecam") "camera" else "report", L.t("{0} reported ahead", L.t(reportName(r.kind))))
+                raiseAlert(if (r.kind == "mobilecam") "camera" else if (r.kind == "traffic") "jam" else "report", L.t("{0} reported ahead", L.t(reportName(r.kind))))
                 speak(L.t("{0} reported ahead", L.t(reportName(r.kind))), true)
             }
         }
@@ -6330,7 +6398,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (d < 8000 && incAlerted.add(next.first.id)) {
             val mins = next.first.delaySec / 60
             val sx = if (mins >= 2) L.t(", about {0} minutes delay", mins) else ""
-            raiseAlert("incident", L.t("{0} ahead, {1}", L.t(next.third), Geo.fmtDist(d, imperial)) + sx, 7000)
+            raiseAlert(if (next.first.cat == "jam") "jam" else "incident", L.t("{0} ahead, {1}", L.t(next.third), Geo.fmtDist(d, imperial)) + sx, 7000)
             speak(L.t("{0} ahead in {1}{2}", L.t(next.third), Geo.spoken(d, imperial), sx), true)
         }
     }
@@ -7017,8 +7085,9 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             val familiar = prefs.b(PreferenceKeys.SMARTVOICE, true) && onRoad.isNotBlank() && (roadFam[onRoad] ?: 0) >= 6
             val fFrom = if (familiar) 330.0 else 520.0
             // a heads-up well ahead on fast roads, then the main call-out, then the final one at the junction
+            // (the early heads-up names just this turn: the one after it was said three times over, from 1.5 km out)
             if (!familiar && d <= 1700 && d > 1100 && p0Speed() > 18.0 && !arriving && said.add("${sk}e"))
-                speak(L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase))
+                speak(L.t("In {0}, {1}", Geo.spoken(d, imperial), smartPhrase(cur, null, word, tail)))
             if (d <= fFrom && d > 200 && said.add("${sk}f"))
                 speak(if (lmPhrase.isNotEmpty()) lmPhrase + lane else if (arriving) L.t("In {0}, you will arrive", Geo.spoken(d, imperial)) + (if (side.isNotEmpty()) ". " + L.t("Your destination is on the $side") else "") else L.t("In {0}, {1}", Geo.spoken(d, imperial), phrase) + lane)
             if (d <= 120 && said.add("${sk}n"))
@@ -7382,7 +7451,10 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             refs.isNotEmpty() && exitLike -> L.t(" for the {0}", refs[0])
             else -> tail
         }
-        if (nxt != null && nxt.off - cur.off in 1.0..450.0 && !nxt.maneuver.uppercase().startsWith("ARRIVE")) {
+        // "then …" only when the next move really follows straight after (about 10 seconds on, at least 200 m, at most 450 m): it was
+        // added whenever the next turn was within 450 m, so a roundabout well after the turn was announced again and again
+        val thenWithin = (p0Speed() * 10.0).coerceIn(200.0, 450.0)
+        if (nxt != null && nxt.off - cur.off in 1.0..thenWithin && !nxt.maneuver.uppercase().startsWith("ARRIVE")) {
             val target = signRefs(nxt.sign).firstOrNull() ?: nxt.street
             val forWhat = when {
                 target.isBlank() || !sayRoads -> ""
@@ -7818,7 +7890,7 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
         if (hzWinRoute !== r) {
             rawHz = emptyList(); hzWinRoute = r; hzWinEnd = -1.0; hzRetryAt = 0L
             placed = null; placedSig = 0
-            map.setStopSigns(emptyList()); map.setGiveWaySigns(emptyList()); map.setCrossings(emptyList()); map.setSpeedBumps(emptyList())
+            map.setStopSigns(emptyList()); map.setGiveWaySigns(emptyList()); map.setCrossings(emptyList()); map.setSpeedBumps(emptyList()); bumpsShownSig = -1
         }
         barProgress = progress
         val d = dest
@@ -7915,7 +7987,8 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
                     map.setCrossings(if (zebraOn) pl.hz.filter { it.poi.kind == "crossing" && it.poi.name in setOf("zebra", "marked", "uncontrolled") }
                         .take(300).map { Triple(it.poi.pos, pointAt(r, it.off).second, it.poi.name == "zebra") } else emptyList())
                     // Speed bumps and raised tables are also marked on the map, reusing the existing route lookup.
-                    map.setSpeedBumps(if (bumpOn) pl.hz.filter { it.poi.kind == "bump" }.take(300).map { it.poi.pos } else emptyList())
+                    // (drawn only once close: see the hazard checks as you drive, #476)
+                    bumpsShownSig = -1; map.setSpeedBumps(emptyList())
                     // STOP and Give Way signs on the route (only where OpenStreetMap has a road-matched sign)
                     map.setStopSigns(if (stopSignsOn) pl.hz.filter { it.poi.kind == "stop" }.take(300).map { it.poi.pos } else emptyList())
                     map.setGiveWaySigns(if (stopSignsOn) pl.hz.filter { it.poi.kind == "give_way" }.take(300).map { it.poi.pos } else emptyList())
@@ -8017,6 +8090,19 @@ class NavEngine(private val ctx: Context, val prefs: Prefs, val map: MapBinding)
             else { raiseAlert("ford", L.t("Ford ahead: the road may be flooded"), 7000); speak(L.t("Ford ahead. The road may be flooded"), true) }
         }
 
+        // speed bump markers on the map only when one is close ahead (about 100 m, a little more at speed), not all along the route
+        // from far off: on Android Auto they showed from a long way away (desko1973, #476). Sent to the map only when that changes
+        run {
+            val reach = max(100.0, sp * 7.0).coerceAtMost(250.0)
+            var near: ArrayList<LL>? = null
+            if (prefs.b(PreferenceKeys.BUMPS, true)) for (h in pl.hz) {
+                if (h.poi.kind != "bump") continue
+                val ahead = h.off - progress
+                if (ahead >= -15.0 && ahead <= reach) (near ?: ArrayList<LL>().also { near = it }).add(h.poi.pos)
+            }
+            val sig = near?.hashCode() ?: 0
+            if (sig != bumpsShownSig) { bumpsShownSig = sig; map.setSpeedBumps(near ?: emptyList()) }
+        }
         // speed bumps and schools just ahead
         for (h in pl.hz) {
             val ahead = h.off - progress

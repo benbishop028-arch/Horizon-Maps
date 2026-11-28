@@ -255,7 +255,7 @@ class ClusterSurface(private val carContext: CarContext) : SurfaceCallback {
         return when {
             m.startsWith("ARRIVE") -> "⚑"
             m.contains("ROUNDABOUT") || m.contains("ROTARY") -> "↻"
-            m.contains("UTURN") || m.contains("U_TURN") -> if (m.contains("RIGHT")) "↷" else "↶"
+            m.contains("UTURN") || m.contains("U_TURN") -> if (m.contains("RIGHT") || (!m.contains("LEFT") && ClusterLink.engine?.roundaboutClockwise == true)) "↷" else "↶"
             m.startsWith("SHARP") && m.contains("LEFT") -> "↙"
             m.startsWith("SHARP") && m.contains("RIGHT") -> "↘"
             (m.contains("SLIGHT") || m.contains("BEAR") || m.contains("KEEP") || m.contains("EXIT") || m.contains("RAMP") || m.contains("FORK")) && m.contains("LEFT") -> "↖"

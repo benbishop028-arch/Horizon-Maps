@@ -306,9 +306,10 @@ fun androidx.compose.ui.graphics.drawscope.DrawScope.drawManeuver(maneuver: Stri
         return
     }
     if (u == "MAKE_UTURN" || u == "ROUNDABOUT_BACK" || u == "LEFT_U_TURN" || u == "RIGHT_U_TURN") {
-        // Direction-specific U-turns: the road stem and return curve mirror for left/right
-        // manoeuvres, while a generic U-turn retains the standard left-return symbol.
-        val rightReturn = u == "RIGHT_U_TURN"
+        // Direction-specific U-turns: the road stem and return curve mirror for left/right manoeuvres. A plain U-turn goes round
+        // the way the traffic does: to the right where they drive on the left (India, Britain…), where it was always drawn going
+        // round to the left (Srikanth1022v, #474)
+        val rightReturn = u == "RIGHT_U_TURN" || (u != "LEFT_U_TURN" && roundaboutClockwise)
         val x = if (rightReturn) 16f else 32f
         val otherX = if (rightReturn) 32f else 16f
         val startAngle = if (rightReturn) 180f else 0f

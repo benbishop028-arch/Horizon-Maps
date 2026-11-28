@@ -69,6 +69,8 @@ internal object PreferenceKeys {
     const val CAR_TURN_ARROW = "carturnarrow"
     const val CAR_TURN_HEIGHT = "carturnheight"
     const val CAR_TURN_WIDTH = "carturnwidth"
+    /** The Overall size (percent) the car's turn card was sized at with its own sliders, which it then keeps; 0 = follows Overall size. */
+    const val CAR_TURN_AT_SCALE = "carturnatscale"
     const val CAR_TEXT_SIZE = "cartextsize"
     const val CAR_SPEED_SIZE = "carspeedsize"
     /** The speed limit sign on the car screen, as a percentage of its usual size (pc4096: it looked too small beside the speedometer). */
@@ -106,6 +108,10 @@ internal object PreferenceKeys {
     const val CAM_HOW = "camhow"
     /** The camera banner on screen as you come up to one (#436). */
     const val CAM_POPUP = "campopup"
+    /** Say a new speed limit when it goes up too (off: only when it goes down). */
+    const val LIMIT_UP_TOO = "limituptoo"
+    /** Pop-ups for every warning (schools, bumps, weather…); off (the default) only cameras, sharp bends and traffic jams pop up. */
+    const val ALL_POPUPS = "allpopups"
     /** The services list along the route: motorway services only, without rest and picnic areas (#437). */
     const val SERVICES_MW_ONLY = "svcmwonly"
     const val VOICE = "voice"

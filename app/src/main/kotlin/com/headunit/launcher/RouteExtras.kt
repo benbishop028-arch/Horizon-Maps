@@ -144,9 +144,11 @@ object RouteExtras {
      */
     /**
      * A zebra crossing (the one with Belisha beacons): mapped as one in any of OpenStreetMap's ways (crossing=zebra, the markings,
-     * or the older crossing_ref=zebra), and in Britain any marked crossing with no signals, which by law is a zebra: a crossing
+     * or the older crossing_ref=zebra), and in Britain and Ireland any marked crossing with no signals, which by law is a zebra: a crossing
      * with its stripes drawn but no beacons at it was one of those (karthikeyansr-lgtm, #427).
      */
+    /** Britain and Ireland, where every zebra crossing has Belisha beacons by law. */
+    private val BEACON_LANDS = setOf("GB", "IE")
     private fun isZebra(t: JSONObject, uk: Boolean): Boolean {
         val cr = t.optString("crossing").lowercase()
         return cr == "zebra" || t.optString("crossing:markings").lowercase().contains("zebra") || t.optString("crossing_ref").lowercase() == "zebra" ||
@@ -170,7 +172,7 @@ object RouteExtras {
             val t = e.optJSONObject("tags") ?: continue
             val id = e.optLong("id")
             pos[id] = LL(e.getDouble("lat"), e.getDouble("lon"))
-            zebra[id] = isZebra(t, Overpass.countryAt(pos[id]!!) == "GB")
+            zebra[id] = isZebra(t, Overpass.countryAt(pos[id]!!) in BEACON_LANDS)
         }
         val out = LinkedHashMap<Long, Triple<LL, Double, Boolean>>()
         for (w in ways) {
@@ -226,7 +228,7 @@ object RouteExtras {
                     else if (t.optString("ford") == "yes") pois += RoutePoi("ford", "Ford", pos)
                     else if (t.optString("highway") == "crossing") {
                         val markings = t.optString("crossing:markings")
-                        val crossing = if (isZebra(t, Overpass.countryAt(pos) == "GB")) "zebra" else t.optString("crossing").ifBlank { markings }
+                        val crossing = if (isZebra(t, Overpass.countryAt(pos) in BEACON_LANDS)) "zebra" else t.optString("crossing").ifBlank { markings }
                         pois += RoutePoi("crossing", crossing, pos)
                     }
                     else if (t.has("traffic_calming")) pois += RoutePoi("bump", t.optString("traffic_calming"), pos)
